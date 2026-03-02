@@ -16,7 +16,7 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna;
+package com.googlecode.lanterna
 
 /**
  * SGR - Select Graphic Rendition, changes the state of the terminal as to what kind of text to print after this
@@ -24,7 +24,7 @@ package com.googlecode.lanterna;
  * one of these codes will make it apply to all text until you explicitly deactivate it. When you work with Screen and
  * GUI systems, usually the SGR is a property of an independent character and won't affect others.
  */
-public enum SGR {
+enum class SGR {
     /**
      * Bold text mode. Please note that on some terminal implementations, instead of (or in addition to) making the text
      * bold, it will draw the text in a slightly different color
@@ -70,6 +70,5 @@ public enum SGR {
     /**
      * Italic (cursive) text mode. Some Terminal seem to support it.
      */
-    ITALIC,
-    ;
+    ITALIC
 }
