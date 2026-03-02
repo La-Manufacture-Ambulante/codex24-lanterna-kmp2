@@ -1,35 +1,28 @@
-package com.googlecode.lanterna.examples;
+package com.googlecode.lanterna.examples
 
-import java.io.IOException;
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.screen.Screen
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.terminal.Terminal
+import java.io.IOException
 
-import com.googlecode.lanterna.TextCharacter;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
+class OutputChar {
+    companion object {
+        @JvmStatic
+        @Throws(IOException::class)
+        fun main(args: Array<String?>?) {
+            val terminal: Terminal = DefaultTerminalFactory().createTerminal()
+            val screen: Screen = TerminalScreen(terminal)
 
+            screen.startScreen()
+            screen.clear()
 
-/**
- * Creates a terminal and prints a '*' to the (10,10) position.
- * Waits for a keypress then exit.
- * 
- * @author Peter Borkuti
- *
- */
-public class OutputChar {
+            screen.setCharacter(10, 10, TextCharacter('*'))
+            screen.refresh()
 
-	public static void main(String[] args) throws IOException {
-		Terminal terminal = new DefaultTerminalFactory().createTerminal();
-		Screen screen = new TerminalScreen(terminal);
-
-		screen.startScreen();
-		screen.clear();
-
-		screen.setCharacter(10, 10, new TextCharacter('*'));
-		screen.refresh();
-
-		screen.readInput();
-		screen.stopScreen();
-	}
-
+            screen.readInput()
+            screen.stopScreen()
+        }
+    }
 }
