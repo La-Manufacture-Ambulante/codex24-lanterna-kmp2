@@ -16,127 +16,130 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.sun.jna.*;
-
-import java.util.Arrays;
-import java.util.List;
+import com.sun.jna.*
+import java.util.Arrays
 
 /**
  * Class containing common Win32 structures involved when operating on the terminal
  */
-public class WinDef {
+open class WinDef private constructor() {
 
-    public static final HANDLE INVALID_HANDLE_VALUE = new HANDLE(Pointer.createConstant(Pointer.SIZE == 8?-1L:4294967295L));
+    open class HANDLE : PointerType {
+        private var immutable: Boolean = false
 
-    public static class HANDLE extends PointerType {
-        private boolean immutable;
+        constructor()
 
-        public HANDLE() {
+        constructor(p: Pointer?) {
+            this.setPointer(p)
+            this.immutable = true
         }
 
-        public HANDLE(Pointer p) {
-            this.setPointer(p);
-            this.immutable = true;
+        override fun fromNative(nativeValue: Any?, context: FromNativeContext?): Any? {
+            val o = super.fromNative(nativeValue, context)
+            return if (WinDef.INVALID_HANDLE_VALUE == o) WinDef.INVALID_HANDLE_VALUE else o
         }
 
-        public Object fromNative(Object nativeValue, FromNativeContext context) {
-            Object o = super.fromNative(nativeValue, context);
-            return INVALID_HANDLE_VALUE.equals(o) ? INVALID_HANDLE_VALUE : o;
-        }
-
-        public void setPointer(Pointer p) {
-            if(this.immutable) {
-                throw new UnsupportedOperationException("immutable reference");
+        override fun setPointer(p: Pointer?) {
+            if (this.immutable) {
+                throw UnsupportedOperationException("immutable reference")
             } else {
-                super.setPointer(p);
+                super.setPointer(p)
             }
         }
 
-        public String toString() {
-            return String.valueOf(this.getPointer());
+        override fun toString(): String {
+            return java.lang.String.valueOf(this.pointer)
         }
     }
 
-    public static class WORD extends IntegerType implements Comparable<WORD> {
-        public static final int SIZE = 2;
+    open class WORD : IntegerType, Comparable<WORD> {
+        constructor() : this(0L)
 
-        public WORD() {
-            this(0L);
+        constructor(value: Long) : super(2, value, true)
+
+        override fun compareTo(other: WORD): Int {
+            return compare(this, other)
         }
 
-        public WORD(long value) {
-            super(2, value, true);
-        }
-
-        public int compareTo(WORD other) {
-            return compare(this, other);
+        companion object {
+            const val SIZE: Int = 2
         }
     }
 
-    public static class COORD extends Structure {
-        public short X;
-        public short Y;
+    open class COORD : Structure() {
+        @JvmField
+        var X: Short = 0
 
-        @Override
-        protected List getFieldOrder() {
-            return Arrays.asList("X", "Y");
+        @JvmField
+        var Y: Short = 0
+
+        override fun getFieldOrder(): List<String> {
+            return Arrays.asList("X", "Y")
         }
 
-        @Override
-        public String toString() {
-            return "COORD{" +
-                    "X=" + X +
-                    ", Y=" + Y +
-                    '}';
+        override fun toString(): String {
+            return "COORD{X=$X, Y=$Y}"
         }
     }
 
-    public static class SMALL_RECT extends Structure {
-        public short Left;
-        public short Top;
-        public short Right;
-        public short Bottom;
+    open class SMALL_RECT : Structure() {
+        @JvmField
+        var Left: Short = 0
 
-        @Override
-        protected List getFieldOrder() {
-            return Arrays.asList("Left", "Top", "Right", "Bottom");
+        @JvmField
+        var Top: Short = 0
+
+        @JvmField
+        var Right: Short = 0
+
+        @JvmField
+        var Bottom: Short = 0
+
+        override fun getFieldOrder(): List<String> {
+            return Arrays.asList("Left", "Top", "Right", "Bottom")
         }
 
-        @Override
-        public String toString() {
-            return "SMALL_RECT{" +
-                    "Left=" + Left +
-                    ", Top=" + Top +
-                    ", Right=" + Right +
-                    ", Bottom=" + Bottom +
-                    '}';
+        override fun toString(): String {
+            return "SMALL_RECT{Left=$Left, Top=$Top, Right=$Right, Bottom=$Bottom}"
         }
     }
 
-    public static class CONSOLE_SCREEN_BUFFER_INFO extends Structure {
-        public COORD      dwSize;
-        public COORD      dwCursorPosition;
-        public WORD       wAttributes;
-        public SMALL_RECT srWindow;
-        public COORD      dwMaximumWindowSize;
+    open class CONSOLE_SCREEN_BUFFER_INFO : Structure() {
+        @JvmField
+        var dwSize: COORD? = null
 
-        protected List getFieldOrder() {
-            return Arrays.asList("dwSize", "dwCursorPosition", "wAttributes", "srWindow", "dwMaximumWindowSize");
+        @JvmField
+        var dwCursorPosition: COORD? = null
+
+        @JvmField
+        var wAttributes: WORD? = null
+
+        @JvmField
+        var srWindow: SMALL_RECT? = null
+
+        @JvmField
+        var dwMaximumWindowSize: COORD? = null
+
+        override fun getFieldOrder(): List<String> {
+            return Arrays.asList("dwSize", "dwCursorPosition", "wAttributes", "srWindow", "dwMaximumWindowSize")
         }
 
-        @Override
-        public String toString() {
+        override fun toString(): String {
             return "CONSOLE_SCREEN_BUFFER_INFO{" +
-                    "dwSize=" + dwSize +
-                    ", dwCursorPosition=" + dwCursorPosition +
-                    ", wAttributes=" + wAttributes +
-                    ", srWindow=" + srWindow +
-                    ", dwMaximumWindowSize=" + dwMaximumWindowSize +
-                    '}';
+                "dwSize=$dwSize" +
+                ", dwCursorPosition=$dwCursorPosition" +
+                ", wAttributes=$wAttributes" +
+                ", srWindow=$srWindow" +
+                ", dwMaximumWindowSize=$dwMaximumWindowSize" +
+                '}'
         }
     }
 
-    private WinDef() {}
+    companion object {
+        @JvmField
+        val INVALID_HANDLE_VALUE: HANDLE =
+            HANDLE(Pointer.createConstant(if (Pointer.SIZE == 8) -1L else 4294967295L))
+    }
 }
