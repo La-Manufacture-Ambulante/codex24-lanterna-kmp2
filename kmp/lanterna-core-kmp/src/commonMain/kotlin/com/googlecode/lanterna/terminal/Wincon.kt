@@ -16,29 +16,45 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.sun.jna.ptr.IntByReference;
-import com.sun.jna.win32.StdCallLibrary;
+import com.sun.jna.ptr.IntByReference
+import com.sun.jna.win32.StdCallLibrary
 
 /**
  * Interface to Wincon, module in Win32 that can operate on the terminal
  */
-interface Wincon extends StdCallLibrary {
-    int STD_INPUT_HANDLE = -10;
-    int STD_OUTPUT_HANDLE = -11;
+internal interface Wincon : StdCallLibrary {
+    companion object {
+        @JvmField
+        val STD_INPUT_HANDLE: Int = -10
 
-    // SetConsoleMode input values
-    int ENABLE_PROCESSED_INPUT = 1;
-    int ENABLE_LINE_INPUT = 2;
-    int ENABLE_ECHO_INPUT = 4;
+        @JvmField
+        val STD_OUTPUT_HANDLE: Int = -11
 
-    // SetConsoleMode screen buffer values
-    int ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
-    int DISABLE_NEWLINE_AUTO_RETURN = 8;
+        // SetConsoleMode input values
+        @JvmField
+        val ENABLE_PROCESSED_INPUT: Int = 1
 
-    WinDef.HANDLE GetStdHandle(int var1);
-    boolean GetConsoleMode(WinDef.HANDLE var1, IntByReference var2);
-    boolean SetConsoleMode(WinDef.HANDLE var1, int var2);
-    boolean GetConsoleScreenBufferInfo(WinDef.HANDLE hConsoleOutput, WinDef.CONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo);
+        @JvmField
+        val ENABLE_LINE_INPUT: Int = 2
+
+        @JvmField
+        val ENABLE_ECHO_INPUT: Int = 4
+
+        // SetConsoleMode screen buffer values
+        @JvmField
+        val ENABLE_VIRTUAL_TERMINAL_PROCESSING: Int = 4
+
+        @JvmField
+        val DISABLE_NEWLINE_AUTO_RETURN: Int = 8
+    }
+
+    fun GetStdHandle(var1: Int): WinDef.HANDLE?
+    fun GetConsoleMode(var1: WinDef.HANDLE?, var2: IntByReference?): Boolean
+    fun SetConsoleMode(var1: WinDef.HANDLE?, var2: Int): Boolean
+    fun GetConsoleScreenBufferInfo(
+        hConsoleOutput: WinDef.HANDLE?,
+        lpConsoleScreenBufferInfo: WinDef.CONSOLE_SCREEN_BUFFER_INFO?
+    ): Boolean
 }
