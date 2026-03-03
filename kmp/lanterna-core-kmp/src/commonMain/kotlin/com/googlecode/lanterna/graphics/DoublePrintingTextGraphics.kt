@@ -1,71 +1,41 @@
-/*
- * This file is part of lanterna (https://github.com/mabe02/lanterna).
- *
- * lanterna is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2010-2020 Martin Berglund
- */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TextCharacter;
-import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
 
-/**
- * This TextGraphics implementation wraps another TextGraphics and forwards all operations to it, but with a few
- * differences. First of all, each individual character being printed is printed twice. Secondly, if you call
- * {@code getSize()}, it will return a size that has half the width of the underlying TextGraphics. This presents the
- * writable view as somewhat squared, since normally terminal characters are twice as tall as wide. You can see some
- * examples of how this looks by running the Triangle test in {@code com.googlecode.lanterna.screen.ScreenTriangleTest}
- * and compare it when running with the --square parameter and without.
- */
-public class DoublePrintingTextGraphics extends AbstractTextGraphics {
-    private static final TerminalPosition MULTIPLIER = new TerminalPosition(2, 1);
+open class DoublePrintingTextGraphics(underlyingTextGraphics: TextGraphics?) : AbstractTextGraphics() {
+    private val underlyingTextGraphics: TextGraphics? = underlyingTextGraphics
 
-    private final TextGraphics underlyingTextGraphics;
-
-    /**
-     * Creates a new {@code DoublePrintingTextGraphics} on top of a supplied {@code TextGraphics}
-     * @param underlyingTextGraphics backend {@code TextGraphics} to forward all the calls to
-     */
-    public DoublePrintingTextGraphics(TextGraphics underlyingTextGraphics) {
-        this.underlyingTextGraphics = underlyingTextGraphics;
+    private fun requireUnderlyingTextGraphics(): TextGraphics {
+        return underlyingTextGraphics ?: throw NullPointerException()
     }
 
-    @Override
-    public TextGraphics setCharacter(int columnIndex, int rowIndex, TextCharacter textCharacter) {
-        columnIndex = columnIndex * 2;
-        underlyingTextGraphics.setCharacter(columnIndex, rowIndex, textCharacter);
-        underlyingTextGraphics.setCharacter(columnIndex + 1, rowIndex, textCharacter);
-        return this;
+    override open fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics? {
+        var doubledColumnIndex = columnIndex
+        doubledColumnIndex *= 2
+        val backend = requireUnderlyingTextGraphics()
+        backend.setCharacter(doubledColumnIndex, rowIndex, textCharacter)
+        backend.setCharacter(doubledColumnIndex + 1, rowIndex, textCharacter)
+        return this
     }
 
-    @Override
-    public TextCharacter getCharacter(int columnIndex, int rowIndex) {
-        columnIndex = columnIndex * 2;
-        return underlyingTextGraphics.getCharacter(columnIndex, rowIndex);
-
+    override open fun getCharacter(columnIndex: Int, rowIndex: Int): TextCharacter? {
+        var doubledColumnIndex = columnIndex
+        doubledColumnIndex *= 2
+        return requireUnderlyingTextGraphics().getCharacter(doubledColumnIndex, rowIndex)
     }
 
-    @Override
-    public TerminalSize getSize() {
-        TerminalSize size = underlyingTextGraphics.getSize();
-        return size.withColumns(size.getColumns() / 2);
+    override open fun getSize(): TerminalSize? {
+        val size = requireUnderlyingTextGraphics().getSize()
+        return size.withColumns(size.getColumns() / 2)
     }
 
-    @Override
-    public TerminalPosition toScreenPosition(TerminalPosition pos) {
-        return underlyingTextGraphics.toScreenPosition(pos.multiply(MULTIPLIER));
+    override open fun toScreenPosition(pos: TerminalPosition): TerminalPosition? {
+        return requireUnderlyingTextGraphics().toScreenPosition(pos.multiply(MULTIPLIER))
+    }
+
+    private companion object {
+        private val MULTIPLIER = TerminalPosition(2, 1)
     }
 }
