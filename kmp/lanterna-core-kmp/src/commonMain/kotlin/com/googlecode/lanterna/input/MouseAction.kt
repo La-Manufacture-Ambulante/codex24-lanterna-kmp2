@@ -16,17 +16,17 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.input;
+package com.googlecode.lanterna.input
 
-import com.googlecode.lanterna.TerminalPosition;
+import com.googlecode.lanterna.TerminalPosition
 
 /**
  * MouseAction, a KeyStroke in disguise, this class contains the information of a single mouse action event.
  */
-public class MouseAction extends KeyStroke {
-    private final MouseActionType actionType;
-    private final int button;
-    private final TerminalPosition position;
+open class MouseAction : KeyStroke {
+    private val actionType: MouseActionType?
+    private val button: Int
+    private val position: TerminalPosition?
 
     /**
      * Constructs a MouseAction based on an action type, a button and a location on the screen
@@ -35,11 +35,10 @@ public class MouseAction extends KeyStroke {
      *               right button = 3, scroll wheel up = 4, scroll wheel down = 5)
      * @param position Where in the terminal is the mouse cursor located
      */
-    public MouseAction(MouseActionType actionType, int button, TerminalPosition position) {
-        super(KeyType.MOUSE_EVENT, false, false);
-        this.actionType = actionType;
-        this.button = button;
-        this.position = position;
+    constructor(actionType: MouseActionType?, button: Int, position: TerminalPosition?) : super(KeyType.MOUSE_EVENT, false, false) {
+        this.actionType = actionType
+        this.button = button
+        this.position = position
     }
 
     /**
@@ -52,19 +51,25 @@ public class MouseAction extends KeyStroke {
      * @param altDown Whether the alt key was pressed when this event was generated
      * @param shiftDown Whether the shift key was pressed when this event was generated
      */
-    public MouseAction(MouseActionType actionType, int button, TerminalPosition position, boolean ctrlDown, boolean altDown, boolean shiftDown) {
-        super(KeyType.MOUSE_EVENT, ctrlDown, altDown, shiftDown);
-        this.actionType = actionType;
-        this.button = button;
-        this.position = position;
+    constructor(
+        actionType: MouseActionType?,
+        button: Int,
+        position: TerminalPosition?,
+        ctrlDown: Boolean,
+        altDown: Boolean,
+        shiftDown: Boolean
+    ) : super(KeyType.MOUSE_EVENT, ctrlDown, altDown, shiftDown) {
+        this.actionType = actionType
+        this.button = button
+        this.position = position
     }
 
     /**
      * Returns the mouse action type so the caller can determine which kind of action was performed.
      * @return The action type of the mouse event
      */
-    public MouseActionType getActionType() {
-        return actionType;
+    open fun getActionType(): MouseActionType? {
+        return actionType
     }
 
     /**
@@ -80,36 +85,35 @@ public class MouseAction extends KeyStroke {
      * </ul>
      * @return The button which is clicked down when this event was generated
      */
-    public int getButton() {
-        return button;
+    open fun getButton(): Int {
+        return button
     }
 
     /**
      * The location of the mouse cursor when this event was generated.
      * @return Location of the mouse cursor
      */
-    public TerminalPosition getPosition() {
-        return position;
+    open fun getPosition(): TerminalPosition? {
+        return position
     }
 
-    public boolean isMouseDown() {
-        return actionType == MouseActionType.CLICK_DOWN;
+    open fun isMouseDown(): Boolean {
+        return actionType == MouseActionType.CLICK_DOWN
     }
 
-    public boolean isMouseDrag() {
-        return actionType == MouseActionType.DRAG;
+    open fun isMouseDrag(): Boolean {
+        return actionType == MouseActionType.DRAG
     }
 
-    public boolean isMouseMove() {
-        return actionType == MouseActionType.MOVE;
+    open fun isMouseMove(): Boolean {
+        return actionType == MouseActionType.MOVE
     }
 
-    public boolean isMouseUp() {
-        return actionType == MouseActionType.CLICK_RELEASE;
+    open fun isMouseUp(): Boolean {
+        return actionType == MouseActionType.CLICK_RELEASE
     }
 
-    @Override
-    public String toString() {
-        return "MouseAction{actionType=" + actionType + ", button=" + button + ", position=" + position + '}';
+    override fun toString(): String {
+        return "MouseAction{actionType=" + actionType + ", button=" + button + ", position=" + position + '}'
     }
 }
