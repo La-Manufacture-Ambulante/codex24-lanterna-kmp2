@@ -16,64 +16,42 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.input.KeyStroke;
-
-import java.util.concurrent.TimeUnit;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.input.KeyStroke
+import java.util.concurrent.TimeUnit
 
 /**
- * Interface extending Terminal that removes the IOException throw clause. You can for example use this instead of 
- * Terminal if you use an implementation that doesn't throw any IOExceptions or if you wrap your terminal in an 
+ * Interface extending Terminal that removes the IOException throw clause. You can for example use this instead of
+ * Terminal if you use an implementation that doesn't throw any IOExceptions or if you wrap your terminal in an
  * IOSafeTerminalAdapter. Please note that readInput() still throws IOException when it is interrupted, in order to fit
  * better in with what normal terminal do when they are blocked on input and you interrupt them.
  * @author Martin
  */
-public interface IOSafeTerminal extends Terminal {
-    @Override
-    void enterPrivateMode();
-    @Override
-    void exitPrivateMode();
-    @Override
-    void clearScreen();
-    @Override
-    void setCursorPosition(int x, int y);
-    @Override
-    void setCursorPosition(TerminalPosition position);
-    @Override
-    TerminalPosition getCursorPosition();
-    @Override
-    void setCursorVisible(boolean visible);
-    @Override
-    void putCharacter(char c);
-    @Override
-    void putString(String string);
-    @Override
-    void enableSGR(SGR sgr);
-    @Override
-    void disableSGR(SGR sgr);
-    @Override
-    void resetColorAndSGR();
-    @Override
-    void setForegroundColor(TextColor color);
-    @Override
-    void setBackgroundColor(TextColor color);
-    @Override
-    TerminalSize getTerminalSize();
-    @Override
-    byte[] enquireTerminal(int timeout, TimeUnit timeoutUnit);
-    @Override
-    void bell();
-    @Override
-    void flush();
-    @Override
-    KeyStroke pollInput();
-    @Override
-    KeyStroke readInput();
-    @Override
-    void close();
+interface IOSafeTerminal : Terminal {
+    override fun enterPrivateMode()
+    override fun exitPrivateMode()
+    override fun clearScreen()
+    override fun setCursorPosition(x: Int, y: Int)
+    override fun setCursorPosition(position: TerminalPosition?)
+    override fun getCursorPosition(): TerminalPosition?
+    override fun setCursorVisible(visible: Boolean)
+    override fun putCharacter(c: Char)
+    override fun putString(string: String?)
+    override fun enableSGR(sgr: SGR?)
+    override fun disableSGR(sgr: SGR?)
+    override fun resetColorAndSGR()
+    override fun setForegroundColor(color: TextColor?)
+    override fun setBackgroundColor(color: TextColor?)
+    override fun getTerminalSize(): TerminalSize?
+    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray?
+    override fun bell()
+    override fun flush()
+    override fun pollInput(): KeyStroke?
+    override fun readInput(): KeyStroke?
+    override fun close()
 }
