@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,14 +13,12 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalSize;
-
-import java.util.List;
+import com.googlecode.lanterna.TerminalSize
 
 /**
  * Window manager is a class that is plugged in to a {@code WindowBasedTextGUI} to manage the position and placement
@@ -29,7 +27,7 @@ import java.util.List;
  * @see DefaultWindowManager
  * @author Martin
  */
-public interface WindowManager {
+interface WindowManager {
 
     /**
      * Will be polled by the the {@link WindowBasedTextGUI} to see if the window manager believes an update is required.
@@ -39,14 +37,14 @@ public interface WindowManager {
      * stating that the window manager isn't aware of some internal state change that would require an update.
      * @return {@code true} if the window manager believes the GUI needs to be update, {@code false} otherwise
      */
-    boolean isInvalid();
+    fun isInvalid(): Boolean
 
     /**
      * Returns the {@code WindowDecorationRenderer} for a particular window
      * @param window Window to get the decoration renderer for
      * @return {@code WindowDecorationRenderer} for the window
      */
-    WindowDecorationRenderer getWindowDecorationRenderer(Window window);
+    fun getWindowDecorationRenderer(window: Window?): WindowDecorationRenderer?
 
     /**
      * Called whenever a window is added to the {@code WindowBasedTextGUI}. This gives the window manager an opportunity
@@ -55,7 +53,7 @@ public interface WindowManager {
      * @param window Window that was added
      * @param allWindows All windows, including the new window, in the GUI
      */
-    void onAdded(WindowBasedTextGUI textGUI, Window window, List<Window> allWindows);
+    fun onAdded(textGUI: WindowBasedTextGUI?, window: Window?, allWindows: List<Window?>?)
 
     /**
      * Called whenever a window is removed from a {@code WindowBasedTextGUI}. This gives the window manager an
@@ -64,8 +62,8 @@ public interface WindowManager {
      * @param window Window that was removed
      * @param allWindows All windows, excluding the removed window, in the GUI
      */
-    @SuppressWarnings("EmptyMethod")
-    void onRemoved(WindowBasedTextGUI textGUI, Window window, List<Window> allWindows);
+    @Suppress("EmptyMethod")
+    fun onRemoved(textGUI: WindowBasedTextGUI?, window: Window?, allWindows: List<Window?>?)
 
     /**
      * Called by the GUI system before iterating through all windows during the drawing process. The window manager
@@ -79,5 +77,5 @@ public interface WindowManager {
      * @param allWindows All windows that are going to be drawn, in the order they will be drawn
      * @param screenSize Size of the terminal that is available to draw on
      */
-    void prepareWindows(WindowBasedTextGUI textGUI, List<Window> allWindows, TerminalSize screenSize);
+    fun prepareWindows(textGUI: WindowBasedTextGUI?, allWindows: List<Window?>?, screenSize: TerminalSize?)
 }
