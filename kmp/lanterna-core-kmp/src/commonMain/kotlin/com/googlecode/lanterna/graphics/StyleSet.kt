@@ -1,140 +1,90 @@
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import java.util.Arrays;
-import java.util.EnumSet;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TextColor
+import java.util.EnumSet
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TextColor;
+interface StyleSet<T : StyleSet<T>> {
+    fun getBackgroundColor(): TextColor?
 
-public interface StyleSet<T extends StyleSet<T>> {
+    fun setBackgroundColor(backgroundColor: TextColor?): T
 
-    /**
-     * Returns the current background color
-     * @return Current background color
-     */
-    TextColor getBackgroundColor();
+    fun getForegroundColor(): TextColor?
 
-    /**
-     * Updates the current background color
-     * @param backgroundColor New background color
-     * @return Itself
-     */
-    T setBackgroundColor(TextColor backgroundColor);
+    fun setForegroundColor(foregroundColor: TextColor?): T
 
-    /**
-     * Returns the current foreground color
-     * @return Current foreground color
-     */
-    TextColor getForegroundColor();
+    fun enableModifiers(modifiers: Array<out SGR?>?): T
 
-    /**
-     * Updates the current foreground color
-     * @param foregroundColor New foreground color
-     * @return Itself
-     */
-    T setForegroundColor(TextColor foregroundColor);
+    fun disableModifiers(modifiers: Array<out SGR?>?): T
 
-    /**
-     * Adds zero or more modifiers to the set of currently active modifiers
-     * @param modifiers Modifiers to add to the set of currently active modifiers
-     * @return Itself
-     */
-    T enableModifiers(SGR... modifiers);
+    fun setModifiers(modifiers: EnumSet<SGR>?): T
 
-    /**
-     * Removes zero or more modifiers from the set of currently active modifiers
-     * @param modifiers Modifiers to remove from the set of currently active modifiers
-     * @return Itself
-     */
-    T disableModifiers(SGR... modifiers);
+    fun clearModifiers(): T
 
-    /**
-     * Sets the active modifiers to exactly the set passed in to this method. Any previous state of which modifiers are
-     * enabled doesn't matter.
-     * @param modifiers Modifiers to set as active
-     * @return Itself
-     */
-    T setModifiers(EnumSet<SGR> modifiers);
+    fun getActiveModifiers(): EnumSet<SGR>?
 
-    /**
-     * Removes all active modifiers
-     * @return Itself
-     */
-    T clearModifiers();
+    fun setStyleFrom(source: StyleSet<*>): T
 
-    /**
-     * Returns all the SGR codes that are currently active
-     * @return Currently active SGR modifiers
-     */
-    EnumSet<SGR> getActiveModifiers();
+    open class Set() : StyleSet<Set> {
+        private var foregroundColor: TextColor? = null
+        private var backgroundColor: TextColor? = null
+        private val style: EnumSet<SGR> = EnumSet.noneOf(SGR::class.java)
 
-    /**
-     * copy colors and set of SGR codes
-     * @param source Modifiers to set as active
-     * @return Itself
-     */
-    T setStyleFrom(StyleSet<?> source);
-    
-    
-    class Set implements StyleSet<Set> {
-        private TextColor foregroundColor;
-        private TextColor backgroundColor;
-        private final EnumSet<SGR> style = EnumSet.noneOf(SGR.class);
-        
-        public Set() {}
-        public Set(StyleSet<?> source) {
-            setStyleFrom(source);
-        }
-        
-        @Override
-        public TextColor getBackgroundColor() {
-            return backgroundColor;
-        }
-        @Override
-        public Set setBackgroundColor(TextColor backgroundColor) {
-            this.backgroundColor = backgroundColor; 
-            return this;
-        }
-        @Override
-        public TextColor getForegroundColor() {
-            return foregroundColor;
-        }
-        @Override
-        public Set setForegroundColor(TextColor foregroundColor) {
-            this.foregroundColor = foregroundColor;
-            return this;
-        }
-        @Override
-        public Set enableModifiers(SGR... modifiers) {
-            style.addAll(Arrays.asList(modifiers));
-            return this;
-        }
-        @Override
-        public Set disableModifiers(SGR... modifiers) {
-            style.removeAll(Arrays.asList(modifiers));
-            return this;
-        }
-        @Override
-        public Set setModifiers(EnumSet<SGR> modifiers) {
-            style.clear(); style.addAll(modifiers);
-            return this;
-        }
-        @Override
-        public Set clearModifiers() {
-            style.clear();
-            return this;
-        }
-        @Override
-        public EnumSet<SGR> getActiveModifiers() {
-            return EnumSet.copyOf(style);
+        constructor(source: StyleSet<*>) : this() {
+            setStyleFrom(source)
         }
 
-        @Override
-        public Set setStyleFrom(StyleSet<?> source) {
-            setBackgroundColor(source.getBackgroundColor());
-            setForegroundColor(source.getForegroundColor());
-            setModifiers(source.getActiveModifiers());
-            return this;
+        override fun getBackgroundColor(): TextColor? {
+            return backgroundColor
+        }
+
+        override fun setBackgroundColor(backgroundColor: TextColor?): Set {
+            this.backgroundColor = backgroundColor
+            return this
+        }
+
+        override fun getForegroundColor(): TextColor? {
+            return foregroundColor
+        }
+
+        override fun setForegroundColor(foregroundColor: TextColor?): Set {
+            this.foregroundColor = foregroundColor
+            return this
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        override fun enableModifiers(modifiers: Array<out SGR?>?): Set {
+            val m = modifiers ?: throw NullPointerException()
+            style.addAll(java.util.Arrays.asList(*m) as Collection<SGR>)
+            return this
+        }
+
+        override fun disableModifiers(modifiers: Array<out SGR?>?): Set {
+            val m = modifiers ?: throw NullPointerException()
+            style.removeAll(java.util.Arrays.asList(*m))
+            return this
+        }
+
+        override fun setModifiers(modifiers: EnumSet<SGR>?): Set {
+            style.clear()
+            style.addAll(modifiers ?: throw NullPointerException())
+            return this
+        }
+
+        override fun clearModifiers(): Set {
+            style.clear()
+            return this
+        }
+
+        override fun getActiveModifiers(): EnumSet<SGR> {
+            return EnumSet.copyOf(style)
+        }
+
+        override fun setStyleFrom(source: StyleSet<*>): Set {
+            setBackgroundColor(source.getBackgroundColor())
+            setForegroundColor(source.getForegroundColor())
+            setModifiers(source.getActiveModifiers())
+            return this
         }
     }
 }
