@@ -1,139 +1,194 @@
-package com.googlecode.lanterna.terminal.win32;
+package com.googlecode.lanterna.terminal.win32
 
-import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
-import com.sun.jna.Union;
+import com.sun.jna.Structure
+import com.sun.jna.Structure.FieldOrder
+import com.sun.jna.Union
 
-public interface WinDef extends com.sun.jna.platform.win32.WinDef {
+interface WinDef : com.sun.jna.platform.win32.WinDef {
 
-	/**
-	 * COORD structure
-	 */
-	@FieldOrder({ "X", "Y" })
-	class COORD extends Structure {
+    @FieldOrder(value = ["X", "Y"])
+    open class COORD : Structure() {
+        @JvmField
+        var X: Short = 0
 
-		public short X;
-		public short Y;
+        @JvmField
+        var Y: Short = 0
 
-		@Override
-		public String toString() {
-			return String.format("COORD(%s,%s)", X, Y);
-		}
-	}
+        override fun toString(): String {
+            return String.format("COORD(%s,%s)", X, Y)
+        }
+    }
 
-	/**
-	 * SMALL_RECT structure
-	 */
-	@FieldOrder({ "Left", "Top", "Right", "Bottom" })
-	class SMALL_RECT extends Structure {
+    @FieldOrder(value = ["Left", "Top", "Right", "Bottom"])
+    open class SMALL_RECT : Structure() {
+        @JvmField
+        var Left: Short = 0
 
-		public short Left;
-		public short Top;
-		public short Right;
-		public short Bottom;
+        @JvmField
+        var Top: Short = 0
 
-		@Override
-		public String toString() {
-			return String.format("SMALL_RECT(%s,%s)(%s,%s)", Left, Top, Right, Bottom);
-		}
-	}
+        @JvmField
+        var Right: Short = 0
 
-	/**
-	 * CONSOLE_SCREEN_BUFFER_INFO structure
-	 */
-	@FieldOrder({ "dwSize", "dwCursorPosition", "wAttributes", "srWindow", "dwMaximumWindowSize" })
-	class CONSOLE_SCREEN_BUFFER_INFO extends Structure {
+        @JvmField
+        var Bottom: Short = 0
 
-		public COORD dwSize;
-		public COORD dwCursorPosition;
-		public short wAttributes;
-		public SMALL_RECT srWindow;
-		public COORD dwMaximumWindowSize;
+        override fun toString(): String {
+            return String.format("SMALL_RECT(%s,%s)(%s,%s)", Left, Top, Right, Bottom)
+        }
+    }
 
-		@Override
-		public String toString() {
-			return String.format("CONSOLE_SCREEN_BUFFER_INFO(%s,%s,%s,%s,%s)", dwSize, dwCursorPosition, wAttributes, srWindow, dwMaximumWindowSize);
-		}
-	}
+    @FieldOrder(value = ["dwSize", "dwCursorPosition", "wAttributes", "srWindow", "dwMaximumWindowSize"])
+    open class CONSOLE_SCREEN_BUFFER_INFO : Structure() {
+        @JvmField
+        var dwSize: COORD? = null
 
-	@FieldOrder({ "EventType", "Event" })
-	class INPUT_RECORD extends Structure {
+        @JvmField
+        var dwCursorPosition: COORD? = null
 
-		public static final short KEY_EVENT = 0x01;
-		public static final short MOUSE_EVENT = 0x02;
-		public static final short WINDOW_BUFFER_SIZE_EVENT = 0x04;
+        @JvmField
+        var wAttributes: Short = 0
 
-		public short EventType;
-		public Event Event;
+        @JvmField
+        var srWindow: SMALL_RECT? = null
 
-		public static class Event extends Union {
-			public KEY_EVENT_RECORD KeyEvent;
-			public MOUSE_EVENT_RECORD MouseEvent;
-			public WINDOW_BUFFER_SIZE_RECORD WindowBufferSizeEvent;
-		}
+        @JvmField
+        var dwMaximumWindowSize: COORD? = null
 
-		@Override
-		public void read() {
-			super.read();
-			switch (EventType) {
-			case KEY_EVENT:
-				Event.setType("KeyEvent");
-				break;
-			case MOUSE_EVENT:
-				Event.setType("MouseEvent");
-				break;
-			case WINDOW_BUFFER_SIZE_EVENT:
-				Event.setType("WindowBufferSizeEvent");
-				break;
-			}
-			Event.read();
-		}
+        override fun toString(): String {
+            return String.format(
+                "CONSOLE_SCREEN_BUFFER_INFO(%s,%s,%s,%s,%s)",
+                dwSize,
+                dwCursorPosition,
+                wAttributes,
+                srWindow,
+                dwMaximumWindowSize
+            )
+        }
+    }
 
-		@Override
-		public String toString() {
-			return String.format("INPUT_RECORD(%s)", EventType);
-		}
-	}
+    @FieldOrder(value = ["EventType", "Event"])
+    open class INPUT_RECORD : Structure() {
+        companion object {
+            @JvmField
+            val KEY_EVENT: Short = 0x01
 
-	@FieldOrder({ "bKeyDown", "wRepeatCount", "wVirtualKeyCode", "wVirtualScanCode", "uChar", "dwControlKeyState" })
-	class KEY_EVENT_RECORD extends Structure {
+            @JvmField
+            val MOUSE_EVENT: Short = 0x02
 
-		public boolean bKeyDown;
-		public short wRepeatCount;
-		public short wVirtualKeyCode;
-		public short wVirtualScanCode;
-		public char uChar;
-		public int dwControlKeyState;
+            @JvmField
+            val WINDOW_BUFFER_SIZE_EVENT: Short = 0x04
+        }
 
-		@Override
-		public String toString() {
-			return String.format("KEY_EVENT_RECORD(%s,%s,%s,%s,%s,%s)", bKeyDown, wRepeatCount, wVirtualKeyCode, wVirtualScanCode, uChar, dwControlKeyState);
-		}
-	}
+        @JvmField
+        var EventType: Short = 0
 
-	@FieldOrder({ "dwMousePosition", "dwButtonState", "dwControlKeyState", "dwEventFlags" })
-	class MOUSE_EVENT_RECORD extends Structure {
+        @JvmField
+        var Event: Event? = null
 
-		public COORD dwMousePosition;
-		public int dwButtonState;
-		public int dwControlKeyState;
-		public int dwEventFlags;
+        open class Event : Union() {
+            @JvmField
+            var KeyEvent: KEY_EVENT_RECORD? = null
 
-		@Override
-		public String toString() {
-			return String.format("MOUSE_EVENT_RECORD(%s,%s,%s,%s)", dwMousePosition, dwButtonState, dwControlKeyState, dwEventFlags);
-		}
-	}
+            @JvmField
+            var MouseEvent: MOUSE_EVENT_RECORD? = null
 
-	@FieldOrder({ "dwSize" })
-	class WINDOW_BUFFER_SIZE_RECORD extends Structure {
+            @JvmField
+            var WindowBufferSizeEvent: WINDOW_BUFFER_SIZE_RECORD? = null
+        }
 
-		public COORD dwSize;
+        override fun read() {
+            super.read()
+            when (EventType) {
+                KEY_EVENT -> {
+                    val event = Event ?: throw NullPointerException()
+                    event.setType("KeyEvent")
+                }
 
-		@Override
-		public String toString() {
-			return String.format("WINDOW_BUFFER_SIZE_RECORD(%s)", dwSize);
-		}
-	}
+                MOUSE_EVENT -> {
+                    val event = Event ?: throw NullPointerException()
+                    event.setType("MouseEvent")
+                }
 
+                WINDOW_BUFFER_SIZE_EVENT -> {
+                    val event = Event ?: throw NullPointerException()
+                    event.setType("WindowBufferSizeEvent")
+                }
+            }
+            val event = Event ?: throw NullPointerException()
+            event.read()
+        }
+
+        override fun toString(): String {
+            return String.format("INPUT_RECORD(%s)", EventType)
+        }
+    }
+
+    @FieldOrder(value = ["bKeyDown", "wRepeatCount", "wVirtualKeyCode", "wVirtualScanCode", "uChar", "dwControlKeyState"])
+    open class KEY_EVENT_RECORD : Structure() {
+        @JvmField
+        var bKeyDown: Boolean = false
+
+        @JvmField
+        var wRepeatCount: Short = 0
+
+        @JvmField
+        var wVirtualKeyCode: Short = 0
+
+        @JvmField
+        var wVirtualScanCode: Short = 0
+
+        @JvmField
+        var uChar: Char = '\u0000'
+
+        @JvmField
+        var dwControlKeyState: Int = 0
+
+        override fun toString(): String {
+            return String.format(
+                "KEY_EVENT_RECORD(%s,%s,%s,%s,%s,%s)",
+                bKeyDown,
+                wRepeatCount,
+                wVirtualKeyCode,
+                wVirtualScanCode,
+                uChar,
+                dwControlKeyState
+            )
+        }
+    }
+
+    @FieldOrder(value = ["dwMousePosition", "dwButtonState", "dwControlKeyState", "dwEventFlags"])
+    open class MOUSE_EVENT_RECORD : Structure() {
+        @JvmField
+        var dwMousePosition: COORD? = null
+
+        @JvmField
+        var dwButtonState: Int = 0
+
+        @JvmField
+        var dwControlKeyState: Int = 0
+
+        @JvmField
+        var dwEventFlags: Int = 0
+
+        override fun toString(): String {
+            return String.format(
+                "MOUSE_EVENT_RECORD(%s,%s,%s,%s)",
+                dwMousePosition,
+                dwButtonState,
+                dwControlKeyState,
+                dwEventFlags
+            )
+        }
+    }
+
+    @FieldOrder(value = ["dwSize"])
+    open class WINDOW_BUFFER_SIZE_RECORD : Structure() {
+        @JvmField
+        var dwSize: COORD? = null
+
+        override fun toString(): String {
+            return String.format("WINDOW_BUFFER_SIZE_RECORD(%s)", dwSize)
+        }
+    }
 }
