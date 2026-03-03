@@ -16,14 +16,12 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.graphics.TextGraphics;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.graphics.TextGraphics
+import java.io.IOException
+import java.util.ArrayList
 
 /**
  * Containing a some very fundamental functionality that should be common (and usable) to all terminal implementations.
@@ -31,27 +29,20 @@ import java.util.List;
  *
  * @author Martin
  */
-public abstract class AbstractTerminal implements Terminal {
+public abstract class AbstractTerminal protected constructor() : Terminal {
 
-    private final List<TerminalResizeListener> resizeListeners;
-    private TerminalSize lastKnownSize;
+    private val resizeListeners: MutableList<TerminalResizeListener> = ArrayList()
+    private var lastKnownSize: TerminalSize? = null
 
-    protected AbstractTerminal() {
-        this.resizeListeners = new ArrayList<>();
-        this.lastKnownSize = null;
-    }
-
-    @Override
-    public void addResizeListener(TerminalResizeListener listener) {
+    override fun addResizeListener(listener: TerminalResizeListener?) {
         if (listener != null) {
-            resizeListeners.add(listener);
+            resizeListeners.add(listener)
         }
     }
 
-    @Override
-    public void removeResizeListener(TerminalResizeListener listener) {
+    override fun removeResizeListener(listener: TerminalResizeListener?) {
         if (listener != null) {
-            resizeListeners.remove(listener);
+            resizeListeners.remove(listener)
         }
     }
 
@@ -62,8 +53,9 @@ public abstract class AbstractTerminal implements Terminal {
      * @param columns Number of columns in the new size
      * @param rows Number of rows in the new size
      */
-    protected synchronized void onResized(int columns, int rows) {
-        onResized(new TerminalSize(columns, rows));
+    @Synchronized
+    protected open fun onResized(columns: Int, rows: Int) {
+        onResized(TerminalSize(columns, rows))
     }
 
     /**
@@ -72,17 +64,19 @@ public abstract class AbstractTerminal implements Terminal {
      *
      * @param newSize Last discovered terminal size
      */
-    protected synchronized void onResized(TerminalSize newSize) {
-        if (lastKnownSize == null || !lastKnownSize.equals(newSize)) {
-            lastKnownSize = newSize;
-            for (TerminalResizeListener resizeListener : resizeListeners) {
-                resizeListener.onResized(this, lastKnownSize);
+    @Synchronized
+    protected open fun onResized(newSize: TerminalSize?) {
+        val previousSize = lastKnownSize
+        if (previousSize == null || !previousSize.equals(newSize)) {
+            lastKnownSize = newSize
+            for (resizeListener in resizeListeners) {
+                resizeListener.onResized(this, lastKnownSize)
             }
         }
     }
 
-    @Override
-    public TextGraphics newTextGraphics() throws IOException {
-        return new TerminalTextGraphics(this);
+    @Throws(IOException::class)
+    override fun newTextGraphics(): TextGraphics {
+        return TerminalTextGraphics(this)
     }
 }
