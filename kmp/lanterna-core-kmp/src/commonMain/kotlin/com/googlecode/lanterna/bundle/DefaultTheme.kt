@@ -1,29 +1,24 @@
-package com.googlecode.lanterna.bundle;
+package com.googlecode.lanterna.bundle
 
-import com.googlecode.lanterna.graphics.PropertyTheme;
+import com.googlecode.lanterna.graphics.PropertyTheme
+import java.io.IOException
+import java.io.StringReader
+import java.util.Properties
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Properties;
-
-class DefaultTheme extends PropertyTheme {
-    DefaultTheme() {
-        super(definitionAsProperty(), false);
-    }
-
-    private static Properties definitionAsProperty() {
-        Properties properties = new Properties();
-        try {
-            properties.load(new StringReader(definition));
-            return properties;
+internal class DefaultTheme : PropertyTheme(definitionAsProperty(), false) {
+    companion object {
+        private fun definitionAsProperty(): Properties {
+            val properties = Properties()
+            try {
+                properties.load(StringReader(definition))
+                return properties
+            } catch (e: IOException) {
+                // We should never get here!
+                throw RuntimeException("Unexpected I/O error", e)
+            }
         }
-        catch(IOException e) {
-            // We should never get here!
-            throw new RuntimeException("Unexpected I/O error", e);
-        }
-    }
 
-    private static final String definition = "# This is the default properties\n" +
+        private const val definition = "# This is the default properties\n" +
             "# If you want to modify this theme, you must do so both here and in DefaultTheme.java\n" +
             "\n" +
             "foreground = black\n" +
@@ -52,25 +47,25 @@ class DefaultTheme extends PropertyTheme {
             "com.googlecode.lanterna.gui2.AbstractBorder.sgr[ACTIVE] =\n" +
             "com.googlecode.lanterna.gui2.AbstractBorder.foreground[INSENSITIVE] = black\n" +
             "com.googlecode.lanterna.gui2.AbstractBorder.background[INSENSITIVE] = white\n" +
-            "com.googlecode.lanterna.gui2.Borders$SingleLine.char[HORIZONTAL_LINE] = \\u2500\n" +
-            "com.googlecode.lanterna.gui2.Borders$SingleLine.char[VERTICAL_LINE] = \\u2502\n" +
-            "com.googlecode.lanterna.gui2.Borders$SingleLine.char[BOTTOM_LEFT_CORNER] = \\u2514\n" +
-            "com.googlecode.lanterna.gui2.Borders$SingleLine.char[TOP_LEFT_CORNER] = \\u250c\n" +
-            "com.googlecode.lanterna.gui2.Borders$SingleLine.char[BOTTOM_RIGHT_CORNER] = \\u2518\n" +
-            "com.googlecode.lanterna.gui2.Borders$SingleLine.char[TOP_RIGHT_CORNER] = \\u2510\n" +
-            "com.googlecode.lanterna.gui2.Borders$SingleLine.char[TITLE_LEFT] = \\u2500\n" +
-            "com.googlecode.lanterna.gui2.Borders$SingleLine.char[TITLE_RIGHT] = \\u2500\n" +
-            "com.googlecode.lanterna.gui2.Borders$DoubleLine.char[HORIZONTAL_LINE] = \\u2550\n" +
-            "com.googlecode.lanterna.gui2.Borders$DoubleLine.char[VERTICAL_LINE] = \\u2551\n" +
-            "com.googlecode.lanterna.gui2.Borders$DoubleLine.char[BOTTOM_LEFT_CORNER] = \\u255a\n" +
-            "com.googlecode.lanterna.gui2.Borders$DoubleLine.char[TOP_LEFT_CORNER] = \\u2554\n" +
-            "com.googlecode.lanterna.gui2.Borders$DoubleLine.char[BOTTOM_RIGHT_CORNER] = \\u255d\n" +
-            "com.googlecode.lanterna.gui2.Borders$DoubleLine.char[TOP_RIGHT_CORNER] = \\u2557\n" +
-            "com.googlecode.lanterna.gui2.Borders$DoubleLine.char[TITLE_LEFT] = \\u2550\n" +
-            "com.googlecode.lanterna.gui2.Borders$DoubleLine.char[TITLE_RIGHT] = \\u2550\n" +
+            "com.googlecode.lanterna.gui2.Borders\$SingleLine.char[HORIZONTAL_LINE] = \\u2500\n" +
+            "com.googlecode.lanterna.gui2.Borders\$SingleLine.char[VERTICAL_LINE] = \\u2502\n" +
+            "com.googlecode.lanterna.gui2.Borders\$SingleLine.char[BOTTOM_LEFT_CORNER] = \\u2514\n" +
+            "com.googlecode.lanterna.gui2.Borders\$SingleLine.char[TOP_LEFT_CORNER] = \\u250c\n" +
+            "com.googlecode.lanterna.gui2.Borders\$SingleLine.char[BOTTOM_RIGHT_CORNER] = \\u2518\n" +
+            "com.googlecode.lanterna.gui2.Borders\$SingleLine.char[TOP_RIGHT_CORNER] = \\u2510\n" +
+            "com.googlecode.lanterna.gui2.Borders\$SingleLine.char[TITLE_LEFT] = \\u2500\n" +
+            "com.googlecode.lanterna.gui2.Borders\$SingleLine.char[TITLE_RIGHT] = \\u2500\n" +
+            "com.googlecode.lanterna.gui2.Borders\$DoubleLine.char[HORIZONTAL_LINE] = \\u2550\n" +
+            "com.googlecode.lanterna.gui2.Borders\$DoubleLine.char[VERTICAL_LINE] = \\u2551\n" +
+            "com.googlecode.lanterna.gui2.Borders\$DoubleLine.char[BOTTOM_LEFT_CORNER] = \\u255a\n" +
+            "com.googlecode.lanterna.gui2.Borders\$DoubleLine.char[TOP_LEFT_CORNER] = \\u2554\n" +
+            "com.googlecode.lanterna.gui2.Borders\$DoubleLine.char[BOTTOM_RIGHT_CORNER] = \\u255d\n" +
+            "com.googlecode.lanterna.gui2.Borders\$DoubleLine.char[TOP_RIGHT_CORNER] = \\u2557\n" +
+            "com.googlecode.lanterna.gui2.Borders\$DoubleLine.char[TITLE_LEFT] = \\u2550\n" +
+            "com.googlecode.lanterna.gui2.Borders\$DoubleLine.char[TITLE_RIGHT] = \\u2550\n" +
             "\n" +
             "#Button\n" +
-            "com.googlecode.lanterna.gui2.Button.renderer = com.googlecode.lanterna.gui2.Button$DefaultButtonRenderer\n" +
+            "com.googlecode.lanterna.gui2.Button.renderer = com.googlecode.lanterna.gui2.Button\$DefaultButtonRenderer\n" +
             "com.googlecode.lanterna.gui2.Button.sgr = bold\n" +
             "com.googlecode.lanterna.gui2.Button.foreground[SELECTED] = yellow\n" +
             "com.googlecode.lanterna.gui2.Button.foreground[PRELIGHT] = red\n" +
@@ -191,5 +186,6 @@ class DefaultTheme extends PropertyTheme {
             "com.googlecode.lanterna.gui2.WindowShadowRenderer.background = black\n" +
             "com.googlecode.lanterna.gui2.WindowShadowRenderer.sgr = bold\n" +
             "com.googlecode.lanterna.gui2.WindowShadowRenderer.property[DOUBLE_WIDTH] = true\n" +
-            "com.googlecode.lanterna.gui2.WindowShadowRenderer.property[TRANSPARENT] = true";
+            "com.googlecode.lanterna.gui2.WindowShadowRenderer.property[TRANSPARENT] = true"
+    }
 }
