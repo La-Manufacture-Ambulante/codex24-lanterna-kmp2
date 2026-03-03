@@ -16,10 +16,10 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.gui2.Component;
-import com.googlecode.lanterna.gui2.ComponentRenderer;
+import com.googlecode.lanterna.gui2.Component
+import com.googlecode.lanterna.gui2.ComponentRenderer
 
 /**
  * Allows you to more easily wrap an existing theme definion and alter the behaviour in some special cases. You normally
@@ -29,75 +29,62 @@ import com.googlecode.lanterna.gui2.ComponentRenderer;
  * @see DefaultMutableThemeStyle
  * @see Theme
  */
-public class DelegatingThemeDefinition implements ThemeDefinition {
-    private final ThemeDefinition themeDefinition;
+open class DelegatingThemeDefinition(themeDefinition: ThemeDefinition?) : ThemeDefinition {
+    private val themeDefinition: ThemeDefinition? = themeDefinition
 
-    /**
-     * Creates a new {@link DelegatingThemeDefinition} with a default implementation that will forward all calls to the
-     * {@link ThemeDefinition} that is passed in.
-     * @param themeDefinition Other theme definition to delegate all calls to
-     */
-    public DelegatingThemeDefinition(ThemeDefinition themeDefinition) {
-        this.themeDefinition = themeDefinition;
+    private fun delegate(): ThemeDefinition {
+        val value = themeDefinition
+        if (value == null) {
+            throw NullPointerException()
+        }
+        return value
     }
 
-    @Override
-    public ThemeStyle getNormal() {
-        return themeDefinition.getNormal();
+    override open fun getNormal(): ThemeStyle? {
+        return delegate().getNormal()
     }
 
-    @Override
-    public ThemeStyle getPreLight() {
-        return themeDefinition.getPreLight();
+    override open fun getPreLight(): ThemeStyle? {
+        return delegate().getPreLight()
     }
 
-    @Override
-    public ThemeStyle getSelected() {
-        return themeDefinition.getSelected();
+    override open fun getSelected(): ThemeStyle? {
+        return delegate().getSelected()
     }
 
-    @Override
-    public ThemeStyle getActive() {
-        return themeDefinition.getActive();
+    override open fun getActive(): ThemeStyle? {
+        return delegate().getActive()
     }
 
-    @Override
-    public ThemeStyle getInsensitive() {
-        return themeDefinition.getInsensitive();
+    override open fun getInsensitive(): ThemeStyle? {
+        return delegate().getInsensitive()
     }
 
-    @Override
-    public ThemeStyle getCustom(String name) {
-        return themeDefinition.getCustom(name);
+    override open fun getCustom(name: String?): ThemeStyle? {
+        return delegate().getCustom(name)
     }
 
-    @Override
-    public ThemeStyle getCustom(String name, ThemeStyle defaultValue) {
-        return themeDefinition.getCustom(name, defaultValue);
+    override open fun getCustom(name: String?, defaultValue: ThemeStyle?): ThemeStyle? {
+        return delegate().getCustom(name, defaultValue)
     }
 
-    @Override
-    public int getIntegerProperty(String name, int defaultValue) {
-        return themeDefinition.getIntegerProperty(name, defaultValue);
+    override open fun getIntegerProperty(name: String?, defaultValue: Int): Int {
+        return delegate().getIntegerProperty(name, defaultValue)
     }
 
-    @Override
-    public boolean getBooleanProperty(String name, boolean defaultValue) {
-        return themeDefinition.getBooleanProperty(name, defaultValue);
+    override open fun getBooleanProperty(name: String?, defaultValue: Boolean): Boolean {
+        return delegate().getBooleanProperty(name, defaultValue)
     }
 
-    @Override
-    public boolean isCursorVisible() {
-        return themeDefinition.isCursorVisible();
+    override open fun isCursorVisible(): Boolean {
+        return delegate().isCursorVisible()
     }
 
-    @Override
-    public char getCharacter(String name, char fallback) {
-        return themeDefinition.getCharacter(name, fallback);
+    override open fun getCharacter(name: String?, fallback: Char): Char {
+        return delegate().getCharacter(name, fallback)
     }
 
-    @Override
-    public <T extends Component> ComponentRenderer<T> getRenderer(Class<T> type) {
-        return themeDefinition.getRenderer(type);
+    override open fun <T : Component?> getRenderer(type: Class<T>?): ComponentRenderer<T>? {
+        return delegate().getRenderer(type)
     }
 }
