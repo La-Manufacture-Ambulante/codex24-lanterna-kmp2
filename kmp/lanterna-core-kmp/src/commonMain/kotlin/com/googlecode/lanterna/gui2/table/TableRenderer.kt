@@ -16,64 +16,62 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.table;
+package com.googlecode.lanterna.gui2.table
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.gui2.InteractableRenderer;
-import com.googlecode.lanterna.gui2.TextGUIGraphics;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.gui2.InteractableRenderer
+import com.googlecode.lanterna.gui2.TextGUIGraphics
 
 /**
  * Formalized interactable renderer for tables
  * @author Martin
  */
-public interface TableRenderer<V> extends InteractableRenderer<Table<V>> {
-    @Override
-    void drawComponent(TextGUIGraphics graphics, Table<V> component);
+interface TableRenderer<V> : InteractableRenderer<Table<V>> {
+    override fun drawComponent(graphics: TextGUIGraphics?, component: Table<V>?)
 
-    @Override
-    TerminalSize getPreferredSize(Table<V> component);
+    override fun getPreferredSize(component: Table<V>?): TerminalSize?
 
-    boolean isScrollBarsHidden();
+    fun isScrollBarsHidden(): Boolean
 
-    void setScrollBarsHidden(boolean scrollBarsHidden);
+    fun setScrollBarsHidden(scrollBarsHidden: Boolean)
 
     /**
      * Returns the number of rows visible in the table cell area on the last draw operation
      * @return The number of rows visible in the table cell area on the last draw operation
      */
-    int getVisibleRowsOnLastDraw();
+    fun getVisibleRowsOnLastDraw(): Int
 
     /**
      * Returns the index of the first visible row with the renderers current state
      * @return Index of the first visible row of the table
      */
-    int getViewTopRow();
+    fun getViewTopRow(): Int
 
     /**
      * Modifies which row is the first visible, this may be overwritten depending on the circumstances when drawing the
      * table.
      * @param viewTopRow First row to be displayed when drawing the table
      */
-    void setViewTopRow(int viewTopRow);
+    fun setViewTopRow(viewTopRow: Int)
 
     /**
      * Returns the index of the first visible column with the renderers current state
      * @return Index of the first visible column of the table
      */
-    int getViewLeftColumn();
+    fun getViewLeftColumn(): Int
 
     /**
      * Modifies which column is the first visible, this may be overwritten depending on the circumstances when drawing the
      * table.
      * @param viewLeftColumn First column to be displayed when drawing the table
      */
-    void setViewLeftColumn(int viewLeftColumn);
+    fun setViewLeftColumn(viewLeftColumn: Int)
 
     /**
      * @param allowPartialColumn when not all columns fit on the screen, whether to render part of a column, or skip rendering that column entirely
      */
-    void setAllowPartialColumn(boolean allowPartialColumn);
+    fun setAllowPartialColumn(allowPartialColumn: Boolean)
 
     /** @see #setAllowPartialColumn */
-    boolean getAllowPartialColumn();
+    fun getAllowPartialColumn(): Boolean
 }
