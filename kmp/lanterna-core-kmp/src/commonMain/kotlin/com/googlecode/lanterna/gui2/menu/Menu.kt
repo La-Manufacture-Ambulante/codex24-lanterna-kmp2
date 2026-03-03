@@ -18,115 +18,97 @@
  * Copyright (C) 2017 Bruno Eberhard
  * Copyright (C) 2017 University of Waikato, Hamilton, NZ
  */
-package com.googlecode.lanterna.gui2.menu;
+package com.googlecode.lanterna.gui2.menu
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.googlecode.lanterna.gui2.MenuPopupWindow
+import com.googlecode.lanterna.gui2.Window
+import com.googlecode.lanterna.gui2.WindowBasedTextGUI
+import com.googlecode.lanterna.gui2.WindowListenerAdapter
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import java.util.ArrayList
+import java.util.concurrent.atomic.AtomicBoolean
 
-import com.googlecode.lanterna.gui2.MenuPopupWindow;
-import com.googlecode.lanterna.gui2.Window;
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
-import com.googlecode.lanterna.gui2.WindowListenerAdapter;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
+open class Menu(label: String) : MenuItem(label) {
+    private val subItems: MutableList<MenuItem?> = ArrayList()
 
-/**
- * Implementation of a drop-down menu contained in a {@link MenuBar} and also a sub-menu inside another {@link Menu}.
- */
-public class Menu extends MenuItem {
-    private final List<MenuItem> subItems;
-
-    /**
-     * Creates a menu with the specified label
-     * @param label Label to use for the menu item that will trigger this menu to pop up
-     */
-    public Menu(String label) {
-        super(label);
-        this.subItems = new ArrayList<>();
-    }
-
-    /**
-     * Adds a new menu item to this menu, this can be either a regular {@link MenuItem} or another {@link Menu}
-     * @param menuItem The item to add to this menu
-     * @return Itself
-     */
-    public Menu add(MenuItem menuItem) {
-        synchronized (subItems) {
-            subItems.add(menuItem);
+    open fun add(menuItem: MenuItem?): Menu {
+        synchronized(subItems) {
+            subItems.add(menuItem)
         }
-        return this;
+        return this
     }
 
-    public List<MenuItem> getSubMenus()
-    {
-    	return new ArrayList<>(subItems);	
+    open fun getSubMenus(): List<MenuItem?> {
+        return ArrayList(subItems)
     }
-    
-    public Menu setAccelerator(KeyStroke keyStroke)
-    {
-    	super.setAccelerator(keyStroke);
-    	return this;
+
+    open fun setAccelerator(keyStroke: KeyStroke?): Menu {
+        super.setAccelerator(keyStroke)
+        return this
     }
-        
-    @Override
-    protected boolean onActivated() {
-        boolean result = true;
+
+    override fun onActivated(): Boolean {
+        var result = true
         if (subItems.isEmpty()) {
-            return result;
+            return result
         }
-        final MenuPopupWindow popupMenu = new MenuPopupWindow(this);
-        final AtomicBoolean popupCancelled = new AtomicBoolean(false);
-        for (MenuItem menuItem : subItems) {
-            popupMenu.addMenuItem(menuItem);
+        val popupMenu = MenuPopupWindow(this)
+        val popupCancelled = AtomicBoolean(false)
+        for (menuItem in subItems) {
+            popupMenu.addMenuItem(menuItem)
         }
-        if (getParent() instanceof MenuBar) {
-            final MenuBar menuBar = (MenuBar) getParent();
-            popupMenu.addWindowListener(new WindowListenerAdapter() {
-                @Override
-                public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
-                    if (keyStroke.getKeyType() == KeyType.ARROW_LEFT) {
-                        int thisMenuIndex = menuBar.getChildrenList().indexOf(Menu.this);
+        if (parent is MenuBar) {
+            val menuBar = parent as MenuBar
+            popupMenu.addWindowListener(object : WindowListenerAdapter() {
+                override fun onUnhandledInput(
+                    basePane: Window?,
+                    keyStroke: KeyStroke,
+                    hasBeenHandled: AtomicBoolean?
+                ) {
+                    if (keyStroke.keyType == KeyType.ARROW_LEFT) {
+                        val thisMenuIndex = menuBar.childrenList.indexOf(this@Menu)
                         if (thisMenuIndex > 0) {
-                            popupMenu.close();
-                            Menu nextSelectedMenu = menuBar.getMenu(thisMenuIndex - 1);
-                            nextSelectedMenu.takeFocus();
-                            nextSelectedMenu.onActivated();
+                            popupMenu.close()
+                            val nextSelectedMenu = menuBar.getMenu(thisMenuIndex - 1)
+                            nextSelectedMenu.takeFocus()
+                            nextSelectedMenu.onActivated()
                         }
-                    } else if (keyStroke.getKeyType() == KeyType.ARROW_RIGHT) {
-                        int thisMenuIndex = menuBar.getChildrenList().indexOf(Menu.this);
-                        if (thisMenuIndex >= 0 && thisMenuIndex < menuBar.getMenuCount() - 1) {
-                            popupMenu.close();
-                            Menu nextSelectedMenu = menuBar.getMenu(thisMenuIndex + 1);
-                            nextSelectedMenu.takeFocus();
-                            nextSelectedMenu.onActivated();
+                    } else if (keyStroke.keyType == KeyType.ARROW_RIGHT) {
+                        val thisMenuIndex = menuBar.childrenList.indexOf(this@Menu)
+                        if (thisMenuIndex >= 0 && thisMenuIndex < menuBar.menuCount - 1) {
+                            popupMenu.close()
+                            val nextSelectedMenu = menuBar.getMenu(thisMenuIndex + 1)
+                            nextSelectedMenu.takeFocus()
+                            nextSelectedMenu.onActivated()
                         }
                     }
-                    
-                    // Check if accelerator for c
-                    for (MenuItem menuItem : subItems) 
-                    {
-                        if (menuItem.isEnabled() && menuItem.isKeyboardAcceleratorStroke(keyStroke))
-                        {
-                        	Result result = menuItem.handleKeyStroke(keyStroke);                        	
-                        	if (result == Result.HANDLED) break;
+
+                    for (menuItem in subItems) {
+                        val currentMenuItem = menuItem ?: throw NullPointerException()
+                        if (currentMenuItem.isEnabled && currentMenuItem.isKeyboardAcceleratorStroke(keyStroke)) {
+                            val result = currentMenuItem.handleKeyStroke(keyStroke)
+                            if (result == Result.HANDLED) break
                         }
                     }
                 }
-            });
+            })
         }
-        popupMenu.addWindowListener(new WindowListenerAdapter() {
-            @Override
-            public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
-                if (keyStroke.getKeyType() == KeyType.ESCAPE) {
-                    popupCancelled.set(true);
-                    popupMenu.close();
+        popupMenu.addWindowListener(object : WindowListenerAdapter() {
+            override fun onUnhandledInput(
+                basePane: Window?,
+                keyStroke: KeyStroke,
+                hasBeenHandled: AtomicBoolean?
+            ) {
+                if (keyStroke.keyType == KeyType.ESCAPE) {
+                    popupCancelled.set(true)
+                    popupMenu.close()
                 }
             }
-        });
-        ((WindowBasedTextGUI) getTextGUI()).addWindowAndWait(popupMenu);
-        result = !popupCancelled.get();
-        
-        return result;
+        })
+        (textGUI as WindowBasedTextGUI).addWindowAndWait(popupMenu)
+        result = !popupCancelled.get()
+
+        return result
     }
 }
