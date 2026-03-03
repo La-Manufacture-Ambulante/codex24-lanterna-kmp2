@@ -16,9 +16,9 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.dialogs;
+package com.googlecode.lanterna.gui2.dialogs
 
-import com.googlecode.lanterna.gui2.LocalizedString;
+import com.googlecode.lanterna.gui2.LocalizedString
 
 /**
  * This enum has the available selection of buttons that you can add to a {@code MessageDialog}. They are used both for
@@ -26,35 +26,45 @@ import com.googlecode.lanterna.gui2.LocalizedString;
  *
  * @author Martin
  */
-public enum MessageDialogButton {
+enum class MessageDialogButton(
+    private val label: LocalizedString,
+    private val acceleratorChar: Char
+) {
     /**
      * "OK"
      */
     OK(LocalizedString.OK, 'o'),
+
     /**
      * "Cancel"
      */
     CANCEL(LocalizedString.Cancel, 'c'),
+
     /**
      * "Yes"
      */
     YES(LocalizedString.Yes, 'y'),
+
     /**
      * "No"
      */
     NO(LocalizedString.No, 'n'),
+
     /**
      * "Close"
      */
     CLOSE(LocalizedString.Close, 'x'),
+
     /**
      * "Abort"
      */
     ABORT(LocalizedString.Abort, 'a'),
+
     /**
      * "Ignore"
      */
     IGNORE(LocalizedString.Ignore, 'i'),
+
     /**
      * "Retry"
      */
@@ -65,17 +75,11 @@ public enum MessageDialogButton {
      */
     CONTINUE(LocalizedString.Continue, 'c');
 
-    private final LocalizedString label;
-    private final char acceleratorChar;
-
-    MessageDialogButton(final LocalizedString label, char acceleratorChar) {
-        this.label = label;
-        this.acceleratorChar = acceleratorChar;
+    fun getAcceleratorCharacter(): Char {
+        return acceleratorChar
     }
 
-    public char getAcceleratorCharacter() { return acceleratorChar; }
-    @Override
-    public String toString() {
-        return label.toString();
+    override fun toString(): String {
+        return label.toString()
     }
 }
