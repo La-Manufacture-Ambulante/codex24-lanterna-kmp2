@@ -16,7 +16,7 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
 /**
  * Constant describing different modes for capturing mouse input. By default, no mouse capturing is enabled (unless
@@ -31,31 +31,34 @@ package com.googlecode.lanterna.terminal;
  *
  * Created by martin on 26/07/15.
  */
-public enum MouseCaptureMode {
+enum class MouseCaptureMode {
     /**
      * Mouse clicks are captured on the down-motion but not the up-motion. This corresponds to the X10 xterm protocol.
      * KDE's Konsole (tested with 15.04) does not implement this extension, but xfce4-terminal, gnome-terminal and
      * xterm does.
      */
     CLICK,
+
     /**
      * Mouse clicks are captured both on down and up, this is the normal mode for capturing mouse input. KDE's konsole
      * interprets this as CLICK_RELEASE_DRAG.
      */
     CLICK_RELEASE,
+
     /**
      * Mouse clicks are captured both on down and up and if the mouse if moved while holding down one of the button, a
      * drag event is generated.
      */
     CLICK_RELEASE_DRAG,
+
     /**
      * Mouse clicks are captured both on down and up and also all mouse movements, no matter if any button is held down
      * or not.
      */
     CLICK_RELEASE_DRAG_MOVE,
+
     /**
      * Sends all previous flags, as the terminal will handle only the ones it supports and ignore others
      */
-    CLICK_AUTODETECT,
-    ;
+    CLICK_AUTODETECT
 }
