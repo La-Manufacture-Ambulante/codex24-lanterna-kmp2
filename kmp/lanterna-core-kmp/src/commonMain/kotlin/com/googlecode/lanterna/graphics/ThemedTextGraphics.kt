@@ -16,18 +16,18 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
 /**
  * Expanded TextGraphics that adds methods to interact with themes
  * @author Martin
  */
-public interface ThemedTextGraphics extends TextGraphics {
+interface ThemedTextGraphics : TextGraphics {
     /**
      * Takes a ThemeStyle as applies it to this TextGraphics. This will effectively set the foreground color, the
      * background color and all the SGRs.
      * @param themeStyle ThemeStyle to apply
      * @return Itself
      */
-    ThemedTextGraphics applyThemeStyle(ThemeStyle themeStyle);
+    fun applyThemeStyle(themeStyle: ThemeStyle?): ThemedTextGraphics?
 }
