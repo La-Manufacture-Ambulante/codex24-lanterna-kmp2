@@ -16,176 +16,162 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal.ansi;
+package com.googlecode.lanterna.terminal.ansi
 
-import java.io.*;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.io.BufferedReader
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.io.OutputStream
+import java.lang.reflect.Method
+import java.lang.reflect.Proxy
+import java.nio.charset.Charset
+import java.util.ArrayList
+import java.util.Arrays
 
-/**
- * UnixLikeTerminal extends from ANSITerminal and defines functionality that is common to
- *  {@code UnixTerminal} and {@code CygwinTerminal}, like setting tty modes; echo, cbreak
- *  and minimum characters for reading as well as a shutdown hook to set the tty back to
- *  original state at the end.
- * <p>
- *  If requested, it handles Control-C input to terminate the program, and hooks
- *  into Unix WINCH signal to detect when the user has resized the terminal,
- *  if supported by the JVM.
- *
- * @author Andreas
- * @author Martin
- */
-public abstract class UnixLikeTTYTerminal extends UnixLikeTerminal {
+abstract class UnixLikeTTYTerminal
+@Throws(IOException::class)
+protected constructor(
+    private val ttyDev: File?,
+    terminalInput: InputStream?,
+    terminalOutput: OutputStream?,
+    terminalCharset: Charset?,
+    terminalCtrlCBehaviour: CtrlCBehaviour?
+) : UnixLikeTerminal(
+    terminalInput,
+    terminalOutput,
+    terminalCharset,
+    terminalCtrlCBehaviour
+) {
 
-    private final File ttyDev;
-    private String sttyStatusToRestore;
+    private var sttyStatusToRestore: String? = null
 
-    /**
-     * Creates a UnixTerminal using a specified input stream, output stream and character set, with a custom size
-     * querier instead of using the default one. This way you can override size detection (if you want to force the
-     * terminal to a fixed size, for example). You also choose how you want ctrl+c key strokes to be handled.
-     *
-     * @param ttyDev TTY device file that is representing this terminal session, will be used when calling stty to make
-     *               it operate on this session
-     * @param terminalInput Input stream to read terminal input from
-     * @param terminalOutput Output stream to write terminal output to
-     * @param terminalCharset Character set to use when converting characters to bytes
-     * @param terminalCtrlCBehaviour Special settings on how the terminal will behave, see {@code UnixTerminalMode} for
-     *                               more details
-     * @throws IOException If there was an I/O error while setting up the terminal
-     */
-    protected UnixLikeTTYTerminal(
-            File ttyDev,
-            InputStream terminalInput,
-            OutputStream terminalOutput,
-            Charset terminalCharset,
-            CtrlCBehaviour terminalCtrlCBehaviour) throws IOException {
-
-        super(terminalInput,
-                terminalOutput,
-                terminalCharset,
-                terminalCtrlCBehaviour);
-
-        this.ttyDev = ttyDev;
-
+    init {
         // Take ownership of the terminal
-        realAcquire();
+        realAcquire()
     }
 
-    @Override
-    protected void acquire() throws IOException {
+    @Throws(IOException::class)
+    protected open override fun acquire() {
         // Hack!
     }
 
-    private void realAcquire() throws IOException {
-        super.acquire();
+    @Throws(IOException::class)
+    private fun realAcquire() {
+        super.acquire()
     }
 
-    @Override
-    protected void registerTerminalResizeListener(final Runnable onResize) throws IOException {
+    @Throws(IOException::class)
+    protected open override fun registerTerminalResizeListener(onResize: Runnable?) {
         try {
-            Class<?> signalClass = Class.forName("sun.misc.Signal");
-            for(Method m : signalClass.getDeclaredMethods()) {
-                if("handle".equals(m.getName())) {
-                    Object windowResizeHandler = Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{Class.forName("sun.misc.SignalHandler")}, (proxy, method, args) -> {
-                        if("handle".equals(method.getName())) {
-                            onResize.run();
+            val signalClass = Class.forName("sun.misc.Signal")
+            for (m: Method in signalClass.declaredMethods) {
+                if ("handle" == m.name) {
+                    val windowResizeHandler = Proxy.newProxyInstance(
+                        javaClass.classLoader,
+                        arrayOf(Class.forName("sun.misc.SignalHandler"))
+                    ) { _, method, _ ->
+                        if ("handle" == method.name) {
+                            java.util.Objects.requireNonNull(onResize).run()
                         }
-                        return null;
-                    });
-                    m.invoke(null, signalClass.getConstructor(String.class).newInstance("WINCH"), windowResizeHandler);
+                        null
+                    }
+                    m.invoke(
+                        null,
+                        signalClass.getConstructor(String::class.java).newInstance("WINCH"),
+                        windowResizeHandler
+                    )
                 }
             }
-        }
-        catch(Throwable ignore) {
+        } catch (_: Throwable) {
             // We're probably running on a non-Sun JVM and there's no way to catch signals without resorting to native
             // code integration
         }
     }
 
-    @Override
-    protected void saveTerminalSettings() throws IOException {
-        sttyStatusToRestore = runSTTYCommand("-g").trim();
+    @Throws(IOException::class)
+    protected open override fun saveTerminalSettings() {
+        sttyStatusToRestore = runSTTYCommand(arrayOf("-g")).trim()
     }
 
-    @Override
-    protected void restoreTerminalSettings() throws IOException {
-        if(sttyStatusToRestore != null) {
-            runSTTYCommand(sttyStatusToRestore);
+    @Throws(IOException::class)
+    protected open override fun restoreTerminalSettings() {
+        if (sttyStatusToRestore != null) {
+            runSTTYCommand(arrayOf(sttyStatusToRestore))
         }
     }
 
-    @Override
-    protected void keyEchoEnabled(boolean enabled) throws IOException {
-        runSTTYCommand(enabled ? "echo" : "-echo");
+    @Throws(IOException::class)
+    protected open override fun keyEchoEnabled(enabled: Boolean) {
+        runSTTYCommand(arrayOf(if (enabled) "echo" else "-echo"))
     }
 
-    @Override
-    protected void canonicalMode(boolean enabled) throws IOException {
-        runSTTYCommand(enabled ? "icanon" : "-icanon");
-        if(!enabled) {
-            runSTTYCommand("min", "1");
+    @Throws(IOException::class)
+    protected open override fun canonicalMode(enabled: Boolean) {
+        runSTTYCommand(arrayOf(if (enabled) "icanon" else "-icanon"))
+        if (!enabled) {
+            runSTTYCommand(arrayOf("min", "1"))
         }
     }
 
-    @Override
-    protected void keyStrokeSignalsEnabled(boolean enabled) throws IOException {
-        if(enabled) {
-            runSTTYCommand("intr", "^C");
-        }
-        else {
-            runSTTYCommand("intr", "undef");
+    @Throws(IOException::class)
+    protected open override fun keyStrokeSignalsEnabled(enabled: Boolean) {
+        if (enabled) {
+            runSTTYCommand(arrayOf("intr", "^C"))
+        } else {
+            runSTTYCommand(arrayOf("intr", "undef"))
         }
     }
 
-    protected String runSTTYCommand(String... parameters) throws IOException {
-        List<String> commandLine = new ArrayList<>(Arrays.asList(
-                getSTTYCommand()));
-        commandLine.addAll(Arrays.asList(parameters));
-        return exec(commandLine.toArray(new String[0]));
+    @Throws(IOException::class)
+    protected open fun runSTTYCommand(parameters: Array<out String?>?): String {
+        val commandLine = ArrayList<String?>(Arrays.asList(*getSTTYCommand()))
+        commandLine.addAll(Arrays.asList(*java.util.Objects.requireNonNull(parameters)))
+        return exec(commandLine.toTypedArray())
     }
 
-    protected String exec(String... cmd) throws IOException {
-        ProcessBuilder pb = new ProcessBuilder(cmd);
+    @Throws(IOException::class)
+    protected open fun exec(cmd: Array<out String?>?): String {
+        @Suppress("UNCHECKED_CAST")
+        val nonNullCmd = java.util.Objects.requireNonNull(cmd) as Array<String>
+        val pb = ProcessBuilder(*nonNullCmd)
         if (ttyDev != null) {
-            pb.redirectInput(ProcessBuilder.Redirect.from(ttyDev));
+            pb.redirectInput(ProcessBuilder.Redirect.from(ttyDev))
         }
-        Process process = pb.start();
-        ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
-        InputStream stdout = process.getInputStream();
-        int readByte = stdout.read();
-        while(readByte >= 0) {
-            stdoutBuffer.write(readByte);
-            readByte = stdout.read();
+        val process = pb.start()
+        val stdoutBuffer = ByteArrayOutputStream()
+        val stdout = process.inputStream
+        var readByte = stdout.read()
+        while (readByte >= 0) {
+            stdoutBuffer.write(readByte)
+            readByte = stdout.read()
         }
-        ByteArrayInputStream stdoutBufferInputStream = new ByteArrayInputStream(stdoutBuffer.toByteArray());
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stdoutBufferInputStream));
-        StringBuilder builder = new StringBuilder();
-        String line;
-        while((line = reader.readLine()) != null) {
-            builder.append(line);
+        val stdoutBufferInputStream = ByteArrayInputStream(stdoutBuffer.toByteArray())
+        val reader = BufferedReader(InputStreamReader(stdoutBufferInputStream))
+        val builder = StringBuilder()
+        var line: String?
+        while (reader.readLine().also { line = it } != null) {
+            builder.append(line)
         }
-        reader.close();
-        return builder.toString();
+        reader.close()
+        return builder.toString()
     }
 
-    protected String[] getSTTYCommand() {
-        String sttyOverride = System.getProperty("com.googlecode.lanterna.terminal.UnixTerminal.sttyCommand");
-        if (sttyOverride != null) {
-            return new String[] { sttyOverride };
-        }
-        else {
+    protected open fun getSTTYCommand(): Array<String> {
+        val sttyOverride =
+            System.getProperty("com.googlecode.lanterna.terminal.UnixTerminal.sttyCommand")
+        return if (sttyOverride != null) {
+            arrayOf(sttyOverride)
+        } else {
             // Issue #519: this will hopefully be more portable across linux distributions
             // Previously we hard-coded "/bin/stty" here
-            return new String[] {
-                    "/usr/bin/env",
-                    "stty"
-            };
+            arrayOf(
+                "/usr/bin/env",
+                "stty"
+            )
         }
     }
 }
