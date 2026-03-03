@@ -16,43 +16,32 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
 /**
  * Interface extending ExtendedTerminal that removes the IOException throw clause.
- * 
+ *
  * @author Martin
  * @author Andreas
  */
-public interface IOSafeExtendedTerminal extends IOSafeTerminal,ExtendedTerminal {
+interface IOSafeExtendedTerminal : IOSafeTerminal, ExtendedTerminal {
+    override fun setTerminalSize(columns: Int, rows: Int)
 
-    @Override
-    void setTerminalSize(int columns, int rows);
+    override fun setTitle(title: String?)
 
-    @Override
-    void setTitle(String title);
+    override fun pushTitle()
 
-    @Override
-    void pushTitle();
+    override fun popTitle()
 
-    @Override
-    void popTitle();
+    override fun iconify()
 
-    @Override
-    void iconify();
+    override fun deiconify()
 
-    @Override
-    void deiconify();
+    override fun maximize()
 
-    @Override
-    void maximize();
+    override fun unmaximize()
 
-    @Override
-    void unmaximize();
+    override fun setMouseCaptureMode(mouseCaptureMode: MouseCaptureMode?)
 
-    @Override
-    void setMouseCaptureMode(MouseCaptureMode mouseCaptureMode);
-
-    @Override
-    void scrollLines(int firstLine, int lastLine, int distance);
+    override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int)
 }
