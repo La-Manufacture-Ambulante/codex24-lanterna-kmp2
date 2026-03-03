@@ -16,24 +16,23 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.input;
-
+package com.googlecode.lanterna.input
 
 /**
- * This enum is a categorization of the various keys available on a normal computer keyboard that are usable 
- * (detectable) by a terminal environment. For ordinary numbers, letters and symbols, the enum value is <i>Character</i>
+ * This enum is a categorization of the various keys available on a normal computer keyboard that are usable
+ * (detectable) by a terminal environment. For ordinary numbers, letters and symbols, the enum value is [CHARACTER]
  * but please keep in mind that newline and tab, usually represented by \n and \t, are considered their own separate
- * values by this enum (<i>Enter</i> and <i>Tab</i>).
- * <p>
+ * values by this enum ([ENTER] and [TAB]).
+ *
  * Previously (before Lanterna 3.0), this enum was embedded inside the Key class.
  *
  * @author Martin
  */
-public enum KeyType {
+enum class KeyType {
     /**
      * This value corresponds to a regular character 'typed', usually alphanumeric or a symbol. The one special case
      * here is the enter key which could be expected to be returned as a '\n' character but is actually returned as a
-     * separate {@code KeyType} (see below). Tab, backspace and some others works this way too.
+     * separate [KeyType] (see below). Tab, backspace and some others works this way too.
      */
     CHARACTER,
     ESCAPE,
@@ -78,14 +77,15 @@ public enum KeyType {
      * be returned by the API to an input read call.
      */
     CURSOR_LOCATION,
+
     /**
      * This type is not really a key stroke but actually a 'catch-all' for mouse related events. Please note that mouse
      * event capturing must first be enabled and many terminals don't suppose this extension at all.
      */
     MOUSE_EVENT,
+
     /**
      * This value is returned when you try to read input and the input stream has been closed.
      */
-    EOF,
-    ;
+    EOF
 }
