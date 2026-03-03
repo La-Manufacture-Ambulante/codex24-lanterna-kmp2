@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,12 +13,12 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.graphics.ThemedTextGraphics;
+import com.googlecode.lanterna.graphics.ThemedTextGraphics
 
 /**
  * Classes implementing this interface can be used along with DefaultWindowManagerTextGUI to put some extra processing
@@ -26,7 +26,7 @@ import com.googlecode.lanterna.graphics.ThemedTextGraphics;
  * @see WindowShadowRenderer
  * @author Martin
  */
-public interface WindowPostRenderer {
+interface WindowPostRenderer {
     /**
      * Called by DefaultWindowTextGUI immediately after a Window has been rendered, to let you do post-processing.
      * You will have a TextGraphics object that can draw to the whole screen, so you need to inspect the window's
@@ -35,8 +35,9 @@ public interface WindowPostRenderer {
      * @param textGUI TextGUI that we are in
      * @param window Window that was just rendered
      */
-    void postRender(
-            ThemedTextGraphics textGraphics,
-            TextGUI textGUI,
-            Window window);
+    fun postRender(
+        textGraphics: ThemedTextGraphics?,
+        textGUI: TextGUI?,
+        window: Window?
+    )
 }
