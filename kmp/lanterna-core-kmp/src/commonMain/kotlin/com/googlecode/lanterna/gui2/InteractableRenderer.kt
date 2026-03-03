@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,21 +13,20 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalPosition;
+import com.googlecode.lanterna.TerminalPosition
 
 /**
  * Extended interface for component renderers used with interactable components. Because only the renderer knows what
  * the component looks like, the component itself cannot know where to place the text cursor, so this method is instead
  * delegated to this interface that extends the regular component renderer.
  *
- * @author Martin
- * @param <T> Type of the component this {@code InteractableRenderer} is designed for
+ * @param T Type of the component this [InteractableRenderer] is designed for
  */
-public interface InteractableRenderer<T extends Component & Interactable> extends ComponentRenderer<T> {
-    TerminalPosition getCursorLocation(T component);
+interface InteractableRenderer<T> : ComponentRenderer<T> where T : Component, T : Interactable {
+    fun getCursorLocation(component: T?): TerminalPosition?
 }
