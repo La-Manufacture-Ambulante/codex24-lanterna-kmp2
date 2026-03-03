@@ -16,49 +16,49 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.input;
+package com.googlecode.lanterna.input
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.ArrayList
+import java.util.Arrays
+import java.util.Collection
+import java.util.List
 
 /**
- * This profile attempts to collect as many code combinations as possible without causing any collisions between 
- * patterns. The patterns in here are tested with Linux terminal, XTerm, Gnome terminal, XFCE terminal, Cygwin and 
+ * This profile attempts to collect as many code combinations as possible without causing any collisions between
+ * patterns. The patterns in here are tested with Linux terminal, XTerm, Gnome terminal, XFCE terminal, Cygwin and
  * Mac OS X terminal.
  *
  * @author Martin
  */
-public class DefaultKeyDecodingProfile implements KeyDecodingProfile {
-
-    private static final List<CharacterPattern> COMMON_PATTERNS
-            = new ArrayList<>(Arrays.asList(
-            new CharacterPattern[]{
-                    new BasicCharacterPattern(new KeyStroke(KeyType.ESCAPE), ESC_CODE),
-                    new BasicCharacterPattern(new KeyStroke(KeyType.TAB), '\t'),
-                    new BasicCharacterPattern(new KeyStroke(KeyType.ENTER), '\n'),
-                    new BasicCharacterPattern(new KeyStroke(KeyType.ENTER), '\r', '\u0000'), //OS X
-                    new BasicCharacterPattern(new KeyStroke(KeyType.BACKSPACE), (char) 0x7f),
-                    new BasicCharacterPattern(new KeyStroke(KeyType.BACKSPACE), (char) 0x08),
-                    new BasicCharacterPattern(new KeyStroke(KeyType.F1), ESC_CODE, '[', '[', 'A'), //Linux
-                    new BasicCharacterPattern(new KeyStroke(KeyType.F2), ESC_CODE, '[', '[', 'B'), //Linux
-                    new BasicCharacterPattern(new KeyStroke(KeyType.F3), ESC_CODE, '[', '[', 'C'), //Linux
-                    new BasicCharacterPattern(new KeyStroke(KeyType.F4), ESC_CODE, '[', '[', 'D'), //Linux
-                    new BasicCharacterPattern(new KeyStroke(KeyType.F5), ESC_CODE, '[', '[', 'E'), //Linux
-
-                    new EscapeSequenceCharacterPattern(),
-                    new NormalCharacterPattern(),
-                    new AltAndCharacterPattern(),
-                    new CtrlAndCharacterPattern(),
-                    new CtrlAltAndCharacterPattern(),
-                    new ScreenInfoCharacterPattern(),
-                    new MouseCharacterPattern()
-            }));
-
-    @Override
-    public Collection<CharacterPattern> getPatterns() {
-        return new ArrayList<>(COMMON_PATTERNS);
+open class DefaultKeyDecodingProfile : KeyDecodingProfile {
+    override fun getPatterns(): Collection<CharacterPattern> {
+        return ArrayList(COMMON_PATTERNS)
     }
 
+    companion object {
+        private val COMMON_PATTERNS: List<CharacterPattern> = ArrayList(
+            Arrays.asList(
+                *arrayOf<CharacterPattern>(
+                    BasicCharacterPattern(KeyStroke(KeyType.ESCAPE), ESC_CODE),
+                    BasicCharacterPattern(KeyStroke(KeyType.TAB), '\t'),
+                    BasicCharacterPattern(KeyStroke(KeyType.ENTER), '\n'),
+                    BasicCharacterPattern(KeyStroke(KeyType.ENTER), '\r', '\u0000'), //OS X
+                    BasicCharacterPattern(KeyStroke(KeyType.BACKSPACE), '\u007f'),
+                    BasicCharacterPattern(KeyStroke(KeyType.BACKSPACE), '\u0008'),
+                    BasicCharacterPattern(KeyStroke(KeyType.F1), ESC_CODE, '[', '[', 'A'), //Linux
+                    BasicCharacterPattern(KeyStroke(KeyType.F2), ESC_CODE, '[', '[', 'B'), //Linux
+                    BasicCharacterPattern(KeyStroke(KeyType.F3), ESC_CODE, '[', '[', 'C'), //Linux
+                    BasicCharacterPattern(KeyStroke(KeyType.F4), ESC_CODE, '[', '[', 'D'), //Linux
+                    BasicCharacterPattern(KeyStroke(KeyType.F5), ESC_CODE, '[', '[', 'E'), //Linux
+                    EscapeSequenceCharacterPattern(),
+                    NormalCharacterPattern(),
+                    AltAndCharacterPattern(),
+                    CtrlAndCharacterPattern(),
+                    CtrlAltAndCharacterPattern(),
+                    ScreenInfoCharacterPattern(),
+                    MouseCharacterPattern()
+                )
+            )
+        )
+    }
 }
