@@ -16,40 +16,37 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.terminal.swing;
+package com.googlecode.lanterna.terminal.swing
 
 /**
  * This interface can be used to control the backlog scrolling of a SwingTerminal. It's used as a callback by the
- * {@code SwingTerminal} when it needs to fetch the scroll position and also used whenever the backlog changes to that
+ * `SwingTerminal` when it needs to fetch the scroll position and also used whenever the backlog changes to that
  * some view class, like a scrollbar for example, can update its view accordingly.
- * @author Martin
  */
-public interface TerminalScrollController {
+interface TerminalScrollController {
     /**
      * Called by the SwingTerminal when the terminal has changed or more lines are entered into the terminal
      * @param totalSize Total number of lines in the backlog currently
      * @param screenSize Number of lines covered by the terminal window at its current size
      */
-    void updateModel(int totalSize, int screenSize);
+    fun updateModel(totalSize: Int, screenSize: Int)
 
     /**
      * Called by the SwingTerminal to know the 'offset' into the backlog. Returning 0 here will always draw the latest
      * lines; if you return 5, it will draw from five lines into the backlog and skip the 5 most recent lines.
      * @return According to this scroll controller, how far back into the backlog are we?
      */
-    int getScrollingOffset();
+    fun getScrollingOffset(): Int
 
     /**
-     * Implementation of {@link TerminalScrollController} that does nothing
+     * Implementation of [TerminalScrollController] that does nothing
      */
-    final class Null implements TerminalScrollController {
-        @Override
-        public void updateModel(int totalSize, int screenSize) {
+    class Null : TerminalScrollController {
+        override fun updateModel(totalSize: Int, screenSize: Int) {
         }
 
-        @Override
-        public int getScrollingOffset() {
-            return 0;
+        override fun getScrollingOffset(): Int {
+            return 0
         }
     }
 }
