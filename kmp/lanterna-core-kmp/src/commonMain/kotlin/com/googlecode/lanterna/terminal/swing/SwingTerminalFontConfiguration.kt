@@ -1,69 +1,59 @@
-/*
- * This file is part of lanterna (https://github.com/mabe02/lanterna).
- *
- * lanterna is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2010-2020 Martin Berglund
- */
-package com.googlecode.lanterna.terminal.swing;
+package com.googlecode.lanterna.terminal.swing
 
-import java.awt.*;
+import java.awt.Font
 
 /**
- * Font configuration class for {@link SwingTerminal} that is extending from {@link AWTTerminalFontConfiguration}
+ * Font configuration class for [SwingTerminal] that is extending from [AWTTerminalFontConfiguration]
  */
-public class SwingTerminalFontConfiguration extends AWTTerminalFontConfiguration {
-    /**
-     * This is the default font settings that will be used if you don't specify anything
-     * @return A {@link SwingTerminal} font configuration object with default values set up
-     */
-    public static SwingTerminalFontConfiguration getDefault() {
-        return newInstance(filterMonospaced(selectDefaultFont(DEFAULT_FONT_SIZE)));
-    }
+open class SwingTerminalFontConfiguration(
+    useAntiAliasing: Boolean,
+    boldMode: AWTTerminalFontConfiguration.BoldMode?,
+    fontsInOrderOfPriority: Array<out Font?>?
+) : AWTTerminalFontConfiguration(useAntiAliasing, boldMode, fontsInOrderOfPriority) {
 
-    /**
-     * Returns the default font settings except for a custom font size to use.
-     * @param fontSize Size of the font
-     * @return An {@link SwingTerminal} font configuration object with default values set up
-     */
-    public static SwingTerminalFontConfiguration getDefaultOfSize(int fontSize) {
-        return newInstance(filterMonospaced(selectDefaultFont(fontSize)));
-    }
+    companion object {
+        /**
+         * This is the default font settings that will be used if you don't specify anything
+         * @return A [SwingTerminal] font configuration object with default values set up
+         */
+        @JvmStatic
+        fun getDefault(): SwingTerminalFontConfiguration {
+            return newInstance(
+                AWTTerminalFontConfiguration.filterMonospaced(
+                    AWTTerminalFontConfiguration.selectDefaultFont(AWTTerminalFontConfiguration.DEFAULT_FONT_SIZE)
+                )
+            )
+        }
 
-    /**
-     * Creates a new font configuration from a list of fonts in order of priority. This works by having the terminal
-     * attempt to draw each character with the fonts in the order they are specified in and stop once we find a font
-     * that can actually draw the character. For ASCII characters, it's very likely that the first font will always be
-     * used.
-     * @param fontsInOrderOfPriority Fonts to use when drawing text, in order of priority
-     * @return Font configuration built from the font list
-     */
-    @SuppressWarnings("WeakerAccess")
-    public static SwingTerminalFontConfiguration newInstance(Font... fontsInOrderOfPriority) {
-        return new SwingTerminalFontConfiguration(true, BoldMode.EVERYTHING_BUT_SYMBOLS, fontsInOrderOfPriority);
-    }
+        /**
+         * Returns the default font settings except for a custom font size to use.
+         * @param fontSize Size of the font
+         * @return An [SwingTerminal] font configuration object with default values set up
+         */
+        @JvmStatic
+        fun getDefaultOfSize(fontSize: Int): SwingTerminalFontConfiguration {
+            return newInstance(
+                AWTTerminalFontConfiguration.filterMonospaced(
+                    AWTTerminalFontConfiguration.selectDefaultFont(fontSize)
+                )
+            )
+        }
 
-    /**
-     * Creates a new font configuration from a list of fonts in order of priority. This works by having the terminal
-     * attempt to draw each character with the fonts in the order they are specified in and stop once we find a font
-     * that can actually draw the character. For ASCII characters, it's very likely that the first font will always be
-     * used.
-     * @param useAntiAliasing If {@code true} then anti-aliasing should be enabled when drawing text
-     * @param boldMode Option to control what to do when drawing text with the bold SGR enabled
-     * @param fontsInOrderOfPriority Fonts to use when drawing text, in order of priority
-     */
-    public SwingTerminalFontConfiguration(boolean useAntiAliasing, BoldMode boldMode, Font... fontsInOrderOfPriority) {
-        super(useAntiAliasing, boldMode, fontsInOrderOfPriority);
+        /**
+         * Creates a new font configuration from a list of fonts in order of priority. This works by having the terminal
+         * attempt to draw each character with the fonts in the order they are specified in and stop once we find a font
+         * that can actually draw the character. For ASCII characters, it's very likely that the first font will always be
+         * used.
+         * @param fontsInOrderOfPriority Fonts to use when drawing text, in order of priority
+         * @return Font configuration built from the font list
+         */
+        @JvmStatic
+        fun newInstance(fontsInOrderOfPriority: Array<out Font?>?): SwingTerminalFontConfiguration {
+            return SwingTerminalFontConfiguration(
+                true,
+                AWTTerminalFontConfiguration.BoldMode.EVERYTHING_BUT_SYMBOLS,
+                fontsInOrderOfPriority
+            )
+        }
     }
 }
