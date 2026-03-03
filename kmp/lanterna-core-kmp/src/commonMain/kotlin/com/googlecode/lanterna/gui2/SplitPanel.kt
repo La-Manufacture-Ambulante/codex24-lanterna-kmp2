@@ -13,230 +13,218 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.graphics.*;
-import com.googlecode.lanterna.input.*;
-
-import java.util.*;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.graphics.*
+import com.googlecode.lanterna.input.*
+import java.util.*
 
 /**
  * @author ginkoblongata
  */
-public class SplitPanel extends Panel {
+open class SplitPanel protected constructor(a: Component, b: Component, isHorizontal: Boolean) : Panel() {
 
-    private final Component compA;
-    private final ImageComponent thumb;
-    private final Component compB;
+    private val compA: Component
+    private val thumb: ImageComponent
+    private val compB: Component
 
-    private boolean isHorizontal;
-    private double ratio = 0.5;
+    private var isHorizontal: Boolean
+    private var ratio: Double = 0.5
 
-    public static SplitPanel ofHorizontal(Component left, Component right) {
-        SplitPanel split = new SplitPanel(left, right, true);
-        return split;
+    init {
+        this.compA = a
+        this.compB = b
+        this.isHorizontal = isHorizontal
+        thumb = makeThumb()
+        layoutManager = ScrollPanelLayoutManager()
+        setRatio(10, 10)
+
+        addComponent(a)
+        addComponent(thumb)
+        addComponent(b)
     }
 
-    public static SplitPanel ofVertical(Component top, Component bottom) {
-        SplitPanel split = new SplitPanel(top, bottom, false);
-        return split;
-    }
+    internal fun makeThumb(): ImageComponent {
+        val imageComponent: ImageComponent = object : ImageComponent() {
+            var aSize: TerminalSize? = null
+            var bSize: TerminalSize? = null
+            var tSize: TerminalSize? = null
+            var down: TerminalPosition? = null
+            var drag: TerminalPosition? = null
 
-    /**
-     *
-     */
-    protected SplitPanel(Component a, Component b, boolean isHorizontal) {
-        this.compA = a;
-        this.compB = b;
-        this.isHorizontal = isHorizontal;
-        thumb = makeThumb();
-        setLayoutManager(new ScrollPanelLayoutManager());
-        setRatio(10, 10);
-
-        addComponent(a);
-        addComponent(thumb);
-        addComponent(b);
-    }
-
-    ImageComponent makeThumb() {
-        ImageComponent imageComponent = new ImageComponent() {
-            TerminalSize aSize;
-            TerminalSize bSize;
-            TerminalSize tSize;
-            TerminalPosition down = null;
-            TerminalPosition drag = null;
-
-            @Override
-            public Result handleKeyStroke(KeyStroke keyStroke) {
-                Result result;
-                if (keyStroke instanceof MouseAction) {
-                    result = handleMouseAction((MouseAction) keyStroke);
+            override fun handleKeyStroke(keyStroke: KeyStroke?): Interactable.Result {
+                val result: Interactable.Result = if (keyStroke is MouseAction) {
+                    handleMouseAction(keyStroke)
+                } else {
+                    // TODO: Implement keyboard based resizing
+                    super.handleKeyStroke(keyStroke)
                 }
-                // TODO: Implement keyboard based resizing
-                else {
-                    result = super.handleKeyStroke(keyStroke);
-                }
-                return result;
+                return result
             }
 
-            private Result handleMouseAction(MouseAction mouseAction) {
-                if (mouseAction.isMouseDown()) {
-                    aSize = compA.getSize();
-                    bSize = compB.getSize();
-                    tSize = thumb.getSize();
-                    down = mouseAction.getPosition();
+            private fun handleMouseAction(mouseAction: MouseAction): Interactable.Result {
+                if (mouseAction.isMouseDown) {
+                    aSize = compA.size
+                    bSize = compB.size
+                    tSize = thumb.size
+                    down = mouseAction.position
                 }
-                if (mouseAction.isMouseDrag()) {
-                    drag = mouseAction.getPosition();
+                if (mouseAction.isMouseDrag) {
+                    drag = mouseAction.position
 
                     // xxxxxxxxxxxxxxxxxxxxx
                     // this is a hack, should not be needed if the pane drag
                     // only on mouse down'd comp stuff was completely working
                     if (down == null) {
-                        down = drag;
+                        down = drag
                     }
                     // xxxxxxxxxxxxxxxxxxxxx
 
-                    int delta = isHorizontal ? drag.minus(down).getColumn() : drag.minus(down).getRow();
+                    val dragPos = drag ?: throw NullPointerException()
+                    val downPos = down ?: throw NullPointerException()
+                    val delta = if (isHorizontal) dragPos.minus(downPos).column else dragPos.minus(downPos).row
                     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
                     if (isHorizontal) {
-                        int a = Math.max(1, tSize.getColumns() + aSize.getColumns() + delta);
-                        int b = Math.max(1, bSize.getColumns() - delta);
-                        setRatio(a, b);
+                        val localTSize = tSize ?: throw NullPointerException()
+                        val localASize = aSize ?: throw NullPointerException()
+                        val localBSize = bSize ?: throw NullPointerException()
+                        val a = Math.max(1, localTSize.columns + localASize.columns + delta)
+                        val b = Math.max(1, localBSize.columns - delta)
+                        setRatio(a, b)
                     } else {
-                        int a = Math.max(1, tSize.getRows() + aSize.getRows() + delta);
-                        int b = Math.max(1, bSize.getRows() - delta);
-                        setRatio(a, b);
+                        val localTSize = tSize ?: throw NullPointerException()
+                        val localASize = aSize ?: throw NullPointerException()
+                        val localBSize = bSize ?: throw NullPointerException()
+                        val a = Math.max(1, localTSize.rows + localASize.rows + delta)
+                        val b = Math.max(1, localBSize.rows - delta)
+                        setRatio(a, b)
                     }
                     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
                 }
-                if (mouseAction.isMouseUp()) {
-                    down = null;
-                    drag = null;
+                if (mouseAction.isMouseUp) {
+                    down = null
+                    drag = null
                 }
-                return Result.HANDLED;
+                return Interactable.Result.HANDLED
             }
-        };
-        return imageComponent;
+        }
+        return imageComponent
     }
 
-    class ScrollPanelLayoutManager implements LayoutManager {
+    internal inner class ScrollPanelLayoutManager : LayoutManager {
 
-        boolean hasChanged;
+        internal var hasChanged: Boolean
 
-        public ScrollPanelLayoutManager() {
-            hasChanged = true;
+        init {
+            hasChanged = true
         }
 
+        override fun getPreferredSize(components: MutableList<Component>?): TerminalSize {
+            val sizeA = compA.preferredSize
+            val aWidth = sizeA.columns
+            val aHeight = sizeA.rows
+            val sizeB = compB.preferredSize
+            val bWidth = sizeB.columns
+            val bHeight = sizeB.rows
 
-        @Override
-        public TerminalSize getPreferredSize(List<Component> components) {
-            TerminalSize sizeA = compA.getPreferredSize();
-            int aWidth = sizeA.getColumns();
-            int aHeight = sizeA.getRows();
-            TerminalSize sizeB = compB.getPreferredSize();
-            int bWidth = sizeB.getColumns();
-            int bHeight = sizeB.getRows();
+            val tWidth = thumb.preferredSize.columns
+            val tHeight = thumb.preferredSize.rows
 
-            int tWidth = thumb.getPreferredSize().getColumns();
-            int tHeight = thumb.getPreferredSize().getRows();
-
-            if (isHorizontal) {
-                return new TerminalSize(aWidth + tWidth + bWidth, Math.max(aHeight, Math.max(tHeight, bHeight)));
+            return if (isHorizontal) {
+                TerminalSize(aWidth + tWidth + bWidth, Math.max(aHeight, Math.max(tHeight, bHeight)))
             } else {
-                return new TerminalSize(Math.max(aWidth, Math.max(tWidth, bWidth)), aHeight + tHeight + bHeight);
+                TerminalSize(Math.max(aWidth, Math.max(tWidth, bWidth)), aHeight + tHeight + bHeight)
             }
         }
 
-        @Override
-        public void doLayout(TerminalSize area, List<Component> components) {
-            TerminalSize size = getSize();
+        override fun doLayout(area: TerminalSize?, components: MutableList<Component>?) {
+            val size = size
 
             // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
             // TODO: themed
-            int length = isHorizontal ? size.getRows() : size.getColumns();
-            TerminalSize tsize = new TerminalSize(isHorizontal ? 1 : length, !isHorizontal ? 1 : length);
-            TextImage textImage = new BasicTextImage(tsize);
-            Theme theme = getTheme();
-            ThemeDefinition themeDefinition = theme.getDefaultDefinition();
-            ThemeStyle themeStyle = themeDefinition.getNormal();
+            val length = if (isHorizontal) size.rows else size.columns
+            val tsize = TerminalSize(if (isHorizontal) 1 else length, if (!isHorizontal) 1 else length)
+            val textImage: TextImage = BasicTextImage(tsize)
+            val theme = theme
+            val themeDefinition = theme.defaultDefinition
+            val themeStyle = themeDefinition.normal
 
-            TextCharacter thumbRenderer = TextCharacter.fromCharacter(
-                    isHorizontal ? Symbols.SINGLE_LINE_VERTICAL : Symbols.SINGLE_LINE_HORIZONTAL,
-                    themeStyle.getForeground(),
-                    themeStyle.getBackground());
-            if (thumb.isFocused()) {
-                thumbRenderer = thumbRenderer.withModifier(SGR.BOLD);
+            var thumbRenderer = TextCharacter.fromCharacter(
+                if (isHorizontal) Symbols.SINGLE_LINE_VERTICAL else Symbols.SINGLE_LINE_HORIZONTAL,
+                themeStyle.foreground,
+                themeStyle.background
+            )
+            if (thumb.isFocused) {
+                thumbRenderer = thumbRenderer.withModifier(SGR.BOLD)
             }
 
-            textImage.setAll(thumbRenderer);
-            thumb.setTextImage(textImage);
+            textImage.setAll(thumbRenderer)
+            thumb.textImage = textImage
             // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-            int tWidth = thumb.getPreferredSize().getColumns();
-            int tHeight = thumb.getPreferredSize().getRows();
+            val tWidth = thumb.preferredSize.columns
+            val tHeight = thumb.preferredSize.rows
 
-            int w = size.getColumns();
-            int h = size.getRows();
-
-            if (isHorizontal) {
-                w -= tWidth;
-            } else {
-                h -= tHeight;
-            }
-
-            TerminalSize compAPrevSize = compA.getSize();
-            TerminalSize compBPrevSize = compB.getSize();
-            TerminalSize thumbPrevSize = thumb.getSize();
-            TerminalPosition compAPrevPos = compA.getPosition();
-            TerminalPosition compBPrevPos = compB.getPosition();
-            TerminalPosition thumbPrevPos = thumb.getPosition();
+            var w = size.columns
+            var h = size.rows
 
             if (isHorizontal) {
-                int leftWidth = Math.max(0, (int) (w * ratio));
-                int leftHeight = Math.max(0, Math.min(compA.getPreferredSize().getRows(), h));
-
-                int rightWidth = Math.max(0, w - leftWidth);
-                int rightHeight = Math.max(0, Math.min(compB.getPreferredSize().getRows(), h));
-
-                compA.setSize(new TerminalSize(leftWidth, leftHeight));
-                thumb.setSize(thumb.getPreferredSize());
-                compB.setSize(new TerminalSize(rightWidth, rightHeight));
-
-                compA.setPosition(new TerminalPosition(0, 0));
-                thumb.setPosition(new TerminalPosition(leftWidth, h / 2 - tHeight / 2));
-                compB.setPosition(new TerminalPosition(leftWidth + tWidth, 0));
+                w -= tWidth
             } else {
-                int leftWidth = Math.max(0, Math.min(compA.getPreferredSize().getColumns(), w));
-                int leftHeight = Math.max(0, (int) (h * ratio));
-
-                int rightWidth = Math.max(0, Math.min(compB.getPreferredSize().getColumns(), w));
-                int rightHeight = Math.max(0, h - leftHeight);
-
-                compA.setSize(new TerminalSize(leftWidth, leftHeight));
-                thumb.setSize(thumb.getPreferredSize());
-                compB.setSize(new TerminalSize(rightWidth, rightHeight));
-
-                compA.setPosition(new TerminalPosition(0, 0));
-                thumb.setPosition(new TerminalPosition(w / 2 - tWidth / 2, leftHeight));
-                compB.setPosition(new TerminalPosition(0, leftHeight + tHeight));
+                h -= tHeight
             }
 
-            hasChanged = !compAPrevPos.equals(compA.getPosition()) ||
-                    !compAPrevSize.equals(compA.getSize()) ||
-                    !compBPrevPos.equals(compB.getPosition()) ||
-                    !compBPrevSize.equals(compB.getSize()) ||
-                    !thumbPrevPos.equals(thumb.getPosition()) ||
-                    !thumbPrevSize.equals(thumb.getSize());
+            val compAPrevSize = compA.size
+            val compBPrevSize = compB.size
+            val thumbPrevSize = thumb.size
+            val compAPrevPos = compA.position
+            val compBPrevPos = compB.position
+            val thumbPrevPos = thumb.position
+
+            if (isHorizontal) {
+                val leftWidth = Math.max(0, (w * ratio).toInt())
+                val leftHeight = Math.max(0, Math.min(compA.preferredSize.rows, h))
+
+                val rightWidth = Math.max(0, w - leftWidth)
+                val rightHeight = Math.max(0, Math.min(compB.preferredSize.rows, h))
+
+                compA.size = TerminalSize(leftWidth, leftHeight)
+                thumb.size = thumb.preferredSize
+                compB.size = TerminalSize(rightWidth, rightHeight)
+
+                compA.position = TerminalPosition(0, 0)
+                thumb.position = TerminalPosition(leftWidth, h / 2 - tHeight / 2)
+                compB.position = TerminalPosition(leftWidth + tWidth, 0)
+            } else {
+                val leftWidth = Math.max(0, Math.min(compA.preferredSize.columns, w))
+                val leftHeight = Math.max(0, (h * ratio).toInt())
+
+                val rightWidth = Math.max(0, Math.min(compB.preferredSize.columns, w))
+                val rightHeight = Math.max(0, h - leftHeight)
+
+                compA.size = TerminalSize(leftWidth, leftHeight)
+                thumb.size = thumb.preferredSize
+                compB.size = TerminalSize(rightWidth, rightHeight)
+
+                compA.position = TerminalPosition(0, 0)
+                thumb.position = TerminalPosition(w / 2 - tWidth / 2, leftHeight)
+                compB.position = TerminalPosition(0, leftHeight + tHeight)
+            }
+
+            hasChanged = compAPrevPos != compA.position ||
+                compAPrevSize != compA.size ||
+                compBPrevPos != compB.position ||
+                compBPrevSize != compB.size ||
+                thumbPrevPos != thumb.position ||
+                thumbPrevSize != thumb.size
         }
 
-        @Override
-        public boolean hasChanged() {
-            return hasChanged;
+        override fun hasChanged(): Boolean {
+            return hasChanged
         }
     }
 
@@ -245,29 +233,40 @@ public class SplitPanel extends Panel {
      *
      *
      */
-    public void setRatio(int left, int right) {
+    open fun setRatio(left: Int, right: Int) {
         if (left == 0 || right == 0) {
-            ratio = 0.5;
-        }
-        else {
-            int total = Math.abs(left) + Math.abs(right);
-            ratio = (double) left / (double) total;
+            ratio = 0.5
+        } else {
+            val total = Math.abs(left) + Math.abs(right)
+            ratio = left.toDouble() / total.toDouble()
         }
     }
 
-    public void setThumbVisible(boolean visible) {
-        thumb.setVisible(visible);
+    open fun setThumbVisible(visible: Boolean) {
+        thumb.isVisible = visible
 
         if (visible) {
-            this.setPreferredSize(null);
+            this.preferredSize = null
         } else {
-            thumb.setPreferredSize(new TerminalSize(1, 1));
+            thumb.preferredSize = TerminalSize(1, 1)
         }
     }
 
-    @Override
-    public boolean isInvalid() {
-        return super.isInvalid();
+    public override open fun isInvalid(): Boolean {
+        return super.isInvalid()
+    }
+
+    companion object {
+        @JvmStatic
+        fun ofHorizontal(left: Component, right: Component): SplitPanel {
+            val split = SplitPanel(left, right, true)
+            return split
+        }
+
+        @JvmStatic
+        fun ofVertical(top: Component, bottom: Component): SplitPanel {
+            val split = SplitPanel(top, bottom, false)
+            return split
+        }
     }
 }
-
