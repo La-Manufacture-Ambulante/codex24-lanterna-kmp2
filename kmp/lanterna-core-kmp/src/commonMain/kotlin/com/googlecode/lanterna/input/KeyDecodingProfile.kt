@@ -16,14 +16,14 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.input;
+package com.googlecode.lanterna.input
 
-import java.util.Collection;
+import java.util.Collection
 
 /**
  * In order to convert a stream of characters into objects representing keystrokes, we need to apply logic on this
  * stream to detect special characters. In lanterna, this is done by using a set of character patterns which are matched
- * against the stream until we've found the best match. This interface represents a set of such patterns, a 'profile' 
+ * against the stream until we've found the best match. This interface represents a set of such patterns, a 'profile'
  * with is used when decoding the input. There is a default profile, DefaultKeyDecodingProfile, which will probably
  * do what you need but you can also extend and define your own patterns.
  *
@@ -31,13 +31,16 @@ import java.util.Collection;
  */
 public interface KeyDecodingProfile {
     /**
-     * Static constant for the ESC key
-     */
-    char ESC_CODE = (char) 0x1b;
-
-    /**
      * Returns a collection of character patterns that makes up this profile
      * @return Collection of patterns in this profile
      */
-    Collection<CharacterPattern> getPatterns();
+    public fun getPatterns(): Collection<CharacterPattern?>?
+
+    public companion object {
+        /**
+         * Static constant for the ESC key
+         */
+        @JvmField
+        public val ESC_CODE: Char = 0x1b.toChar()
+    }
 }
