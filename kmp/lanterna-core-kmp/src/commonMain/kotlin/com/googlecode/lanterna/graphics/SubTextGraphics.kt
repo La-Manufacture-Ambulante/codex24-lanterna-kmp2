@@ -16,59 +16,51 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.TextCharacter;
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
 
 /**
  * This implementation of TextGraphics will take a 'proper' object and composite a view on top of it, by using a
  * top-left position and a size. Any attempts to put text outside of this area will be dropped.
  * @author Martin
  */
-class SubTextGraphics extends AbstractTextGraphics {
-    private final TextGraphics underlyingTextGraphics;
-    private final TerminalPosition topLeft;
-    private final TerminalPosition screenTopLeft;
-    private final TerminalSize writableAreaSize;
+internal class SubTextGraphics(
+    private val underlyingTextGraphics: TextGraphics,
+    private val topLeft: TerminalPosition,
+    screenRelative: TerminalPosition,
+    private val writableAreaSize: TerminalSize
+) : AbstractTextGraphics() {
+    private val screenTopLeft: TerminalPosition = screenRelative.plus(topLeft)
 
-    SubTextGraphics(TextGraphics underlyingTextGraphics, TerminalPosition topLeft, TerminalPosition screenRelative, TerminalSize writableAreaSize) {
-        this.underlyingTextGraphics = underlyingTextGraphics;
-        this.topLeft = topLeft;
-        this.writableAreaSize = writableAreaSize;
-        this.screenTopLeft = screenRelative.plus(topLeft);
+    private fun project(column: Int, row: Int): TerminalPosition {
+        return topLeft.withRelative(column, row)
     }
 
-    private TerminalPosition project(int column, int row) {
-        return topLeft.withRelative(column, row);
+    override fun getScreenLocation(): TerminalPosition {
+        return screenTopLeft
     }
 
-    @Override
-    protected TerminalPosition getScreenLocation() {
-        return screenTopLeft;
-    }
-
-    @Override
-    public TextGraphics setCharacter(int columnIndex, int rowIndex, TextCharacter textCharacter) {
-        TerminalSize writableArea = getSize();
-        if(columnIndex < 0 || columnIndex >= writableArea.getColumns() ||
-                rowIndex < 0 || rowIndex >= writableArea.getRows()) {
-            return this;
+    override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
+        val writableArea = size
+        if (columnIndex < 0 || columnIndex >= writableArea.columns ||
+            rowIndex < 0 || rowIndex >= writableArea.rows
+        ) {
+            return this
         }
-        TerminalPosition projectedPosition = project(columnIndex, rowIndex);
-        underlyingTextGraphics.setCharacter(projectedPosition, textCharacter);
-        return this;
+        val projectedPosition = project(columnIndex, rowIndex)
+        underlyingTextGraphics.setCharacter(projectedPosition, textCharacter)
+        return this
     }
 
-    @Override
-    public TerminalSize getSize() {
-        return writableAreaSize;
+    override fun getSize(): TerminalSize {
+        return writableAreaSize
     }
 
-    @Override
-    public TextCharacter getCharacter(int column, int row) {
-        TerminalPosition projectedPosition = project(column, row);
-        return underlyingTextGraphics.getCharacter(projectedPosition.getColumn(), projectedPosition.getRow());
+    override fun getCharacter(column: Int, row: Int): TextCharacter? {
+        val projectedPosition = project(column, row)
+        return underlyingTextGraphics.getCharacter(projectedPosition.column, projectedPosition.row)
     }
 }
