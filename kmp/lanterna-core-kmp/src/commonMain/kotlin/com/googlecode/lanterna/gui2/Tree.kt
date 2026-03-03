@@ -1,536 +1,467 @@
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TerminalTextUtils;
-import com.googlecode.lanterna.graphics.ThemeDefinition;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.input.MouseAction;
-import com.googlecode.lanterna.input.MouseActionType;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TerminalTextUtils
+import com.googlecode.lanterna.graphics.ThemeDefinition
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.input.MouseAction
+import com.googlecode.lanterna.input.MouseActionType
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.function.Consumer
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Consumer;
+open class Tree<V>(
+    root: TreeNode<V>?,
+    private val columns: Int,
+    private val scrollWindowHeight: Int
+) : AbstractInteractableComponent<Tree<V>>() {
 
-/**
- * Interactive tree component for Lanterna GUI.
- * <p>
- * A {@code Tree} displays a hierarchical set of {@link TreeNode} instances and lets the user
- * navigate with keyboard and mouse, expand/collapse branches, and select a node. The component
- * renders using a simple text representation with optional brackets and a marker indicating
- * collapsed, expanded, or leaf state. Scrolling is supported when the visible area is smaller
- * than the number of visible nodes.
- * </p>
- *
- * @param <V> Type of the value stored in each {@link TreeNode}
- */
-public class Tree<V> extends AbstractInteractableComponent<Tree<V>> {
-
-    /**
-     * Listener interface that can be attached to the {@code Tree} in order to be notified on user actions
-     */
-    public interface Listener<V> {
-        /**
-         * Called by the {@code Tree} when the user changes the toggle state of one item
-         * @param treeNode that has been changed
-         */
-        void onToggleChanged(TreeNode<V> treeNode);
+    interface Listener<V> {
+        fun onToggleChanged(treeNode: TreeNode<V>?)
     }
 
-    private final TreeNode<V> root;
-    private final int scrollWindowHeight;
-    private final int columns;
-    private TreeNode<V> selectedNode;
-    private TreeNode<V> scrollingNode;
+    private val root: TreeNode<V>
+    private var selectedNode: TreeNode<V>
+    private var scrollingNode: TreeNode<V>
 
-    private int selectedNodeLevel;
-    private int selectedNodeDepth;
+    private var selectedNodeLevel: Int = 0
+    private var selectedNodeDepth: Int = 0
 
-    private boolean overflowCircle = false;
+    private var overflowCircle: Boolean = false
 
-    private Consumer<TreeNode<V>> nodeSelectedConsumer;
-    private final List<Listener<V>> listeners = new CopyOnWriteArrayList<>();
+    private var nodeSelectedConsumer: Consumer<TreeNode<V>>? = null
+    private val listeners: MutableList<Listener<V>> = CopyOnWriteArrayList()
 
-    /**
-     * Creates a new {@code Tree} bound to a root node.
-     *
-     * @param root               Root node of the tree; must not be {@code null}
-     * @param columns            Width, in terminal columns, available for drawing the tree
-     * @param scrollWindowHeight Height, in rows, of the scroll window (number of rows to display)
-     * @throws IllegalArgumentException if {@code root} is {@code null}
-     */
-    public Tree(TreeNode<V> root, int columns, int scrollWindowHeight) {
-        if (root == null) throw new IllegalArgumentException("Root must not be null");
-        this.root = root;
-        this.columns = columns;
-        this.scrollWindowHeight = scrollWindowHeight;
-        this.selectedNode = root;
-        this.scrollingNode = root;
-        this.root.setFocused(true);
-        recomputeCursorPosition();
-    }
-
-    /**
-     * Returns the root node of this tree.
-     *
-     * @return Root {@link TreeNode}
-     */
-    public TreeNode<V> getRoot() {
-        return root;
-    }
-
-    /**
-     * Computes the number of visible rows required to render the tree from the top-most
-     * visible node to the last visible descendant, taking expansion state into account.
-     *
-     * @return Total visible depth of the tree (at least 1)
-     */
-    public int computeTreeDepth() {
-        if (!root.isExpanded() || root.getChildren().isEmpty()) {
-            return 1;
+    init {
+        if (root == null) {
+            throw IllegalArgumentException("Root must not be null")
         }
-        return root.getLastDirectChildren().getLastExpandedChildren().computeDepth();
+        this.root = root
+        this.selectedNode = root
+        this.scrollingNode = root
+        this.root.setFocused(true)
+        recomputeCursorPosition()
     }
 
-    private void recomputeCursorPosition() {
-        this.selectedNodeLevel = selectedNode.computeLevel();
-        this.selectedNodeDepth = selectedNode.computeDepth();
+    open fun getRoot(): TreeNode<V> {
+        return root
     }
 
-    private TreeNode<V> getScrollingNode() {
-        return scrollingNode;
+    open fun computeTreeDepth(): Int {
+        if (!root.isExpanded || root.children.isEmpty()) {
+            return 1
+        }
+        return root.lastDirectChildren.lastExpandedChildren.computeDepth()
     }
 
-    private void updateScrollingNode() {
-        if (scrollingNode.getPreviousNode() == selectedNode) {
-           scrollingNode = selectedNode;
-        }else {
-            int delta = scrollingNode.getDepthTo(selectedNode);
+    private fun recomputeCursorPosition() {
+        this.selectedNodeLevel = selectedNode.computeLevel()
+        this.selectedNodeDepth = selectedNode.computeDepth()
+    }
+
+    private fun getScrollingNode(): TreeNode<V> {
+        return scrollingNode
+    }
+
+    private fun updateScrollingNode() {
+        if (scrollingNode.previousNode == selectedNode) {
+            scrollingNode = selectedNode
+        } else {
+            var delta = scrollingNode.getDepthTo(selectedNode)
             while (delta-- >= scrollWindowHeight) {
-                scrollingNode = scrollingNode.getNextNode();
+                scrollingNode = scrollingNode.nextNode
             }
         }
     }
 
-    @Override
-    public TerminalSize getSize() {
-        return new TerminalSize(150, scrollWindowHeight);
+    override fun getSize(): TerminalSize {
+        return TerminalSize(150, scrollWindowHeight)
     }
 
-    @Override
-    protected InteractableRenderer<Tree<V>> createDefaultRenderer() {
-        int spacing = getThemeDefinition().getIntegerProperty(DefaultTreeRenderer.TREE_LEVEL_INDENT, DefaultTreeRenderer.DEFAULT_TREE_LEVEL_INDENT);
-        boolean displayBrackets = getThemeDefinition().getBooleanProperty(DefaultTreeRenderer.DISPLAY_BRACKETS, true);
-        boolean displayBblock = getThemeDefinition().getBooleanProperty(DefaultTreeRenderer.DISPLAY_BLOCK, false);
-        return new DefaultTreeRenderer<>(spacing, displayBrackets, displayBblock);
+    protected override fun createDefaultRenderer(): InteractableRenderer<Tree<V>> {
+        val spacing = themeDefinition.getIntegerProperty(
+            DefaultTreeRenderer.TREE_LEVEL_INDENT,
+            DefaultTreeRenderer.DEFAULT_TREE_LEVEL_INDENT
+        )
+        val displayBrackets =
+            themeDefinition.getBooleanProperty(DefaultTreeRenderer.DISPLAY_BRACKETS, true)
+        val displayBblock =
+            themeDefinition.getBooleanProperty(DefaultTreeRenderer.DISPLAY_BLOCK, false)
+        return DefaultTreeRenderer(spacing, displayBrackets, displayBblock)
     }
 
-    @Override
-    protected Result handleKeyStroke(KeyStroke keyStroke) {
+    protected override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result {
         if (isKeyboardActivationStroke(keyStroke)) {
-            selectedNode.toggleExpanded();
+            selectedNode.toggleExpanded()
             if (nodeSelectedConsumer != null) {
-                nodeSelectedConsumer.accept(selectedNode);
+                nodeSelectedConsumer?.accept(selectedNode)
             }
-            runOnGUIThreadIfExistsOtherwiseRunDirect(() -> {
-                for(Listener<V> listener: listeners) {
-                    listener.onToggleChanged(selectedNode);
+            runOnGUIThreadIfExistsOtherwiseRunDirect {
+                for (listener in listeners) {
+                    listener.onToggleChanged(selectedNode)
                 }
-            });
-            return Result.HANDLED;
-        } else if (keyStroke.getKeyType() == KeyType.MOUSE_EVENT) {
-            MouseAction mouseAction = (MouseAction) keyStroke;
-            MouseActionType actionType = mouseAction.getActionType();
-
-            if(actionType == MouseActionType.SCROLL_UP) {
-                focusPrevNode();
-                return Result.HANDLED;
             }
-            if(actionType == MouseActionType.SCROLL_DOWN) {
-                focusNextNode();
-                return Result.HANDLED;
+            return Interactable.Result.HANDLED
+        } else if (keyStroke.keyType == KeyType.MOUSE_EVENT) {
+            val mouseAction = keyStroke as MouseAction
+            val actionType = mouseAction.actionType
+
+            if (actionType == MouseActionType.SCROLL_UP) {
+                focusPrevNode()
+                return Interactable.Result.HANDLED
+            }
+            if (actionType == MouseActionType.SCROLL_DOWN) {
+                focusNextNode()
+                return Interactable.Result.HANDLED
             }
 
-            Result result = super.handleKeyStroke(keyStroke);
-            int selectedDepth = getSelectedDepthByMouseAction(mouseAction);
+            val result = super.handleKeyStroke(keyStroke)
+            val selectedDepth = getSelectedDepthByMouseAction(mouseAction)
             if (actionType == MouseActionType.CLICK_DOWN) {
-                TreeNode<V> nodeAtDepth = scrollingNode.getNodeAtDepth(selectedDepth);
+                val nodeAtDepth = scrollingNode.getNodeAtDepth(selectedDepth)
                 if (nodeAtDepth != null) {
-                    nodeAtDepth.toggleExpanded();
-                    selectedNode.setFocused(false);
-                    nodeAtDepth.setFocused(true);
-                    selectedNode = nodeAtDepth;
-                    recomputeCursorPosition();
+                    nodeAtDepth.toggleExpanded()
+                    selectedNode.setFocused(false)
+                    nodeAtDepth.setFocused(true)
+                    selectedNode = nodeAtDepth
+                    recomputeCursorPosition()
                 }
-                return Result.HANDLED;
+                return Interactable.Result.HANDLED
             }
-            return result;
-        } else if (!keyStroke.isAltDown() && !keyStroke.isCtrlDown() && !keyStroke.isShiftDown()) {
-            switch (keyStroke.getKeyType()) {
-                case ARROW_DOWN:
-                    focusNextNode();
-                    return Result.HANDLED;
-                case ARROW_UP:
-                    focusPrevNode();
-                    return Result.HANDLED;
-                case TAB:
-                    return Result.MOVE_FOCUS_NEXT;
-                case REVERSE_TAB:
-                    return Result.MOVE_FOCUS_PREVIOUS;
-                case ARROW_RIGHT:
-                    return Result.MOVE_FOCUS_RIGHT;
-                case ARROW_LEFT:
-                    return Result.MOVE_FOCUS_LEFT;
-                case HOME:
-                    selectFirstNode();
-                    return Result.HANDLED;
-                case END:
-                    selectLastNode();
-                    return Result.HANDLED;
+            return result
+        } else if (!keyStroke.isAltDown && !keyStroke.isCtrlDown && !keyStroke.isShiftDown) {
+            when (keyStroke.keyType) {
+                KeyType.ARROW_DOWN -> {
+                    focusNextNode()
+                    return Interactable.Result.HANDLED
+                }
 
-                case PAGE_UP:
-                    for (int i = 0; i < scrollWindowHeight; i++) {
-                        if(!focusPrevNode()) {
-                            break;
+                KeyType.ARROW_UP -> {
+                    focusPrevNode()
+                    return Interactable.Result.HANDLED
+                }
+
+                KeyType.TAB -> return Interactable.Result.MOVE_FOCUS_NEXT
+                KeyType.REVERSE_TAB -> return Interactable.Result.MOVE_FOCUS_PREVIOUS
+                KeyType.ARROW_RIGHT -> return Interactable.Result.MOVE_FOCUS_RIGHT
+                KeyType.ARROW_LEFT -> return Interactable.Result.MOVE_FOCUS_LEFT
+
+                KeyType.HOME -> {
+                    selectFirstNode()
+                    return Interactable.Result.HANDLED
+                }
+
+                KeyType.END -> {
+                    selectLastNode()
+                    return Interactable.Result.HANDLED
+                }
+
+                KeyType.PAGE_UP -> {
+                    for (i in 0 until scrollWindowHeight) {
+                        if (!focusPrevNode()) {
+                            break
                         }
                     }
-                    scrollingNode = selectedNode;
-                    return Result.HANDLED;
+                    scrollingNode = selectedNode
+                    return Interactable.Result.HANDLED
+                }
 
-                case PAGE_DOWN:
-                    for (int i = 0; i < scrollWindowHeight; i++) {
-                        if(!focusNextNode()) {
-                            break;
+                KeyType.PAGE_DOWN -> {
+                    for (i in 0 until scrollWindowHeight) {
+                        if (!focusNextNode()) {
+                            break
                         }
                     }
-                    scrollingNode = selectedNode;
-                    return Result.HANDLED;
-                default:
-                    return Result.UNHANDLED;
+                    scrollingNode = selectedNode
+                    return Interactable.Result.HANDLED
+                }
+
+                else -> return Interactable.Result.UNHANDLED
             }
         }
-        return Result.UNHANDLED;
+        return Interactable.Result.UNHANDLED
     }
 
-    /**
-     * Moves focus/selection to the first visible node.
-     */
-    public void selectFirstNode() {
-        selectedNode.setFocused(false);
-        TreeNode<V> firstNode = isDisplayRoot() ? root : root.getChildren().get(0);
-        firstNode.setFocused(true);
-        this.selectedNode = firstNode;
-        this.scrollingNode = firstNode;
-        recomputeCursorPosition();
+    open fun selectFirstNode() {
+        selectedNode.setFocused(false)
+        val firstNode = if (isDisplayRoot()) root else root.children[0]
+        firstNode.setFocused(true)
+        this.selectedNode = firstNode
+        this.scrollingNode = firstNode
+        recomputeCursorPosition()
     }
 
-    /**
-     * Moves focus/selection to the last visible node.
-     */
-    public void selectLastNode() {
-        selectedNode.setFocused(false);
-        TreeNode<V> lastNode = getRoot().isExpanded() ? root.getLastDirectChildren().getLastExpandedChildren() : root;
-        lastNode.setFocused(true);
-        this.selectedNode = lastNode;
-        updateScrollingNode();
-        recomputeCursorPosition();
+    open fun selectLastNode() {
+        selectedNode.setFocused(false)
+        val lastNode = if (getRoot().isExpanded) root.lastDirectChildren.lastExpandedChildren else root
+        lastNode.setFocused(true)
+        this.selectedNode = lastNode
+        updateScrollingNode()
+        recomputeCursorPosition()
     }
 
-    /**
-     * By converting {@link TerminalPosition}s to
-     * {@link #toGlobal(TerminalPosition)} gets index clicked on by mouse action.
-     *
-     * @return index of an item that was clicked on with {@link MouseAction}
-     */
-    protected int getSelectedDepthByMouseAction(MouseAction click) {
-        return click.getPosition().getRow() - getGlobalPosition().getRow();
+    protected open fun getSelectedDepthByMouseAction(click: MouseAction): Int {
+        return click.position.row - globalPosition.row
     }
 
-    private boolean focusNextNode() {
-        TreeNode<V> nextNode = selectedNode.getNextNode();
+    private fun focusNextNode(): Boolean {
+        val nextNode = selectedNode.nextNode
         if (nextNode == null && overflowCircle) {
-            selectFirstNode();
-            return false;
+            selectFirstNode()
+            return false
         } else if (nextNode != null) {
-            selectedNode.setFocused(false);
-            nextNode.setFocused(true);
-            this.selectedNode = nextNode;
-            updateScrollingNode();
-            recomputeCursorPosition();
-            return true;
+            selectedNode.setFocused(false)
+            nextNode.setFocused(true)
+            this.selectedNode = nextNode
+            updateScrollingNode()
+            recomputeCursorPosition()
+            return true
         }
-        return false;
+        return false
     }
 
-    private boolean focusPrevNode() {
-        TreeNode<V> previousNode = selectedNode.getPreviousNode();
+    private fun focusPrevNode(): Boolean {
+        val previousNode = selectedNode.previousNode
         if (previousNode == null && overflowCircle) {
-            selectLastNode();
-            return false;
+            selectLastNode()
+            return false
         } else if (previousNode != null) {
-            selectedNode.setFocused(false);
-            previousNode.setFocused(true);
-            this.selectedNode = previousNode;
-            updateScrollingNode();
-            recomputeCursorPosition();
-            return true;
+            selectedNode.setFocused(false)
+            previousNode.setFocused(true)
+            this.selectedNode = previousNode
+            updateScrollingNode()
+            recomputeCursorPosition()
+            return true
         }
-        return false;
+        return false
     }
 
-    /**
-     * Returns whether the root node is displayed (visible) as part of the tree.
-     *
-     * @return {@code true} if the root is visible, {@code false} otherwise
-     */
-    public boolean isDisplayRoot() {
-        return getRoot().isVisible();
+    open fun isDisplayRoot(): Boolean {
+        return getRoot().isVisible
     }
 
-    /**
-     * Returns whether navigation wraps around when moving past the last/first node.
-     *
-     * @return {@code true} if navigation overflows in a circle, {@code false} otherwise
-     */
-    public boolean isOverflowCircle() {
-        return overflowCircle;
+    open fun isOverflowCircle(): Boolean {
+        return overflowCircle
     }
 
-    /**
-     * Enables or disables circular navigation when moving beyond the first or last node.
-     *
-     * @param overflowCircle {@code true} to wrap around, {@code false} to stop at ends
-     */
-    public void setOverflowCircle(boolean overflowCircle) {
-        this.overflowCircle = overflowCircle;
+    open fun setOverflowCircle(overflowCircle: Boolean) {
+        this.overflowCircle = overflowCircle
     }
 
-    /**
-     * Shows or hides the root node. When hidden, focus moves to the first visible child
-     * if one exists.
-     *
-     * @param displayRoot {@code true} to show the root node, {@code false} to hide it
-     */
-    public void setDisplayRoot(boolean displayRoot) {
-        getRoot().setVisible(displayRoot);
-        if (!getRoot().getChildren().isEmpty()) {
-            TreeNode<V> treeNode = getRoot().getChildren().get(0);
-            treeNode.setFocused(true);
-            this.selectedNode = treeNode;
-            this.scrollingNode = treeNode;
-            recomputeCursorPosition();
+    open fun setDisplayRoot(displayRoot: Boolean) {
+        getRoot().setVisible(displayRoot)
+        if (!getRoot().children.isEmpty()) {
+            val treeNode = getRoot().children[0]
+            treeNode.setFocused(true)
+            this.selectedNode = treeNode
+            this.scrollingNode = treeNode
+            recomputeCursorPosition()
         }
     }
 
-    /**
-     * Returns the currently selected (focused) node.
-     *
-     * @return Selected {@link TreeNode}
-     */
-    public TreeNode<V> getSelectedNode() {
-        return selectedNode;
+    open fun getSelectedNode(): TreeNode<V> {
+        return selectedNode
     }
 
-    /**
-     * Sets a consumer that will be invoked when a node is activated (for example by the
-     * keyboard activation key or mouse click). The consumer receives the currently selected
-     * node. This does not affect the internal expand/collapse behavior.
-     *
-     * @param nodeSelectedConsumer Callback to invoke on node activation; may be {@code null}
-     */
-    public void setNodeSelectedConsumer(Consumer<TreeNode<V>> nodeSelectedConsumer) {
-        this.nodeSelectedConsumer = nodeSelectedConsumer;
+    open fun setNodeSelectedConsumer(nodeSelectedConsumer: Consumer<TreeNode<V>>?) {
+        this.nodeSelectedConsumer = nodeSelectedConsumer
     }
 
-    /**
-     * Adds a new listener to the {@code Tree} that will be called on certain user actions
-     * @param listener Listener to attach to this {@code Tree}
-     * @return Itself
-     */
-    public synchronized Tree<V> addListener(Listener<V> listener) {
-        if(listener != null && !listeners.contains(listener)) {
-            listeners.add(listener);
+    @Synchronized
+    open fun addListener(listener: Listener<V>?): Tree<V> {
+        if (listener != null && !listeners.contains(listener)) {
+            listeners.add(listener)
         }
-        return this;
+        return this
     }
 
-    /**
-     * Removes a listener from this {@code Tree} so that if it had been added earlier, it will no longer be
-     * called on user actions
-     * @param listener Listener to remove from this {@code Tree}
-     * @return Itself
-     */
-    public Tree<V> removeListener(Listener<V> listener) {
-        listeners.remove(listener);
-        return this;
+    open fun removeListener(listener: Listener<V>?): Tree<V> {
+        listeners.remove(listener)
+        return this
     }
 
-    /**
-     * Default renderer for {@link Tree}. It draws optional brackets, an expand/collapse/leaf
-     * marker, and the node label with a configurable indent per level. It also manages an
-     * optional vertical scrollbar when needed.
-     *
-     * @param <V> Type of the value stored in each {@link TreeNode}
-     */
-    public static class DefaultTreeRenderer<V> implements InteractableRenderer<Tree<V>> {
+    open class DefaultTreeRenderer<V>(
+        private val indent: Int,
+        private val displayBrackets: Boolean,
+        private val displayBlock: Boolean
+    ) : InteractableRenderer<Tree<V>> {
 
-        public static final int DEFAULT_TREE_LEVEL_INDENT = 1;
+        private val verticalScrollBar: ScrollBar
 
-        public static final String LEFT_BRACKET = "LEFT_BRACKET";
-        public static final String RIGHT_BRACKET = "RIGHT_BRACKET";
-        public static final String EXPANDED_MARKER = "EXPANDED_MARKER";
-        public static final String COLLAPSED_MARKER = "COLLAPSED_MARKER";
-        public static final String LEAF_MARKER = "LEAF_MARKER";
-
-        public static final String TREE_LEVEL_INDENT = "TREE_LEVEL_INDENT";
-
-        public static final String DISPLAY_BRACKETS = "DISPLAY_BRACKETS";
-        public static final String DISPLAY_BLOCK = "DISPLAY_BLOCK";
-        public static final String DISPLAY_BLOCK_FILLER = "DISPLAY_BLOCK_FILLER";
-
-        private final int indent;
-        private final boolean displayBrackets;
-        private final boolean displayBlock;
-
-        private final ScrollBar verticalScrollBar;
-
-        /**
-         * Creates a renderer with default settings.
-         */
-        public DefaultTreeRenderer() {
-            this(DEFAULT_TREE_LEVEL_INDENT, true, false);
-        }
-
-        /**
-         * Creates a renderer with custom settings.
-         *
-         * @param indent          Number of columns to indent per tree level (must be {@code >= 0})
-         * @param displayBrackets Whether to draw square brackets around the marker
-         * @param displayBlock    Whether to fill the line up to the label with a block/filler
-         * @throws IllegalArgumentException if {@code indent} is negative
-         */
-        public DefaultTreeRenderer(int indent, boolean displayBrackets, boolean displayBlock) {
+        init {
             if (indent < 0) {
-                throw new IllegalArgumentException("Indent must be >= 0");
+                throw IllegalArgumentException("Indent must be >= 0")
             }
-            this.indent = indent;
-            this.displayBrackets = displayBrackets;
-            this.displayBlock = displayBlock;
-            this.verticalScrollBar = new ScrollBar(Direction.VERTICAL);
+            this.verticalScrollBar = ScrollBar(Direction.VERTICAL)
         }
 
-        @Override
-        public TerminalPosition getCursorLocation(Tree<V> tree) {
-            int offset = displayBrackets ? 0 : -1;
-            int row = tree.scrollingNode.getDepthTo(tree.selectedNode);
-            return new TerminalPosition(1 + indent * tree.selectedNodeLevel + offset, row);
+        constructor() : this(DEFAULT_TREE_LEVEL_INDENT, true, false)
+
+        override fun getCursorLocation(tree: Tree<V>): TerminalPosition {
+            val offset = if (displayBrackets) 0 else -1
+            val row = tree.scrollingNode.getDepthTo(tree.selectedNode)
+            return TerminalPosition(1 + indent * tree.selectedNodeLevel + offset, row)
         }
 
-        @Override
-        public TerminalSize getPreferredSize(Tree<V> tree) {
-            int bracketsSize =  displayBrackets ? 4 : 2;
-            int width = tree.getRoot().isExpanded() ?
-                    tree.getRoot().getMaxExpandedWidth(0, bracketsSize) :
-                    4 + TerminalTextUtils.getColumnWidth(tree.getRoot().getLabel());
-            int height = 1;
-            if (tree.getRoot().isExpanded()) {
-                height = tree.getRoot().getExpandedLength();
-            }
-
-            return new TerminalSize(width, height);
-        }
-
-        @Override
-        public void drawComponent(TextGUIGraphics graphics, Tree<V> tree) {
-            graphics.applyThemeStyle(tree.getThemeDefinition().getNormal());
-            graphics.fill(' ');
-            int scrollPosition = Math.max(0, tree.selectedNodeDepth - tree.scrollWindowHeight);
-
-            TreeNode<V> activeNode = tree.getScrollingNode();
-            for (int i = 0; i < tree.scrollWindowHeight; i++) {
-                int level = activeNode.computeLevel();
-                drawTreeNode(graphics, tree.getThemeDefinition(), activeNode, level, i, tree.columns - 3);
-                activeNode = activeNode.getNextNode();
-                if(activeNode == null) {
-                    break;
-                }
-            }
-
-            int displayedItems = tree.computeTreeDepth();
-            if (displayedItems > tree.scrollWindowHeight) {
-                verticalScrollBar.onAdded(tree.getParent());
-                verticalScrollBar.setViewSize(tree.scrollWindowHeight);
-                verticalScrollBar.setScrollMaximum(displayedItems);
-                verticalScrollBar.setScrollPosition(scrollPosition);
-                verticalScrollBar.draw(graphics.newTextGraphics(
-                        new TerminalPosition(tree.columns - 1, 0),
-                        new TerminalSize(1, graphics.getSize().getRows())));
-            }
-        }
-
-        private int drawTreeNode(TextGUIGraphics graphics, ThemeDefinition themeDefinition, TreeNode<V> treeNode, int level, int depth, int columns) {
-            int offset = displayBrackets ? 0 : -1;
-            if (treeNode.isFocused()) {
-                graphics.applyThemeStyle(themeDefinition.getActive());
+        override fun getPreferredSize(tree: Tree<V>): TerminalSize {
+            val bracketsSize = if (displayBrackets) 4 else 2
+            val width = if (tree.getRoot().isExpanded) {
+                tree.getRoot().getMaxExpandedWidth(0, bracketsSize)
             } else {
-                graphics.applyThemeStyle(themeDefinition.getNormal());
+                4 + TerminalTextUtils.getColumnWidth(tree.getRoot().label)
             }
-            int labelOffset = 4 + indent * level + offset * 2;
-            String label = displayBlock ? getBlockLabel(labelOffset, treeNode.getLabel(), columns, themeDefinition.getCharacter(DISPLAY_BLOCK_FILLER, '.')) : treeNode.getLabel();
-            graphics.putString(labelOffset, depth, label);
+            var height = 1
+            if (tree.getRoot().isExpanded) {
+                height = tree.getRoot().expandedLength
+            }
+
+            return TerminalSize(width, height)
+        }
+
+        override fun drawComponent(graphics: TextGUIGraphics, tree: Tree<V>) {
+            graphics.applyThemeStyle(tree.themeDefinition.normal)
+            graphics.fill(' ')
+            val scrollPosition = Math.max(0, tree.selectedNodeDepth - tree.scrollWindowHeight)
+
+            var activeNode = tree.getScrollingNode()
+            for (i in 0 until tree.scrollWindowHeight) {
+                val level = activeNode.computeLevel()
+                drawTreeNode(graphics, tree.themeDefinition, activeNode, level, i, tree.columns - 3)
+                activeNode = activeNode.nextNode ?: break
+            }
+
+            val displayedItems = tree.computeTreeDepth()
+            if (displayedItems > tree.scrollWindowHeight) {
+                verticalScrollBar.onAdded(tree.parent)
+                verticalScrollBar.viewSize = tree.scrollWindowHeight
+                verticalScrollBar.scrollMaximum = displayedItems
+                verticalScrollBar.scrollPosition = scrollPosition
+                verticalScrollBar.draw(
+                    graphics.newTextGraphics(
+                        TerminalPosition(tree.columns - 1, 0),
+                        TerminalSize(1, graphics.size.rows)
+                    )
+                )
+            }
+        }
+
+        private fun drawTreeNode(
+            graphics: TextGUIGraphics,
+            themeDefinition: ThemeDefinition,
+            treeNode: TreeNode<V>,
+            level: Int,
+            depth: Int,
+            columns: Int
+        ): Int {
+            val offset = if (displayBrackets) 0 else -1
+            if (treeNode.isFocused) {
+                graphics.applyThemeStyle(themeDefinition.active)
+            } else {
+                graphics.applyThemeStyle(themeDefinition.normal)
+            }
+            val labelOffset = 4 + indent * level + offset * 2
+            val label = if (displayBlock) {
+                getBlockLabel(
+                    labelOffset,
+                    treeNode.label,
+                    columns,
+                    themeDefinition.getCharacter(DISPLAY_BLOCK_FILLER, '.')
+                )
+            } else {
+                treeNode.label
+            }
+            graphics.putString(labelOffset, depth, label)
 
             if (displayBrackets) {
-                if (treeNode.isFocused()) {
-                    graphics.applyThemeStyle(themeDefinition.getPreLight());
+                if (treeNode.isFocused) {
+                    graphics.applyThemeStyle(themeDefinition.preLight)
                 } else {
-                    graphics.applyThemeStyle(themeDefinition.getNormal());
+                    graphics.applyThemeStyle(themeDefinition.normal)
                 }
-                graphics.setCharacter(indent * level, depth, themeDefinition.getCharacter(LEFT_BRACKET, '['));
-                graphics.setCharacter(2 + indent * level, depth, themeDefinition.getCharacter(RIGHT_BRACKET, ']'));
+                graphics.setCharacter(indent * level, depth, themeDefinition.getCharacter(LEFT_BRACKET, '['))
+                graphics.setCharacter(
+                    2 + indent * level,
+                    depth,
+                    themeDefinition.getCharacter(RIGHT_BRACKET, ']')
+                )
             }
-            graphics.setCharacter(3 + indent * level + 2 * offset, depth, ' ');
+            graphics.setCharacter(3 + indent * level + 2 * offset, depth, ' ')
 
-            if (treeNode.isFocused()) {
-                graphics.applyThemeStyle(themeDefinition.getSelected());
+            if (treeNode.isFocused) {
+                graphics.applyThemeStyle(themeDefinition.selected)
             } else {
-                graphics.applyThemeStyle(themeDefinition.getNormal());
+                graphics.applyThemeStyle(themeDefinition.normal)
             }
-            char marker = getMarker(themeDefinition, treeNode);
-            graphics.setCharacter(1 + indent * level + offset, depth, marker);
+            val marker = getMarker(themeDefinition, treeNode)
+            graphics.setCharacter(1 + indent * level + offset, depth, marker)
 
-            depth = depth + 1;
-            if (treeNode.isExpanded()) {
-                for (TreeNode<V> child : treeNode.getChildren()) {
-                    if(child.isVisible()) {
-                        depth = drawTreeNode(graphics, themeDefinition, child, level + 1, depth, columns);
+            var newDepth = depth + 1
+            if (treeNode.isExpanded) {
+                for (child in treeNode.children) {
+                    if (child.isVisible) {
+                        newDepth =
+                            drawTreeNode(graphics, themeDefinition, child, level + 1, newDepth, columns)
                     }
                 }
             }
 
-            return depth;
+            return newDepth
         }
 
-        private String getBlockLabel(int labelOffset, String label, int columns, char filler) {
-            int fillSpace = columns - labelOffset - label.length();
-            if(fillSpace > 0) {
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < fillSpace; i++) {
-                    sb.append(filler);
+        private fun getBlockLabel(labelOffset: Int, label: String, columns: Int, filler: Char): String {
+            val fillSpace = columns - labelOffset - label.length
+            var result = label
+            if (fillSpace > 0) {
+                val sb = StringBuilder()
+                for (i in 0 until fillSpace) {
+                    sb.append(filler)
                 }
-                label = sb.append(label).toString();
+                result = sb.append(result).toString()
             }
-            return label;
+            return result
         }
 
-        private char getMarker(ThemeDefinition themeDefinition, TreeNode<V> treeNode) {
-            char marker = themeDefinition.getCharacter(COLLAPSED_MARKER, '>');
-            if (treeNode.isExpanded()) {
-                marker = themeDefinition.getCharacter(EXPANDED_MARKER, '<');
-            } else if (treeNode.isLeaf()) {
-                marker = themeDefinition.getCharacter(LEAF_MARKER, '.');
+        private fun getMarker(themeDefinition: ThemeDefinition, treeNode: TreeNode<V>): Char {
+            var marker = themeDefinition.getCharacter(COLLAPSED_MARKER, '>')
+            if (treeNode.isExpanded) {
+                marker = themeDefinition.getCharacter(EXPANDED_MARKER, '<')
+            } else if (treeNode.isLeaf) {
+                marker = themeDefinition.getCharacter(LEAF_MARKER, '.')
             }
-            return marker;
+            return marker
+        }
+
+        companion object {
+            @JvmField
+            val DEFAULT_TREE_LEVEL_INDENT: Int = 1
+
+            @JvmField
+            val LEFT_BRACKET: String = "LEFT_BRACKET"
+
+            @JvmField
+            val RIGHT_BRACKET: String = "RIGHT_BRACKET"
+
+            @JvmField
+            val EXPANDED_MARKER: String = "EXPANDED_MARKER"
+
+            @JvmField
+            val COLLAPSED_MARKER: String = "COLLAPSED_MARKER"
+
+            @JvmField
+            val LEAF_MARKER: String = "LEAF_MARKER"
+
+            @JvmField
+            val TREE_LEVEL_INDENT: String = "TREE_LEVEL_INDENT"
+
+            @JvmField
+            val DISPLAY_BRACKETS: String = "DISPLAY_BRACKETS"
+
+            @JvmField
+            val DISPLAY_BLOCK: String = "DISPLAY_BLOCK"
+
+            @JvmField
+            val DISPLAY_BLOCK_FILLER: String = "DISPLAY_BLOCK_FILLER"
         }
     }
 }
