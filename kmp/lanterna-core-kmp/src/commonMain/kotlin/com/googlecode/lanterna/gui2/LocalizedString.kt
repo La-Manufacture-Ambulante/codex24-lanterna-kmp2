@@ -16,79 +16,94 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.bundle.LocalizedUIBundle;
-
-import java.util.Locale;
+import com.googlecode.lanterna.bundle.LocalizedUIBundle
+import java.util.Locale
 
 /**
  * Set of predefined localized string.<br>
- * All this strings are localized by using {@link LocalizedUIBundle}.<br>
- * Changing the locale by calling {@link Locale#setDefault(Locale)}.
+ * All this strings are localized by using [LocalizedUIBundle].<br>
+ * Changing the locale by calling [Locale.setDefault].
  * @author silveryocha.
  */
-public final class LocalizedString {
-
-    /**
-     * "OK"
-     */
-    public final static LocalizedString OK = new LocalizedString("short.label.ok", "OK");
-    /**
-     * "Cancel"
-     */
-    public final static LocalizedString Cancel = new LocalizedString("short.label.cancel", "Cancel");
-    /**
-     * "Yes"
-     */
-    public final static LocalizedString Yes = new LocalizedString("short.label.yes", "Yes");
-    /**
-     * "No"
-     */
-    public final static LocalizedString No = new LocalizedString("short.label.no", "No");
-    /**
-     * "Close"
-     */
-    public final static LocalizedString Close = new LocalizedString("short.label.close", "Close");
-    /**
-     * "Abort"
-     */
-    public final static LocalizedString Abort = new LocalizedString("short.label.abort", "Abort");
-    /**
-     * "Ignore"
-     */
-    public final static LocalizedString Ignore = new LocalizedString("short.label.ignore", "Ignore");
-    /**
-     * "Retry"
-     */
-    public final static LocalizedString Retry = new LocalizedString("short.label.retry", "Retry");
-    /**
-     * "Continue"
-     */
-    public final static LocalizedString Continue = new LocalizedString("short.label.continue", "Continue");
-    /**
-     * "Open"
-     */
-    public final static LocalizedString Open = new LocalizedString("short.label.open", "Open");
-    /**
-     * "Save"
-     */
-    public final static LocalizedString Save = new LocalizedString("short.label.save", "Save");
-
-    private final String defaultValue;
-    private final String bundleKey;
-
-    private LocalizedString(final String bundleKey, final String defaultValue) {
-        this.bundleKey = bundleKey;
-        this.defaultValue = defaultValue;
+class LocalizedString private constructor(
+    private val bundleKey: String,
+    private val defaultValue: String
+) {
+    override fun toString(): String {
+        var localizedString = LocalizedUIBundle.get(Locale.getDefault(), bundleKey)
+        if (localizedString == null) {
+            localizedString = defaultValue
+        }
+        return localizedString
     }
 
-    @Override
-    public String toString() {
-        String localizedString = LocalizedUIBundle.get(Locale.getDefault(), bundleKey);
-        if (localizedString == null) {
-            localizedString = defaultValue;
-        }
-        return localizedString;
+    companion object {
+        /**
+         * "OK"
+         */
+        @JvmField
+        val OK: LocalizedString = LocalizedString("short.label.ok", "OK")
+
+        /**
+         * "Cancel"
+         */
+        @JvmField
+        val Cancel: LocalizedString = LocalizedString("short.label.cancel", "Cancel")
+
+        /**
+         * "Yes"
+         */
+        @JvmField
+        val Yes: LocalizedString = LocalizedString("short.label.yes", "Yes")
+
+        /**
+         * "No"
+         */
+        @JvmField
+        val No: LocalizedString = LocalizedString("short.label.no", "No")
+
+        /**
+         * "Close"
+         */
+        @JvmField
+        val Close: LocalizedString = LocalizedString("short.label.close", "Close")
+
+        /**
+         * "Abort"
+         */
+        @JvmField
+        val Abort: LocalizedString = LocalizedString("short.label.abort", "Abort")
+
+        /**
+         * "Ignore"
+         */
+        @JvmField
+        val Ignore: LocalizedString = LocalizedString("short.label.ignore", "Ignore")
+
+        /**
+         * "Retry"
+         */
+        @JvmField
+        val Retry: LocalizedString = LocalizedString("short.label.retry", "Retry")
+
+        /**
+         * "Continue"
+         */
+        @JvmField
+        val Continue: LocalizedString = LocalizedString("short.label.continue", "Continue")
+
+        /**
+         * "Open"
+         */
+        @JvmField
+        val Open: LocalizedString = LocalizedString("short.label.open", "Open")
+
+        /**
+         * "Save"
+         */
+        @JvmField
+        val Save: LocalizedString = LocalizedString("short.label.save", "Save")
     }
 }
