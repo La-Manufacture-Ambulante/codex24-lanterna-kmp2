@@ -1,28 +1,10 @@
-/*
- * This file is part of lanterna (https://github.com/mabe02/lanterna).
- *
- * lanterna is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2010-2020 Martin Berglund
- */
-package com.googlecode.lanterna.gui2.dialogs;
+package com.googlecode.lanterna.gui2.dialogs
 
-import com.googlecode.lanterna.gui2.Window;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import com.googlecode.lanterna.gui2.Window
+import java.util.Collections
+import java.util.HashSet
+import java.util.Objects
+import java.util.Set
 
 /**
  * Abstract class for dialog building, containing much shared code between different kinds of dialogs
@@ -30,19 +12,19 @@ import java.util.Set;
  * @param <T> Type of dialog this builder is building
  * @author Martin
  */
-public abstract class AbstractDialogBuilder<B, T extends DialogWindow> {
-    protected String title;
-    protected String description;
-    protected Set<Window.Hint> extraWindowHints;
+abstract class AbstractDialogBuilder<B, T : DialogWindow>(title: String?) {
+    protected var title: String?
+    protected var description: String?
+    protected var extraWindowHints: Set<Window.Hint>?
 
     /**
      * Default constructor for a dialog builder
      * @param title Title to assign to the dialog
      */
-    public AbstractDialogBuilder(String title) {
-        this.title = title;
-        this.description = null;
-        this.extraWindowHints = Collections.singleton(Window.Hint.CENTERED);
+    init {
+        this.title = title
+        this.description = null
+        this.extraWindowHints = Collections.singleton(Window.Hint.CENTERED)
     }
 
     /**
@@ -50,20 +32,21 @@ public abstract class AbstractDialogBuilder<B, T extends DialogWindow> {
      * @param title New title
      * @return Itself
      */
-    public B setTitle(String title) {
-        if(title == null) {
-            title = "";
+    open fun setTitle(title: String?): B? {
+        var newTitle = title
+        if (newTitle == null) {
+            newTitle = ""
         }
-        this.title = title;
-        return self();
+        this.title = newTitle
+        return self()
     }
 
     /**
      * Returns the title that the built dialog will have
      * @return Title that the built dialog will have
      */
-    public String getTitle() {
-        return title;
+    open fun getTitle(): String? {
+        return title
     }
 
     /**
@@ -71,17 +54,17 @@ public abstract class AbstractDialogBuilder<B, T extends DialogWindow> {
      * @param description New description
      * @return Itself
      */
-    public B setDescription(String description) {
-        this.description = description;
-        return self();
+    open fun setDescription(description: String?): B? {
+        this.description = description
+        return self()
     }
 
     /**
      * Returns the description that the built dialog will have
      * @return Description that the built dialog will have
      */
-    public String getDescription() {
-        return description;
+    open fun getDescription(): String? {
+        return description
     }
 
     /**
@@ -89,42 +72,44 @@ public abstract class AbstractDialogBuilder<B, T extends DialogWindow> {
      * @param extraWindowHints Window hints to assign to the window in addition to the ones the builder will put
      * @return Itself
      */
-    public B setExtraWindowHints(Set<Window.Hint> extraWindowHints) {
-        this.extraWindowHints = extraWindowHints;
-        return self();
+    open fun setExtraWindowHints(extraWindowHints: Set<Window.Hint>?): B? {
+        this.extraWindowHints = extraWindowHints
+        return self()
     }
 
     /**
      * Returns the list of extra window hints that will be assigned to the window when built
      * @return List of extra window hints that will be assigned to the window when built
      */
-    public Set<Window.Hint> getExtraWindowHints() {
-        return extraWindowHints;
+    open fun getExtraWindowHints(): Set<Window.Hint>? {
+        return extraWindowHints
     }
 
     /**
      * Helper method for casting this to {@code type} parameter {@code B}
      * @return {@code this} as {@code B}
      */
-    protected abstract B self();
+    protected abstract fun self(): B?
 
     /**
      * Builds the dialog according to the builder implementation
      * @return New dialog object
      */
-    protected abstract T buildDialog();
+    protected abstract fun buildDialog(): T?
 
     /**
      * Builds a new dialog following the specifications of this builder
      * @return New dialog built following the specifications of this builder
      */
-    public final T build() {
-        T dialog = buildDialog();
-        if(!extraWindowHints.isEmpty()) {
-            Set<Window.Hint> combinedHints = new HashSet<>(dialog.getHints());
-            combinedHints.addAll(extraWindowHints);
-            dialog.setHints(combinedHints);
+    fun build(): T? {
+        val dialog = buildDialog()
+        val extraWindowHints = Objects.requireNonNull(this.extraWindowHints)
+        if (!extraWindowHints.isEmpty()) {
+            val nonNullDialog = Objects.requireNonNull(dialog)
+            val combinedHints: MutableSet<Window.Hint> = HashSet(nonNullDialog.getHints())
+            combinedHints.addAll(extraWindowHints)
+            nonNullDialog.setHints(combinedHints)
         }
-        return dialog;
+        return dialog
     }
 }
