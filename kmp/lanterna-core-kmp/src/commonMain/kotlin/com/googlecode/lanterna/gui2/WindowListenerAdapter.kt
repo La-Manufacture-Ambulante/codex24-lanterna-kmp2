@@ -16,32 +16,27 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.input.KeyStroke;
-
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.input.KeyStroke
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Adapter class for {@link WindowListener} to make it easier to create listeners without having to implement every
+ * Adapter class for [WindowListener] to make it easier to create listeners without having to implement every
  * interface method.
  */
-public class WindowListenerAdapter implements WindowListener {
-    @Override
-    public void onResized(Window window, TerminalSize oldSize, TerminalSize newSize) {
+open class WindowListenerAdapter : WindowListener {
+    override fun onResized(window: Window?, oldSize: TerminalSize?, newSize: TerminalSize?) {
     }
 
-    @Override
-    public void onMoved(Window window, TerminalPosition oldPosition, TerminalPosition newPosition) {
+    override fun onMoved(window: Window?, oldPosition: TerminalPosition?, newPosition: TerminalPosition?) {
     }
 
-    @Override
-    public void onInput(Window basePane, KeyStroke keyStroke, AtomicBoolean deliverEvent) {
+    override fun onInput(basePane: Window?, keyStroke: KeyStroke?, deliverEvent: AtomicBoolean?) {
     }
 
-    @Override
-    public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
+    override fun onUnhandledInput(basePane: Window?, keyStroke: KeyStroke?, hasBeenHandled: AtomicBoolean?) {
     }
 }
