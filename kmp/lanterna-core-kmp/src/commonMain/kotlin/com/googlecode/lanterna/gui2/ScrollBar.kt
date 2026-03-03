@@ -1,0 +1,299 @@
+/*
+ * This file is part of lanterna (https://github.com/mabe02/lanterna).
+ *
+ * lanterna is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2010-2020 Martin Berglund
+ */
+package com.googlecode.lanterna.gui2
+
+import com.googlecode.lanterna.Symbols
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.graphics.ThemeDefinition
+
+open class ScrollBar(private val direction: Direction?) : AbstractComponent<ScrollBar>() {
+
+    private var maximum: Int = 100
+    private var position: Int = 0
+    private var viewSize: Int = 0
+
+    open fun getDirection(): Direction? {
+        return direction
+    }
+
+    open fun setScrollMaximum(maximum: Int): ScrollBar {
+        if (maximum < 0) {
+            throw IllegalArgumentException("Cannot set ScrollBar maximum to $maximum")
+        }
+        if (this.maximum != maximum) {
+            this.maximum = maximum
+            invalidate()
+        }
+        return this
+    }
+
+    open fun getScrollMaximum(): Int {
+        return maximum
+    }
+
+    open fun setScrollPosition(position: Int): ScrollBar {
+        val newPosition = Math.min(position, this.maximum)
+        if (this.position != newPosition) {
+            this.position = newPosition
+            invalidate()
+        }
+        return this
+    }
+
+    open fun getScrollPosition(): Int {
+        return position
+    }
+
+    open fun setViewSize(viewSize: Int): ScrollBar {
+        this.viewSize = viewSize
+        return this
+    }
+
+    open fun getViewSize(): Int {
+        if (viewSize > 0) {
+            return viewSize
+        }
+        return if (direction == Direction.HORIZONTAL) {
+            getSize().getColumns()
+        } else {
+            getSize().getRows()
+        }
+    }
+
+    override fun createDefaultRenderer(): ComponentRenderer<ScrollBar> {
+        return DefaultScrollBarRenderer()
+    }
+
+    abstract class ScrollBarRenderer : ComponentRenderer<ScrollBar> {
+        override fun getPreferredSize(component: ScrollBar): TerminalSize {
+            return TerminalSize.ONE
+        }
+    }
+
+    open class DefaultScrollBarRenderer : ScrollBarRenderer() {
+
+        private var growScrollTracker: Boolean = true
+
+        open fun setGrowScrollTracker(growScrollTracker: Boolean) {
+            this.growScrollTracker = growScrollTracker
+        }
+
+        override fun drawComponent(graphics: TextGUIGraphics, component: ScrollBar) {
+            val size = graphics.getSize()
+            val direction = component.getDirection()
+            var position = component.getScrollPosition()
+            val maximum = component.getScrollMaximum()
+            val viewSize = component.getViewSize()
+
+            if (size.getRows() == 0 || size.getColumns() == 0) {
+                return
+            }
+
+            if (position + viewSize >= maximum) {
+                position = Math.max(0, maximum - viewSize)
+                component.setScrollPosition(position)
+            }
+
+            val themeDefinition: ThemeDefinition = component.getThemeDefinition()
+            graphics.applyThemeStyle(themeDefinition.getNormal())
+
+            if (direction == Direction.VERTICAL) {
+                if (size.getRows() == 1) {
+                    graphics.setCharacter(
+                        0,
+                        0,
+                        themeDefinition.getCharacter("VERTICAL_BACKGROUND", Symbols.BLOCK_MIDDLE)
+                    )
+                } else if (size.getRows() == 2) {
+                    graphics.setCharacter(
+                        0,
+                        0,
+                        themeDefinition.getCharacter("UP_ARROW", Symbols.TRIANGLE_UP_POINTING_BLACK)
+                    )
+                    graphics.setCharacter(
+                        0,
+                        1,
+                        themeDefinition.getCharacter("DOWN_ARROW", Symbols.TRIANGLE_DOWN_POINTING_BLACK)
+                    )
+                } else {
+                    val scrollableArea = size.getRows() - 2
+                    var scrollTrackerSize = 1
+                    if (growScrollTracker) {
+                        val ratio = clampRatio(viewSize.toFloat() / maximum.toFloat())
+                        scrollTrackerSize = Math.max(1, (ratio * scrollableArea.toFloat()).toInt())
+                    }
+
+                    val ratio = clampRatio(position.toFloat() / (maximum - viewSize).toFloat())
+                    val scrollTrackerPosition =
+                        (ratio * (scrollableArea - scrollTrackerSize).toFloat()).toInt() + 1
+
+                    graphics.setCharacter(
+                        0,
+                        0,
+                        themeDefinition.getCharacter("UP_ARROW", Symbols.TRIANGLE_UP_POINTING_BLACK)
+                    )
+                    graphics.drawLine(
+                        0,
+                        1,
+                        0,
+                        size.getRows() - 2,
+                        themeDefinition.getCharacter("VERTICAL_BACKGROUND", Symbols.BLOCK_MIDDLE)
+                    )
+                    graphics.setCharacter(
+                        0,
+                        size.getRows() - 1,
+                        themeDefinition.getCharacter("DOWN_ARROW", Symbols.TRIANGLE_DOWN_POINTING_BLACK)
+                    )
+                    if (scrollTrackerSize == 1) {
+                        graphics.setCharacter(
+                            0,
+                            scrollTrackerPosition,
+                            themeDefinition.getCharacter("VERTICAL_SMALL_TRACKER", Symbols.BLOCK_SOLID)
+                        )
+                    } else if (scrollTrackerSize == 2) {
+                        graphics.setCharacter(
+                            0,
+                            scrollTrackerPosition,
+                            themeDefinition.getCharacter("VERTICAL_TRACKER_TOP", Symbols.BLOCK_SOLID)
+                        )
+                        graphics.setCharacter(
+                            0,
+                            scrollTrackerPosition + 1,
+                            themeDefinition.getCharacter("VERTICAL_TRACKER_BOTTOM", Symbols.BLOCK_SOLID)
+                        )
+                    } else {
+                        graphics.setCharacter(
+                            0,
+                            scrollTrackerPosition,
+                            themeDefinition.getCharacter("VERTICAL_TRACKER_TOP", Symbols.BLOCK_SOLID)
+                        )
+                        graphics.drawLine(
+                            0,
+                            scrollTrackerPosition + 1,
+                            0,
+                            scrollTrackerPosition + scrollTrackerSize - 2,
+                            themeDefinition.getCharacter("VERTICAL_TRACKER_BACKGROUND", Symbols.BLOCK_SOLID)
+                        )
+                        graphics.setCharacter(
+                            0,
+                            scrollTrackerPosition + (scrollTrackerSize / 2),
+                            themeDefinition.getCharacter("VERTICAL_SMALL_TRACKER", Symbols.BLOCK_SOLID)
+                        )
+                        graphics.setCharacter(
+                            0,
+                            scrollTrackerPosition + scrollTrackerSize - 1,
+                            themeDefinition.getCharacter("VERTICAL_TRACKER_BOTTOM", Symbols.BLOCK_SOLID)
+                        )
+                    }
+                }
+            } else {
+                if (size.getColumns() == 1) {
+                    graphics.setCharacter(
+                        0,
+                        0,
+                        themeDefinition.getCharacter("HORIZONTAL_BACKGROUND", Symbols.BLOCK_MIDDLE)
+                    )
+                } else if (size.getColumns() == 2) {
+                    graphics.setCharacter(0, 0, Symbols.TRIANGLE_LEFT_POINTING_BLACK)
+                    graphics.setCharacter(1, 0, Symbols.TRIANGLE_RIGHT_POINTING_BLACK)
+                } else {
+                    val scrollableArea = size.getColumns() - 2
+                    var scrollTrackerSize = 1
+                    if (growScrollTracker) {
+                        val ratio = clampRatio(viewSize.toFloat() / maximum.toFloat())
+                        scrollTrackerSize = Math.max(1, (ratio * scrollableArea.toFloat()).toInt())
+                    }
+
+                    val ratio = clampRatio(position.toFloat() / (maximum - viewSize).toFloat())
+                    val scrollTrackerPosition =
+                        (ratio * (scrollableArea - scrollTrackerSize).toFloat()).toInt() + 1
+
+                    graphics.setCharacter(
+                        0,
+                        0,
+                        themeDefinition.getCharacter("LEFT_ARROW", Symbols.TRIANGLE_LEFT_POINTING_BLACK)
+                    )
+                    graphics.drawLine(
+                        1,
+                        0,
+                        size.getColumns() - 2,
+                        0,
+                        themeDefinition.getCharacter("HORIZONTAL_BACKGROUND", Symbols.BLOCK_MIDDLE)
+                    )
+                    graphics.setCharacter(
+                        size.getColumns() - 1,
+                        0,
+                        themeDefinition.getCharacter("RIGHT_ARROW", Symbols.TRIANGLE_RIGHT_POINTING_BLACK)
+                    )
+                    if (scrollTrackerSize == 1) {
+                        graphics.setCharacter(
+                            scrollTrackerPosition,
+                            0,
+                            themeDefinition.getCharacter("HORIZONTAL_SMALL_TRACKER", Symbols.BLOCK_SOLID)
+                        )
+                    } else if (scrollTrackerSize == 2) {
+                        graphics.setCharacter(
+                            scrollTrackerPosition,
+                            0,
+                            themeDefinition.getCharacter("HORIZONTAL_TRACKER_LEFT", Symbols.BLOCK_SOLID)
+                        )
+                        graphics.setCharacter(
+                            scrollTrackerPosition + 1,
+                            0,
+                            themeDefinition.getCharacter("HORIZONTAL_TRACKER_RIGHT", Symbols.BLOCK_SOLID)
+                        )
+                    } else {
+                        graphics.setCharacter(
+                            scrollTrackerPosition,
+                            0,
+                            themeDefinition.getCharacter("HORIZONTAL_TRACKER_LEFT", Symbols.BLOCK_SOLID)
+                        )
+                        graphics.drawLine(
+                            scrollTrackerPosition + 1,
+                            0,
+                            scrollTrackerPosition + scrollTrackerSize - 2,
+                            0,
+                            themeDefinition.getCharacter("HORIZONTAL_TRACKER_BACKGROUND", Symbols.BLOCK_SOLID)
+                        )
+                        graphics.setCharacter(
+                            scrollTrackerPosition + (scrollTrackerSize / 2),
+                            0,
+                            themeDefinition.getCharacter("HORIZONTAL_SMALL_TRACKER", Symbols.BLOCK_SOLID)
+                        )
+                        graphics.setCharacter(
+                            scrollTrackerPosition + scrollTrackerSize - 1,
+                            0,
+                            themeDefinition.getCharacter("HORIZONTAL_TRACKER_RIGHT", Symbols.BLOCK_SOLID)
+                        )
+                    }
+                }
+            }
+        }
+
+        private fun clampRatio(value: Float): Float {
+            return if (value < 0.0f) {
+                0.0f
+            } else if (value > 1.0f) {
+                1.0f
+            } else {
+                value
+            }
+        }
+    }
+}

@@ -1,0 +1,64 @@
+/*
+ * This file is part of lanterna (https://github.com/mabe02/lanterna).
+ *
+ * lanterna is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2010-2024 Martin Berglund
+ */
+package com.googlecode.lanterna.input
+
+import java.util.ArrayList
+import java.util.Arrays
+import java.util.Collection
+import java.util.List
+
+/**
+ * This profile attempts to collect as many code combinations as possible without causing any collisions between
+ * patterns. The patterns in here are tested with Linux terminal, XTerm, Gnome terminal, XFCE terminal, Cygwin and
+ * Mac OS X terminal.
+ *
+ * @author Martin
+ */
+open class DefaultKeyDecodingProfile : KeyDecodingProfile {
+    override fun getPatterns(): Collection<CharacterPattern> {
+        return ArrayList(COMMON_PATTERNS)
+    }
+
+    companion object {
+        private val COMMON_PATTERNS: List<CharacterPattern> = ArrayList(
+            Arrays.asList(
+                *arrayOf<CharacterPattern>(
+                    BasicCharacterPattern(KeyStroke(KeyType.ESCAPE), ESC_CODE),
+                    BasicCharacterPattern(KeyStroke(KeyType.TAB), '\t'),
+                    BasicCharacterPattern(KeyStroke(KeyType.ENTER), '\n'),
+                    BasicCharacterPattern(KeyStroke(KeyType.ENTER), '\r', '\u0000'), //OS X
+                    BasicCharacterPattern(KeyStroke(KeyType.BACKSPACE), '\u007f'),
+                    BasicCharacterPattern(KeyStroke(KeyType.BACKSPACE), '\u0008'),
+                    BasicCharacterPattern(KeyStroke(KeyType.F1), ESC_CODE, '[', '[', 'A'), //Linux
+                    BasicCharacterPattern(KeyStroke(KeyType.F2), ESC_CODE, '[', '[', 'B'), //Linux
+                    BasicCharacterPattern(KeyStroke(KeyType.F3), ESC_CODE, '[', '[', 'C'), //Linux
+                    BasicCharacterPattern(KeyStroke(KeyType.F4), ESC_CODE, '[', '[', 'D'), //Linux
+                    BasicCharacterPattern(KeyStroke(KeyType.F5), ESC_CODE, '[', '[', 'E'), //Linux
+                    EscapeSequenceCharacterPattern(),
+                    NormalCharacterPattern(),
+                    AltAndCharacterPattern(),
+                    CtrlAndCharacterPattern(),
+                    CtrlAltAndCharacterPattern(),
+                    ScreenInfoCharacterPattern(),
+                    MouseCharacterPattern()
+                )
+            )
+        )
+    }
+}
