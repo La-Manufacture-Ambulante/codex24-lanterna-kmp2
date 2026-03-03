@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,50 +13,51 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.screen;
+package com.googlecode.lanterna.screen
 
 /**
  * What to do when line length is exceeded.
  *
  * @author avl42
  */
-public enum WrapBehaviour {
+enum class WrapBehaviour(
+    private val allowLineFeedValue: Boolean,
+    private val autoWrapValue: Boolean,
+    private val keepWordsValue: Boolean
+) {
     /**
      * Never ever leave current line.
      */
-    SINGLE_LINE(false,false,false),
+    SINGLE_LINE(false, false, false),
+
     /**
      * Don't wrap lines automatically, but honor explicit line-feeds.
      */
-    CLIP(true,false,false),
+    CLIP(true, false, false),
+
     /**
      * Wrap at any character boundaries.
      */
-    CHAR(true,true,false),
+    CHAR(true, true, false),
+
     /**
      * Only wrap at word boundaries. If a single word exceeds line
      * length, it will still be broken to line length.
      */
-    WORD(true,true,true);
-    
-    private final boolean allowLineFeed, autoWrap, keepWords;
-    
-    WrapBehaviour(boolean allowLineFeed,boolean autoWrap,boolean keepWords) {
-        this.allowLineFeed = allowLineFeed;
-        this.autoWrap = autoWrap;
-        this.keepWords = keepWords;
+    WORD(true, true, true);
+
+    fun allowLineFeed(): Boolean {
+        return allowLineFeedValue
     }
-    
-    public boolean allowLineFeed() {
-        return allowLineFeed;
+
+    fun autoWrap(): Boolean {
+        return autoWrapValue
     }
-    public boolean autoWrap() {
-        return autoWrap;
-    }
-    public boolean keepWords() {
-        return keepWords;
+
+    fun keepWords(): Boolean {
+        return keepWordsValue
     }
 }
