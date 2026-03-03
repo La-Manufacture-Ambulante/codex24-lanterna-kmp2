@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,27 +13,25 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.screen.Screen;
-
-import java.util.Collection;
+import java.util.Collection
 
 /**
  * Extension of the TextGUI interface, this is intended as the base interface for any TextGUI that intends to make use
  * of the Window class.
  * @author Martin
  */
-public interface WindowBasedTextGUI extends TextGUI {
+interface WindowBasedTextGUI : TextGUI {
     /**
      * Returns the window manager that is currently controlling this TextGUI. The window manager is in charge of placing
      * the windows on the surface and also deciding how they behave and move around.
      * @return Window manager that is currently controlling the windows in the terminal
      */
-    WindowManager getWindowManager();
+    fun getWindowManager(): WindowManager?
 
     /**
      * Adds a window to the TextGUI system, depending on the window manager this window may or may not be immediately
@@ -48,7 +46,7 @@ public interface WindowBasedTextGUI extends TextGUI {
      * @param window Window to add to the GUI
      * @return The WindowBasedTextGUI Itself
      */
-    WindowBasedTextGUI addWindow(Window window);
+    fun addWindow(window: Window?): WindowBasedTextGUI?
 
     /**
      * Adds a window to the TextGUI system, depending on the window manager this window may or may not be immediately
@@ -64,7 +62,7 @@ public interface WindowBasedTextGUI extends TextGUI {
      * @param window Window to add to the GUI
      * @return The WindowBasedTextGUI Itself
      */
-    WindowBasedTextGUI addWindowAndWait(Window window);
+    fun addWindowAndWait(window: Window?): WindowBasedTextGUI?
 
     /**
      * Removes a window from the TextGUI. This is effectively the same as closing the window. The window will be
@@ -74,7 +72,7 @@ public interface WindowBasedTextGUI extends TextGUI {
      * @param window Window to close
      * @return The WindowBasedTextGUI itself
      */
-    WindowBasedTextGUI removeWindow(Window window);
+    fun removeWindow(window: Window?): WindowBasedTextGUI?
 
     /**
      * Returns a list of all windows currently in the TextGUI. The list is unmodifiable and just a snapshot of what the
@@ -82,35 +80,34 @@ public interface WindowBasedTextGUI extends TextGUI {
      * reflect this.
      * @return Unmodifiable list of all windows in the TextGUI at the time of the call
      */
-    Collection<Window> getWindows();
+    fun getWindows(): Collection<Window?>?
 
     /**
      * Selects a particular window to be considered 'active' and receive all input events
      * @param activeWindow Window to become active and receive input events
      * @return The WindowBasedTextGUI itself
      */
-    WindowBasedTextGUI setActiveWindow(Window activeWindow);
+    fun setActiveWindow(activeWindow: Window?): WindowBasedTextGUI?
 
     /**
      * Returns the window which the TextGUI considers the active one at the time of the method call. The active window
      * is generally the one which relieves all keyboard input.
      * @return Active window in the TextGUI or {@code null}
      */
-    Window getActiveWindow();
-
+    fun getActiveWindow(): Window?
 
     /**
      * Returns the container for the background, which works as a single large component that takes up the whole
      * terminal area and is always behind all windows.
      * @return The {@code BasePane} used by this {@code WindowBasedTextGUI}
      */
-    BasePane getBackgroundPane();
+    fun getBackgroundPane(): BasePane?
 
     /**
      * Returns the {@link WindowPostRenderer} for this {@link WindowBasedTextGUI}
      * @return the {@link WindowPostRenderer} for this {@link WindowBasedTextGUI}
      */
-    WindowPostRenderer getWindowPostRenderer();
+    fun getWindowPostRenderer(): WindowPostRenderer?
 
     /**
      * Windows are internally stored as a stack and newer windows are added at the top of the stack. The GUI system will
@@ -120,7 +117,7 @@ public interface WindowBasedTextGUI extends TextGUI {
      * @param window Window in the stack to move to the top position
      * @return The WindowBasedTextGUI Itself
      */
-    WindowBasedTextGUI moveToTop(Window window);
+    fun moveToTop(window: Window?): WindowBasedTextGUI?
 
     /**
      * Takes the previously active window and makes it active, or if in reverse mode, takes the window at the bottom of
@@ -128,11 +125,11 @@ public interface WindowBasedTextGUI extends TextGUI {
      * @param reverse Direction to cycle through the windows
      * @return The WindowBasedTextGUI Itself
      */
-    WindowBasedTextGUI cycleActiveWindow(boolean reverse);
+    fun cycleActiveWindow(reverse: Boolean): WindowBasedTextGUI?
 
     /**
      * Waits for the specified window to be closed
      * @param abstractWindow Window to wait for
      */
-    void waitForWindowToClose(Window abstractWindow);
+    fun waitForWindowToClose(abstractWindow: Window?)
 }
