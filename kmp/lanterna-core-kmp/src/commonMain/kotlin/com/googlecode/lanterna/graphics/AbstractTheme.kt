@@ -16,472 +16,404 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.gui2.Button;
-import com.googlecode.lanterna.gui2.Component;
-import com.googlecode.lanterna.gui2.ComponentRenderer;
-import com.googlecode.lanterna.gui2.WindowDecorationRenderer;
-import com.googlecode.lanterna.gui2.WindowPostRenderer;
-import com.googlecode.lanterna.gui2.WindowShadowRenderer;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.Component
+import com.googlecode.lanterna.gui2.ComponentRenderer
+import com.googlecode.lanterna.gui2.WindowDecorationRenderer
+import com.googlecode.lanterna.gui2.WindowPostRenderer
+import com.googlecode.lanterna.gui2.WindowShadowRenderer
+import java.util.ArrayList
+import java.util.Collections
+import java.util.EnumSet
+import java.util.HashMap
+import java.util.LinkedList
+import java.util.regex.Pattern
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+abstract class AbstractTheme protected constructor(
+    postRenderer: WindowPostRenderer?,
+    decorationRenderer: WindowDecorationRenderer?
+) : Theme {
+    private val rootNode: ThemeTreeNode
+    private val windowPostRenderer: WindowPostRenderer?
+    private val windowDecorationRenderer: WindowDecorationRenderer?
 
-/**
- * Abstract {@link Theme} implementation that manages a hierarchical tree of theme nodes ties to Class objects.
- * Sub-classes will inherit their theme properties from super-class definitions, the java.lang.Object class is
- * considered the root of the tree and as such is the fallback for all other classes.
- * <p>
- * You normally use this class through {@link PropertyTheme}, which is the default implementation bundled with Lanterna.
- * @author Martin
- */
-public abstract class AbstractTheme implements Theme {
-    private static final String STYLE_NORMAL = "";
-    private static final String STYLE_PRELIGHT = "PRELIGHT";
-    private static final String STYLE_SELECTED = "SELECTED";
-    private static final String STYLE_ACTIVE = "ACTIVE";
-    private static final String STYLE_INSENSITIVE = "INSENSITIVE";
-    private static final Pattern STYLE_FORMAT = Pattern.compile("([a-zA-Z]+)(\\[([a-zA-Z0-9-_]+)])?");
+    init {
+        this.rootNode = ThemeTreeNode(Any::class.java, null)
+        this.windowPostRenderer = postRenderer
+        this.windowDecorationRenderer = decorationRenderer
 
-    private final ThemeTreeNode rootNode;
-    private final WindowPostRenderer windowPostRenderer;
-    private final WindowDecorationRenderer windowDecorationRenderer;
-
-    protected AbstractTheme(WindowPostRenderer postRenderer,
-                            WindowDecorationRenderer decorationRenderer) {
-
-        this.rootNode = new ThemeTreeNode(Object.class, null);
-        this.windowPostRenderer = postRenderer;
-        this.windowDecorationRenderer = decorationRenderer;
-
-        rootNode.foregroundMap.put(STYLE_NORMAL, TextColor.ANSI.WHITE);
-        rootNode.backgroundMap.put(STYLE_NORMAL, TextColor.ANSI.BLACK);
-        classloadStandardRenderersForGraal();
+        rootNode.foregroundMap[STYLE_NORMAL] = TextColor.ANSI.WHITE
+        rootNode.backgroundMap[STYLE_NORMAL] = TextColor.ANSI.BLACK
+        classloadStandardRenderersForGraal()
     }
 
-    private void classloadStandardRenderersForGraal() {
-        // This will make graal know about these classes which would otherwise only
-        // be loaded through reflection
-        WindowShadowRenderer.class.toString();
-        Button.DefaultButtonRenderer.class.toString();
-        Button.FlatButtonRenderer.class.toString();
-        Button.BorderedButtonRenderer.class.toString();
+    private fun classloadStandardRenderersForGraal() {
+        WindowShadowRenderer::class.java.toString()
+        Button.DefaultButtonRenderer::class.java.toString()
+        Button.FlatButtonRenderer::class.java.toString()
+        Button.BorderedButtonRenderer::class.java.toString()
     }
 
-    protected boolean addStyle(String definition, String style, String value) {
-        ThemeTreeNode node = getNode(definition);
-        if(node == null) {
-            return false;
-        }
-        node.apply(style, value);
-        return true;
+    protected open fun addStyle(definition: String?, style: String, value: String): Boolean {
+        val node = getNode(definition) ?: return false
+        node.apply(style, value)
+        return true
     }
 
-    private ThemeTreeNode getNode(String definition) {
-        try {
-            if(definition == null || definition.trim().isEmpty()) {
-                return getNode(Object.class);
+    private fun getNode(definition: String?): ThemeTreeNode? {
+        return try {
+            if (definition == null || definition.trim().isEmpty()) {
+                getNode(Any::class.java)
+            } else {
+                getNode(Class.forName(definition))
             }
-            else {
-                return getNode(Class.forName(definition));
-            }
-        }
-        catch(ClassNotFoundException e) {
-            return null;
+        } catch (e: ClassNotFoundException) {
+            null
         }
     }
 
-    private ThemeTreeNode getNode(Class<?> definition) {
-        if(definition == Object.class) {
-            return rootNode;
+    private fun getNode(definition: Class<*>): ThemeTreeNode {
+        if (definition == Any::class.java) {
+            return rootNode
         }
-        ThemeTreeNode parent = getNode(definition.getSuperclass());
-        if(parent.childMap.containsKey(definition)) {
-            return parent.childMap.get(definition);
+        val parent = getNode(definition.superclass ?: throw NullPointerException())
+        if (parent.childMap.containsKey(definition)) {
+            return parent.childMap[definition] ?: throw NullPointerException()
         }
 
-        ThemeTreeNode node = new ThemeTreeNode(definition, parent);
-        parent.childMap.put(definition, node);
-        return node;
+        val node = ThemeTreeNode(definition, parent)
+        parent.childMap[definition] = node
+        return node
     }
 
-    @Override
-    public ThemeDefinition getDefaultDefinition() {
-        return new DefinitionImpl(rootNode);
+    override open fun getDefaultDefinition(): ThemeDefinition {
+        return DefinitionImpl(rootNode)
     }
 
-    @Override
-    public ThemeDefinition getDefinition(Class<?> clazz) {
-        LinkedList<Class<?>> hierarchy = new LinkedList<>();
-        while(clazz != null && clazz != Object.class) {
-            hierarchy.addFirst(clazz);
-            clazz = clazz.getSuperclass();
+    override open fun getDefinition(clazz: Class<*>?): ThemeDefinition {
+        val hierarchy = LinkedList<Class<*>>()
+        var current = clazz
+        while (current != null && current != Any::class.java) {
+            hierarchy.addFirst(current)
+            current = current.superclass
         }
 
-        ThemeTreeNode node = rootNode;
-        for(Class<?> aClass : hierarchy) {
-            if(node.childMap.containsKey(aClass)) {
-                node = node.childMap.get(aClass);
-            }
-            else {
-                break;
+        var node = rootNode
+        for (aClass in hierarchy) {
+            if (node.childMap.containsKey(aClass)) {
+                node = node.childMap[aClass] ?: throw NullPointerException()
+            } else {
+                break
             }
         }
-        return new DefinitionImpl(node);
+        return DefinitionImpl(node)
     }
 
-    @Override
-    public WindowPostRenderer getWindowPostRenderer() {
-        return windowPostRenderer;
+    override open fun getWindowPostRenderer(): WindowPostRenderer? {
+        return windowPostRenderer
     }
 
-    @Override
-    public WindowDecorationRenderer getWindowDecorationRenderer() {
-        return windowDecorationRenderer;
+    override open fun getWindowDecorationRenderer(): WindowDecorationRenderer? {
+        return windowDecorationRenderer
     }
 
-    protected static Object instanceByClassName(String className) {
-        if(className == null || className.trim().isEmpty()) {
-            return null;
+    open fun findRedundantDeclarations(): List<String> {
+        val result: MutableList<String> = ArrayList()
+        for (node in rootNode.childMap.values) {
+            findRedundantDeclarations(result, node)
         }
-        try {
-            return Class.forName(className).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        Collections.sort(result)
+        return result
     }
 
-    /**
-     * Returns a list of redundant theme entries in this theme. A redundant entry means that it doesn't need to be
-     * specified because there is a parent node in the hierarchy which has the same property so if the redundant entry
-     * wasn't there, the parent node would be picked up and the end result would be the same.
-     * @return List of redundant theme entries
-     */
-    public List<String> findRedundantDeclarations() {
-        List<String> result = new ArrayList<>();
-        for(ThemeTreeNode node: rootNode.childMap.values()) {
-            findRedundantDeclarations(result, node);
-        }
-        Collections.sort(result);
-        return result;
-    }
-
-    private void findRedundantDeclarations(List<String> result, ThemeTreeNode node) {
-        for(String style: node.foregroundMap.keySet()) {
-            String formattedStyle = "[" + style + "]";
-            if(formattedStyle.length() == 2) {
-                formattedStyle = "";
+    private fun findRedundantDeclarations(result: MutableList<String>, node: ThemeTreeNode) {
+        for (style in node.foregroundMap.keys) {
+            var formattedStyle = "[$style]"
+            if (formattedStyle.length == 2) {
+                formattedStyle = ""
             }
-            TextColor color = node.foregroundMap.get(style);
-            TextColor colorFromParent = new StyleImpl(node.parent, style).getForeground();
-            if(color.equals(colorFromParent)) {
-                result.add(node.clazz.getName() + ".foreground" + formattedStyle);
+            val color = node.foregroundMap[style]
+            val colorFromParent = StyleImpl(node.parent ?: throw NullPointerException(), style).foreground
+            if ((color ?: throw NullPointerException()).equals(colorFromParent)) {
+                result.add(node.clazz.name + ".foreground" + formattedStyle)
             }
         }
-        for(String style: node.backgroundMap.keySet()) {
-            String formattedStyle = "[" + style + "]";
-            if(formattedStyle.length() == 2) {
-                formattedStyle = "";
+        for (style in node.backgroundMap.keys) {
+            var formattedStyle = "[$style]"
+            if (formattedStyle.length == 2) {
+                formattedStyle = ""
             }
-            TextColor color = node.backgroundMap.get(style);
-            TextColor colorFromParent = new StyleImpl(node.parent, style).getBackground();
-            if(color.equals(colorFromParent)) {
-                result.add(node.clazz.getName() + ".background" + formattedStyle);
+            val color = node.backgroundMap[style]
+            val colorFromParent = StyleImpl(node.parent ?: throw NullPointerException(), style).background
+            if ((color ?: throw NullPointerException()).equals(colorFromParent)) {
+                result.add(node.clazz.name + ".background" + formattedStyle)
             }
         }
-        for(String style: node.sgrMap.keySet()) {
-            String formattedStyle = "[" + style + "]";
-            if(formattedStyle.length() == 2) {
-                formattedStyle = "";
+        for (style in node.sgrMap.keys) {
+            var formattedStyle = "[$style]"
+            if (formattedStyle.length == 2) {
+                formattedStyle = ""
             }
-            EnumSet<SGR> sgrs = node.sgrMap.get(style);
-            EnumSet<SGR> sgrsFromParent = new StyleImpl(node.parent, style).getSGRs();
-            if(sgrs.equals(sgrsFromParent)) {
-                result.add(node.clazz.getName() + ".sgr" + formattedStyle);
+            val sgrs = node.sgrMap[style]
+            val sgrsFromParent = StyleImpl(node.parent ?: throw NullPointerException(), style).sgRs
+            if ((sgrs ?: throw NullPointerException()).equals(sgrsFromParent)) {
+                result.add(node.clazz.name + ".sgr" + formattedStyle)
             }
         }
 
-        for(ThemeTreeNode childNode: node.childMap.values()) {
-            findRedundantDeclarations(result, childNode);
+        for (childNode in node.childMap.values) {
+            findRedundantDeclarations(result, childNode)
         }
     }
 
-    private class DefinitionImpl implements ThemeDefinition {
-        final ThemeTreeNode node;
-
-        public DefinitionImpl(ThemeTreeNode node) {
-            this.node = node;
+    private inner class DefinitionImpl(val node: ThemeTreeNode) : ThemeDefinition {
+        override fun getNormal(): ThemeStyle {
+            return StyleImpl(node, STYLE_NORMAL)
         }
 
-        @Override
-        public ThemeStyle getNormal() {
-            return new StyleImpl(node, STYLE_NORMAL);
+        override fun getPreLight(): ThemeStyle {
+            return StyleImpl(node, STYLE_PRELIGHT)
         }
 
-        @Override
-        public ThemeStyle getPreLight() {
-            return new StyleImpl(node, STYLE_PRELIGHT);
+        override fun getSelected(): ThemeStyle {
+            return StyleImpl(node, STYLE_SELECTED)
         }
 
-        @Override
-        public ThemeStyle getSelected() {
-            return new StyleImpl(node, STYLE_SELECTED);
+        override fun getActive(): ThemeStyle {
+            return StyleImpl(node, STYLE_ACTIVE)
         }
 
-        @Override
-        public ThemeStyle getActive() {
-            return new StyleImpl(node, STYLE_ACTIVE);
+        override fun getInsensitive(): ThemeStyle {
+            return StyleImpl(node, STYLE_INSENSITIVE)
         }
 
-        @Override
-        public ThemeStyle getInsensitive() {
-            return new StyleImpl(node, STYLE_INSENSITIVE);
+        override fun getCustom(name: String): ThemeStyle {
+            return StyleImpl(node, name)
         }
 
-        @Override
-        public ThemeStyle getCustom(String name) {
-            return new StyleImpl(node, name);
-        }
-
-        @Override
-        public ThemeStyle getCustom(String name, ThemeStyle defaultValue) {
-            ThemeStyle customStyle = getCustom(name);
-            if(customStyle == null) {
-                customStyle = defaultValue;
+        override fun getCustom(name: String, defaultValue: ThemeStyle): ThemeStyle {
+            var customStyle: ThemeStyle? = getCustom(name)
+            if (customStyle == null) {
+                customStyle = defaultValue
             }
-            return customStyle;
+            return customStyle
         }
 
-        @Override
-        public char getCharacter(String name, char fallback) {
-            Character character = node.characterMap.get(name);
-            if(character == null) {
-                if(node == rootNode) {
-                    return fallback;
-                }
-                else {
-                    return new DefinitionImpl(node.parent).getCharacter(name, fallback);
+        override fun getCharacter(name: String, fallback: Char): Char {
+            val character = node.characterMap[name]
+            if (character == null) {
+                return if (node == rootNode) {
+                    fallback
+                } else {
+                    DefinitionImpl(node.parent ?: throw NullPointerException()).getCharacter(name, fallback)
                 }
             }
-            return character;
+            return character
         }
 
-        @Override
-        public boolean isCursorVisible() {
-            Boolean cursorVisible = node.cursorVisible;
-            if(cursorVisible == null) {
-                if(node == rootNode) {
-                    return true;
-                }
-                else {
-                    return new DefinitionImpl(node.parent).isCursorVisible();
+        override fun isCursorVisible(): Boolean {
+            val cursorVisible = node.cursorVisible
+            if (cursorVisible == null) {
+                return if (node == rootNode) {
+                    true
+                } else {
+                    DefinitionImpl(node.parent ?: throw NullPointerException()).isCursorVisible
                 }
             }
-            return cursorVisible;
+            return cursorVisible
         }
 
-        @Override
-        public int getIntegerProperty(String name, int defaultValue) {
-            String propertyValue = node.propertyMap.get(name);
-            if(propertyValue == null) {
-                if(node == rootNode) {
-                    return defaultValue;
-                }
-                else {
-                    return new DefinitionImpl(node.parent).getIntegerProperty(name, defaultValue);
+        override fun getIntegerProperty(name: String, defaultValue: Int): Int {
+            val propertyValue = node.propertyMap[name]
+            if (propertyValue == null) {
+                return if (node == rootNode) {
+                    defaultValue
+                } else {
+                    DefinitionImpl(node.parent ?: throw NullPointerException()).getIntegerProperty(name, defaultValue)
                 }
             }
-            return Integer.parseInt(propertyValue);
+            return propertyValue.toInt()
         }
 
-        @Override
-        public boolean getBooleanProperty(String name, boolean defaultValue) {
-            String propertyValue = node.propertyMap.get(name);
-            if(propertyValue == null) {
-                if(node == rootNode) {
-                    return defaultValue;
-                }
-                else {
-                    return new DefinitionImpl(node.parent).getBooleanProperty(name, defaultValue);
+        override fun getBooleanProperty(name: String, defaultValue: Boolean): Boolean {
+            val propertyValue = node.propertyMap[name]
+            if (propertyValue == null) {
+                return if (node == rootNode) {
+                    defaultValue
+                } else {
+                    DefinitionImpl(node.parent ?: throw NullPointerException()).getBooleanProperty(name, defaultValue)
                 }
             }
-            return Boolean.parseBoolean(propertyValue);
+            return propertyValue.toBoolean()
         }
 
-        @SuppressWarnings("unchecked")
-        @Override
-        public <T extends Component> ComponentRenderer<T> getRenderer(Class<T> type) {
-            String rendererClass = node.renderer;
-            if(rendererClass == null) {
-                if(node == rootNode) {
-                    return null;
-                }
-                else {
-                    return new DefinitionImpl(node.parent).getRenderer(type);
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : Component> getRenderer(type: Class<T>): ComponentRenderer<T>? {
+            val rendererClass = node.renderer
+            if (rendererClass == null) {
+                return if (node == rootNode) {
+                    null
+                } else {
+                    DefinitionImpl(node.parent ?: throw NullPointerException()).getRenderer(type)
                 }
             }
-            return (ComponentRenderer<T>)instanceByClassName(rendererClass);
+            return instanceByClassName(rendererClass) as ComponentRenderer<T>?
         }
     }
 
-    private class StyleImpl implements ThemeStyle {
-        private final ThemeTreeNode styleNode;
-        private final String name;
-
-        private StyleImpl(ThemeTreeNode node, String name) {
-            this.styleNode = node;
-            this.name = name;
+    private inner class StyleImpl(
+        private val styleNode: ThemeTreeNode,
+        private val name: String
+    ) : ThemeStyle {
+        override fun getForeground(): TextColor {
+            var node: ThemeTreeNode? = styleNode
+            while (node != null) {
+                if (node.foregroundMap.containsKey(name)) {
+                    return node.foregroundMap[name] ?: throw NullPointerException()
+                }
+                node = node.parent
+            }
+            var fallback = rootNode.foregroundMap[STYLE_NORMAL]
+            if (fallback == null) {
+                fallback = TextColor.ANSI.WHITE
+            }
+            return fallback
         }
 
-        @Override
-        public TextColor getForeground() {
-            ThemeTreeNode node = styleNode;
-            while(node != null) {
-                if(node.foregroundMap.containsKey(name)) {
-                    return node.foregroundMap.get(name);
+        override fun getBackground(): TextColor {
+            var node: ThemeTreeNode? = styleNode
+            while (node != null) {
+                if (node.backgroundMap.containsKey(name)) {
+                    return node.backgroundMap[name] ?: throw NullPointerException()
                 }
-                node = node.parent;
+                node = node.parent
             }
-            TextColor fallback = rootNode.foregroundMap.get(STYLE_NORMAL);
-            if(fallback == null) {
-                fallback = TextColor.ANSI.WHITE;
+            var fallback = rootNode.backgroundMap[STYLE_NORMAL]
+            if (fallback == null) {
+                fallback = TextColor.ANSI.BLACK
             }
-            return fallback;
+            return fallback
         }
 
-        @Override
-        public TextColor getBackground() {
-            ThemeTreeNode node = styleNode;
-            while(node != null) {
-                if(node.backgroundMap.containsKey(name)) {
-                    return node.backgroundMap.get(name);
+        override fun getSGRs(): EnumSet<SGR> {
+            var node: ThemeTreeNode? = styleNode
+            while (node != null) {
+                if (node.sgrMap.containsKey(name)) {
+                    return EnumSet.copyOf(node.sgrMap[name] ?: throw NullPointerException())
                 }
-                node = node.parent;
+                node = node.parent
             }
-            TextColor fallback = rootNode.backgroundMap.get(STYLE_NORMAL);
-            if(fallback == null) {
-                fallback = TextColor.ANSI.BLACK;
+            var fallback = rootNode.sgrMap[STYLE_NORMAL]
+            if (fallback == null) {
+                fallback = EnumSet.noneOf(SGR::class.java)
             }
-            return fallback;
-        }
-
-        @Override
-        public EnumSet<SGR> getSGRs() {
-            ThemeTreeNode node = styleNode;
-            while(node != null) {
-                if(node.sgrMap.containsKey(name)) {
-                    return EnumSet.copyOf(node.sgrMap.get(name));
-                }
-                node = node.parent;
-            }
-            EnumSet<SGR> fallback = rootNode.sgrMap.get(STYLE_NORMAL);
-            if(fallback == null) {
-                fallback = EnumSet.noneOf(SGR.class);
-            }
-            return EnumSet.copyOf(fallback);
+            return EnumSet.copyOf(fallback)
         }
     }
 
-    private static class ThemeTreeNode {
-        private final Class<?> clazz;
-        private final ThemeTreeNode parent;
-        private final Map<Class<?>, ThemeTreeNode> childMap;
-        private final Map<String, TextColor> foregroundMap;
-        private final Map<String, TextColor> backgroundMap;
-        private final Map<String, EnumSet<SGR>> sgrMap;
-        private final Map<String, Character> characterMap;
-        private final Map<String, String> propertyMap;
-        private Boolean cursorVisible;
-        private String renderer;
+    private class ThemeTreeNode(
+        val clazz: Class<*>,
+        val parent: ThemeTreeNode?
+    ) {
+        val childMap: MutableMap<Class<*>, ThemeTreeNode> = HashMap()
+        val foregroundMap: MutableMap<String, TextColor> = HashMap()
+        val backgroundMap: MutableMap<String, TextColor> = HashMap()
+        val sgrMap: MutableMap<String, EnumSet<SGR>> = HashMap()
+        val characterMap: MutableMap<String, Char> = HashMap()
+        val propertyMap: MutableMap<String, String?> = HashMap()
+        var cursorVisible: Boolean? = true
+        var renderer: String? = null
 
-        private ThemeTreeNode(Class<?> clazz, ThemeTreeNode parent) {
-            this.clazz = clazz;
-            this.parent = parent;
-            this.childMap = new HashMap<>();
-            this.foregroundMap = new HashMap<>();
-            this.backgroundMap = new HashMap<>();
-            this.sgrMap = new HashMap<>();
-            this.characterMap = new HashMap<>();
-            this.propertyMap = new HashMap<>();
-            this.cursorVisible = true;
-            this.renderer = null;
-        }
-
-        private void apply(String style, String value) {
-            value = value.trim();
-            Matcher matcher = STYLE_FORMAT.matcher(style);
-            if(!matcher.matches()) {
-                throw new IllegalArgumentException("Unknown style declaration: " + style);
+        fun apply(style: String, value: String) {
+            var mutableValue = value.trim()
+            val matcher = STYLE_FORMAT.matcher(style)
+            if (!matcher.matches()) {
+                throw IllegalArgumentException("Unknown style declaration: $style")
             }
-            String styleComponent = matcher.group(1);
-            String group = matcher.groupCount() > 2 ? matcher.group(3) : null;
-            switch (styleComponent.toLowerCase().trim()) {
-                case "foreground":
-                    foregroundMap.put(getCategory(group), parseValue(value));
-                    break;
-                case "background":
-                    backgroundMap.put(getCategory(group), parseValue(value));
-                    break;
-                case "sgr":
-                    sgrMap.put(getCategory(group), parseSGR(value));
-                    break;
-                case "char":
-                    characterMap.put(getCategory(group), value.isEmpty() ? ' ' : value.charAt(0));
-                    break;
-                case "cursor":
-                    cursorVisible = Boolean.parseBoolean(value);
-                    break;
-                case "property":
-                    propertyMap.put(getCategory(group), value.isEmpty() ? null : value.trim());
-                    break;
-                case "renderer":
-                    renderer = value.trim().isEmpty() ? null : value.trim();
-                    break;
-                case "postrenderer":
-                case "windowdecoration":
+            val styleComponent = matcher.group(1)
+            val group = if (matcher.groupCount() > 2) matcher.group(3) else null
+            when (styleComponent.lowercase().trim()) {
+                "foreground" -> foregroundMap[getCategory(group)] = parseValue(mutableValue)
+                "background" -> backgroundMap[getCategory(group)] = parseValue(mutableValue)
+                "sgr" -> sgrMap[getCategory(group)] = parseSGR(mutableValue)
+                "char" -> characterMap[getCategory(group)] = if (mutableValue.isEmpty()) ' ' else mutableValue[0]
+                "cursor" -> cursorVisible = mutableValue.toBoolean()
+                "property" -> propertyMap[getCategory(group)] = if (mutableValue.isEmpty()) null else mutableValue.trim()
+                "renderer" -> renderer = if (mutableValue.trim().isEmpty()) null else mutableValue.trim()
+                "postrenderer", "windowdecoration" -> {
                     // Don't do anything with this now, we might use it later
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unknown style component \"" + styleComponent + "\" in style \"" + style + "\"");
+                }
+                else -> throw IllegalArgumentException("Unknown style component \"$styleComponent\" in style \"$style\"")
             }
         }
 
-        private TextColor parseValue(String value) {
-            return TextColor.Factory.fromString(value);
+        private fun parseValue(value: String): TextColor {
+            return TextColor.Factory.fromString(value)
         }
 
-        private EnumSet<SGR> parseSGR(String value) {
-            value = value.trim();
-            String[] sgrEntries = value.split(",");
-            EnumSet<SGR> sgrSet = EnumSet.noneOf(SGR.class);
-            for(String entry: sgrEntries) {
-                entry = entry.trim().toUpperCase();
-                if(!entry.isEmpty()) {
+        private fun parseSGR(value: String): EnumSet<SGR> {
+            var mutableValue = value.trim()
+            val sgrEntries = mutableValue.split(",".toRegex()).toTypedArray()
+            val sgrSet = EnumSet.noneOf(SGR::class.java)
+            for (entry0 in sgrEntries) {
+                var entry = entry0
+                entry = entry.trim().uppercase()
+                if (entry.isNotEmpty()) {
                     try {
-                        sgrSet.add(SGR.valueOf(entry));
-                    }
-                    catch(IllegalArgumentException e) {
-                        throw new IllegalArgumentException("Unknown SGR code \"" + entry + "\"", e);
+                        sgrSet.add(SGR.valueOf(entry))
+                    } catch (e: IllegalArgumentException) {
+                        throw IllegalArgumentException("Unknown SGR code \"$entry\"", e)
                     }
                 }
             }
-            return sgrSet;
+            return sgrSet
         }
 
-        private String getCategory(String group) {
-            if(group == null) {
-                return STYLE_NORMAL;
+        private fun getCategory(group: String?): String {
+            if (group == null) {
+                return STYLE_NORMAL
             }
-            for(String style: Arrays.asList(STYLE_ACTIVE, STYLE_INSENSITIVE, STYLE_PRELIGHT, STYLE_NORMAL, STYLE_SELECTED)) {
-                if(group.toUpperCase().equals(style)) {
-                    return style;
+            for (style in java.util.Arrays.asList(
+                STYLE_ACTIVE,
+                STYLE_INSENSITIVE,
+                STYLE_PRELIGHT,
+                STYLE_NORMAL,
+                STYLE_SELECTED
+            )) {
+                if (group.uppercase() == style) {
+                    return style
                 }
             }
-            return group;
+            return group
+        }
+    }
+
+    companion object {
+        private const val STYLE_NORMAL = ""
+        private const val STYLE_PRELIGHT = "PRELIGHT"
+        private const val STYLE_SELECTED = "SELECTED"
+        private const val STYLE_ACTIVE = "ACTIVE"
+        private const val STYLE_INSENSITIVE = "INSENSITIVE"
+        private val STYLE_FORMAT = Pattern.compile("([a-zA-Z]+)(\\[([a-zA-Z0-9-_]+)])?")
+
+        @JvmStatic
+        protected fun instanceByClassName(className: String?): Any? {
+            if (className == null || className.trim().isEmpty()) {
+                return null
+            }
+            return try {
+                Class.forName(className).newInstance()
+            } catch (e: InstantiationException) {
+                throw RuntimeException(e)
+            } catch (e: IllegalAccessException) {
+                throw RuntimeException(e)
+            } catch (e: ClassNotFoundException) {
+                throw RuntimeException(e)
+            }
         }
     }
 }
