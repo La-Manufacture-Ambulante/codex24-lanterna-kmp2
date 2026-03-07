@@ -16,111 +16,111 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextCharacter;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
 
 /**
- * An 'image' build up of text characters with color and style information. These are completely in memory and not 
- * visible anyway, but can be used when drawing with a TextGraphics objects. 
+ * An 'image' build up of text characters with color and style information. These are completely in memory and not
+ * visible anyway, but can be used when drawing with a TextGraphics objects.
  * @author martin
  */
-public interface TextImage extends Scrollable {
-    /**
-     * Returns the dimensions of this TextImage, in columns and rows
-     * @return Size of this TextImage
-     */
-    TerminalSize getSize();
-    
-    /**
-     * Returns the character stored at a particular position in this image
-     * @param position Coordinates of the character
-     * @return TextCharacter stored at the specified position
-     */
-    TextCharacter getCharacterAt(TerminalPosition position);
-    
-    /**
-     * Returns the character stored at a particular position in this image
-     * @param column Column coordinate of the character
-     * @param row Row coordinate of the character
-     * @return TextCharacter stored at the specified position
-     */
-    TextCharacter getCharacterAt(int column, int row);
-            
-    /**
-     * Sets the character at a specific position in the image to a particular TextCharacter. If the position is outside
-     * of the image's size, this method does nothing.
-     * @param position Coordinates of the character
-     * @param character What TextCharacter to assign at the specified position
-     */
-    void setCharacterAt(TerminalPosition position, TextCharacter character);
-            
-    /**
-     * Sets the character at a specific position in the image to a particular TextCharacter. If the position is outside
-     * of the image's size, this method does nothing.
-     * @param column Column coordinate of the character
-     * @param row Row coordinate of the character
-     * @param character What TextCharacter to assign at the specified position
-     */
-    void setCharacterAt(int column, int row, TextCharacter character);
-    
-    /**
-     * Sets the text image content to one specified character (including color and style)
-     * @param character The character to fill the image with
-     */
-    void setAll(TextCharacter character);
-    
-    /**
-     * Creates a TextGraphics object that targets this TextImage for all its drawing operations.
-     * @return TextGraphics object for this TextImage
-     */
-    TextGraphics newTextGraphics();
-    
-    /**
-     * Returns a copy of this image resized to a new size and using a specified filler character if the new size is 
-     * larger than the old and we need to fill in empty areas. The copy will be independent from the one this method is 
-     * invoked on, so modifying one will not affect the other.
-     * @param newSize Size of the new image
-     * @param filler Filler character to use on the new areas when enlarging the image (is not used when shrinking)
-     * @return Copy of this image, but resized
-     */
-    TextImage resize(TerminalSize newSize, TextCharacter filler);
-    
-    
-    /**
-     * Copies this TextImage's content to another TextImage. If the destination TextImage is larger than this 
-     * ScreenBuffer, the areas outside of the area that is written to will be untouched.
-     * @param destination TextImage to copy to
-     */
-    void copyTo(TextImage destination);
-    
-    /**
-     * Copies this TextImage's content to another TextImage. If the destination TextImage is larger than this 
-     * TextImage, the areas outside of the area that is written to will be untouched.
-     * @param destination TextImage to copy to
-     * @param startRowIndex Which row in this image to copy from
-     * @param rows How many rows to copy
-     * @param startColumnIndex Which column in this image to copy from
-     * @param columns How many columns to copy
-     * @param destinationRowOffset Offset (in number of rows) in the target image where we want to first copied row to be
-     * @param destinationColumnOffset Offset (in number of columns) in the target image where we want to first copied column to be
-     */
-    void copyTo(
-            TextImage destination,
-            int startRowIndex,
-            int rows,
-            int startColumnIndex,
-            int columns,
-            int destinationRowOffset,
-            int destinationColumnOffset);
-    
-    /**
-     * Scroll a range of lines of this TextImage according to given distance.
-     *
-     * TextImage implementations of this method do <b>not</b> throw IOException.
-     */
+ interface TextImage:Scrollable {
+/**
+ * Returns the dimensions of this TextImage, in columns and rows
+ * @return Size of this TextImage
+ */
+     val size:TerminalSize?
+
+/**
+ * Returns the character stored at a particular position in this image
+ * @param position Coordinates of the character
+ * @return TextCharacter stored at the specified position
+ */
+     fun getCharacterAt(position:TerminalPosition?):TextCharacter? 
+
+/**
+ * Returns the character stored at a particular position in this image
+ * @param column Column coordinate of the character
+ * @param row Row coordinate of the character
+ * @return TextCharacter stored at the specified position
+ */
+     fun getCharacterAt(column:Int, row:Int):TextCharacter? 
+
+/**
+ * Sets the character at a specific position in the image to a particular TextCharacter. If the position is outside
+ * of the image's size, this method does nothing.
+ * @param position Coordinates of the character
+ * @param character What TextCharacter to assign at the specified position
+ */
+     fun setCharacterAt(position:TerminalPosition?, character:TextCharacter?) 
+
+/**
+ * Sets the character at a specific position in the image to a particular TextCharacter. If the position is outside
+ * of the image's size, this method does nothing.
+ * @param column Column coordinate of the character
+ * @param row Row coordinate of the character
+ * @param character What TextCharacter to assign at the specified position
+ */
+     fun setCharacterAt(column:Int, row:Int, character:TextCharacter?) 
+
+/**
+ * Sets the text image content to one specified character (including color and style)
+ * @param character The character to fill the image with
+ */
+     fun setAll(character:TextCharacter?) 
+
+/**
+ * Creates a TextGraphics object that targets this TextImage for all its drawing operations.
+ * @return TextGraphics object for this TextImage
+ */
+     fun newTextGraphics():TextGraphics? 
+
+/**
+ * Returns a copy of this image resized to a new size and using a specified filler character if the new size is
+ * larger than the old and we need to fill in empty areas. The copy will be independent from the one this method is
+ * invoked on, so modifying one will not affect the other.
+ * @param newSize Size of the new image
+ * @param filler Filler character to use on the new areas when enlarging the image (is not used when shrinking)
+ * @return Copy of this image, but resized
+ */
+     fun resize(newSize:TerminalSize?, filler:TextCharacter?):TextImage? 
+
+
+/**
+ * Copies this TextImage's content to another TextImage. If the destination TextImage is larger than this
+ * ScreenBuffer, the areas outside of the area that is written to will be untouched.
+ * @param destination TextImage to copy to
+ */
+     fun copyTo(destination:TextImage?) 
+
+/**
+ * Copies this TextImage's content to another TextImage. If the destination TextImage is larger than this
+ * TextImage, the areas outside of the area that is written to will be untouched.
+ * @param destination TextImage to copy to
+ * @param startRowIndex Which row in this image to copy from
+ * @param rows How many rows to copy
+ * @param startColumnIndex Which column in this image to copy from
+ * @param columns How many columns to copy
+ * @param destinationRowOffset Offset (in number of rows) in the target image where we want to first copied row to be
+ * @param destinationColumnOffset Offset (in number of columns) in the target image where we want to first copied column to be
+ */
+     fun copyTo(
+destination:TextImage?, 
+startRowIndex:Int, 
+rows:Int, 
+startColumnIndex:Int, 
+columns:Int, 
+destinationRowOffset:Int, 
+destinationColumnOffset:Int) 
+
+/**
+ * Scroll a range of lines of this TextImage according to given distance.
+ * 
+ * TextImage implementations of this method do **not** throw IOException.
+ */
     @Override
-    void scrollLines(int firstLine, int lastLine, int distance);
+ fun scrollLines(firstLine:Int, lastLine:Int, distance:Int) 
 }

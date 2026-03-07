@@ -17,55 +17,63 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame
 
-import java.io.IOException;
-import java.util.Random;
+import java.io.IOException
+import java.util.Random
 
-public class Terminal4bitColorTest {
-    public static void main(String[] args) throws IOException {
-        Terminal rawTerminal = new TestTerminalFactory(args).createTerminal();
-        if (rawTerminal instanceof SwingTerminalFrame) {
-            SwingTerminalFrame extendedTerminal = (SwingTerminalFrame) rawTerminal;
-            extendedTerminal.setSize(1500, 600);
-        }
-        rawTerminal.enterPrivateMode();
-        rawTerminal.clearScreen();
+ object Terminal4bitColorTest {
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
+val rawTerminal = TestTerminalFactory(args).createTerminal()
+if (rawTerminal is SwingTerminalFrame)
+{
+val extendedTerminal = rawTerminal as SwingTerminalFrame?
+extendedTerminal!!.setSize(1500, 600)
+}
+rawTerminal!!.enterPrivateMode()
+rawTerminal!!.clearScreen()
 
-        for (TextColor.ANSI fg : TextColor.ANSI.values()) {
-            rawTerminal.resetColorAndSGR();
-            char[] charArray = fg.name().toCharArray();
-            for (int i = 0; i < 14; i++) {
-                char c = i < charArray.length ? charArray[i] : ' ';
-                rawTerminal.putCharacter(c);
-            }
-            rawTerminal.putCharacter(' ');
-            rawTerminal.setForegroundColor(fg);
-            for (TextColor.ANSI bg : TextColor.ANSI.values()) {
-                rawTerminal.setBackgroundColor(bg);
-                rawTerminal.putCharacter(' ');
-                rawTerminal.putCharacter('x');
-                rawTerminal.putCharacter('Y');
-                rawTerminal.putCharacter('z');
-                rawTerminal.putCharacter(' ');
-            }
-            rawTerminal.putCharacter('\n');
-        }
+for (fg in TextColor.ANSI.values())
+{
+rawTerminal!!.resetColorAndSGR()
+val charArray = fg!!.name().toCharArray()
+for (i in 0..13)
+{
+val c = if (i < charArray!!.size) charArray!![i] else ' '
+rawTerminal!!.putCharacter(c)
+}
+rawTerminal!!.putCharacter(' ')
+rawTerminal!!.setForegroundColor(fg)
+for (bg in TextColor.ANSI.values())
+{
+rawTerminal!!.setBackgroundColor(bg)
+rawTerminal!!.putCharacter(' ')
+rawTerminal!!.putCharacter('x')
+rawTerminal!!.putCharacter('Y')
+rawTerminal!!.putCharacter('z')
+rawTerminal!!.putCharacter(' ')
+}
+rawTerminal!!.putCharacter('\n')
+}
 
-        rawTerminal.flush();
-        try {
-            while(rawTerminal.pollInput() == null) {
-                Thread.sleep(1);
-            }
-        }
-        catch(InterruptedException e) {}
-        rawTerminal.exitPrivateMode();
-    }
+rawTerminal!!.flush()
+try
+{
+while (rawTerminal!!.pollInput() == null)
+{
+Thread.sleep(1)
+}
+}
+catch (e:InterruptedException) {}
+
+rawTerminal!!.exitPrivateMode()
+}
 }

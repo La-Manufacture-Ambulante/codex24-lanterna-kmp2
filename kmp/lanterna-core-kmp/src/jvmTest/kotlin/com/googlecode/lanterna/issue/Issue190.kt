@@ -16,61 +16,62 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.screen.*;
-import com.googlecode.lanterna.terminal.*;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.screen.*
+import com.googlecode.lanterna.terminal.*
 
-import java.io.IOException;
-import java.util.Arrays;
+import java.io.IOException
+import java.util.Arrays
 
-public class Issue190 {
-    public static void main(String[] args) throws IOException {
-        DefaultTerminalFactory factory = new DefaultTerminalFactory();
-        factory.setInitialTerminalSize(new TerminalSize(150,50));
-        factory.setTerminalEmulatorTitle("name");
-        Terminal terminal = factory.createTerminal();
-        TerminalScreen screen = new TerminalScreen(terminal);
-        screen.startScreen();
+ object Issue190 {
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
+val factory = DefaultTerminalFactory()
+factory.setInitialTerminalSize(TerminalSize(150, 50))
+factory.setTerminalEmulatorTitle("name")
+val terminal = factory.createTerminal()
+val screen = TerminalScreen(terminal)
+screen.startScreen()
 
-        Panel panel = new Panel();
-        panel.setLayoutManager(new BorderLayout());
+val panel = Panel()
+panel.setLayoutManager(BorderLayout())
 
-        ActionListBox channels = new ActionListBox();
-        channels.setLayoutData(BorderLayout.Location.LEFT);
-        panel.addComponent(channels.withBorder(Borders.singleLine("Channels")));
+val channels = ActionListBox()
+channels.setLayoutData(BorderLayout.Location.LEFT)
+panel.addComponent(channels.withBorder(Borders.singleLine("Channels")))
 
-        TextBox log = new TextBox("", TextBox.Style.MULTI_LINE);
-        log.setReadOnly(true);
-        log.setLayoutData(BorderLayout.Location.CENTER);
-        panel.addComponent(log.withBorder(Borders.singleLine("Log")));
+val log = TextBox("", TextBox.Style.MULTI_LINE)
+log.setReadOnly(true)
+log.setLayoutData(BorderLayout.Location.CENTER)
+panel.addComponent(log.withBorder(Borders.singleLine("Log")))
 
-        Panel options = new Panel();
-        options.setLayoutData(BorderLayout.Location.BOTTOM);
+val options = Panel()
+options.setLayoutData(BorderLayout.Location.BOTTOM)
 
-        options.withBorder(Borders.singleLine("Send Message"));
+options.withBorder(Borders.singleLine("Send Message"))
 
-        options.setLayoutManager(new BorderLayout());
+options.setLayoutManager(BorderLayout())
 
-        final TextBox input = new TextBox("Message", TextBox.Style.SINGLE_LINE);
-        input.setLayoutData(BorderLayout.Location.CENTER);
-        options.addComponent(input);
+val input = TextBox("Message", TextBox.Style.SINGLE_LINE)
+input.setLayoutData(BorderLayout.Location.CENTER)
+options.addComponent(input)
 
-        Button send = new Button("Send", () -> input.setText(""));
-        send.setLayoutData(BorderLayout.Location.RIGHT);
-        options.addComponent(send);
+val send = Button("Send", { input.setText("") })
+send.setLayoutData(BorderLayout.Location.RIGHT)
+options.addComponent(send)
 
-        panel.addComponent(options.withBorder(Borders.singleLine("Send Message")));
+panel.addComponent(options.withBorder(Borders.singleLine("Send Message")))
 
-        BasicWindow window = new BasicWindow();
-        window.setComponent(panel.withBorder(Borders.doubleLine("DarkOwlBot")));
+val window = BasicWindow()
+window.setComponent(panel.withBorder(Borders.doubleLine("DarkOwlBot")))
 
-        window.setHints(Arrays.asList(Window.Hint.EXPANDED, Window.Hint.FIT_TERMINAL_WINDOW));
+window.setHints(Arrays.asList(Window.Hint.EXPANDED, Window.Hint.FIT_TERMINAL_WINDOW))
 
-        MultiWindowTextGUI gui = new MultiWindowTextGUI(screen, new DefaultWindowManager(), new EmptySpace(TextColor.ANSI.BLUE));
-        gui.addWindowAndWait(window);
-    }
+val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
+gui.addWindowAndWait(window)
+}
 }

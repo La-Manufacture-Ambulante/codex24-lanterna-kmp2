@@ -16,682 +16,709 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.ArrayList
+import java.util.Arrays
+import java.util.concurrent.CopyOnWriteArrayList
 
-import com.googlecode.lanterna.Symbols;
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TerminalTextUtils;
-import com.googlecode.lanterna.graphics.Theme;
-import com.googlecode.lanterna.graphics.ThemeDefinition;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
+import com.googlecode.lanterna.Symbols
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TerminalTextUtils
+import com.googlecode.lanterna.graphics.Theme
+import com.googlecode.lanterna.graphics.ThemeDefinition
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
 
 /**
  * This is a simple combo box implementation that allows the user to select one out of multiple items through a
  * drop-down menu. If the combo box is not in read-only mode, the user can also enter free text in the combo box, much
- * like a {@code TextBox}.
+ * like a `TextBox`.
  * @param <V> Type to use for the items in the combo box
  * @author Martin
+</V> */
+ class ComboBox<V>:AbstractInteractableComponent<ComboBox<V?>?> {
+
+private val items:List<V?>?
+private val listeners:List<Listener?>?
+
+private var popupWindow:PopupWindow? = null
+/**
+ * Returns the text currently displayed in the combo box, this will likely be the label of the selected item but for
+ * writable combo boxes it's also what the user has typed in
+ * @return String currently displayed in the combo box
  */
-public class ComboBox<V> extends AbstractInteractableComponent<ComboBox<V>> {
+     var text:String? = null
+private set
+private var selectedIndex:Int = 0
 
+private var readOnly:Boolean = false
+private var dropDownFocused:Boolean = false
+/**
+ * For writable combo boxes, this method returns the position where the text input cursor is right now. Meaning, if
+ * the user types some character, where are those are going to be inserted in the string that is currently
+ * displayed. If the text input position equals the size of the currently displayed text, new characters will be
+ * appended at the end. The user can usually move the text input position by using left and right arrow keys on the
+ * keyboard.
+ * @return Current text input position
+ */
+     var textInputPosition:Int = 0
+private set
+/**
+ * Returns the number of items to display in drop down at one time, if there are more items in the model there will
+ * be a scrollbar to help the user navigate. If this returns 0, the combo box will always grow to show all items in
+ * the list, which might cause undesired effects if you put really a lot of items into the combo box.
+ * 
+ * @return Number of items (rows) that will be displayed in the combo box, or 0 if the combo box will always grow to
+ * accommodate
+ */
     /**
-     * Listener interface that can be used to catch user events on the combo box
-     */
-    public interface Listener {
-        /**
-         * This method is called whenever the user changes selection from one item to another in the combo box
-         * @param selectedIndex Index of the item which is now selected
-         * @param previousSelection Index of the item which was previously selected
-         * @param changedByUserInteraction If {@code true} then this selection change happened because of user
-         *                                 interaction with the combo box. If {@code false} then the selected
-         *                                 item was set programmatically.
-         */
-        void onSelectionChanged(int selectedIndex, int previousSelection, boolean changedByUserInteraction);
-    }
+ * Sets the number of items to display in drop down at one time, if there are more items in the model there will
+ * be a scrollbar to help the user navigate. Use this method if your combo boxes have large models that fills up
+ * the whole screen. Set it to 0 if you don't want to limit the number.
+ * @param dropDownNumberOfRows Max number of items (rows) to display at one time in the combo box
+ */
+     var dropDownNumberOfRows:Int = 0
 
-    private final List<V> items;
-    private final List<Listener> listeners;
-
-    private PopupWindow popupWindow;
-    private String text;
-    private int selectedIndex;
-
-    private boolean readOnly;
-    private boolean dropDownFocused;
-    private int textInputPosition;
-    private int dropDownNumberOfRows;
-
-    /**
-     * Creates a new {@code ComboBox} initialized with N number of items supplied through the varargs parameter. If at
-     * least one item is given, the first one in the array will be initially selected. By default 10 items will be
-     * displayed at once, more than that and there will be a scroll bar.
-     * @param items Items to populate the new combo box with
-     */
-    @SafeVarargs
-    public ComboBox(V... items) {
-        this(Arrays.asList(items));
-    }
-
-    /**
-     * Creates a new {@code ComboBox} initialized with N number of items supplied through the items parameter. If at
-     * least one item is given, the first one in the collection will be initially selected. By default 10 items will be
-     * displayed at once, more than that and there will be a scroll bar.
-     * @param items Items to populate the new combo box with
-     */
-    public ComboBox(Collection<V> items) {
-        this(items, items.isEmpty() ? -1 : 0);
-    }
-
-    /**
-     * Creates a new {@code ComboBox} initialized with N number of items supplied through the items parameter. The
-     * initial text in the combo box is set to a specific value passed in through the {@code initialText} parameter, it
-     * can be a text which is not contained within the items and the selection state of the combo box will be
-     * "no selection" (so {@code getSelectedIndex()} will return -1) until the user interacts with the combo box and
-     * manually changes it. By default 10 items will be displayed at once, more than that and there will be a scroll bar.
-     *
-     * @param initialText Text to put in the combo box initially
-     * @param items Items to populate the new combo box with
-     */
-    public ComboBox(String initialText, Collection<V> items) {
-        this(items, -1);
-        this.text = initialText;
-    }
-
-    /**
-     * Creates a new {@code ComboBox} initialized with N number of items supplied through the items parameter. The
-     * initially selected item is specified through the {@code selectedIndex} parameter. By default 10 items will be
-     * displayed at once, more than that and there will be a scroll bar.
-     * @param items Items to populate the new combo box with
-     * @param selectedIndex Index of the item which should be initially selected
-     */
-    public ComboBox(Collection<V> items, int selectedIndex) {
-        for(V item: items) {
-            if(item == null) {
-                throw new IllegalArgumentException("Cannot add null elements to a ComboBox");
-            }
-        }
-        this.items = new ArrayList<>(items);
-        this.listeners = new CopyOnWriteArrayList<>();
-        this.popupWindow = null;
-        this.selectedIndex = selectedIndex;
-        this.readOnly = true;
-        this.dropDownFocused = true;
-        this.textInputPosition = 0;
-        this.dropDownNumberOfRows = 10;
-        if(selectedIndex != -1) {
-            this.text = this.items.get(selectedIndex).toString();
-        }
-        else {
-            this.text = "";
-        }
-    }
-
-    /**
-     * Adds a new item to the combo box, at the end
-     * @param item Item to add to the combo box
-     * @return Itself
-     */
-    public synchronized ComboBox<V> addItem(V item) {
-        if(item == null) {
-            throw new IllegalArgumentException("Cannot add null elements to a ComboBox");
-        }
-        items.add(item);
-        if(selectedIndex == -1 && items.size() == 1) {
-            setSelectedIndex(0);
-        }
-        invalidate();
-        return this;
-    }
-
-    /**
-     * Adds a new item to the combo box, at a specific index
-     * @param index Index to add the item at
-     * @param item Item to add
-     * @return Itself
-     */
-    public synchronized ComboBox<V> addItem(int index, V item) {
-        if(item == null) {
-            throw new IllegalArgumentException("Cannot add null elements to a ComboBox");
-        }
-        items.add(index, item);
-        if(index <= selectedIndex) {
-            setSelectedIndex(selectedIndex + 1);
-        }
-        invalidate();
-        return this;
-    }
-
-    /**
-     * Removes all items from the combo box
-     * @return Itself
-     */
-    public synchronized ComboBox<V> clearItems() {
-        items.clear();
-        setSelectedIndex(-1);
-        invalidate();
-        return this;
-    }
-
-    /**
-     * Removes a particular item from the combo box, if it is present, otherwise does nothing
-     * @param item Item to remove from the combo box
-     * @return Itself
-     */
-    public synchronized ComboBox<V> removeItem(V item) {
-        int index = items.indexOf(item);
-        if(index == -1) {
-            return this;
-        }
-        return removeItem(index);
-    }
-
-    /**
-     * Removes an item from the combo box at a particular index
-     * @param index Index of the item to remove
-     * @return Itself
-     * @throws IndexOutOfBoundsException if the index is out of range
-     */
-    public synchronized ComboBox<V> removeItem(int index) {
-        items.remove(index);
-        if(index < selectedIndex) {
-            setSelectedIndex(selectedIndex - 1);
-        }
-        else if(index == selectedIndex) {
-            setSelectedIndex(-1);
-        }
-        invalidate();
-        return this;
-    }
-
-    /**
-     * Updates the combo box so the item at the specified index is swapped out with the supplied value in the
-     * {@code item} parameter
-     * @param index Index of the item to swap out
-     * @param item Item to replace with
-     * @return Itself
-     */
-    public synchronized ComboBox<V> setItem(int index, V item) {
-        if(item == null) {
-            throw new IllegalArgumentException("Cannot add null elements to a ComboBox");
-        }
-        items.set(index, item);
-        invalidate();
-        return this;
-    }
-
-    /**
-     * Counts and returns the number of items in this combo box
-     * @return Number of items in this combo box
-     */
-    public synchronized int getItemCount() {
-        return items.size();
-    }
-
-    /**
-     * Returns the item at the specific index
-     * @param index Index of the item to return
-     * @return Item at the specific index
-     * @throws IndexOutOfBoundsException if the index is out of range
-     */
-    public synchronized V getItem(int index) {
-        return items.get(index);
-    }
-
-    /**
-     * Returns the text currently displayed in the combo box, this will likely be the label of the selected item but for
-     * writable combo boxes it's also what the user has typed in
-     * @return String currently displayed in the combo box
-     */
-    public String getText() {
-        return text;
-    }
-
-    /**
-     * Sets the combo box to either read-only or writable. In read-only mode, the user cannot type in any text in the
-     * combo box but is forced to pick one of the items, displayed by the drop-down. In writable mode, the user can
-     * enter any string in the combo box
-     * @param readOnly If the combo box should be in read-only mode, pass in {@code true}, otherwise {@code false} for
-     *                 writable mode
-     * @return Itself
-     */
-    public synchronized ComboBox<V> setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
-        if(readOnly) {
-            dropDownFocused = true;
-        }
-        return this;
-    }
-
-    /**
-     * Returns {@code true} if this combo box is in read-only mode
-     * @return {@code true} if this combo box is in read-only mode, {@code false} otherwise
-     */
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    /**
-     * Returns {@code true} if the users input focus is currently on the drop-down button of the combo box, so that
-     * pressing enter would trigger the popup window. This is generally used by renderers only and is always true for
-     * read-only combo boxes as the component won't allow you to focus on the text in that mode.
-     * @return {@code true} if the input focus is on the drop-down "button" of the combo box
-     */
-    public boolean isDropDownFocused() {
-        return dropDownFocused || isReadOnly();
-    }
-
-    /**
-     * For writable combo boxes, this method returns the position where the text input cursor is right now. Meaning, if
-     * the user types some character, where are those are going to be inserted in the string that is currently
-     * displayed. If the text input position equals the size of the currently displayed text, new characters will be
-     * appended at the end. The user can usually move the text input position by using left and right arrow keys on the
-     * keyboard.
-     * @return Current text input position
-     */
-    public int getTextInputPosition() {
-        return textInputPosition;
-    }
-
-    /**
-     * Returns the number of items to display in drop down at one time, if there are more items in the model there will
-     * be a scrollbar to help the user navigate. If this returns 0, the combo box will always grow to show all items in
-     * the list, which might cause undesired effects if you put really a lot of items into the combo box.
-     *
-     * @return Number of items (rows) that will be displayed in the combo box, or 0 if the combo box will always grow to
-     * accommodate
-     */
-    public int getDropDownNumberOfRows() {
-        return dropDownNumberOfRows;
-    }
-
-    /**
-     * Sets the number of items to display in drop down at one time, if there are more items in the model there will
-     * be a scrollbar to help the user navigate. Use this method if your combo boxes have large models that fills up
-     * the whole screen. Set it to 0 if you don't want to limit the number.
-     * @param dropDownNumberOfRows Max number of items (rows) to display at one time in the combo box
-     */
-    public void setDropDownNumberOfRows(int dropDownNumberOfRows) {
-        this.dropDownNumberOfRows = dropDownNumberOfRows;
-    }
-
-    /**
-     * Programmatically selects one item in the combo box, which causes the displayed text to change to match the label
-     * of the selected index.
-     * @param selectedIndex Index of the item to select, or -1 if the selection should be cleared
-     * @throws IndexOutOfBoundsException if the index is out of range
-     */
-    public void setSelectedIndex(final int selectedIndex) {
-        setSelectedIndex(selectedIndex, false);
-    }
-
-    private synchronized void setSelectedIndex(final int selectedIndex, final boolean changedByUserInteraction) {
-        if(items.size() <= selectedIndex || selectedIndex < -1) {
-            throw new IndexOutOfBoundsException("Illegal argument to ComboBox.setSelectedIndex: " + selectedIndex);
-        }
-        final int oldSelection = this.selectedIndex;
-        this.selectedIndex = selectedIndex;
-        if(selectedIndex == -1) {
-            updateText("");
-        }
-        else {
-            updateText(items.get(selectedIndex).toString());
-        }
-        runOnGUIThreadIfExistsOtherwiseRunDirect(() -> {
-            for(Listener listener: listeners) {
-                listener.onSelectionChanged(selectedIndex, oldSelection, changedByUserInteraction);
-            }
-        });
-        invalidate();
-    }
-
-    /**
-     * Programmatically selects one item in the combo box by passing in the value the should be selected. If the value
-     * isn't in the combo box model, nothing happens for read-only combo boxes and for editable ones the text content
-     * is changed to match the result from calling the {@code toString()} method of {@code item}.
-     * <p>
-     * If called with {@code null}, the selection is cleared.
-     * @param item Item in the combo box to select, or null if the selection should be cleared
-     */
-    public synchronized void setSelectedItem(final V item) {
-        if(item == null) {
-            setSelectedIndex(-1);
-        }
-        else {
-            int indexOf = items.indexOf(item);
-            if (indexOf != -1) {
-                setSelectedIndex(indexOf);
-            }
-            else if (!readOnly) {
-                updateText(item.toString());
-            }
-        }
-    }
-
-    private void updateText(String newText) {
-        text = newText;
-        if(textInputPosition > text.length()) {
-            textInputPosition = text.length();
-        }
-    }
-
-    /**
-     * Returns the index of the currently selected item or -1 for no selection
-     * @return Index of the currently selected item
-     */
-    public int getSelectedIndex() {
-        return selectedIndex;
-    }
-
-    /**
-     * Returns the item at the selected index, this is the same as calling:
-     * <pre>{@code
-     *     getSelectedIndex() > -1 ? getItem(getSelectedIndex()) : null
-     * }</pre>
-     * @return The item at the selected index
-     */
-    public synchronized V getSelectedItem() {
-        return getSelectedIndex() > -1 ? getItem(getSelectedIndex()) : null;
-    }
-
-    /**
-     * Adds a new listener to the {@code ComboBox} that will be called on certain user actions
-     * @param listener Listener to attach to this {@code ComboBox}
-     * @return Itself
-     */
-    public ComboBox<V> addListener(Listener listener) {
-        if(listener != null && !listeners.contains(listener)) {
-            listeners.add(listener);
-        }
-        return this;
-    }
-
-    /**
-     * Removes a listener from this {@code ComboBox} so that if it had been added earlier, it will no longer be
-     * called on user actions
-     * @param listener Listener to remove from this {@code ComboBox}
-     * @return Itself
-     */
-    public ComboBox<V> removeListener(Listener listener) {
-        listeners.remove(listener);
-        return this;
-    }
-
-    @Override
-    protected void afterEnterFocus(FocusChangeDirection direction, Interactable previouslyInFocus) {
-        if(direction == FocusChangeDirection.RIGHT && !isReadOnly()) {
-            dropDownFocused = false;
-            selectedIndex = 0;
-        }
-    }
-
-    @Override
-    protected synchronized void afterLeaveFocus(FocusChangeDirection direction, Interactable nextInFocus) {
-        if(popupWindow != null) {
-            popupWindow.close();
-        }
-    }
-
-    @Override
-    protected InteractableRenderer<ComboBox<V>> createDefaultRenderer() {
-        return new DefaultComboBoxRenderer<>();
-    }
-
-    @Override
-    public synchronized Result handleKeyStroke(KeyStroke keyStroke) {
-        if(isReadOnly()) {
-            return handleReadOnlyCBKeyStroke(keyStroke);
-        }
-        else {
-            return handleEditableCBKeyStroke(keyStroke);
-        }
-    }
-
-    private Result handleReadOnlyCBKeyStroke(KeyStroke keyStroke) {
-        switch(keyStroke.getKeyType()) {
-            case CHARACTER:
-            case ENTER:
-                if (isKeyboardActivationStroke(keyStroke)) {
-                    showPopup(keyStroke);
-                }
-                return super.handleKeyStroke(keyStroke);
-            
-            case MOUSE_EVENT:
-                if (isMouseActivationStroke(keyStroke)) {
-                    showPopup(keyStroke);
-                }
-                break;
-            
-            default:
-        }
-        return super.handleKeyStroke(keyStroke);
-    }
-    
-    protected void showPopup(KeyStroke keyStroke) {
-        popupWindow = new PopupWindow();
-        popupWindow.setPosition(toGlobal(new TerminalPosition(0, 1)));
-        ((WindowBasedTextGUI) getTextGUI()).addWindow(popupWindow);
-        ((WindowBasedTextGUI) getTextGUI()).setActiveWindow(popupWindow);
-    }
-
-    private Result handleEditableCBKeyStroke(KeyStroke keyStroke) {
-        //First check if we are in drop-down focused mode, treat keystrokes a bit differently then
-        if(isDropDownFocused()) {
-            switch(keyStroke.getKeyType()) {
-                case REVERSE_TAB:
-                case ARROW_LEFT:
-                    dropDownFocused = false;
-                    textInputPosition = text.length();
-                    return Result.HANDLED;
-
-                //The rest we can process in the same way as with read-only combo boxes when we are in drop-down focused mode
-                default:
-                    return handleReadOnlyCBKeyStroke(keyStroke);
-            }
-        }
-
-        switch(keyStroke.getKeyType()) {
-            case CHARACTER:
-                text = text.substring(0, textInputPosition) + keyStroke.getCharacter() + text.substring(textInputPosition);
-                textInputPosition++;
-                return Result.HANDLED;
-
-            case TAB:
-                dropDownFocused = true;
-                return Result.HANDLED;
-
-            case BACKSPACE:
-                if(textInputPosition > 0) {
-                    text = text.substring(0, textInputPosition - 1) + text.substring(textInputPosition);
-                    textInputPosition--;
-                }
-                return Result.HANDLED;
-
-            case DELETE:
-                if(textInputPosition < text.length()) {
-                    text = text.substring(0, textInputPosition) + text.substring(textInputPosition + 1);
-                }
-                return Result.HANDLED;
-
-            case ARROW_LEFT:
-                if(textInputPosition > 0) {
-                    textInputPosition--;
-                }
-                else {
-                    return Result.MOVE_FOCUS_LEFT;
-                }
-                return Result.HANDLED;
-
-            case ARROW_RIGHT:
-                if(textInputPosition < text.length()) {
-                    textInputPosition++;
-                }
-                else {
-                    dropDownFocused = true;
-                    return Result.HANDLED;
-                }
-                return Result.HANDLED;
-
-            case ARROW_DOWN:
-                if(selectedIndex < items.size() - 1) {
-                    setSelectedIndex(selectedIndex + 1, true);
-                }
-                return Result.HANDLED;
-
-            case ARROW_UP:
-                if(selectedIndex > 0) {
-                    setSelectedIndex(selectedIndex - 1, true);
-                }
-                return Result.HANDLED;
-
-            default:
-        }
-        return super.handleKeyStroke(keyStroke);
-    }
-
-    private class PopupWindow extends BasicWindow {
-        private final ActionListBox listBox;
-
-        public PopupWindow() {
-            setHints(Arrays.asList(
-                    Hint.NO_FOCUS,
-                    Hint.FIXED_POSITION,
-                    Hint.MENU_POPUP));
-            listBox = new ActionListBox(ComboBox.this.getSize().withRows(getItemCount()));
-            for(int i = 0; i < getItemCount(); i++) {
-                V item = items.get(i);
-                final int index = i;
-                listBox.addItem(item.toString(), () -> {
-                    setSelectedIndex(index, true);
-                    close();
-                });
-            }
-            listBox.setSelectedIndex(getSelectedIndex());
-            TerminalSize dropDownListPreferedSize = listBox.getPreferredSize();
-            if(dropDownNumberOfRows > 0) {
-                listBox.setPreferredSize(dropDownListPreferedSize.withRows(
-                        Math.min(dropDownNumberOfRows, dropDownListPreferedSize.getRows())));
-            }
-            setComponent(listBox);
-        }
-        @Override
-        public void close() {
-            super.close();
-            popupWindow = null;
-        }
-
-        @Override
-        public synchronized Theme getTheme() {
-            return ComboBox.this.getTheme();
-        }
-        @Override
-        public synchronized boolean handleInput(KeyStroke keyStroke) {
-            if (keyStroke.getKeyType() == KeyType.ESCAPE) {
-                close();
-                return true;
-            }
-            return super.handleInput(keyStroke);
-        }
-    }
-
-    /**
-     * Helper interface that doesn't add any new methods but makes coding new combo box renderers a little bit more clear
-     */
-    public static abstract class ComboBoxRenderer<V> implements InteractableRenderer<ComboBox<V>> {
-    }
-
-    /**
-     * This class is the default renderer implementation which will be used unless overridden. The combo box is rendered
-     * like a text box with an arrow point down to the right of it, which can receive focus and triggers the popup.
-     * @param <V> Type of items in the combo box
-     */
-    public static class DefaultComboBoxRenderer<V> extends ComboBoxRenderer<V> {
-
-        private int textVisibleLeftPosition;
-
-        /**
-         * Default constructor
-         */
-        public DefaultComboBoxRenderer() {
-            this.textVisibleLeftPosition = 0;
-        }
-
-        @Override
-        public TerminalPosition getCursorLocation(ComboBox<V> comboBox) {
-            if(comboBox.isDropDownFocused()) {
-                if(comboBox.getThemeDefinition().isCursorVisible()) {
-                    return new TerminalPosition(comboBox.getSize().getColumns() - 1, 0);
-                }
-                else {
-                    return null;
-                }
-            }
-            else {
-                int textInputPosition = comboBox.getTextInputPosition();
-                int textInputColumn = TerminalTextUtils.getColumnWidth(comboBox.getText().substring(0, textInputPosition));
-                return new TerminalPosition(textInputColumn - textVisibleLeftPosition, 0);
-            }
-        }
-
-        @Override
-        public TerminalSize getPreferredSize(final ComboBox<V> comboBox) {
-            TerminalSize size = TerminalSize.ONE.withColumns(
-                    (comboBox.getItemCount() == 0 ? TerminalTextUtils.getColumnWidth(comboBox.getText()) : 0) + 2);
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
-            synchronized(comboBox) {
-                for(int i = 0; i < comboBox.getItemCount(); i++) {
-                    V item = comboBox.getItem(i);
-                    size = size.max(new TerminalSize(TerminalTextUtils.getColumnWidth(item.toString()) + 2 + 1, 1));   // +1 to add a single column of space
-                }
-            }
-            return size;
-        }
-
-        @Override
-        public void drawComponent(TextGUIGraphics graphics, ComboBox<V> comboBox) {
-            ThemeDefinition themeDefinition = comboBox.getThemeDefinition();
-            if(comboBox.isReadOnly()) {
-                graphics.applyThemeStyle(themeDefinition.getNormal());
-            }
-            else {
-                if(comboBox.isFocused()) {
-                    graphics.applyThemeStyle(themeDefinition.getActive());
-                }
-                else {
-                    graphics.applyThemeStyle(themeDefinition.getPreLight());
-                }
-            }
-            graphics.fill(' ');
-            int editableArea = graphics.getSize().getColumns() - 2; //This is exclusing the 'drop-down arrow'
-            int textInputPosition = comboBox.getTextInputPosition();
-            int columnsToInputPosition = TerminalTextUtils.getColumnWidth(comboBox.getText().substring(0, textInputPosition));
-            if(columnsToInputPosition < textVisibleLeftPosition) {
-                textVisibleLeftPosition = columnsToInputPosition;
-            }
-            if(columnsToInputPosition - textVisibleLeftPosition >= editableArea) {
-                textVisibleLeftPosition = columnsToInputPosition - editableArea + 1;
-            }
-            if(columnsToInputPosition - textVisibleLeftPosition + 1 == editableArea &&
-                    comboBox.getText().length() > textInputPosition &&
-                    TerminalTextUtils.isCharCJK(comboBox.getText().charAt(textInputPosition))) {
-                textVisibleLeftPosition++;
-            }
-
-            String textToDraw = TerminalTextUtils.fitString(comboBox.getText(), textVisibleLeftPosition, editableArea);
-            graphics.putString(0, 0, textToDraw);
-            graphics.applyThemeStyle(themeDefinition.getInsensitive());
-            graphics.setCharacter(editableArea, 0, themeDefinition.getCharacter("POPUP_SEPARATOR", Symbols.SINGLE_LINE_VERTICAL));
-            if(comboBox.isFocused() && comboBox.isDropDownFocused()) {
-                graphics.applyThemeStyle(themeDefinition.getSelected());
-            }
-            graphics.setCharacter(editableArea + 1, 0, themeDefinition.getCharacter("POPUP", Symbols.TRIANGLE_DOWN_POINTING_BLACK));
-        }
-    }
+/**
+ * Counts and returns the number of items in this combo box
+ * @return Number of items in this combo box
+ */
+     val itemCount:Int
+@Synchronized get() {
+return items!!.size()
 }
+
+/**
+ * Returns `true` if the users input focus is currently on the drop-down button of the combo box, so that
+ * pressing enter would trigger the popup window. This is generally used by renderers only and is always true for
+ * read-only combo boxes as the component won't allow you to focus on the text in that mode.
+ * @return `true` if the input focus is on the drop-down "button" of the combo box
+ */
+     val isDropDownFocused:Boolean
+get() {
+return dropDownFocused || isReadOnly()
+}
+
+/**
+ * Returns the item at the selected index, this is the same as calling:
+ * <pre>`getSelectedIndex() > -1 ? getItem(getSelectedIndex()) : null
+`</pre> * 
+ * @return The item at the selected index
+ */
+    /**
+ * Programmatically selects one item in the combo box by passing in the value the should be selected. If the value
+ * isn't in the combo box model, nothing happens for read-only combo boxes and for editable ones the text content
+ * is changed to match the result from calling the `toString()` method of `item`.
+ * 
+ * 
+ * If called with `null`, the selection is cleared.
+ * @param item Item in the combo box to select, or null if the selection should be cleared
+ */
+     var selectedItem:V?
+@Synchronized get() {
+return if (getSelectedIndex() > -1) getItem(getSelectedIndex()) else null
+}
+@Synchronized set(item) {
+if (item == null)
+{
+setSelectedIndex(-1)
+}
+else
+{
+val indexOf = items!!.indexOf(item)
+if (indexOf != -1)
+{
+setSelectedIndex(indexOf)
+}
+else if (!readOnly)
+{
+updateText(item!!.toString())
+}
+}
+}
+
+/**
+ * Listener interface that can be used to catch user events on the combo box
+ */
+     interface Listener {
+/**
+ * This method is called whenever the user changes selection from one item to another in the combo box
+ * @param selectedIndex Index of the item which is now selected
+ * @param previousSelection Index of the item which was previously selected
+ * @param changedByUserInteraction If `true` then this selection change happened because of user
+ * interaction with the combo box. If `false` then the selected
+ * item was set programmatically.
+ */
+         fun onSelectionChanged(selectedIndex:Int, previousSelection:Int, changedByUserInteraction:Boolean) 
+}
+
+/**
+ * Creates a new `ComboBox` initialized with N number of items supplied through the varargs parameter. If at
+ * least one item is given, the first one in the array will be initially selected. By default 10 items will be
+ * displayed at once, more than that and there will be a scroll bar.
+ * @param items Items to populate the new combo box with
+ */
+    @SafeVarargs
+ constructor(vararg items:V?) : this(Arrays.asList(items)) {}
+
+/**
+ * Creates a new `ComboBox` initialized with N number of items supplied through the items parameter. The
+ * initial text in the combo box is set to a specific value passed in through the `initialText` parameter, it
+ * can be a text which is not contained within the items and the selection state of the combo box will be
+ * "no selection" (so `getSelectedIndex()` will return -1) until the user interacts with the combo box and
+ * manually changes it. By default 10 items will be displayed at once, more than that and there will be a scroll bar.
+ * 
+ * @param initialText Text to put in the combo box initially
+ * @param items Items to populate the new combo box with
+ */
+     constructor(initialText:String?, items:Collection<V?>?) : this(items!!, -1) {
+this.text = initialText
+}
+
+/**
+ * Creates a new `ComboBox` initialized with N number of items supplied through the items parameter. The
+ * initially selected item is specified through the `selectedIndex` parameter. By default 10 items will be
+ * displayed at once, more than that and there will be a scroll bar.
+ * @param items Items to populate the new combo box with
+ * @param selectedIndex Index of the item which should be initially selected
+ */
+    @JvmOverloads  constructor(items:Collection<V?>, selectedIndex:Int = if (items!!.isEmpty()) -1 else 0) {
+for (item in items)
+{
+if (item == null)
+{
+throw IllegalArgumentException("Cannot add null elements to a ComboBox")
+}
+}
+this.items = ArrayList(items)
+this.listeners = CopyOnWriteArrayList()
+this.popupWindow = null
+this.selectedIndex = selectedIndex
+this.readOnly = true
+this.dropDownFocused = true
+this.textInputPosition = 0
+this.dropDownNumberOfRows = 10
+if (selectedIndex != -1)
+{
+this.text = this.items!!.get(selectedIndex).toString()
+}
+else
+{
+this.text = ""
+}
+}
+
+/**
+ * Adds a new item to the combo box, at the end
+ * @param item Item to add to the combo box
+ * @return Itself
+ */
+    @Synchronized  fun addItem(item:V?):ComboBox<V?> {
+if (item == null)
+{
+throw IllegalArgumentException("Cannot add null elements to a ComboBox")
+}
+items!!.add(item)
+if (selectedIndex == -1 && items!!.size() === 1)
+{
+setSelectedIndex(0)
+}
+invalidate()
+return this
+}
+
+/**
+ * Adds a new item to the combo box, at a specific index
+ * @param index Index to add the item at
+ * @param item Item to add
+ * @return Itself
+ */
+    @Synchronized  fun addItem(index:Int, item:V?):ComboBox<V?> {
+if (item == null)
+{
+throw IllegalArgumentException("Cannot add null elements to a ComboBox")
+}
+items!!.add(index, item)
+if (index <= selectedIndex)
+{
+setSelectedIndex(selectedIndex + 1)
+}
+invalidate()
+return this
+}
+
+/**
+ * Removes all items from the combo box
+ * @return Itself
+ */
+    @Synchronized  fun clearItems():ComboBox<V?> {
+items!!.clear()
+setSelectedIndex(-1)
+invalidate()
+return this
+}
+
+/**
+ * Removes a particular item from the combo box, if it is present, otherwise does nothing
+ * @param item Item to remove from the combo box
+ * @return Itself
+ */
+    @Synchronized  fun removeItem(item:V?):ComboBox<V?>? {
+val index = items!!.indexOf(item)
+if (index == -1)
+{
+return this
+}
+return removeItem(index)
+}
+
+/**
+ * Removes an item from the combo box at a particular index
+ * @param index Index of the item to remove
+ * @return Itself
+ * @throws IndexOutOfBoundsException if the index is out of range
+ */
+    @Synchronized  fun removeItem(index:Int):ComboBox<V?> {
+items!!.remove(index)
+if (index < selectedIndex)
+{
+setSelectedIndex(selectedIndex - 1)
+}
+else if (index == selectedIndex)
+{
+setSelectedIndex(-1)
+}
+invalidate()
+return this
+}
+
+/**
+ * Updates the combo box so the item at the specified index is swapped out with the supplied value in the
+ * `item` parameter
+ * @param index Index of the item to swap out
+ * @param item Item to replace with
+ * @return Itself
+ */
+    @Synchronized  fun setItem(index:Int, item:V?):ComboBox<V?> {
+if (item == null)
+{
+throw IllegalArgumentException("Cannot add null elements to a ComboBox")
+}
+items!!.set(index, item)
+invalidate()
+return this
+}
+
+/**
+ * Returns the item at the specific index
+ * @param index Index of the item to return
+ * @return Item at the specific index
+ * @throws IndexOutOfBoundsException if the index is out of range
+ */
+    @Synchronized  fun getItem(index:Int):V? {
+return items!!.get(index)
+}
+
+/**
+ * Sets the combo box to either read-only or writable. In read-only mode, the user cannot type in any text in the
+ * combo box but is forced to pick one of the items, displayed by the drop-down. In writable mode, the user can
+ * enter any string in the combo box
+ * @param readOnly If the combo box should be in read-only mode, pass in `true`, otherwise `false` for
+ * writable mode
+ * @return Itself
+ */
+    @Synchronized  fun setReadOnly(readOnly:Boolean):ComboBox<V?> {
+this.readOnly = readOnly
+if (readOnly)
+{
+dropDownFocused = true
+}
+return this
+}
+
+/**
+ * Returns `true` if this combo box is in read-only mode
+ * @return `true` if this combo box is in read-only mode, `false` otherwise
+ */
+     fun isReadOnly():Boolean {
+return readOnly
+}
+
+/**
+ * Programmatically selects one item in the combo box, which causes the displayed text to change to match the label
+ * of the selected index.
+ * @param selectedIndex Index of the item to select, or -1 if the selection should be cleared
+ * @throws IndexOutOfBoundsException if the index is out of range
+ */
+     fun setSelectedIndex(selectedIndex:Int) {
+setSelectedIndex(selectedIndex, false)
+}
+
+@Synchronized private fun setSelectedIndex(selectedIndex:Int, changedByUserInteraction:Boolean) {
+if (items!!.size() <= selectedIndex || selectedIndex < -1)
+{
+throw IndexOutOfBoundsException("Illegal argument to ComboBox.setSelectedIndex: " + selectedIndex)
+}
+val oldSelection = this.selectedIndex
+this.selectedIndex = selectedIndex
+if (selectedIndex == -1)
+{
+updateText("")
+}
+else
+{
+updateText(items!!.get(selectedIndex).toString())
+}
+runOnGUIThreadIfExistsOtherwiseRunDirect({ for (listener in listeners!!)
+{
+listener!!.onSelectionChanged(selectedIndex, oldSelection, changedByUserInteraction)
+} })
+invalidate()
+}
+
+private fun updateText(newText:String?) {
+text = newText
+if (textInputPosition > text!!.length())
+{
+textInputPosition = text!!.length()
+}
+}
+
+/**
+ * Returns the index of the currently selected item or -1 for no selection
+ * @return Index of the currently selected item
+ */
+     fun getSelectedIndex():Int {
+return selectedIndex
+}
+
+/**
+ * Adds a new listener to the `ComboBox` that will be called on certain user actions
+ * @param listener Listener to attach to this `ComboBox`
+ * @return Itself
+ */
+     fun addListener(listener:Listener?):ComboBox<V?> {
+if (listener != null && !listeners!!.contains(listener))
+{
+listeners!!.add(listener)
+}
+return this
+}
+
+/**
+ * Removes a listener from this `ComboBox` so that if it had been added earlier, it will no longer be
+ * called on user actions
+ * @param listener Listener to remove from this `ComboBox`
+ * @return Itself
+ */
+     fun removeListener(listener:Listener?):ComboBox<V?> {
+listeners!!.remove(listener)
+return this
+}
+
+@Override
+protected fun afterEnterFocus(direction:FocusChangeDirection?, previouslyInFocus:Interactable?) {
+if (direction === FocusChangeDirection.RIGHT && !isReadOnly())
+{
+dropDownFocused = false
+selectedIndex = 0
+}
+}
+
+@Override
+@Synchronized protected fun afterLeaveFocus(direction:FocusChangeDirection?, nextInFocus:Interactable?) {
+if (popupWindow != null)
+{
+popupWindow!!.close()
+}
+}
+
+@Override
+protected fun createDefaultRenderer():InteractableRenderer<ComboBox<V?>?>? {
+return DefaultComboBoxRenderer<Object?>()
+}
+
+@Override
+@Synchronized  fun handleKeyStroke(keyStroke:KeyStroke?):Result? {
+if (isReadOnly())
+{
+return handleReadOnlyCBKeyStroke(keyStroke!!)
+}
+else
+{
+return handleEditableCBKeyStroke(keyStroke)
+}
+}
+
+private fun handleReadOnlyCBKeyStroke(keyStroke:KeyStroke):Result? {
+when (keyStroke.getKeyType()) {
+CHARACTER, ENTER -> {
+if (isKeyboardActivationStroke(keyStroke))
+{
+showPopup(keyStroke)
+}
+return super.handleKeyStroke(keyStroke)
+}
+
+MOUSE_EVENT -> if (isMouseActivationStroke(keyStroke))
+{
+showPopup(keyStroke)
+}
+}
+return super.handleKeyStroke(keyStroke)
+}
+
+protected fun showPopup(keyStroke:KeyStroke?) {
+popupWindow = PopupWindow()
+popupWindow!!.setPosition(toGlobal(TerminalPosition(0, 1)))
+(getTextGUI() as WindowBasedTextGUI).addWindow(popupWindow)
+(getTextGUI() as WindowBasedTextGUI).setActiveWindow(popupWindow)
+}
+
+private fun handleEditableCBKeyStroke(keyStroke:KeyStroke?):Result? {
+ //First check if we are in drop-down focused mode, treat keystrokes a bit differently then
+        if (isDropDownFocused)
+{
+when (keyStroke!!.getKeyType()) {
+REVERSE_TAB, ARROW_LEFT -> {
+dropDownFocused = false
+textInputPosition = text!!.length()
+return Result.HANDLED
+}
+
+ //The rest we can process in the same way as with read-only combo boxes when we are in drop-down focused mode
+                else -> return handleReadOnlyCBKeyStroke(keyStroke!!)
+}
+}
+
+when (keyStroke!!.getKeyType()) {
+CHARACTER -> {
+text = text!!.substring(0, textInputPosition) + keyStroke!!.getCharacter() + text!!.substring(textInputPosition)
+textInputPosition++
+return Result.HANDLED
+}
+
+TAB -> {
+dropDownFocused = true
+return Result.HANDLED
+}
+
+BACKSPACE -> {
+if (textInputPosition > 0)
+{
+text = text!!.substring(0, textInputPosition - 1) + text!!.substring(textInputPosition)
+textInputPosition--
+}
+return Result.HANDLED
+}
+
+DELETE -> {
+if (textInputPosition < text!!.length())
+{
+text = text!!.substring(0, textInputPosition) + text!!.substring(textInputPosition + 1)
+}
+return Result.HANDLED
+}
+
+ARROW_LEFT -> {
+if (textInputPosition > 0)
+{
+textInputPosition--
+}
+else
+{
+return Result.MOVE_FOCUS_LEFT
+}
+return Result.HANDLED
+}
+
+ARROW_RIGHT -> {
+if (textInputPosition < text!!.length())
+{
+textInputPosition++
+}
+else
+{
+dropDownFocused = true
+return Result.HANDLED
+}
+return Result.HANDLED
+}
+
+ARROW_DOWN -> {
+if (selectedIndex < items!!.size() - 1)
+{
+setSelectedIndex(selectedIndex + 1, true)
+}
+return Result.HANDLED
+}
+
+ARROW_UP -> {
+if (selectedIndex > 0)
+{
+setSelectedIndex(selectedIndex - 1, true)
+}
+return Result.HANDLED
+}
+}
+return super.handleKeyStroke(keyStroke)
+}
+
+private inner class PopupWindow:BasicWindow() {
+private val listBox:ActionListBox?
+
+ val theme:Theme?
+@Override
+@Synchronized get() {
+return this@ComboBox.getTheme()
+}
+init{
+setHints(Arrays.asList(
+Hint.NO_FOCUS, 
+Hint.FIXED_POSITION, 
+Hint.MENU_POPUP))
+listBox = ActionListBox(this@ComboBox.getSize().withRows(itemCount))
+for (i in 0 until itemCount)
+{
+val item = items!!.get(i)
+val index = i
+listBox!!.addItem(item!!.toString(), { setSelectedIndex(index, true)
+close() })
+}
+listBox!!.setSelectedIndex(getSelectedIndex())
+val dropDownListPreferedSize = listBox!!.getPreferredSize()
+if (dropDownNumberOfRows > 0)
+{
+listBox!!.setPreferredSize(dropDownListPreferedSize!!.withRows(
+Math.min(dropDownNumberOfRows, dropDownListPreferedSize!!.rows)))
+}
+setComponent(listBox)
+}
+@Override
+ fun close() {
+super.close()
+popupWindow = null
+}
+@Override
+@Synchronized  fun handleInput(keyStroke:KeyStroke):Boolean {
+if (keyStroke.getKeyType() === KeyType.ESCAPE)
+{
+close()
+return true
+}
+return super.handleInput(keyStroke)
+}
+}
+
+/**
+ * Helper interface that doesn't add any new methods but makes coding new combo box renderers a little bit more clear
+ */
+    abstract class ComboBoxRenderer<V>:InteractableRenderer<ComboBox<V?>?>
+
+/**
+ * This class is the default renderer implementation which will be used unless overridden. The combo box is rendered
+ * like a text box with an arrow point down to the right of it, which can receive focus and triggers the popup.
+ * @param <V> Type of items in the combo box
+</V> */
+     class DefaultComboBoxRenderer<V>:ComboBoxRenderer<V?>() {
+
+private var textVisibleLeftPosition:Int = 0
+/**
+ * Default constructor
+ */
+        init{
+this.textVisibleLeftPosition = 0
+}
+
+@Override
+ fun getCursorLocation(comboBox:ComboBox<V?>):TerminalPosition? {
+if (comboBox.isDropDownFocused)
+{
+if (comboBox.getThemeDefinition().isCursorVisible())
+{
+return TerminalPosition(comboBox.getSize().getColumns() - 1, 0)
+}
+else
+{
+return null
+}
+}
+else
+{
+val textInputPosition = comboBox.textInputPosition
+val textInputColumn = TerminalTextUtils.getColumnWidth(comboBox.text!!.substring(0, textInputPosition))
+return TerminalPosition(textInputColumn - textVisibleLeftPosition, 0)
+}
+}
+
+@Override
+ fun getPreferredSize(comboBox:ComboBox<V?>):TerminalSize? {
+var size = TerminalSize.ONE.withColumns(
+(if (comboBox.itemCount == 0) TerminalTextUtils.getColumnWidth(comboBox.text) else 0) + 2)
+
+            synchronized (comboBox) {
+for (i in 0 until comboBox.itemCount)
+{
+val item = comboBox.getItem(i)
+size = size!!.max(TerminalSize(TerminalTextUtils.getColumnWidth(item!!.toString()) + 2 + 1, 1))   // +1 to add a single column of space
+}
+}
+return size
+}
+
+@Override
+ fun drawComponent(graphics:TextGUIGraphics?, comboBox:ComboBox<V?>) {
+val themeDefinition = comboBox.getThemeDefinition()
+if (comboBox.isReadOnly())
+{
+graphics!!.applyThemeStyle(themeDefinition!!.getNormal())
+}
+else
+{
+if (comboBox.isFocused())
+{
+graphics!!.applyThemeStyle(themeDefinition!!.getActive())
+}
+else
+{
+graphics!!.applyThemeStyle(themeDefinition!!.getPreLight())
+}
+}
+graphics!!.fill(' ')
+val editableArea = graphics!!.getSize().getColumns() - 2 //This is exclusing the 'drop-down arrow'
+val textInputPosition = comboBox.textInputPosition
+val columnsToInputPosition = TerminalTextUtils.getColumnWidth(comboBox.text!!.substring(0, textInputPosition))
+if (columnsToInputPosition < textVisibleLeftPosition)
+{
+textVisibleLeftPosition = columnsToInputPosition
+}
+if (columnsToInputPosition - textVisibleLeftPosition >= editableArea)
+{
+textVisibleLeftPosition = columnsToInputPosition - editableArea + 1
+}
+if ((columnsToInputPosition - textVisibleLeftPosition + 1 == editableArea && 
+comboBox.text!!.length() > textInputPosition && 
+TerminalTextUtils.isCharCJK(comboBox.text!!.charAt(textInputPosition))))
+{
+textVisibleLeftPosition++
+}
+
+val textToDraw = TerminalTextUtils.fitString(comboBox.text, textVisibleLeftPosition, editableArea)
+graphics!!.putString(0, 0, textToDraw)
+graphics!!.applyThemeStyle(themeDefinition!!.getInsensitive())
+graphics!!.setCharacter(editableArea, 0, themeDefinition!!.getCharacter("POPUP_SEPARATOR", Symbols.SINGLE_LINE_VERTICAL))
+if (comboBox.isFocused() && comboBox.isDropDownFocused)
+{
+graphics!!.applyThemeStyle(themeDefinition!!.getSelected())
+}
+graphics!!.setCharacter(editableArea + 1, 0, themeDefinition!!.getCharacter("POPUP", Symbols.TRIANGLE_DOWN_POINTING_BLACK))
+}
+}
+}/**
+ * Creates a new `ComboBox` initialized with N number of items supplied through the items parameter. If at
+ * least one item is given, the first one in the collection will be initially selected. By default 10 items will be
+ * displayed at once, more than that and there will be a scroll bar.
+ * @param items Items to populate the new combo box with
+ */

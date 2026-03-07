@@ -16,176 +16,176 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.input.KeyStroke;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.input.KeyStroke
+import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.io.OutputStream
+import java.nio.charset.Charset
+import java.util.ArrayList
+import java.util.TreeMap
 
 /**
- *
+ * 
  * @author martin
  */
-public class PseudoTerminal {
+ object PseudoTerminal {
 
-    public static void main(String[] args) throws InterruptedException, IOException {
-        final Terminal rawTerminal = new TestTerminalFactory(args).createTerminal();
+@Throws(InterruptedException::class, IOException::class)
+ fun main(args:Array<String?>?) {
+val rawTerminal = TestTerminalFactory(args).createTerminal()
 
-        //assume bash is available
-        Process bashProcess = Runtime.getRuntime().exec("bash", makeEnvironmentVariables());
-        ProcessOutputReader stdout = new ProcessOutputReader(bashProcess.getInputStream(), rawTerminal);
-        ProcessOutputReader stderr = new ProcessOutputReader(bashProcess.getErrorStream(), rawTerminal);
-        ProcessInputWriter stdin = new ProcessInputWriter(bashProcess.getOutputStream(), rawTerminal);
-        stdout.start();
-        stderr.start();
-        stdin.start();
-        int returnCode = bashProcess.waitFor();
-        stdout.stop();
-        stderr.stop();
-        stdin.stop();
-        System.exit(returnCode);
-    }
+ //assume bash is available
+        val bashProcess = Runtime.getRuntime().exec("bash", makeEnvironmentVariables())
+val stdout = ProcessOutputReader(bashProcess!!.getInputStream(), rawTerminal)
+val stderr = ProcessOutputReader(bashProcess!!.getErrorStream(), rawTerminal)
+val stdin = ProcessInputWriter(bashProcess!!.getOutputStream(), rawTerminal)
+stdout.start()
+stderr.start()
+stdin.start()
+val returnCode = bashProcess!!.waitFor()
+stdout.stop()
+stderr.stop()
+stdin.stop()
+System.exit(returnCode)
+}
 
-    private static String[] makeEnvironmentVariables() {
-        List<String> environment = new ArrayList<>();
-        Map<String, String> env = new TreeMap<>(System.getenv());
-        env.put("TERM", "xterm");   //Will this make bash detect us as a proper terminal??
-        for(String key : env.keySet()) {
-            environment.add(key + "=" + env.get(key));
-        }
-        return environment.toArray(new String[0]);
-    }
+private fun makeEnvironmentVariables():Array<String?>? {
+val environment = ArrayList()
+val env = TreeMap(System.getenv())
+env.put("TERM", "xterm")   //Will this make bash detect us as a proper terminal??
+for (key in env.keySet())
+{
+environment.add(key + "=" + env.get(key))
+}
+return environment.toArray(arrayOfNulls<String?>(0))
+}
 
-    private static class ProcessOutputReader {
+private class ProcessOutputReader(inputStream:InputStream?, private val terminalEmulator:Terminal?) {
 
-        private final InputStreamReader inputStreamReader;
-        private final Terminal terminalEmulator;
-        private boolean stop;
+private val inputStreamReader:InputStreamReader?
+private var stop:Boolean = false
 
-        public ProcessOutputReader(InputStream inputStream, Terminal terminalEmulator) {
-            this.inputStreamReader = new InputStreamReader(inputStream, Charset.defaultCharset());
-            this.terminalEmulator = terminalEmulator;
-            this.stop = false;
-        }
+init{
+this.inputStreamReader = InputStreamReader(inputStream, Charset.defaultCharset())
+this.stop = false
+}
 
-        private void start() {
-            new Thread("OutputReader") {
-                @Override
-                public void run() {
-                    try {
-                        char[] buffer = new char[1024];
-                        int readCharacters = inputStreamReader.read(buffer);
-                        while(readCharacters != -1 && !stop) {
-                            if(readCharacters > 0) {
-                                for(int i = 0; i < readCharacters; i++) {
-                                    terminalEmulator.putCharacter(buffer[i]);
-                                }
-                                terminalEmulator.flush();
-                            }
-                            else {
-                                try {
-                                    Thread.sleep(1);
-                                }
-                                catch(InterruptedException e) {
-                                }
-                            }
-                            readCharacters = inputStreamReader.read(buffer);
-                        }
-                    }
-                    catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                    finally {
-                        try {
-                            inputStreamReader.close();
-                        }
-                        catch(IOException e) {
-                        }
-                    }
-                }
-            }.start();
-        }
+private fun start() {
+object:Thread("OutputReader") {
+@Override
+@JvmStatic  fun run() {
+try
+{
+val buffer = CharArray(1024)
+var readCharacters = inputStreamReader!!.read(buffer)
+while (readCharacters != -1 && !stop)
+{
+if (readCharacters > 0)
+{
+for (i in 0 until readCharacters)
+{
+terminalEmulator!!.putCharacter(buffer[i])
+}
+terminalEmulator!!.flush()
+}
+else
+{
+try
+{
+Thread.sleep(1)
+}
+catch (e:InterruptedException) {}
 
-        private void stop() {
-            stop = true;
-        }
-    }
+}
+readCharacters = inputStreamReader!!.read(buffer)
+}
+}
+catch (e:IOException) {
+e!!.printStackTrace()
+}
+finally
+{
+try
+{
+inputStreamReader!!.close()
+}
+catch (e:IOException) {}
 
-    private static class ProcessInputWriter {
+}
+}
+}.start()
+}
 
-        private final OutputStream outputStream;
-        private final Terminal terminalEmulator;
-        private boolean stop;
+private fun stop() {
+stop = true
+}
+}
 
-        public ProcessInputWriter(OutputStream outputStream, Terminal terminalEmulator) {
-            this.outputStream = outputStream;
-            this.terminalEmulator = terminalEmulator;
-            this.stop = false;
-        }
+private class ProcessInputWriter(private val outputStream:OutputStream?, private val terminalEmulator:Terminal?) {
+private var stop:Boolean = false
 
-        private void start() {
-            new Thread("InputWriter") {
-                @Override
-                public void run() {
-                    try {
-                        while(!stop) {
-                            KeyStroke keyStroke = terminalEmulator.pollInput();
-                            if(keyStroke == null) {
-                                Thread.sleep(1);
-                            }
-                            else {
-                                switch(keyStroke.getKeyType()) {
-                                    case CHARACTER:
-                                        writeCharacter(keyStroke.getCharacter());
-                                        break;
-                                    case ENTER:
-                                        writeCharacter('\n');
-                                        break;
-                                    case BACKSPACE:
-                                        writeCharacter('\b');
-                                        break;
-                                    case TAB:
-                                        writeCharacter('\t');
-                                        break;
-                                    default:
-                                }
-                                flush();
-                            }
-                        }
-                    }
-                    catch(IOException | InterruptedException e) {
-                    }
-                    finally {
-                        try {
-                            outputStream.close();
-                        }
-                        catch(IOException e) {
-                        }
-                    }
-                }
-            }.start();
-        }
+init{
+this.stop = false
+}
 
-        private void writeCharacter(char character) throws IOException {
-            outputStream.write(character);
-            terminalEmulator.putCharacter(character);
-        }
+private fun start() {
+object:Thread("InputWriter") {
+@Override
+@JvmStatic  fun run() {
+try
+{
+while (!stop)
+{
+val keyStroke = terminalEmulator!!.pollInput()
+if (keyStroke == null)
+{
+Thread.sleep(1)
+}
+else
+{
+when (keyStroke!!.getKeyType()) {
+CHARACTER -> writeCharacter(keyStroke!!.getCharacter())
+ENTER -> writeCharacter('\n')
+BACKSPACE -> writeCharacter('\b')
+TAB -> writeCharacter('\t')
+}
+flush()
+}
+}
+}
+catch (e:IOException) {}
+catch (e:InterruptedException) {}
+finally
+{
+try
+{
+outputStream!!.close()
+}
+catch (e:IOException) {}
 
-        private void flush() throws IOException {
-            outputStream.flush();
-            terminalEmulator.flush();
-        }
+}
+}
+}.start()
+}
 
-        private void stop() {
-            stop = true;
-        }
-    }
+@Throws(IOException::class)
+private fun writeCharacter(character:Char) {
+outputStream!!.write(character)
+terminalEmulator!!.putCharacter(character)
+}
+
+@Throws(IOException::class)
+private fun flush() {
+outputStream!!.flush()
+terminalEmulator!!.flush()
+}
+
+private fun stop() {
+stop = true
+}
+}
 }

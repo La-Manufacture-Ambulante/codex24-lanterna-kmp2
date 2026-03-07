@@ -16,252 +16,258 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.dialogs;
+package com.googlecode.lanterna.gui2.dialogs
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.io.File
+import java.util.Arrays
+import java.util.Comparator
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TerminalTextUtils;
-import com.googlecode.lanterna.gui2.ActionListBox;
-import com.googlecode.lanterna.gui2.Borders;
-import com.googlecode.lanterna.gui2.Button;
-import com.googlecode.lanterna.gui2.Direction;
-import com.googlecode.lanterna.gui2.GridLayout;
-import com.googlecode.lanterna.gui2.Label;
-import com.googlecode.lanterna.gui2.LocalizedString;
-import com.googlecode.lanterna.gui2.Panel;
-import com.googlecode.lanterna.gui2.Panels;
-import com.googlecode.lanterna.gui2.Separator;
-import com.googlecode.lanterna.gui2.TextBox;
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
-import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TerminalTextUtils
+import com.googlecode.lanterna.gui2.ActionListBox
+import com.googlecode.lanterna.gui2.Borders
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.Direction
+import com.googlecode.lanterna.gui2.GridLayout
+import com.googlecode.lanterna.gui2.Label
+import com.googlecode.lanterna.gui2.LocalizedString
+import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.gui2.Panels
+import com.googlecode.lanterna.gui2.Separator
+import com.googlecode.lanterna.gui2.TextBox
+import com.googlecode.lanterna.gui2.WindowBasedTextGUI
+import com.googlecode.lanterna.input.KeyStroke
 
 /**
  * Dialog that allows the user to iterate the file system and pick file to open/save
- *
+ * 
  * @author Martin
  */
-public class FileDialog extends DialogWindow {
+ class FileDialog/**
+ * Default constructor for `FileDialog`
+ * @param title Title of the dialog
+ * @param description Description of the dialog, is displayed at the top of the content area
+ * @param actionLabel Label to use on the "confirm" button, for example "open" or "save"
+ * @param dialogSize Rough estimation of how big you want the dialog to be
+ * @param showHiddenFilesAndDirs If `true`, hidden files and directories will be visible
+ * @param selectedObject Initially selected file node
+ */
+    (
+title:String?, 
+description:String?, 
+actionLabel:String?, 
+dialogSize:TerminalSize?, 
+private val showHiddenFilesAndDirs:Boolean, 
+selectedObject:File?):DialogWindow(title) {
 
-    private final ActionListBox fileListBox;
-    private final ActionListBox directoryListBox;
-    private final TextBox fileBox;
-    private final Button okButton;
-    private final boolean showHiddenFilesAndDirs;
+private val fileListBox:ActionListBox?
+private val directoryListBox:ActionListBox?
+private val fileBox:TextBox?
+private val okButton:Button?
 
-    private File directory;
-    private File selectedFile;
+private var directory:File? = null
+private var selectedFile:File? = null
 
-    /**
-     * Default constructor for {@code FileDialog}
-     * @param title Title of the dialog
-     * @param description Description of the dialog, is displayed at the top of the content area
-     * @param actionLabel Label to use on the "confirm" button, for example "open" or "save"
-     * @param dialogSize Rough estimation of how big you want the dialog to be
-     * @param showHiddenFilesAndDirs If {@code true}, hidden files and directories will be visible
-     * @param selectedObject Initially selected file node
-     */
-    public FileDialog(
-            String title,
-            String description,
-            String actionLabel,
-            TerminalSize dialogSize,
-            boolean showHiddenFilesAndDirs,
-            File selectedObject) {
-        super(title);
-        this.selectedFile = null;
-        this.showHiddenFilesAndDirs = showHiddenFilesAndDirs;
+init{
+var selectedObject = selectedObject
+this.selectedFile = null
 
-        if(selectedObject == null || !selectedObject.exists()) {
-            selectedObject = new File("").getAbsoluteFile();
-        }
-        selectedObject = selectedObject.getAbsoluteFile();
+if (selectedObject == null || !selectedObject!!.exists())
+{
+selectedObject = File("").getAbsoluteFile()
+}
+selectedObject = selectedObject!!.getAbsoluteFile()
 
-        Panel contentPane = new Panel();
-        contentPane.setLayoutManager(new GridLayout(2));
+val contentPane = Panel()
+contentPane.setLayoutManager(GridLayout(2))
 
-        if(description != null) {
-            new Label(description)
-                    .setLayoutData(
-                            GridLayout.createLayoutData(
-                                    GridLayout.Alignment.BEGINNING,
-                                    GridLayout.Alignment.CENTER,
-                                    false,
-                                    false,
-                                    2,
-                                    1))
-                    .addTo(contentPane);
-        }
+if (description != null)
+{
+Label(description)
+.setLayoutData(
+GridLayout.createLayoutData(
+GridLayout.Alignment.BEGINNING, 
+GridLayout.Alignment.CENTER, 
+false, 
+false, 
+2, 
+1))
+.addTo(contentPane)
+}
 
-        int unitWidth = dialogSize.getColumns() / 3;
-        int unitHeight = dialogSize.getRows();
+val unitWidth = dialogSize!!.columns / 3
+val unitHeight = dialogSize!!.rows
 
-        new FileSystemLocationLabel()
-                .setLayoutData(GridLayout.createLayoutData(
-                        GridLayout.Alignment.FILL,
-                        GridLayout.Alignment.CENTER,
-                        true,
-                        false,
-                        2,
-                        1))
-                .addTo(contentPane);
+FileSystemLocationLabel()
+.setLayoutData(GridLayout.createLayoutData(
+GridLayout.Alignment.FILL, 
+GridLayout.Alignment.CENTER, 
+true, 
+false, 
+2, 
+1))
+.addTo(contentPane)
 
-        fileListBox = new ActionListBox(new TerminalSize(unitWidth * 2, unitHeight));
-        fileListBox.withBorder(Borders.singleLine())
-                .setLayoutData(GridLayout.createLayoutData(
-                        GridLayout.Alignment.BEGINNING,
-                        GridLayout.Alignment.CENTER,
-                        false,
-                        false))
-                .addTo(contentPane);
-        directoryListBox = new ActionListBox(new TerminalSize(unitWidth, unitHeight));
-        directoryListBox.withBorder(Borders.singleLine())
-                .addTo(contentPane);
+fileListBox = ActionListBox(TerminalSize(unitWidth * 2, unitHeight))
+fileListBox!!.withBorder(Borders.singleLine())
+.setLayoutData(GridLayout.createLayoutData(
+GridLayout.Alignment.BEGINNING, 
+GridLayout.Alignment.CENTER, 
+false, 
+false))
+.addTo(contentPane)
+directoryListBox = ActionListBox(TerminalSize(unitWidth, unitHeight))
+directoryListBox!!.withBorder(Borders.singleLine())
+.addTo(contentPane)
 
-        fileBox = new TextBox()
-                .setLayoutData(GridLayout.createLayoutData(
-                        GridLayout.Alignment.FILL,
-                        GridLayout.Alignment.CENTER,
-                        true,
-                        false,
-                        2,
-                        1))
-                .addTo(contentPane);
+fileBox = TextBox()
+.setLayoutData(GridLayout.createLayoutData(
+GridLayout.Alignment.FILL, 
+GridLayout.Alignment.CENTER, 
+true, 
+false, 
+2, 
+1))
+.addTo(contentPane)
 
-        new Separator(Direction.HORIZONTAL)
-                .setLayoutData(
-                        GridLayout.createLayoutData(
-                                GridLayout.Alignment.FILL,
-                                GridLayout.Alignment.CENTER,
-                                true,
-                                false,
-                                2,
-                                1))
-                .addTo(contentPane);
+Separator(Direction.HORIZONTAL)
+.setLayoutData(
+GridLayout.createLayoutData(
+GridLayout.Alignment.FILL, 
+GridLayout.Alignment.CENTER, 
+true, 
+false, 
+2, 
+1))
+.addTo(contentPane)
 
-        okButton = new Button(actionLabel, new OkHandler()).setAccelerator(new KeyStroke('o', false, true));
-        Panels.grid(2,
-                okButton,
-                new Button(LocalizedString.Cancel.toString(), new CancelHandler()).setAccelerator(new KeyStroke('c', false, true)))
-                .setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.END, GridLayout.Alignment.CENTER, false, false, 2, 1))
-                .addTo(contentPane);
+okButton = Button(actionLabel, OkHandler()).setAccelerator(KeyStroke('o', false, true))
+Panels.grid(2, 
+okButton, 
+Button(LocalizedString.Cancel.toString(), CancelHandler()).setAccelerator(KeyStroke('c', false, true)))
+.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.END, GridLayout.Alignment.CENTER, false, false, 2, 1))
+.addTo(contentPane)
 
-        if(selectedObject.isFile()) {
-            directory = selectedObject.getParentFile();
-            fileBox.setText(selectedObject.getName());
-        }
-        else if(selectedObject.isDirectory()) {
-            directory = selectedObject;
-        }
+if (selectedObject!!.isFile())
+{
+directory = selectedObject!!.getParentFile()
+fileBox!!.setText(selectedObject!!.getName())
+}
+else if (selectedObject!!.isDirectory())
+{
+directory = selectedObject
+}
 
-        reloadViews(directory);
-        setComponent(contentPane);
-    }
+reloadViews(directory!!)
+setComponent(contentPane)
+}
 
-    /**
-     * {@inheritDoc}
-     * @param textGUI Text GUI to add the dialog to
-     * @return The file which was selected in the dialog or {@code null} if the dialog was cancelled
-     */
+/**
+ * {@inheritDoc}
+ * @param textGUI Text GUI to add the dialog to
+ * @return The file which was selected in the dialog or `null` if the dialog was cancelled
+ */
     @Override
-    public File showDialog(WindowBasedTextGUI textGUI) {
-        selectedFile = null;
-        super.showDialog(textGUI);
-        return selectedFile;
-    }
+ fun showDialog(textGUI:WindowBasedTextGUI?):File? {
+selectedFile = null
+super.showDialog(textGUI)
+return selectedFile
+}
 
-    private class OkHandler implements Runnable {
-        @Override
-        public void run() {
-            if(!fileBox.getText().isEmpty()) {
-                File file = new File(fileBox.getText());
-                selectedFile = file.isAbsolute() ? file : new File(directory, fileBox.getText());
-                close();
-            }
-            else {
-                MessageDialog.showMessageDialog(getTextGUI(), "Error", "Please select a valid file name", MessageDialogButton.OK);
-            }
-        }
-    }
+private inner class OkHandler:Runnable {
+@Override
+ fun run() {
+if (!fileBox!!.getText().isEmpty())
+{
+val file = File(fileBox!!.getText())
+selectedFile = if (file.isAbsolute()) file else File(directory, fileBox!!.getText())
+close()
+}
+else
+{
+MessageDialog.showMessageDialog(getTextGUI(), "Error", "Please select a valid file name", MessageDialogButton.OK)
+}
+}
+}
 
-    private class CancelHandler implements Runnable {
-        @Override
-        public void run() {
-            selectedFile = null;
-            close();
-        }
-    }
+private inner class CancelHandler:Runnable {
+@Override
+ fun run() {
+selectedFile = null
+close()
+}
+}
 
-    private static class DoNothing implements Runnable {
-        @Override
-        public void run() {
-        }
-    }
+private class DoNothing:Runnable {
+@Override
+@JvmStatic  fun run() {}
+}
 
-    private void reloadViews(final File directory) {
-        directoryListBox.clearItems();
-        fileListBox.clearItems();
-        File []entries = directory.listFiles();
-        if(entries == null) {
-            return;
-        }
-        Arrays.sort(entries, Comparator.comparing(o -> o.getName().toLowerCase()));
-        if (directory.getAbsoluteFile().getParentFile() !=null){
-            directoryListBox.addItem("..", () -> {
-                FileDialog.this.directory = directory.getAbsoluteFile().getParentFile();
-                reloadViews(directory.getAbsoluteFile().getParentFile());
-            });
-        } else {
-            File[] roots = File.listRoots();
-            for (final File entry : roots) {
-                if (entry.canRead()) {
-                    directoryListBox.addItem('[' + entry.getPath() + ']', () -> {
-                        FileDialog.this.directory = entry;
-                        reloadViews(entry);
-                    });
-                }
-            }
-        }
-        for(final File entry: entries) {
-            if(entry.isHidden() && !showHiddenFilesAndDirs) {
-                continue;
-            }
-            if(entry.isDirectory()) {
-                directoryListBox.addItem(entry.getName(), () -> {
-                    FileDialog.this.directory = entry;
-                    reloadViews(entry);
-                });
-            }
-            else {
-                fileListBox.addItem(entry.getName(), () -> {
-                    fileBox.setText(entry.getName());
-                    setFocusedInteractable(okButton);
-                });
-            }
-        }
-        if(fileListBox.isEmpty()) {
-            fileListBox.addItem("<empty>", new DoNothing());
-        }
-    }
+private fun reloadViews(directory:File) {
+directoryListBox!!.clearItems()
+fileListBox!!.clearItems()
+val entries = directory.listFiles()
+if (entries == null)
+{
+return 
+}
+Arrays.sort(entries, Comparator.comparing({ o-> o!!.getName().toLowerCase() }))
+if (directory.getAbsoluteFile().getParentFile() != null)
+{
+directoryListBox!!.addItem("..", { this@FileDialog.directory = directory.getAbsoluteFile().getParentFile()
+reloadViews(directory.getAbsoluteFile().getParentFile()) })
+}
+else
+{
+val roots = File.listRoots()
+for (entry in roots!!)
+{
+if (entry!!.canRead())
+{
+directoryListBox!!.addItem('['.toInt() + entry!!.getPath() + ']'.toInt(), { this@FileDialog.directory = entry
+reloadViews(entry!!) })
+}
+}
+}
+for (entry in entries!!)
+{
+if (entry!!.isHidden() && !showHiddenFilesAndDirs)
+{
+continue
+}
+if (entry!!.isDirectory())
+{
+directoryListBox!!.addItem(entry!!.getName(), { this@FileDialog.directory = entry
+reloadViews(entry!!) })
+}
+else
+{
+fileListBox!!.addItem(entry!!.getName(), { fileBox!!.setText(entry!!.getName())
+setFocusedInteractable(okButton) })
+}
+}
+if (fileListBox!!.isEmpty())
+{
+fileListBox!!.addItem("<empty>", DoNothing())
+}
+}
 
-    private class FileSystemLocationLabel extends Label {
-        public FileSystemLocationLabel() {
-            super("");
-            setPreferredSize(TerminalSize.ONE);
-        }
+private inner class FileSystemLocationLabel:Label("") {
+init{
+setPreferredSize(TerminalSize.ONE)
+}
 
-        @Override
-        public void onBeforeDrawing() {
-            TerminalSize area = getSize();
-            String absolutePath = directory.getAbsolutePath();
-            int absolutePathLengthInColumns = TerminalTextUtils.getColumnWidth(absolutePath);
-            if(area.getColumns() < absolutePathLengthInColumns) {
-                absolutePath = absolutePath.substring(absolutePathLengthInColumns - area.getColumns());
-                absolutePath = "..." + absolutePath.substring(Math.min(absolutePathLengthInColumns, 3));
-            }
-            setText(absolutePath);
-        }
-    }
+@Override
+ fun onBeforeDrawing() {
+val area = getSize()
+var absolutePath = directory!!.getAbsolutePath()
+val absolutePathLengthInColumns = TerminalTextUtils.getColumnWidth(absolutePath)
+if (area!!.columns < absolutePathLengthInColumns)
+{
+absolutePath = absolutePath!!.substring(absolutePathLengthInColumns - area!!.columns)
+absolutePath = "..." + absolutePath!!.substring(Math.min(absolutePathLengthInColumns, 3))
+}
+setText(absolutePath)
+}
+}
 }

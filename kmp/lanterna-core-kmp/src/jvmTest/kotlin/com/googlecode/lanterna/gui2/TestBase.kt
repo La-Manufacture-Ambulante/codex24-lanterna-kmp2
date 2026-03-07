@@ -16,59 +16,66 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.bundle.LanternaThemes;
-import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.bundle.LanternaThemes
+import com.googlecode.lanterna.screen.Screen
 
-import java.io.IOException;
+import java.io.IOException
 
 /**
  * Some common code for the GUI tests to get a text system up and running on a separate thread
  * @author Martin
  */
-public abstract class TestBase {
-    void run(String[] args) throws IOException, InterruptedException {
-        Screen screen = new TestTerminalFactory(args).createScreen();
-        screen.startScreen();
-        MultiWindowTextGUI textGUI = createTextGUI(screen);
-        String theme = extractTheme(args);
-        if(theme != null) {
-            textGUI.setTheme(LanternaThemes.getRegisteredTheme(theme));
-        }
-        textGUI.setBlockingIO(false);
-        textGUI.setEOFWhenNoWindows(true);
-        //noinspection ResultOfMethodCallIgnored
-        textGUI.isEOFWhenNoWindows();   //No meaning, just to silence IntelliJ:s "is never used" alert
+abstract class TestBase {
+@Throws(IOException::class, InterruptedException::class)
+internal fun run(args:Array<String?>?) {
+val screen = TestTerminalFactory(args).createScreen()
+screen!!.startScreen()
+val textGUI = createTextGUI(screen)
+val theme = extractTheme(args!!)
+if (theme != null)
+{
+textGUI!!.setTheme(LanternaThemes.getRegisteredTheme(theme))
+}
+textGUI!!.setBlockingIO(false)
+textGUI!!.setEOFWhenNoWindows(true)
 
-        try {
-            init(textGUI);
-            AsynchronousTextGUIThread guiThread = (AsynchronousTextGUIThread)textGUI.getGUIThread();
-            guiThread.start();
-            afterGUIThreadStarted(textGUI);
-            guiThread.waitForStop();
-        }
-        finally {
-            screen.stopScreen();
-        }
-    }
+        textGUI!!.isEOFWhenNoWindows()   //No meaning, just to silence IntelliJ:s "is never used" alert
 
-    private String extractTheme(String[] args) {
-        for(int i = 0; i < args.length; i++) {
-            if(args[i].equals("--theme") && i + 1 < args.length) {
-                return args[i+1];
-            }
-        }
-        return null;
-    }
+try
+{
+init(textGUI)
+val guiThread = textGUI!!.getGUIThread() as AsynchronousTextGUIThread
+guiThread!!.start()
+afterGUIThreadStarted(textGUI)
+guiThread!!.waitForStop()
+}
 
-    protected MultiWindowTextGUI createTextGUI(Screen screen) {
-        return new MultiWindowTextGUI(new SeparateTextGUIThread.Factory(), screen);
-    }
+finally
+{
+screen!!.stopScreen()
+}
+}
 
-    public abstract void init(WindowBasedTextGUI textGUI);
-    public void afterGUIThreadStarted(WindowBasedTextGUI textGUI) {
-        // By default do nothing
+private fun extractTheme(args:Array<String?>):String? {
+for (i in args.indices)
+{
+if (args[i].equals("--theme") && i + 1 < args.size)
+{
+return args[i + 1]
+}
+}
+return null
+}
+
+protected fun createTextGUI(screen:Screen?):MultiWindowTextGUI? {
+return MultiWindowTextGUI(SeparateTextGUIThread.Factory(), screen)
+}
+
+abstract fun init(textGUI:WindowBasedTextGUI?) 
+ fun afterGUIThreadStarted(textGUI:WindowBasedTextGUI?) {
+ // By default do nothing
     }
 }

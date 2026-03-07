@@ -17,53 +17,58 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextColor
 
-import java.io.IOException;
-import java.util.Random;
+import java.io.IOException
+import java.util.Random
 
 /**
  * This class will try using the 8-bit indexed color extension supported by some terminal emulators
  * @author Martin
  */
-public class Terminal8bitIndexedColorTest {
-    public static void main(String[] args) throws IOException {
-        final String string = "Hello!";
-        Random random = new Random();
-        Terminal terminal = new TestTerminalFactory(args).createTerminal();
-        terminal.enterPrivateMode();
-        terminal.clearScreen();
-        TerminalSize size = terminal.getTerminalSize();
+ object Terminal8bitIndexedColorTest {
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
+val string = "Hello!"
+val random = Random()
+val terminal = TestTerminalFactory(args).createTerminal()
+terminal!!.enterPrivateMode()
+terminal!!.clearScreen()
+val size = terminal!!.getTerminalSize()
 
-        while(true) {
-            if(terminal.pollInput() != null) {
-                terminal.exitPrivateMode();
-                return;
-            }
+while (true)
+{
+if (terminal!!.pollInput() != null)
+{
+terminal!!.exitPrivateMode()
+return 
+}
 
-            TextColor.Indexed foregroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255));
-            TextColor.Indexed backgroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255));
+val foregroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255))
+val backgroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255))
 
-            terminal.setForegroundColor(foregroundIndex);
-            terminal.setBackgroundColor(backgroundIndex);
-            terminal.setCursorPosition(random.nextInt(size.getColumns() - string.length()), random.nextInt(size.getRows()));
-            printString(terminal, string);
+terminal!!.setForegroundColor(foregroundIndex)
+terminal!!.setBackgroundColor(backgroundIndex)
+terminal!!.setCursorPosition(random.nextInt(size!!.columns - string.length()), random.nextInt(size!!.rows))
+printString(terminal, string)
 
-            try {
-                Thread.sleep(200);
-            }
-            catch(InterruptedException e) {
-            }
-        }
-    }
+try
+{
+Thread.sleep(200)
+}
+catch (e:InterruptedException) {}
 
-    private static void printString(Terminal terminal, String string) throws IOException {
-        for(int i = 0; i < string.length(); i++)
-            terminal.putCharacter(string.charAt(i));
-        terminal.flush();
-    }
+}
+}
+
+@Throws(IOException::class)
+private fun printString(terminal:Terminal?, string:String) {
+for (i in 0 until string.length())
+terminal!!.putCharacter(string.charAt(i))
+terminal!!.flush()
+}
 }

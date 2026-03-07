@@ -16,51 +16,48 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.terminal.virtual;
+package com.googlecode.lanterna.terminal.virtual
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextCharacter;
-import com.googlecode.lanterna.graphics.AbstractTextGraphics;
-import com.googlecode.lanterna.graphics.TextGraphics;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.graphics.AbstractTextGraphics
+import com.googlecode.lanterna.graphics.TextGraphics
 
 /**
- * Implementation of {@link TextGraphics} for {@link VirtualTerminal}
+ * Implementation of [TextGraphics] for [VirtualTerminal]
  * @author Martin
  */
-class VirtualTerminalTextGraphics extends AbstractTextGraphics {
-    private final DefaultVirtualTerminal virtualTerminal;
+internal class VirtualTerminalTextGraphics(private val virtualTerminal:DefaultVirtualTerminal?):AbstractTextGraphics() {
 
-    VirtualTerminalTextGraphics(DefaultVirtualTerminal virtualTerminal) {
-        this.virtualTerminal = virtualTerminal;
-    }
+ val size:TerminalSize?
+@Override
+get() {
+return virtualTerminal!!.getTerminalSize()
+}
 
-    @Override
-    public TextGraphics setCharacter(int columnIndex, int rowIndex, TextCharacter textCharacter) {
-        TerminalSize size = getSize();
-        if(columnIndex < 0 || columnIndex >= size.getColumns() ||
-                rowIndex < 0 || rowIndex >= size.getRows()) {
-            return this;
-        }
-        synchronized(virtualTerminal) {
-            virtualTerminal.setCursorPosition(new TerminalPosition(columnIndex, rowIndex));
-            virtualTerminal.putCharacter(textCharacter);
-        }
-        return this;
-    }
+@Override
+ fun setCharacter(columnIndex:Int, rowIndex:Int, textCharacter:TextCharacter?):TextGraphics? {
+val size = size
+if ((columnIndex < 0 || columnIndex >= size!!.columns || 
+rowIndex < 0 || rowIndex >= size!!.rows))
+{
+return this
+}
+synchronized (virtualTerminal) {
+virtualTerminal!!.setCursorPosition(TerminalPosition(columnIndex, rowIndex))
+virtualTerminal!!.putCharacter(textCharacter)
+}
+return this
+}
 
-    @Override
-    public TextCharacter getCharacter(TerminalPosition position) {
-        return virtualTerminal.getCharacter(position);
-    }
+@Override
+ fun getCharacter(position:TerminalPosition?):TextCharacter? {
+return virtualTerminal!!.getCharacter(position)
+}
 
-    @Override
-    public TextCharacter getCharacter(int column, int row) {
-        return getCharacter(new TerminalPosition(column, row));
-    }
-
-    @Override
-    public TerminalSize getSize() {
-        return virtualTerminal.getTerminalSize();
-    }
+@Override
+ fun getCharacter(column:Int, row:Int):TextCharacter? {
+return getCharacter(TerminalPosition(column, row))
+}
 }

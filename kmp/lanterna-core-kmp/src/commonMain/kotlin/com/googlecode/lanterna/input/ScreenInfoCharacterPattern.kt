@@ -16,48 +16,58 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.input;
+package com.googlecode.lanterna.input
 
-import com.googlecode.lanterna.TerminalPosition;
+import com.googlecode.lanterna.TerminalPosition
 
 /**
  * This class recognizes character combinations which are actually a cursor position report. See
- * <a href="http://en.wikipedia.org/wiki/ANSI_escape_code">Wikipedia</a>'s article on ANSI escape codes for more
+ * [Wikipedia](http://en.wikipedia.org/wiki/ANSI_escape_code)'s article on ANSI escape codes for more
  * information about how cursor position reporting works ("DSR – Device Status Report").
- *
+ * 
  * @author Martin, Andreas
  */
-public class ScreenInfoCharacterPattern extends EscapeSequenceCharacterPattern {
-    public ScreenInfoCharacterPattern() {
-        useEscEsc = false; // stdMap and finMap don't matter here.
-    }
-    protected KeyStroke getKeyStrokeRaw(char first,int num1,int num2,char last,boolean bEsc) {
-        if (first != '[' || last != 'R' || num1 == 0 || num2 == 0 || bEsc) {
-            return null; // nope
-        }
-        if (num1 == 1 && num2 <= 8) {
-            return null; // nope: much more likely it's an F3 with modifiers
-        }
-        TerminalPosition pos = new TerminalPosition(num2, num1);
-        return new ScreenInfoAction(pos); // yep
-    }
+ class ScreenInfoCharacterPattern:EscapeSequenceCharacterPattern() {
+init{
+useEscEsc = false // stdMap and finMap don't matter here.
+}
+protected fun getKeyStrokeRaw(first:Char, num1:Int, num2:Int, last:Char, bEsc:Boolean):KeyStroke? {
+if (first != '[' || last != 'R' || num1 == 0 || num2 == 0 || bEsc)
+{
+return null // nope
+}
+if (num1 == 1 && num2 <= 8)
+{
+return null // nope: much more likely it's an F3 with modifiers
+}
+val pos = TerminalPosition(num2, num1)
+return ScreenInfoAction(pos) // yep
+}
 
-    public static ScreenInfoAction tryToAdopt(KeyStroke ks) {
-        if(ks == null) {
-            return null;
-        }
-        switch (ks.getKeyType()) {
-        case CURSOR_LOCATION: return (ScreenInfoAction)ks;
-        case F3: // reconstruct position from F3's modifiers.
-            if (ks instanceof KeyStroke.RealF3) { return null; }
-            int col = 1 + (ks.isAltDown()  ? ALT  : 0)
-                        + (ks.isCtrlDown() ? CTRL : 0)
-                        + (ks.isShiftDown()? SHIFT: 0);
-            TerminalPosition pos = new TerminalPosition(col,1);
-            return new ScreenInfoAction(pos);
-        default:  return null;
-        }
-    }
+companion object {
+
+ fun tryToAdopt(ks:KeyStroke?):ScreenInfoAction? {
+if (ks == null)
+{
+return null
+}
+when (ks!!.getKeyType()) {
+CURSOR_LOCATION -> return ks as ScreenInfoAction?
+F3 // reconstruct position from F3's modifiers.
+ -> {
+if (ks is KeyStroke.RealF3) {
+return null
+}
+val col = (1 + (if (ks!!.isAltDown()) ALT else 0) 
++ (if (ks!!.isCtrlDown()) CTRL else 0) 
++ (if (ks!!.isShiftDown()) SHIFT else 0))
+val pos = TerminalPosition(col, 1)
+return ScreenInfoAction(pos)
+}
+else -> return null
+}
+}
+}
 
 
 }

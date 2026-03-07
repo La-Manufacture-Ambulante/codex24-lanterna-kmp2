@@ -16,21 +16,21 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextCharacter;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
 
 /**
  * This package private interface exposes methods for translating abstract lines, triangles and rectangles to discreet
  * points on a grid.
  * @author Martin
  */
-interface ShapeRenderer {
-    void drawLine(TerminalPosition p1, TerminalPosition p2, TextCharacter character);
-    void drawTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, TextCharacter character);
-    void drawRectangle(TerminalPosition topLeft, TerminalSize size, TextCharacter character);
-    void fillTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, TextCharacter character);
-    void fillRectangle(TerminalPosition topLeft, TerminalSize size, TextCharacter character);
+internal interface ShapeRenderer {
+ fun drawLine(p1:TerminalPosition?, p2:TerminalPosition?, character:TextCharacter?) 
+ fun drawTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:TextCharacter?) 
+ fun drawRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:TextCharacter?) 
+ fun fillTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:TextCharacter?) 
+ fun fillRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:TextCharacter?) 
 }

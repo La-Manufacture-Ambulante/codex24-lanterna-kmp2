@@ -16,101 +16,102 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.Symbols;
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame;
+import com.googlecode.lanterna.Symbols
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame
 
-import javax.swing.*;
+import javax.swing.*
 
 /**
- *
+ * 
  * @author Martin
  */
-public class SwingTerminalTest {
+ object SwingTerminalTest {
 
-    public static void main(String[] args) throws InterruptedException {
-        SwingTerminalFrame terminal = new TestTerminalFactory(args).createSwingTerminal();
-        terminal.setVisible(true);
-        terminal.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        terminal.enterPrivateMode();
-        terminal.clearScreen();
-        terminal.setCursorPosition(10, 5);
-        terminal.putCharacter('H');
-        terminal.putCharacter('e');
-        terminal.putCharacter('l');
-        terminal.putCharacter('l');
-        terminal.putCharacter('o');
-        terminal.putCharacter('!');
-        terminal.putCharacter(' ');
-        terminal.putCharacter(Symbols.HEART);
-        terminal.putCharacter(Symbols.SPADES);
-        terminal.putCharacter(Symbols.CLUB);
-        terminal.putCharacter(Symbols.DIAMOND);
-        terminal.putCharacter(Symbols.DOUBLE_LINE_CROSS);
-        terminal.putCharacter(Symbols.SINGLE_LINE_CROSS);
-        terminal.putCharacter(Symbols.DOUBLE_LINE_T_DOWN);
-        terminal.putCharacter(Symbols.SINGLE_LINE_VERTICAL);
-        terminal.putCharacter(Symbols.SINGLE_LINE_HORIZONTAL);
-        terminal.setCursorPosition(10, 7);
-        terminal.enableSGR(SGR.BOLD);
-        terminal.putCharacter('H');
-        terminal.putCharacter('e');
-        terminal.putCharacter('l');
-        terminal.putCharacter('l');
-        terminal.putCharacter('o');
-        terminal.putCharacter('!');
-        terminal.putCharacter(' ');
-        terminal.putCharacter(Symbols.HEART);
-        terminal.putCharacter(Symbols.SPADES);
-        terminal.putCharacter(Symbols.CLUB);
-        terminal.putCharacter(Symbols.DIAMOND);
-        terminal.putCharacter(Symbols.DOUBLE_LINE_CROSS);
-        terminal.putCharacter(Symbols.SINGLE_LINE_CROSS);
-        terminal.putCharacter(Symbols.DOUBLE_LINE_T_DOWN);
-        terminal.putCharacter(Symbols.SINGLE_LINE_VERTICAL);
-        terminal.putCharacter(Symbols.SINGLE_LINE_HORIZONTAL);
-        terminal.setCursorPosition(10, 9);
-        terminal.enableSGR(SGR.UNDERLINE);
-        terminal.putCharacter('H');
-        terminal.putCharacter('e');
-        terminal.enableSGR(SGR.BOLD);
-        terminal.putCharacter('l');
-        terminal.enableSGR(SGR.UNDERLINE);
-        terminal.putCharacter('l');
-        terminal.putCharacter('o');
-        terminal.enableSGR(SGR.UNDERLINE);
-        terminal.putCharacter('!');
-        terminal.putCharacter(' ');
-        terminal.putCharacter(Symbols.HEART);
-        terminal.putCharacter(Symbols.SPADES);
-        terminal.putCharacter(Symbols.CLUB);
-        terminal.putCharacter(Symbols.DIAMOND);
-        terminal.putCharacter(Symbols.DOUBLE_LINE_CROSS);
-        terminal.putCharacter(Symbols.SINGLE_LINE_CROSS);
-        terminal.putCharacter(Symbols.DOUBLE_LINE_T_DOWN);
-        terminal.putCharacter(Symbols.SINGLE_LINE_VERTICAL);
-        terminal.putCharacter(Symbols.SINGLE_LINE_HORIZONTAL);
-        terminal.setCursorPosition(10, 11);
-        terminal.enableSGR(SGR.BORDERED);
-        terminal.putCharacter('!');
-        terminal.putCharacter(' ');
-        terminal.putCharacter(Symbols.HEART);
-        terminal.putCharacter(Symbols.SPADES);
-        terminal.putCharacter(Symbols.CLUB);
-        terminal.putCharacter(Symbols.DIAMOND);
-        terminal.putCharacter(Symbols.DOUBLE_LINE_CROSS);
-        terminal.putCharacter(Symbols.SINGLE_LINE_CROSS);
-        terminal.putCharacter(Symbols.DOUBLE_LINE_T_DOWN);
-        terminal.putCharacter(Symbols.SINGLE_LINE_VERTICAL);
-        terminal.putCharacter(Symbols.SINGLE_LINE_HORIZONTAL);
-        terminal.resetColorAndSGR();
-        terminal.setCursorPosition(0, 0);
-        terminal.flush();
+@Throws(InterruptedException::class)
+ fun main(args:Array<String?>?) {
+val terminal = TestTerminalFactory(args).createSwingTerminal()
+terminal!!.setVisible(true)
+terminal!!.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
+terminal!!.enterPrivateMode()
+terminal!!.clearScreen()
+terminal!!.setCursorPosition(10, 5)
+terminal!!.putCharacter('H')
+terminal!!.putCharacter('e')
+terminal!!.putCharacter('l')
+terminal!!.putCharacter('l')
+terminal!!.putCharacter('o')
+terminal!!.putCharacter('!')
+terminal!!.putCharacter(' ')
+terminal!!.putCharacter(Symbols.HEART)
+terminal!!.putCharacter(Symbols.SPADES)
+terminal!!.putCharacter(Symbols.CLUB)
+terminal!!.putCharacter(Symbols.DIAMOND)
+terminal!!.putCharacter(Symbols.DOUBLE_LINE_CROSS)
+terminal!!.putCharacter(Symbols.SINGLE_LINE_CROSS)
+terminal!!.putCharacter(Symbols.DOUBLE_LINE_T_DOWN)
+terminal!!.putCharacter(Symbols.SINGLE_LINE_VERTICAL)
+terminal!!.putCharacter(Symbols.SINGLE_LINE_HORIZONTAL)
+terminal!!.setCursorPosition(10, 7)
+terminal!!.enableSGR(SGR.BOLD)
+terminal!!.putCharacter('H')
+terminal!!.putCharacter('e')
+terminal!!.putCharacter('l')
+terminal!!.putCharacter('l')
+terminal!!.putCharacter('o')
+terminal!!.putCharacter('!')
+terminal!!.putCharacter(' ')
+terminal!!.putCharacter(Symbols.HEART)
+terminal!!.putCharacter(Symbols.SPADES)
+terminal!!.putCharacter(Symbols.CLUB)
+terminal!!.putCharacter(Symbols.DIAMOND)
+terminal!!.putCharacter(Symbols.DOUBLE_LINE_CROSS)
+terminal!!.putCharacter(Symbols.SINGLE_LINE_CROSS)
+terminal!!.putCharacter(Symbols.DOUBLE_LINE_T_DOWN)
+terminal!!.putCharacter(Symbols.SINGLE_LINE_VERTICAL)
+terminal!!.putCharacter(Symbols.SINGLE_LINE_HORIZONTAL)
+terminal!!.setCursorPosition(10, 9)
+terminal!!.enableSGR(SGR.UNDERLINE)
+terminal!!.putCharacter('H')
+terminal!!.putCharacter('e')
+terminal!!.enableSGR(SGR.BOLD)
+terminal!!.putCharacter('l')
+terminal!!.enableSGR(SGR.UNDERLINE)
+terminal!!.putCharacter('l')
+terminal!!.putCharacter('o')
+terminal!!.enableSGR(SGR.UNDERLINE)
+terminal!!.putCharacter('!')
+terminal!!.putCharacter(' ')
+terminal!!.putCharacter(Symbols.HEART)
+terminal!!.putCharacter(Symbols.SPADES)
+terminal!!.putCharacter(Symbols.CLUB)
+terminal!!.putCharacter(Symbols.DIAMOND)
+terminal!!.putCharacter(Symbols.DOUBLE_LINE_CROSS)
+terminal!!.putCharacter(Symbols.SINGLE_LINE_CROSS)
+terminal!!.putCharacter(Symbols.DOUBLE_LINE_T_DOWN)
+terminal!!.putCharacter(Symbols.SINGLE_LINE_VERTICAL)
+terminal!!.putCharacter(Symbols.SINGLE_LINE_HORIZONTAL)
+terminal!!.setCursorPosition(10, 11)
+terminal!!.enableSGR(SGR.BORDERED)
+terminal!!.putCharacter('!')
+terminal!!.putCharacter(' ')
+terminal!!.putCharacter(Symbols.HEART)
+terminal!!.putCharacter(Symbols.SPADES)
+terminal!!.putCharacter(Symbols.CLUB)
+terminal!!.putCharacter(Symbols.DIAMOND)
+terminal!!.putCharacter(Symbols.DOUBLE_LINE_CROSS)
+terminal!!.putCharacter(Symbols.SINGLE_LINE_CROSS)
+terminal!!.putCharacter(Symbols.DOUBLE_LINE_T_DOWN)
+terminal!!.putCharacter(Symbols.SINGLE_LINE_VERTICAL)
+terminal!!.putCharacter(Symbols.SINGLE_LINE_HORIZONTAL)
+terminal!!.resetColorAndSGR()
+terminal!!.setCursorPosition(0, 0)
+terminal!!.flush()
 
-        Thread.sleep(5000);
-        terminal.exitPrivateMode();
-    }
+Thread.sleep(5000)
+terminal!!.exitPrivateMode()
+}
 }

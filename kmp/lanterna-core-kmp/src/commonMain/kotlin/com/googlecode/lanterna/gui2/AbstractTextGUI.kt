@@ -16,194 +16,187 @@
  * 
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.bundle.LanternaThemes;
-import com.googlecode.lanterna.graphics.Theme;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.bundle.LanternaThemes
+import com.googlecode.lanterna.graphics.Theme
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.screen.Screen
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.io.EOFException
+import java.io.IOException
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * This abstract implementation of TextGUI contains some basic management of the underlying Screen and other common code
  * that can be shared between different implementations.
  * @author Martin
  */
-public abstract class AbstractTextGUI implements TextGUI {
-
-    private final Screen screen;
-    private final List<Listener> listeners;
-    private boolean blockingIO;
-    private boolean dirty;
-    private TextGUIThread textGUIThread;
-    private Theme guiTheme;
-
+abstract class AbstractTextGUI/**
+ * Constructor for `AbstractTextGUI` that requires a `Screen` and a factory for creating the GUI thread
+ * @param textGUIThreadFactory Factory class to use for creating the `TextGUIThread` class
+ * @param screen What underlying `Screen` to use for this text GUI
+ */
+     protected constructor(textGUIThreadFactory:TextGUIThreadFactory?, @get:Override
+ val screen:Screen?):TextGUI {
+private val listeners:List<Listener?>?
+/**
+ * Checks if blocking I/O is enabled or not
+ * @return `true` if blocking I/O is enabled, otherwise `false`
+ */
     /**
-     * Constructor for {@code AbstractTextGUI} that requires a {@code Screen} and a factory for creating the GUI thread
-     * @param textGUIThreadFactory Factory class to use for creating the {@code TextGUIThread} class
-     * @param screen What underlying {@code Screen} to use for this text GUI
-     */
-    protected AbstractTextGUI(TextGUIThreadFactory textGUIThreadFactory, Screen screen) {
-        if(screen == null) {
-            throw new IllegalArgumentException("Creating a TextGUI requires an underlying Screen");
-        }
-        this.screen = screen;
-        this.listeners = new CopyOnWriteArrayList<>();
-        this.blockingIO = false;
-        this.dirty = false;
-        this.guiTheme = LanternaThemes.getDefaultTheme();
-        this.textGUIThread = textGUIThreadFactory.createTextGUIThread(this);
-    }
+ * Enables blocking I/O, causing calls to `readKeyStroke()` to block until there is input available. Notice
+ * that you can still poll for input using `pollInput()`.
+ * @param blockingIO Set this to `true` if blocking I/O should be enabled, otherwise `false`
+ */
+     var isBlockingIO:Boolean = false
+private var dirty:Boolean = false
+@get:Override
+ val guiThread:TextGUIThread?
+private var guiTheme:Theme? = null
 
-    /**
-     * Reads one key from the input queue, blocking or non-blocking depending on if blocking I/O has been enabled. To
-     * enable blocking I/O (disabled by default), use {@code setBlockingIO(true)}.
-     * @return One piece of user input as a {@code KeyStroke} or {@code null} if blocking I/O is disabled and there was
-     *         no input waiting
-     * @throws IOException In case of an I/O error while reading input
-     */
-    protected KeyStroke readKeyStroke() throws IOException {
-        return blockingIO ? screen.readInput() : pollInput();
-    }
+ var theme:Theme?
+@Override
+get() {
+return guiTheme
+}
+@Override
+set(theme) {
+if (theme != null)
+{
+this.guiTheme = theme
+}
+}
 
-    /**
-     * Polls the underlying input queue for user input, returning either a {@code KeyStroke} or {@code null}
-     * @return {@code KeyStroke} representing the user input or {@code null} if there was none
-     * @throws IOException In case of an I/O error while reading input
-     */
-    protected KeyStroke pollInput() throws IOException {
-        return screen.pollInput();
-    }
+ val isPendingUpdate:Boolean
+@Override
+get() {
+return screen!!.doResizeIfNecessary() != null || dirty
+}
 
-    @Override
-    public synchronized boolean processInput() throws IOException {
-        boolean gotInput = false;
-        KeyStroke keyStroke = readKeyStroke();
-        if(keyStroke != null) {
-            gotInput = true;
-            do {
-                if (keyStroke.getKeyType() == KeyType.EOF) {
-                    throw new EOFException();
-                }
-                boolean handled = handleInput(keyStroke);
-                if(!handled) {
-                    handled = fireUnhandledKeyStroke(keyStroke);
-                }
-                dirty = handled || dirty;
-                keyStroke = pollInput();
-            } while(keyStroke != null);
-        }
-        return gotInput;
-    }
+/**
+ * Top-level method for drilling in to the GUI and figuring out, in global coordinates, where to place the text
+ * cursor on the screen at this time.
+ * @return Where to place the text cursor, or `null` if the cursor should be hidden
+ */
+    protected abstract val cursorPosition:TerminalPosition?
 
-    @Override
-    public void setTheme(Theme theme) {
-        if(theme != null) {
-            this.guiTheme = theme;
-        }
-    }
+init{
+if (screen == null)
+{
+throw IllegalArgumentException("Creating a TextGUI requires an underlying Screen")
+}
+this.listeners = CopyOnWriteArrayList()
+this.isBlockingIO = false
+this.dirty = false
+this.guiTheme = LanternaThemes.getDefaultTheme()
+this.guiThread = textGUIThreadFactory!!.createTextGUIThread(this)
+}
 
-    @Override
-    public Theme getTheme() {
-        return guiTheme;
-    }
+/**
+ * Reads one key from the input queue, blocking or non-blocking depending on if blocking I/O has been enabled. To
+ * enable blocking I/O (disabled by default), use `setBlockingIO(true)`.
+ * @return One piece of user input as a `KeyStroke` or `null` if blocking I/O is disabled and there was
+ * no input waiting
+ * @throws IOException In case of an I/O error while reading input
+ */
+    @Throws(IOException::class)
+protected fun readKeyStroke():KeyStroke? {
+return if (isBlockingIO) screen!!.readInput() else pollInput()
+}
 
-    @Override
-    public synchronized void updateScreen() throws IOException {
-        screen.doResizeIfNecessary();
-        drawGUI(new DefaultTextGUIGraphics(this, screen.newTextGraphics()));
-        screen.setCursorPosition(getCursorPosition());
-        screen.refresh();
-        dirty = false;
-    }
+/**
+ * Polls the underlying input queue for user input, returning either a `KeyStroke` or `null`
+ * @return `KeyStroke` representing the user input or `null` if there was none
+ * @throws IOException In case of an I/O error while reading input
+ */
+    @Throws(IOException::class)
+protected fun pollInput():KeyStroke? {
+return screen!!.pollInput()
+}
 
-    @Override
-    public Screen getScreen() {
-        return screen;
-    }
+@Override
+@Synchronized @Throws(IOException::class)
+ fun processInput():Boolean {
+var gotInput = false
+var keyStroke = readKeyStroke()
+if (keyStroke != null)
+{
+gotInput = true
+do
+{
+if (keyStroke!!.getKeyType() === KeyType.EOF)
+{
+throw EOFException()
+}
+var handled = handleInput(keyStroke)
+if (!handled)
+{
+handled = fireUnhandledKeyStroke(keyStroke)
+}
+dirty = handled || dirty
+keyStroke = pollInput()
+}
+while (keyStroke != null)
+}
+return gotInput
+}
 
-    @Override
-    public boolean isPendingUpdate() {
-        return screen.doResizeIfNecessary() != null || dirty;
-    }
+@Override
+@Synchronized @Throws(IOException::class)
+ fun updateScreen() {
+screen!!.doResizeIfNecessary()
+drawGUI(DefaultTextGUIGraphics(this, screen!!.newTextGraphics()))
+screen!!.setCursorPosition(cursorPosition)
+screen!!.refresh()
+dirty = false
+}
 
-    @Override
-    public TextGUIThread getGUIThread() {
-        return textGUIThread;
-    }
+@Override
+ fun addListener(listener:Listener?) {
+listeners!!.add(listener)
+}
 
-    @Override
-    public void addListener(Listener listener) {
-        listeners.add(listener);
-    }
+@Override
+ fun removeListener(listener:Listener?) {
+listeners!!.remove(listener)
+}
 
-    @Override
-    public void removeListener(Listener listener) {
-        listeners.remove(listener);
-    }
+/**
+ * This method should be called when there was user input that wasn't handled by the GUI. It will fire the
+ * `onUnhandledKeyStroke(..)` method on any registered listener.
+ * @param keyStroke The `KeyStroke` that wasn't handled by the GUI
+ * @return `true` if at least one of the listeners handled the key stroke, this will signal to the GUI that it
+ * needs to be redrawn again.
+ */
+    protected fun fireUnhandledKeyStroke(keyStroke:KeyStroke?):Boolean {
+var handled = false
+for (listener in listeners!!)
+{
+handled = listener!!.onUnhandledKeyStroke(this, keyStroke) || handled
+}
+return handled
+}
 
-    /**
-     * Enables blocking I/O, causing calls to {@code readKeyStroke()} to block until there is input available. Notice
-     * that you can still poll for input using {@code pollInput()}.
-     * @param blockingIO Set this to {@code true} if blocking I/O should be enabled, otherwise {@code false}
-     */
-    public void setBlockingIO(boolean blockingIO) {
-        this.blockingIO = blockingIO;
-    }
+/**
+ * Marks the whole text GUI as invalid and that it needs to be redrawn at next opportunity
+ */
+    protected fun invalidate() {
+dirty = true
+}
 
-    /**
-     * Checks if blocking I/O is enabled or not
-     * @return {@code true} if blocking I/O is enabled, otherwise {@code false}
-     */
-    public boolean isBlockingIO() {
-        return blockingIO;
-    }
+/**
+ * Draws the entire GUI using a `TextGUIGraphics` object
+ * @param graphics Graphics object to draw using
+ */
+    protected abstract fun drawGUI(graphics:TextGUIGraphics?) 
 
-    /**
-     * This method should be called when there was user input that wasn't handled by the GUI. It will fire the
-     * {@code onUnhandledKeyStroke(..)} method on any registered listener.
-     * @param keyStroke The {@code KeyStroke} that wasn't handled by the GUI
-     * @return {@code true} if at least one of the listeners handled the key stroke, this will signal to the GUI that it
-     * needs to be redrawn again.
-     */
-    protected final boolean fireUnhandledKeyStroke(KeyStroke keyStroke) {
-        boolean handled = false;
-        for(Listener listener: listeners) {
-            handled = listener.onUnhandledKeyStroke(this, keyStroke) || handled;
-        }
-        return handled;
-    }
-
-    /**
-     * Marks the whole text GUI as invalid and that it needs to be redrawn at next opportunity
-     */
-    protected void invalidate() {
-        dirty = true;
-    }
-
-    /**
-     * Draws the entire GUI using a {@code TextGUIGraphics} object
-     * @param graphics Graphics object to draw using
-     */
-    protected abstract void drawGUI(TextGUIGraphics graphics);
-
-    /**
-     * Top-level method for drilling in to the GUI and figuring out, in global coordinates, where to place the text
-     * cursor on the screen at this time.
-     * @return Where to place the text cursor, or {@code null} if the cursor should be hidden
-     */
-    protected abstract TerminalPosition getCursorPosition();
-
-    /**
-     * This method should take the user input and feed it to the focused component for handling.
-     * @param key {@code KeyStroke} representing the user input
-     * @return {@code true} if the input was recognized and handled by the GUI, indicating that the GUI should be redrawn
-     */
-    protected abstract boolean handleInput(KeyStroke key);
+/**
+ * This method should take the user input and feed it to the focused component for handling.
+ * @param key `KeyStroke` representing the user input
+ * @return `true` if the input was recognized and handled by the GUI, indicating that the GUI should be redrawn
+ */
+    protected abstract fun handleInput(key:KeyStroke?):Boolean 
 }

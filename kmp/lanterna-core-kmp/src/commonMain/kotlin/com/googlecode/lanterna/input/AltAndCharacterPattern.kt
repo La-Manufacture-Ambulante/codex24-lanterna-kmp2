@@ -16,30 +16,31 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.input;
-
-import java.util.List;
+package com.googlecode.lanterna.input
 
 /**
  * Character pattern that matches characters pressed while ALT key is held down
  * 
  * @author Martin, Andreas
  */
-public class AltAndCharacterPattern implements CharacterPattern {
+ class AltAndCharacterPattern:CharacterPattern {
 
-    @Override
-    public Matching match(List<Character> seq) {
-        int size = seq.size();
-        if (size > 2 || seq.get(0) != KeyDecodingProfile.ESC_CODE) {
-            return null; // nope
-        }
-        if (size == 1) {
-            return Matching.NOT_YET; // maybe later
-        }
-        if ( Character.isISOControl(seq.get(1)) ) {
-            return null; // nope
-        }
-        KeyStroke ks = new KeyStroke(seq.get(1), false, true);
-        return new Matching( ks ); // yep
-    }
+@Override
+ fun match(seq:List<Character?>):Matching? {
+val size = seq.size()
+if (size > 2 || seq.get(0) !== KeyDecodingProfile.ESC_CODE)
+{
+return null // nope
+}
+if (size == 1)
+{
+return Matching.NOT_YET // maybe later
+}
+if (Character.isISOControl(seq.get(1)))
+{
+return null // nope
+}
+val ks = KeyStroke(seq.get(1), false, true)
+return Matching(ks) // yep
+}
 }

@@ -16,434 +16,442 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal.ansi;
+package com.googlecode.lanterna.terminal.ansi
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.input.*;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.terminal.ExtendedTerminal;
-import com.googlecode.lanterna.terminal.MouseCaptureMode;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.input.*
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.terminal.ExtendedTerminal
+import com.googlecode.lanterna.terminal.MouseCaptureMode
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 
 /**
  * Class containing graphics code for ANSI compliant text terminals and terminal emulators. All the methods inside of
  * this class uses ANSI escape codes written to the underlying output stream.
- *
- * @see <a href="http://en.wikipedia.org/wiki/ANSI_escape_code">Wikipedia</a>
+ * 
+ * @see [Wikipedia](http://en.wikipedia.org/wiki/ANSI_escape_code)
+ * 
  * @author Martin
  */
-public abstract class ANSITerminal extends StreamBasedTerminal implements ExtendedTerminal {
+abstract class ANSITerminal @SuppressWarnings("WeakerAccess")
+ protected constructor(
+terminalInput:InputStream?, 
+terminalOutput:OutputStream?, 
+terminalCharset:Charset?):StreamBasedTerminal(terminalInput, terminalOutput, terminalCharset), ExtendedTerminal {
 
-    private MouseCaptureMode requestedMouseCaptureMode;
-    private MouseCaptureMode mouseCaptureMode;
-    private boolean inPrivateMode;
+private var requestedMouseCaptureMode:MouseCaptureMode? = null
+private var mouseCaptureMode:MouseCaptureMode? = null
+/**
+ * Method to test if the terminal (as far as the library knows) is in private mode.
+ * 
+ * @return True if there has been a call to enterPrivateMode() but not yet exitPrivateMode()
+ */
+    internal var isInPrivateMode:Boolean = false
+private set
 
-    @SuppressWarnings("WeakerAccess")
-    protected ANSITerminal(
-            InputStream terminalInput,
-            OutputStream terminalOutput,
-            Charset terminalCharset) {
+/**
+ * This method can be overridden in a custom terminal implementation to change the default key decoders.
+ * @return The KeyDecodingProfile used by the terminal when translating character sequences to keystrokes
+ */
+    protected val defaultKeyDecodingProfile:KeyDecodingProfile?
+get() {
+return DefaultKeyDecodingProfile()
+}
 
-        super(terminalInput, terminalOutput, terminalCharset);
-        this.inPrivateMode = false;
-        this.requestedMouseCaptureMode = null;
-        this.mouseCaptureMode = null;
-        getInputDecoder().addProfile(getDefaultKeyDecodingProfile());
-    }
+ // Final because we handle the onResized logic here; extending classes should override #findTerminalSize instead
+     val terminalSize:TerminalSize?
+@Override
+@Synchronized @Throws(IOException::class)
+get() {
+val size = findTerminalSize()
+onResized(size)
+return size
+}
 
-    /**
-     * This method can be overridden in a custom terminal implementation to change the default key decoders.
-     * @return The KeyDecodingProfile used by the terminal when translating character sequences to keystrokes
-     */
-    protected KeyDecodingProfile getDefaultKeyDecodingProfile() {
-        return new DefaultKeyDecodingProfile();
-    }
+ // ANSI terminal positions are 1-indexed so top-left corner is 1x1 instead of 0x0, that's why we need to adjust it here
+ var cursorPosition:TerminalPosition?
+@Override
+@Synchronized @Throws(IOException::class)
+get() {
+resetMemorizedCursorPosition()
+reportPosition()
+var terminalPosition = waitForCursorPositionReport()
+if (terminalPosition == null)
+{
+terminalPosition = TerminalPosition.OFFSET_1x1
+}
+return terminalPosition!!.withRelative(-1, -1)
+}
+@Override
+@Throws(IOException::class)
+set(position) {
+setCursorPosition(position.column, position.row)
+}
 
-    private void writeCSISequenceToTerminal(byte... tail) throws IOException {
-        byte[] completeSequence = new byte[tail.length + 2];
-        completeSequence[0] = (byte)0x1b;
-        completeSequence[1] = (byte)'[';
-        System.arraycopy(tail, 0, completeSequence, 2, tail.length);
-        writeToTerminal(completeSequence);
-    }
+init{
+this.isInPrivateMode = false
+this.requestedMouseCaptureMode = null
+this.mouseCaptureMode = null
+getInputDecoder().addProfile(defaultKeyDecodingProfile)
+}
 
-    private void writeSGRSequenceToTerminal(byte... sgrParameters) throws IOException {
-        byte[] completeSequence = new byte[sgrParameters.length + 3];
-        completeSequence[0] = (byte)0x1b;
-        completeSequence[1] = (byte)'[';
-        completeSequence[completeSequence.length - 1] = (byte)'m';
-        System.arraycopy(sgrParameters, 0, completeSequence, 2, sgrParameters.length);
-        writeToTerminal(completeSequence);
-    }
+@Throws(IOException::class)
+private fun writeCSISequenceToTerminal(vararg tail:Byte) {
+val completeSequence = ByteArray(tail.size + 2)
+completeSequence[0] = 0x1b.toByte()
+completeSequence[1] = '['.toByte()
+System.arraycopy(tail, 0, completeSequence, 2, tail.size)
+writeToTerminal(completeSequence)
+}
 
-    private void writeOSCSequenceToTerminal(byte... tail) throws IOException {
-        byte[] completeSequence = new byte[tail.length + 2];
-        completeSequence[0] = (byte)0x1b;
-        completeSequence[1] = (byte)']';
-        System.arraycopy(tail, 0, completeSequence, 2, tail.length);
-        writeToTerminal(completeSequence);
-    }
+@Throws(IOException::class)
+private fun writeSGRSequenceToTerminal(vararg sgrParameters:Byte) {
+val completeSequence = ByteArray(sgrParameters.size + 3)
+completeSequence[0] = 0x1b.toByte()
+completeSequence[1] = '['.toByte()
+completeSequence[completeSequence.size - 1] = 'm'.toByte()
+System.arraycopy(sgrParameters, 0, completeSequence, 2, sgrParameters.size)
+writeToTerminal(completeSequence)
+}
 
-    // Final because we handle the onResized logic here; extending classes should override #findTerminalSize instead
-    @Override
-    public final synchronized TerminalSize getTerminalSize() throws IOException {
-        TerminalSize size = findTerminalSize();
-        onResized(size);
-        return size;
-    }
+@Throws(IOException::class)
+private fun writeOSCSequenceToTerminal(vararg tail:Byte) {
+val completeSequence = ByteArray(tail.size + 2)
+completeSequence[0] = 0x1b.toByte()
+completeSequence[1] = ']'.toByte()
+System.arraycopy(tail, 0, completeSequence, 2, tail.size)
+writeToTerminal(completeSequence)
+}
 
-    protected TerminalSize findTerminalSize() throws IOException {
-        saveCursorPosition();
-        setCursorPosition(5000, 5000);
-        resetMemorizedCursorPosition();
-        reportPosition();
-        restoreCursorPosition();
-        TerminalPosition terminalPosition = waitForCursorPositionReport();
-        if (terminalPosition == null) {
-            terminalPosition = new TerminalPosition(80,24);
-        }
-        return new TerminalSize(terminalPosition.getColumn(), terminalPosition.getRow());
-    }
+@Throws(IOException::class)
+protected fun findTerminalSize():TerminalSize {
+saveCursorPosition()
+setCursorPosition(5000, 5000)
+resetMemorizedCursorPosition()
+reportPosition()
+restoreCursorPosition()
+var terminalPosition = waitForCursorPositionReport()
+if (terminalPosition == null)
+{
+terminalPosition = TerminalPosition(80, 24)
+}
+return TerminalSize(terminalPosition!!.column, terminalPosition!!.row)
+}
 
-    @Override
-    public void setTerminalSize(int columns, int rows) throws IOException {
-        writeCSISequenceToTerminal(("8;" + rows + ";" + columns + "t").getBytes());
+@Override
+@Throws(IOException::class)
+ fun setTerminalSize(columns:Int, rows:Int) {
+writeCSISequenceToTerminal(("8;" + rows + ";" + columns + "t").getBytes())
 
-        //We can't trust that the previous call was honoured by the terminal so force a re-query here, which will
+ //We can't trust that the previous call was honoured by the terminal so force a re-query here, which will
         //trigger a resize event if one actually took place
-        getTerminalSize();
-    }
+        terminalSize
+}
 
-    @Override
-    public void setTitle(String title) throws IOException {
-        //The bell character is our 'null terminator', make sure there's none in the title
-        title = title.replace("\007", "");
-        writeOSCSequenceToTerminal(("2;" + title + "\007").getBytes());
-    }
+@Override
+@Throws(IOException::class)
+ fun setTitle(title:String?) {
+var title = title
+ //The bell character is our 'null terminator', make sure there's none in the title
+        title = title!!.replace("\u0007", "")
+writeOSCSequenceToTerminal(("2;" + title + "\u0007").getBytes())
+}
 
-    @Override
-    public void setForegroundColor(TextColor color) throws IOException {
-        writeSGRSequenceToTerminal(color.getForegroundSGRSequence());
-    }
+@Override
+@Throws(IOException::class)
+ fun setForegroundColor(color:TextColor) {
+writeSGRSequenceToTerminal(color.getForegroundSGRSequence())
+}
 
-    @Override
-    public void setBackgroundColor(TextColor color) throws IOException {
-        writeSGRSequenceToTerminal(color.getBackgroundSGRSequence());
-    }
+@Override
+@Throws(IOException::class)
+ fun setBackgroundColor(color:TextColor) {
+writeSGRSequenceToTerminal(color.getBackgroundSGRSequence())
+}
 
-    @Override
-    public void enableSGR(SGR sgr) throws IOException {
-        switch(sgr) {
-            case BLINK:
-                writeCSISequenceToTerminal((byte) '5', (byte) 'm');
-                break;
-            case BOLD:
-                writeCSISequenceToTerminal((byte) '1', (byte) 'm');
-                break;
-            case BORDERED:
-                writeCSISequenceToTerminal((byte) '5', (byte) '1', (byte) 'm');
-                break;
-            case CIRCLED:
-                writeCSISequenceToTerminal((byte) '5', (byte) '2', (byte) 'm');
-                break;
-            case CROSSED_OUT:
-                writeCSISequenceToTerminal((byte) '9', (byte) 'm');
-                break;
-            case FRAKTUR:
-                writeCSISequenceToTerminal((byte) '2', (byte) '0', (byte) 'm');
-                break;
-            case REVERSE:
-                writeCSISequenceToTerminal((byte) '7', (byte) 'm');
-                break;
-            case UNDERLINE:
-                writeCSISequenceToTerminal((byte) '4', (byte) 'm');
-                break;
-            case ITALIC:
-                writeCSISequenceToTerminal((byte) '3', (byte) 'm');
-                break;
-        }
-    }
+@Override
+@Throws(IOException::class)
+ fun enableSGR(sgr:SGR) {
+when (sgr) {
+SGR.BLINK -> writeCSISequenceToTerminal('5'.toByte(), 'm'.toByte())
+SGR.BOLD -> writeCSISequenceToTerminal('1'.toByte(), 'm'.toByte())
+SGR.BORDERED -> writeCSISequenceToTerminal('5'.toByte(), '1'.toByte(), 'm'.toByte())
+SGR.CIRCLED -> writeCSISequenceToTerminal('5'.toByte(), '2'.toByte(), 'm'.toByte())
+SGR.CROSSED_OUT -> writeCSISequenceToTerminal('9'.toByte(), 'm'.toByte())
+SGR.FRAKTUR -> writeCSISequenceToTerminal('2'.toByte(), '0'.toByte(), 'm'.toByte())
+SGR.REVERSE -> writeCSISequenceToTerminal('7'.toByte(), 'm'.toByte())
+SGR.UNDERLINE -> writeCSISequenceToTerminal('4'.toByte(), 'm'.toByte())
+SGR.ITALIC -> writeCSISequenceToTerminal('3'.toByte(), 'm'.toByte())
+}
+}
 
-    @Override
-    public void disableSGR(SGR sgr) throws IOException {
-        switch(sgr) {
-            case BLINK:
-                writeCSISequenceToTerminal((byte) '2', (byte) '5', (byte) 'm');
-                break;
-            case BOLD:
-                writeCSISequenceToTerminal((byte) '2', (byte) '2', (byte) 'm');
-                break;
-            case BORDERED:
-                writeCSISequenceToTerminal((byte) '5', (byte) '4', (byte) 'm');
-                break;
-            case CIRCLED:
-                writeCSISequenceToTerminal((byte) '5', (byte) '4', (byte) 'm');
-                break;
-            case CROSSED_OUT:
-                writeCSISequenceToTerminal((byte) '2', (byte) '9', (byte) 'm');
-                break;
-            case FRAKTUR:
-                writeCSISequenceToTerminal((byte) '2', (byte) '3', (byte) 'm');
-                break;
-            case REVERSE:
-                writeCSISequenceToTerminal((byte) '2', (byte) '7', (byte) 'm');
-                break;
-            case UNDERLINE:
-                writeCSISequenceToTerminal((byte) '2', (byte) '4', (byte) 'm');
-                break;
-            case ITALIC:
-                writeCSISequenceToTerminal((byte) '2', (byte) '3', (byte) 'm');
-                break;
-        }
-    }
+@Override
+@Throws(IOException::class)
+ fun disableSGR(sgr:SGR) {
+when (sgr) {
+SGR.BLINK -> writeCSISequenceToTerminal('2'.toByte(), '5'.toByte(), 'm'.toByte())
+SGR.BOLD -> writeCSISequenceToTerminal('2'.toByte(), '2'.toByte(), 'm'.toByte())
+SGR.BORDERED -> writeCSISequenceToTerminal('5'.toByte(), '4'.toByte(), 'm'.toByte())
+SGR.CIRCLED -> writeCSISequenceToTerminal('5'.toByte(), '4'.toByte(), 'm'.toByte())
+SGR.CROSSED_OUT -> writeCSISequenceToTerminal('2'.toByte(), '9'.toByte(), 'm'.toByte())
+SGR.FRAKTUR -> writeCSISequenceToTerminal('2'.toByte(), '3'.toByte(), 'm'.toByte())
+SGR.REVERSE -> writeCSISequenceToTerminal('2'.toByte(), '7'.toByte(), 'm'.toByte())
+SGR.UNDERLINE -> writeCSISequenceToTerminal('2'.toByte(), '4'.toByte(), 'm'.toByte())
+SGR.ITALIC -> writeCSISequenceToTerminal('2'.toByte(), '3'.toByte(), 'm'.toByte())
+}
+}
 
-    @Override
-    public void resetColorAndSGR() throws IOException {
-        writeCSISequenceToTerminal((byte) '0', (byte) 'm');
-    }
+@Override
+@Throws(IOException::class)
+ fun resetColorAndSGR() {
+writeCSISequenceToTerminal('0'.toByte(), 'm'.toByte())
+}
 
-    @Override
-    public void clearScreen() throws IOException {
-        writeCSISequenceToTerminal((byte) '2', (byte) 'J');
-    }
+@Override
+@Throws(IOException::class)
+ fun clearScreen() {
+writeCSISequenceToTerminal('2'.toByte(), 'J'.toByte())
+}
 
-    @Override
-    public void enterPrivateMode() throws IOException {
-        if(inPrivateMode) {
-            throw new IllegalStateException("Cannot call enterPrivateMode() when already in private mode");
-        }
-        writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '4', (byte) '9', (byte) 'h');
-        if (requestedMouseCaptureMode != null) {
-            this.mouseCaptureMode = requestedMouseCaptureMode;
-            updateMouseCaptureMode(this.mouseCaptureMode, 'h');
-        }
-        flush();
-        inPrivateMode = true;
-    }
+@Override
+@Throws(IOException::class)
+ fun enterPrivateMode() {
+if (isInPrivateMode)
+{
+throw IllegalStateException("Cannot call enterPrivateMode() when already in private mode")
+}
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '4'.toByte(), '9'.toByte(), 'h'.toByte())
+if (requestedMouseCaptureMode != null)
+{
+this.mouseCaptureMode = requestedMouseCaptureMode
+updateMouseCaptureMode(this.mouseCaptureMode, 'h')
+}
+flush()
+isInPrivateMode = true
+}
 
-    @Override
-    public void exitPrivateMode() throws IOException {
-        if(!inPrivateMode) {
-            throw new IllegalStateException("Cannot call exitPrivateMode() when not in private mode");
-        }
-        resetColorAndSGR();
-        setCursorVisible(true);
-        writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '4', (byte) '9', (byte) 'l');
-        if (null != mouseCaptureMode) {
-            updateMouseCaptureMode(this.mouseCaptureMode, 'l');
-            this.mouseCaptureMode = null;
-        }
-        flush();
-        inPrivateMode = false;
-    }
+@Override
+@Throws(IOException::class)
+ fun exitPrivateMode() {
+if (!isInPrivateMode)
+{
+throw IllegalStateException("Cannot call exitPrivateMode() when not in private mode")
+}
+resetColorAndSGR()
+setCursorVisible(true)
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '4'.toByte(), '9'.toByte(), 'l'.toByte())
+if (null != mouseCaptureMode)
+{
+updateMouseCaptureMode(this.mouseCaptureMode, 'l')
+this.mouseCaptureMode = null
+}
+flush()
+isInPrivateMode = false
+}
 
-    @Override
-    public void close() throws IOException {
-        if(isInPrivateMode()) {
-            exitPrivateMode();
-        }
-        super.close();
-    }
+@Override
+@Throws(IOException::class)
+ fun close() {
+if (isInPrivateMode)
+{
+exitPrivateMode()
+}
+super.close()
+}
 
-    @Override
-    public void setCursorPosition(int x, int y) throws IOException {
-        writeCSISequenceToTerminal(((y + 1) + ";" + (x + 1) + "H").getBytes());
-    }
+@Override
+@Throws(IOException::class)
+ fun setCursorPosition(x:Int, y:Int) {
+writeCSISequenceToTerminal(((y + 1) + ";" + (x + 1) + "H").getBytes())
+}
 
-    @Override
-    public void setCursorPosition(TerminalPosition position) throws IOException {
-        setCursorPosition(position.getColumn(), position.getRow());
-    }
+@Override
+@Throws(IOException::class)
+ fun setCursorVisible(visible:Boolean) {
+writeCSISequenceToTerminal(("?25" + (if (visible) "h" else "l")).getBytes())
+}
 
-    @Override
-    public synchronized TerminalPosition getCursorPosition() throws IOException {
-        resetMemorizedCursorPosition();
-        reportPosition();
+@Override
+@Throws(IOException::class)
+ fun readInput():KeyStroke? {
+val keyStroke:KeyStroke?
+do
+{
+ // KeyStroke may because null by filterMouseEvents, so that's why we have the while(true) loop here
+            keyStroke = filterMouseEvents(super.readInput())
+}
+while (keyStroke == null)
+return keyStroke
+}
 
-        // ANSI terminal positions are 1-indexed so top-left corner is 1x1 instead of 0x0, that's why we need to adjust it here
-        TerminalPosition terminalPosition = waitForCursorPositionReport();
-        if (terminalPosition == null) {
-            terminalPosition = TerminalPosition.OFFSET_1x1;
-        }
-        return terminalPosition.withRelative(-1, -1);
-    }
+@Override
+@Throws(IOException::class)
+ fun pollInput():KeyStroke? {
+return filterMouseEvents(super.pollInput())
+}
 
-    @Override
-    public void setCursorVisible(boolean visible) throws IOException {
-        writeCSISequenceToTerminal(("?25" + (visible ? "h" : "l")).getBytes());
-    }
+private fun filterMouseEvents(keyStroke:KeyStroke?):KeyStroke? {
+ //Remove bad input events from terminals that are not following the xterm protocol properly
+        if (keyStroke == null || keyStroke!!.getKeyType() !== KeyType.MOUSE_EVENT)
+{
+return keyStroke
+}
 
-    @Override
-    public KeyStroke readInput() throws IOException {
-        KeyStroke keyStroke;
-        do {
-            // KeyStroke may because null by filterMouseEvents, so that's why we have the while(true) loop here
-            keyStroke = filterMouseEvents(super.readInput());
-        } while(keyStroke == null);
-        return keyStroke;
-    }
+val mouseAction = keyStroke as MouseAction?
+when (mouseAction!!.getActionType()) {
+CLICK_RELEASE -> if (mouseCaptureMode === MouseCaptureMode.CLICK)
+{
+return null
+}
+DRAG -> if ((mouseCaptureMode === MouseCaptureMode.CLICK || mouseCaptureMode === MouseCaptureMode.CLICK_RELEASE))
+{
+return null
+}
+MOVE -> if ((mouseCaptureMode === MouseCaptureMode.CLICK || 
+mouseCaptureMode === MouseCaptureMode.CLICK_RELEASE || 
+mouseCaptureMode === MouseCaptureMode.CLICK_RELEASE_DRAG))
+{
+return null
+}
+}
+return mouseAction
+}
 
-    @Override
-    public KeyStroke pollInput() throws IOException {
-        return filterMouseEvents(super.pollInput());
-    }
+@Override
+ fun pushTitle() {
+throw UnsupportedOperationException("Not implemented yet")
+}
 
-    private KeyStroke filterMouseEvents(KeyStroke keyStroke) {
-        //Remove bad input events from terminals that are not following the xterm protocol properly
-        if(keyStroke == null || keyStroke.getKeyType() != KeyType.MOUSE_EVENT) {
-            return keyStroke;
-        }
+@Override
+ fun popTitle() {
+throw UnsupportedOperationException("Not implemented yet")
+}
 
-        MouseAction mouseAction = (MouseAction)keyStroke;
-        switch(mouseAction.getActionType()) {
-            case CLICK_RELEASE:
-                if(mouseCaptureMode == MouseCaptureMode.CLICK) {
-                    return null;
-                }
-                break;
-            case DRAG:
-                if(mouseCaptureMode == MouseCaptureMode.CLICK ||
-                        mouseCaptureMode == MouseCaptureMode.CLICK_RELEASE) {
-                    return null;
-                }
-                break;
-            case MOVE:
-                if(mouseCaptureMode == MouseCaptureMode.CLICK ||
-                        mouseCaptureMode == MouseCaptureMode.CLICK_RELEASE ||
-                        mouseCaptureMode == MouseCaptureMode.CLICK_RELEASE_DRAG) {
-                    return null;
-                }
-                break;
-            default:
-        }
-        return mouseAction;
-    }
+@Override
+@Throws(IOException::class)
+ fun iconify() {
+writeCSISequenceToTerminal('2'.toByte(), 't'.toByte())
+}
 
-    @Override
-    public void pushTitle() {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
+@Override
+@Throws(IOException::class)
+ fun deiconify() {
+writeCSISequenceToTerminal('1'.toByte(), 't'.toByte())
+}
 
-    @Override
-    public void popTitle() {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
+@Override
+@Throws(IOException::class)
+ fun maximize() {
+writeCSISequenceToTerminal('9'.toByte(), ';'.toByte(), '1'.toByte(), 't'.toByte())
+}
 
-    @Override
-    public void iconify() throws IOException {
-        writeCSISequenceToTerminal((byte)'2', (byte)'t');
-    }
+@Override
+@Throws(IOException::class)
+ fun unmaximize() {
+writeCSISequenceToTerminal('9'.toByte(), ';'.toByte(), '0'.toByte(), 't'.toByte())
+}
 
-    @Override
-    public void deiconify() throws IOException {
-        writeCSISequenceToTerminal((byte)'1', (byte)'t');
-    }
+@Throws(IOException::class)
+private fun updateMouseCaptureMode(mouseCaptureMode:MouseCaptureMode?, l_or_h:Char) {
+if (mouseCaptureMode == null) {
+return 
+}
 
-    @Override
-    public void maximize() throws IOException {
-        writeCSISequenceToTerminal((byte)'9', (byte)';', (byte)'1', (byte)'t');
-    }
+when (mouseCaptureMode) {
+CLICK -> writeCSISequenceToTerminal('?'.toByte(), '9'.toByte(), l_or_h.toByte())
+CLICK_RELEASE -> writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '0'.toByte(), l_or_h.toByte())
+CLICK_RELEASE_DRAG -> writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '2'.toByte(), l_or_h.toByte())
+CLICK_RELEASE_DRAG_MOVE -> writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '3'.toByte(), l_or_h.toByte())
+CLICK_AUTODETECT -> {
+writeCSISequenceToTerminal('?'.toByte(), '9'.toByte(), l_or_h.toByte())
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '0'.toByte(), l_or_h.toByte())
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '2'.toByte(), l_or_h.toByte())
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '3'.toByte(), l_or_h.toByte())
+}
+}
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '6'.toByte(), l_or_h.toByte())
+}
 
-    @Override
-    public void unmaximize() throws IOException {
-        writeCSISequenceToTerminal((byte)'9', (byte)';', (byte)'0', (byte)'t');
-    }
+@Override
+@Throws(IOException::class)
+ fun setMouseCaptureMode(mouseCaptureMode:MouseCaptureMode?) {
+requestedMouseCaptureMode = mouseCaptureMode
+if (isInPrivateMode && requestedMouseCaptureMode !== this.mouseCaptureMode)
+{
+updateMouseCaptureMode(this.mouseCaptureMode, 'l')
+this.mouseCaptureMode = requestedMouseCaptureMode
+updateMouseCaptureMode(this.mouseCaptureMode, 'h')
+}
+}
 
-    private void updateMouseCaptureMode(MouseCaptureMode mouseCaptureMode, char l_or_h) throws IOException {
-        if (mouseCaptureMode == null) { return; }
+@Override
+@Throws(IOException::class)
+ fun scrollLines(firstLine:Int, lastLine:Int, distance:Int) {
+var firstLine = firstLine
+val CSI = "\u001b["
 
-        switch(mouseCaptureMode) {
-        case CLICK:
-            writeCSISequenceToTerminal((byte)'?', (byte)'9', (byte)l_or_h);
-            break;
-        case CLICK_RELEASE:
-            writeCSISequenceToTerminal((byte)'?', (byte)'1', (byte)'0', (byte)'0', (byte)'0', (byte)l_or_h);
-            break;
-        case CLICK_RELEASE_DRAG:
-            writeCSISequenceToTerminal((byte)'?', (byte)'1', (byte)'0', (byte)'0', (byte)'2', (byte)l_or_h);
-            break;
-        case CLICK_RELEASE_DRAG_MOVE:
-            writeCSISequenceToTerminal((byte)'?', (byte)'1', (byte)'0', (byte)'0', (byte)'3', (byte)l_or_h);
-            break;
-        case CLICK_AUTODETECT:
-            writeCSISequenceToTerminal((byte)'?', (byte)'9', (byte)l_or_h);
-            writeCSISequenceToTerminal((byte)'?', (byte)'1', (byte)'0', (byte)'0', (byte)'0', (byte)l_or_h);
-            writeCSISequenceToTerminal((byte)'?', (byte)'1', (byte)'0', (byte)'0', (byte)'2', (byte)l_or_h);
-            writeCSISequenceToTerminal((byte)'?', (byte)'1', (byte)'0', (byte)'0', (byte)'3', (byte)l_or_h);
-            break;
-        }
-        writeCSISequenceToTerminal((byte)'?', (byte)'1', (byte)'0', (byte)'0', (byte)'6', (byte)l_or_h);
-    }
+ // some sanity checks:
+        if (distance == 0) {
+return 
+}
+if (firstLine < 0) {
+firstLine = 0
+}
+if (lastLine < firstLine) {
+return 
+}
+val sb = StringBuilder()
 
-    @Override
-    public void setMouseCaptureMode(MouseCaptureMode mouseCaptureMode) throws IOException {
-        requestedMouseCaptureMode = mouseCaptureMode;
-        if (inPrivateMode && requestedMouseCaptureMode != this.mouseCaptureMode) {
-            updateMouseCaptureMode(this.mouseCaptureMode, 'l');
-            this.mouseCaptureMode = requestedMouseCaptureMode;
-            updateMouseCaptureMode(this.mouseCaptureMode, 'h');
-        }
-    }
+ // define range:
+        sb.append(CSI).append(firstLine + 1)
+.append(';').append(lastLine + 1).append('r')
 
-    @Override
-    public void scrollLines(int firstLine, int lastLine, int distance) throws IOException {
-        final String CSI = "\033[";
+ // place cursor on line to scroll away from:
+        val target = if (distance > 0) lastLine else firstLine
+sb.append(CSI).append(target + 1).append(";1H")
 
-        // some sanity checks:
-        if (distance == 0) { return; }
-        if (firstLine < 0) { firstLine = 0; }
-        if (lastLine < firstLine) { return; }
-        StringBuilder sb = new StringBuilder();
+ // do scroll:
+        if (distance > 0)
+{
+val num = Math.min(distance, lastLine - firstLine + 1)
+for (i in 0 until num) {
+sb.append('\n')
+}
+}
+else
+{ // distance < 0
+val num = Math.min(-distance, lastLine - firstLine + 1)
+for (i in 0 until num) {
+sb.append("\u001bM")
+}
+}
 
-        // define range:
-        sb.append(CSI).append(firstLine+1)
-          .append(';').append(lastLine+1).append('r');
+ // reset range:
+        sb.append(CSI).append('r')
 
-        // place cursor on line to scroll away from:
-        int target = distance > 0 ? lastLine : firstLine;
-        sb.append(CSI).append(target+1).append(";1H");
+ // off we go!
+        writeToTerminal(sb.toString().getBytes())
+}
 
-        // do scroll:
-        if (distance > 0) {
-            int num = Math.min( distance, lastLine - firstLine + 1);
-            for (int i = 0; i < num; i++) { sb.append('\n'); }
-        } else { // distance < 0
-            int num = Math.min( -distance, lastLine - firstLine + 1);
-            for (int i = 0; i < num; i++) { sb.append("\033M"); }
-        }
+@Throws(IOException::class)
+internal fun reportPosition() {
+writeCSISequenceToTerminal("6n".getBytes())
+}
 
-        // reset range:
-        sb.append(CSI).append('r');
+@Throws(IOException::class)
+internal fun restoreCursorPosition() {
+writeCSISequenceToTerminal("u".getBytes())
+}
 
-        // off we go!
-        writeToTerminal(sb.toString().getBytes());
-    }
-
-    /**
-     * Method to test if the terminal (as far as the library knows) is in private mode.
-     *
-     * @return True if there has been a call to enterPrivateMode() but not yet exitPrivateMode()
-     */
-    boolean isInPrivateMode() {
-        return inPrivateMode;
-    }
-
-    void reportPosition() throws IOException {
-        writeCSISequenceToTerminal("6n".getBytes());
-    }
-
-    void restoreCursorPosition() throws IOException {
-        writeCSISequenceToTerminal("u".getBytes());
-    }
-
-    void saveCursorPosition() throws IOException {
-        writeCSISequenceToTerminal("s".getBytes());
-    }
+@Throws(IOException::class)
+internal fun saveCursorPosition() {
+writeCSISequenceToTerminal("s".getBytes())
+}
 }

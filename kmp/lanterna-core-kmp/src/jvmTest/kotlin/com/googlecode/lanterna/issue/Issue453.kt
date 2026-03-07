@@ -16,62 +16,67 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.graphics.DefaultMutableThemeStyle;
-import com.googlecode.lanterna.graphics.SimpleTheme;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.gui2.DefaultWindowManager;
-import com.googlecode.lanterna.gui2.EmptySpace;
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.graphics.DefaultMutableThemeStyle
+import com.googlecode.lanterna.graphics.SimpleTheme
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.gui2.DefaultWindowManager
+import com.googlecode.lanterna.gui2.EmptySpace
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.screen.Screen
 
-import static org.junit.Assert.assertNotNull;
+import org.junit.Assert.assertNotNull
 
-import java.io.IOException;
+import java.io.IOException
 
-class Issue453 {
+internal object Issue453 {
 
-    public static void main(String[] args) throws InterruptedException, IOException {
-        LanternaTerminalWriter writer = new LanternaTerminalWriter(args);
-        for (int i = 0; i < 1000; i++) {
-            writer.write(String.valueOf(i), SGR.BOLD);
-            Thread.sleep(100);
-        }
-        writer.close();
-    }
+@Throws(InterruptedException::class, IOException::class)
+ fun main(args:Array<String?>?) {
+val writer = LanternaTerminalWriter(args)
+for (i in 0..999)
+{
+writer.write(String.valueOf(i), SGR.BOLD)
+Thread.sleep(100)
+}
+writer.close()
+}
 
-    public static class LanternaTerminalWriter {
+ class LanternaTerminalWriter @Throws(IOException::class)
+ constructor(args:Array<String?>?) {
 
-        private Screen screen;
-        private TextGraphics screenWriter;
+private val screen:Screen?
+private val screenWriter:TextGraphics?
 
-        public LanternaTerminalWriter(String[] args) throws IOException {
-            screen = new TestTerminalFactory(args).createScreen();
-            screen.startScreen();
-            MultiWindowTextGUI gui = new MultiWindowTextGUI(screen, new DefaultWindowManager(),
-    				new EmptySpace(TextColor.ANSI.BLACK));
-            
-            assertNotNull(new DefaultMutableThemeStyle(TextColor.ANSI.WHITE, TextColor.ANSI.BLACK, new SGR[] {}));
-            screenWriter = screen.newTextGraphics();
-        }
+init{
+screen = TestTerminalFactory(args).createScreen()
+screen!!.startScreen()
+val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), 
+EmptySpace(TextColor.ANSI.BLACK))
 
-        public void close() throws IOException {
-            screen.stopScreen();
-        }
+assertNotNull(DefaultMutableThemeStyle(TextColor.ANSI.WHITE, TextColor.ANSI.BLACK, arrayOf<SGR?>()))
+screenWriter = screen!!.newTextGraphics()
+}
 
-        public void write(String string, SGR... styles) throws IOException {
-            screenWriter.enableModifiers(styles);
-            int current_y = 1;
-            int default_x = 3;
-            screenWriter.putString(default_x, current_y, string);
-            screen.pollInput();
-            screen.refresh();
-        }
+@Throws(IOException::class)
+ fun close() {
+screen!!.stopScreen()
+}
 
-    }
+@Throws(IOException::class)
+ fun write(string:String?, vararg styles:SGR?) {
+screenWriter!!.enableModifiers(styles)
+val current_y = 1
+val default_x = 3
+screenWriter!!.putString(default_x, current_y, string)
+screen!!.pollInput()
+screen!!.refresh()
+}
+
+}
 }
 

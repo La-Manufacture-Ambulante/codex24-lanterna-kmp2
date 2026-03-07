@@ -17,33 +17,35 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 
-package com.googlecode.lanterna;
+package com.googlecode.lanterna
 
-import java.io.*;
+import java.io.*
 
 /**
- *
+ * 
  * @author Martin
  */
-public class TestShellCommand {
-    public static void main(String[] args) throws Exception
-    {
-        ProcessBuilder pb = new ProcessBuilder(args);
-        Process process = pb.start();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        InputStream stdout = process.getInputStream();
-        int readByte = stdout.read();
-        while(readByte >= 0) {
-            baos.write(readByte);
-            readByte = stdout.read();
-        }
-        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-        BufferedReader reader = new BufferedReader(new InputStreamReader(bais));
-        StringBuilder builder = new StringBuilder();
-        while(reader.ready()) {
-            builder.append(reader.readLine());
-        }
-        reader.close();
-        System.out.println(builder.toString());
-    }
+ object TestShellCommand {
+@Throws(Exception::class)
+ fun main(args:Array<String?>?) {
+val pb = ProcessBuilder(args)
+val process = pb.start()
+val baos = ByteArrayOutputStream()
+val stdout = process!!.getInputStream()
+var readByte = stdout!!.read()
+while (readByte >= 0)
+{
+baos.write(readByte)
+readByte = stdout!!.read()
+}
+val bais = ByteArrayInputStream(baos.toByteArray())
+val reader = BufferedReader(InputStreamReader(bais))
+val builder = StringBuilder()
+while (reader.ready())
+{
+builder.append(reader.readLine())
+}
+reader.close()
+System.out.println(builder.toString())
+}
 }

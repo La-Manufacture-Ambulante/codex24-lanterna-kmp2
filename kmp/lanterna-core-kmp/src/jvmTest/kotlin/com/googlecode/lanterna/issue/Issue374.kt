@@ -1,49 +1,50 @@
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.screen.Screen
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.terminal.Terminal
 
-import java.util.Collections;
+import java.util.Collections
 
-public class Issue374 {
+ object Issue374 {
 
-    public static void main(String[] args) throws Exception {
-        Terminal terminal = new DefaultTerminalFactory().createTerminal();
-        Screen screen = new TerminalScreen(terminal);
-        screen.startScreen();
+@Throws(Exception::class)
+ fun main(args:Array<String?>?) {
+val terminal = DefaultTerminalFactory().createTerminal()
+val screen = TerminalScreen(terminal)
+screen.startScreen()
 
-        final BasicWindow window = new BasicWindow("FocusTraversalTest");
-        window.setHints(Collections.singletonList(Window.Hint.FULL_SCREEN));
-        MultiWindowTextGUI gui = new MultiWindowTextGUI(screen);
+val window = BasicWindow("FocusTraversalTest")
+window.setHints(Collections.singletonList(Window.Hint.FULL_SCREEN))
+val gui = MultiWindowTextGUI(screen)
 
-        Panel mainPanel = new Panel(new LinearLayout());
-        window.setComponent(mainPanel);
+val mainPanel = Panel(LinearLayout())
+window.setComponent(mainPanel)
 
-        Button disabledInBorder1 = new Button("disabledB1");
-        disabledInBorder1.setEnabled(false);
-        mainPanel.addComponent(disabledInBorder1.withBorder(Borders.singleLine("border")));
+val disabledInBorder1 = Button("disabledB1")
+disabledInBorder1.setEnabled(false)
+mainPanel.addComponent(disabledInBorder1.withBorder(Borders.singleLine("border")))
 
-        Button first = new Button("enabled");
-        mainPanel.addComponent(first);
+val first = Button("enabled")
+mainPanel.addComponent(first)
 
-        Button disabled = new Button("disabled");
-        disabled.setEnabled(false);
-        mainPanel.addComponent(disabled);
+val disabled = Button("disabled")
+disabled.setEnabled(false)
+mainPanel.addComponent(disabled)
 
-        Button disabledInBorder2 = new Button("disabledB2");
-        disabledInBorder2.setEnabled(false);
-        mainPanel.addComponent(disabledInBorder2.withBorder(Borders.singleLine("border")));
+val disabledInBorder2 = Button("disabledB2")
+disabledInBorder2.setEnabled(false)
+mainPanel.addComponent(disabledInBorder2.withBorder(Borders.singleLine("border")))
 
-        Button anotherFocusable = new Button("focusable");
-        mainPanel.addComponent(anotherFocusable);
+val anotherFocusable = Button("focusable")
+mainPanel.addComponent(anotherFocusable)
 
-        mainPanel.addComponent(new Button("Button"));
+mainPanel.addComponent(Button("Button"))
 
-        first.takeFocus();
-        gui.addWindowAndWait(window);
-    }
+first.takeFocus()
+gui.addWindowAndWait(window)
+}
 
 }

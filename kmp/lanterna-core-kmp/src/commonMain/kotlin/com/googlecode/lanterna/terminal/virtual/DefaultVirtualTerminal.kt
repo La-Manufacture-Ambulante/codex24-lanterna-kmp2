@@ -16,437 +16,456 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.terminal.virtual;
+package com.googlecode.lanterna.terminal.virtual
 
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.screen.TabBehaviour;
-import com.googlecode.lanterna.terminal.AbstractTerminal;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.screen.TabBehaviour
+import com.googlecode.lanterna.terminal.AbstractTerminal
 
-import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.*
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 
-public class DefaultVirtualTerminal extends AbstractTerminal implements VirtualTerminal {
-    private final TextBuffer regularTextBuffer;
-    private final TextBuffer privateModeTextBuffer;
-    private final TreeSet<TerminalPosition> dirtyTerminalCells;
-    private final List<VirtualTerminalListener> listeners;
+ class DefaultVirtualTerminal/**
+ * Creates a new virtual terminal with an initial size set
+ * @param initialTerminalSize Starting size of the virtual terminal
+ */
+     @JvmOverloads  constructor(private var terminalSize:TerminalSize? = TerminalSize(80, 24)):AbstractTerminal(), VirtualTerminal {
+private val regularTextBuffer:TextBuffer?
+private val privateModeTextBuffer:TextBuffer?
+private val dirtyTerminalCells:TreeSet<TerminalPosition?>?
+private val listeners:List<VirtualTerminalListener?>?
 
-    private TextBuffer currentTextBuffer;
-    private boolean wholeBufferDirty;
+private var currentTextBuffer:TextBuffer? = null
+private var wholeBufferDirty:Boolean = false
+@get:Override
+@get:Synchronized @set:Override
+@set:Synchronized  var isCursorVisible:Boolean = false
+private var backlogSize:Int = 0
 
-    private TerminalSize terminalSize;
-    private boolean cursorVisible;
-    private int backlogSize;
+private val inputQueue:BlockingQueue<KeyStroke?>?
+private val activeModifiers:EnumSet<SGR?>?
+private var activeForegroundColor:TextColor? = null
+private var activeBackgroundColor:TextColor? = null
 
-    private final BlockingQueue<KeyStroke> inputQueue;
-    private final EnumSet<SGR> activeModifiers;
-    private TextColor activeForegroundColor;
-    private TextColor activeBackgroundColor;
+ // Global coordinates, i.e. relative to the top-left corner of the full buffer
+    @get:Override
+@get:Synchronized  var cursorBufferPosition:TerminalPosition? = null
+private set
 
-    // Global coordinates, i.e. relative to the top-left corner of the full buffer
-    private TerminalPosition cursorPosition;
+ // Used when switching back from private mode, to restore the earlier cursor position
+    private var savedCursorPosition:TerminalPosition? = null
 
-    // Used when switching back from private mode, to restore the earlier cursor position
-    private TerminalPosition savedCursorPosition;
-
-
-    /**
-     * Creates a new virtual terminal with an initial size set
-     */
-    public DefaultVirtualTerminal() {
-        this(new TerminalSize(80, 24));
-    }
-
-    /**
-     * Creates a new virtual terminal with an initial size set
-     * @param initialTerminalSize Starting size of the virtual terminal
-     */
-    public DefaultVirtualTerminal(TerminalSize initialTerminalSize) {
-        this.regularTextBuffer = new TextBuffer();
-        this.privateModeTextBuffer = new TextBuffer();
-        this.dirtyTerminalCells = new TreeSet<>();
-        this.listeners = new ArrayList<>();
-
-        // Terminal state
-        this.inputQueue = new LinkedBlockingQueue<>();
-        this.activeModifiers = EnumSet.noneOf(SGR.class);
-        this.activeForegroundColor = TextColor.ANSI.DEFAULT;
-        this.activeBackgroundColor = TextColor.ANSI.DEFAULT;
-
-        // Start with regular mode
-        this.currentTextBuffer = regularTextBuffer;
-        this.wholeBufferDirty = false;
-        this.terminalSize = initialTerminalSize;
-        this.cursorVisible = true;
-        this.cursorPosition = TerminalPosition.TOP_LEFT_CORNER;
-        this.savedCursorPosition = TerminalPosition.TOP_LEFT_CORNER;
-        this.backlogSize = 1000;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Terminal interface methods (and related)
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    @Override
-    public synchronized TerminalSize getTerminalSize() {
-        return terminalSize;
-    }
-
-    @Override
-    public synchronized void setTerminalSize(TerminalSize newSize) {
-        this.terminalSize = newSize;
-        trimBufferBacklog();
-        correctCursor();
-        for(VirtualTerminalListener listener: listeners) {
-            listener.onResized(this, terminalSize);
-        }
-        super.onResized(newSize.getColumns(), newSize.getRows());
-    }
-
-    @Override
-    public synchronized void enterPrivateMode() {
-        currentTextBuffer = privateModeTextBuffer;
-        savedCursorPosition = getCursorBufferPosition();
-        setCursorPosition(TerminalPosition.TOP_LEFT_CORNER);
-        setWholeBufferDirty();
-    }
-
-    @Override
-    public synchronized void exitPrivateMode() {
-        currentTextBuffer = regularTextBuffer;
-        cursorPosition = savedCursorPosition;
-        setWholeBufferDirty();
-    }
-
-    @Override
-    public synchronized void clearScreen() {
-        currentTextBuffer.clear();
-        setWholeBufferDirty();
-        setCursorPosition(TerminalPosition.TOP_LEFT_CORNER);
-    }
-
-    @Override
-    public synchronized void setCursorPosition(int x, int y) {
-        setCursorPosition(cursorPosition.withColumn(x).withRow(y));
-    }
-
-    @Override
-    public synchronized void setCursorPosition(TerminalPosition cursorPosition) {
-        if(terminalSize.getRows() < getBufferLineCount()) {
-            cursorPosition = cursorPosition.withRelativeRow(getBufferLineCount() - terminalSize.getRows());
-        }
-        this.cursorPosition = cursorPosition;
-        correctCursor();
-    }
-
-    @Override
-    public synchronized TerminalPosition getCursorPosition() {
-        if(getBufferLineCount() <= terminalSize.getRows()) {
-            return getCursorBufferPosition();
-        }
-        else {
-            return cursorPosition.withRelativeRow(-(getBufferLineCount() - terminalSize.getRows()));
-        }
-    }
-
-    @Override
-    public synchronized TerminalPosition getCursorBufferPosition() {
-        return cursorPosition;
-    }
-
-    @Override
-    public synchronized void setCursorVisible(boolean visible) {
-        this.cursorVisible = visible;
-    }
-
-    @Override
-    public synchronized void putCharacter(char c)  {
-        if(c == '\n') {
-            moveCursorToNextLine();
-        }
-        else if(TerminalTextUtils.isPrintableCharacter(c)) {
-            putCharacter(new TextCharacter(c, activeForegroundColor, activeBackgroundColor, activeModifiers));
-        }
-    }
-
-    @Override
-    public synchronized void putString(String string) {
-        for (TextCharacter textCharacter: TextCharacter.fromString(string, activeForegroundColor, activeBackgroundColor, activeModifiers)) {
-            putCharacter(textCharacter);
-        }
-    }
-
-    @Override
-    public synchronized void enableSGR(SGR sgr) {
-        activeModifiers.add(sgr);
-    }
-
-    @Override
-    public synchronized void disableSGR(SGR sgr) {
-        activeModifiers.remove(sgr);
-    }
-
-    @Override
-    public synchronized void resetColorAndSGR() {
-        this.activeModifiers.clear();
-        this.activeForegroundColor = TextColor.ANSI.DEFAULT;
-        this.activeBackgroundColor = TextColor.ANSI.DEFAULT;
-    }
-
-    @Override
-    public synchronized void setForegroundColor(TextColor color) {
-        this.activeForegroundColor = color;
-    }
-
-    @Override
-    public synchronized void setBackgroundColor(TextColor color) {
-        this.activeBackgroundColor = color;
-    }
-
-    @Override
-    public synchronized byte[] enquireTerminal(int timeout, TimeUnit timeoutUnit) {
-        return getClass().getName().getBytes();
-    }
-
-    @Override
-    public synchronized void bell() {
-        for(VirtualTerminalListener listener: listeners) {
-            listener.onBell();
-        }
-    }
-
-    @Override
-    public synchronized void flush() {
-        for(VirtualTerminalListener listener: listeners) {
-            listener.onFlush();
-        }
-    }
-
-    @Override
-    public void close() {
-        for(VirtualTerminalListener listener: listeners) {
-            listener.onClose();
-        }
-    }
-
-    @Override
-    public synchronized KeyStroke pollInput() {
-        return inputQueue.poll();
-    }
-
-    @Override
-    public synchronized KeyStroke readInput() {
-        try {
-            return inputQueue.take();
-        }
-        catch(InterruptedException e) {
-            throw new RuntimeException("Unexpected interrupt", e);
-        }
-    }
-
-    @Override
-    public TextGraphics newTextGraphics() {
-        return new VirtualTerminalTextGraphics(this);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // VirtualTerminal specific methods
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public synchronized void addVirtualTerminalListener(VirtualTerminalListener listener) {
-        if(listener != null) {
-            listeners.add(listener);
-        }
-    }
-
-    @Override
-    public synchronized void removeVirtualTerminalListener(VirtualTerminalListener listener) {
-        listeners.remove(listener);
-    }
-
-    @Override
-    public synchronized void setBacklogSize(int backlogSize) {
-        this.backlogSize = backlogSize;
-    }
-
-    @Override
-    public synchronized boolean isCursorVisible() {
-        return cursorVisible;
-    }
-
-    @Override
-    public void addInput(KeyStroke keyStroke) {
-        inputQueue.add(keyStroke);
-    }
-
-    public synchronized TreeSet<TerminalPosition> getDirtyCells() {
-        return new TreeSet<>(dirtyTerminalCells);
-    }
-
-    public synchronized TreeSet<TerminalPosition> getAndResetDirtyCells() {
-        TreeSet<TerminalPosition> copy = new TreeSet<>(dirtyTerminalCells);
-        dirtyTerminalCells.clear();
-        return copy;
-    }
-
-    public synchronized boolean isWholeBufferDirtyThenReset() {
-        boolean copy = wholeBufferDirty;
-        wholeBufferDirty = false;
-        return copy;
-    }
-
-    @Override
-    public synchronized TextCharacter getCharacter(TerminalPosition position) {
-        return getCharacter(position.getColumn(), position.getRow());
-    }
-
-    @Override
-    public synchronized TextCharacter getCharacter(int column, int row) {
-        if(terminalSize.getRows() < currentTextBuffer.getLineCount()) {
-            row += currentTextBuffer.getLineCount() - terminalSize.getRows();
-        }
-        return getBufferCharacter(column, row);
-    }
-
-    @Override
-    public TextCharacter getBufferCharacter(int column, int row) {
-        return currentTextBuffer.getCharacter(row, column);
-    }
-
-    @Override
-    public TextCharacter getBufferCharacter(TerminalPosition position) {
-        return getBufferCharacter(position.getColumn(), position.getRow());
-    }
-
-    @Override
-    public synchronized int getBufferLineCount() {
-        return currentTextBuffer.getLineCount();
-    }
-
-    @Override
-    public synchronized void forEachLine(int startRow, int endRow, BufferWalker bufferWalker) {
-        final BufferLine emptyLine = column -> TextCharacter.DEFAULT_CHARACTER;
-        ListIterator<List<TextCharacter>> iterator = currentTextBuffer.getLinesFrom(startRow);
-        for(int row = startRow; row <= endRow; row++) {
-            BufferLine bufferLine = emptyLine;
-            if(iterator.hasNext()) {
-                final List<TextCharacter> list = iterator.next();
-                bufferLine = column -> {
-                    if(column >= list.size()) {
-                        return TextCharacter.DEFAULT_CHARACTER;
-                    }
-                    return list.get(column);
-                };
-            }
-            bufferWalker.onLine(row, bufferLine);
-        }
-    }
-
-    synchronized void putCharacter(TextCharacter terminalCharacter) {
-        if(terminalCharacter.is('\t')) {
-            int nrOfSpaces = TabBehaviour.ALIGN_TO_COLUMN_4.getTabReplacement(cursorPosition.getColumn()).length();
-            for(int i = 0; i < nrOfSpaces && cursorPosition.getColumn() < terminalSize.getColumns() - 1; i++) {
-                putCharacter(terminalCharacter.withCharacter(' '));
-            }
-        }
-        else {
-            boolean doubleWidth = terminalCharacter.isDoubleWidth();
-            // If we're at the last column and the user tries to print a double-width character, reset the cell and move
-            // to the next line
-            if(cursorPosition.getColumn() == terminalSize.getColumns() - 1 && doubleWidth) {
-                currentTextBuffer.setCharacter(cursorPosition.getRow(), cursorPosition.getColumn(), TextCharacter.DEFAULT_CHARACTER);
-                moveCursorToNextLine();
-            }
-            if(cursorPosition.getColumn() == terminalSize.getColumns()) {
-                moveCursorToNextLine();
-            }
-
-            // Update the buffer
-            int i = currentTextBuffer.setCharacter(cursorPosition.getRow(), cursorPosition.getColumn(), terminalCharacter);
-            if(!wholeBufferDirty) {
-                dirtyTerminalCells.add(new TerminalPosition(cursorPosition.getColumn(), cursorPosition.getRow()));
-                if(i == 1) {
-                    dirtyTerminalCells.add(new TerminalPosition(cursorPosition.getColumn() + 1, cursorPosition.getRow()));
-                }
-                else if(i == 2) {
-                    dirtyTerminalCells.add(new TerminalPosition(cursorPosition.getColumn() - 1, cursorPosition.getRow()));
-                }
-                if(dirtyTerminalCells.size() > (terminalSize.getColumns() * terminalSize.getRows() * 0.9)) {
-                    setWholeBufferDirty();
-                }
-            }
-
-            //Advance cursor
-            cursorPosition = cursorPosition.withRelativeColumn(doubleWidth ? 2 : 1);
-            if(cursorPosition.getColumn() > terminalSize.getColumns()) {
-                moveCursorToNextLine();
-            }
-        }
-    }
-
-    /**
-     * Moves the text cursor to the first column of the next line and trims the backlog of necessary
-     */
-    private void moveCursorToNextLine() {
-        cursorPosition = cursorPosition.withColumn(0).withRelativeRow(1);
-        if(cursorPosition.getRow() >= currentTextBuffer.getLineCount()) {
-            currentTextBuffer.newLine();
-        }
-        trimBufferBacklog();
-        correctCursor();
-    }
-
-    /**
-     * Marks the whole buffer as dirty so every cell is considered in need to repainting. This is used by methods such
-     * as clear and bell that will affect all content at once.
-     */
-    private void setWholeBufferDirty() {
-        wholeBufferDirty = true;
-        dirtyTerminalCells.clear();
-    }
-
-    private void trimBufferBacklog() {
-        // Now see if we need to discard lines from the backlog
-        int bufferBacklogSize = backlogSize;
-        if(currentTextBuffer == privateModeTextBuffer) {
-            bufferBacklogSize = 0;
-        }
-        int trimBacklogRows = currentTextBuffer.getLineCount() - (bufferBacklogSize + terminalSize.getRows());
-        if(trimBacklogRows > 0) {
-            currentTextBuffer.removeTopLines(trimBacklogRows);
-            // Adjust cursor position
-            cursorPosition = cursorPosition.withRelativeRow(-trimBacklogRows);
-            correctCursor();
-            if(!wholeBufferDirty) {
-                // Adjust all "dirty" positions
-                TreeSet<TerminalPosition> newDirtySet = new TreeSet<>();
-                for(TerminalPosition dirtyPosition: dirtyTerminalCells) {
-                    TerminalPosition adjustedPosition = dirtyPosition.withRelativeRow(-trimBacklogRows);
-                    if(adjustedPosition.getRow() >= 0) {
-                        newDirtySet.add(adjustedPosition);
-                    }
-                }
-                dirtyTerminalCells.clear();
-                dirtyTerminalCells.addAll(newDirtySet);
-            }
-        }
-    }
-
-    private void correctCursor() {
-        this.cursorPosition = cursorPosition.withColumn(Math.min(cursorPosition.getColumn(), terminalSize.getColumns() - 1));
-        this.cursorPosition = cursorPosition.withRow(Math.min(cursorPosition.getRow(), Math.max(terminalSize.getRows(), getBufferLineCount()) - 1));
-        this.cursorPosition =
-                new TerminalPosition(
-                        Math.max(cursorPosition.getColumn(), 0),
-                        Math.max(cursorPosition.getRow(), 0));
-    }
-
-    @Override
-    public String toString() {
-        return currentTextBuffer.toString();
-    }
+ var cursorPosition:TerminalPosition?
+@Override
+@Synchronized get() {
+if (bufferLineCount <= terminalSize!!.rows)
+{
+return cursorBufferPosition
 }
+else
+{
+return cursorBufferPosition!!.withRelativeRow(-(bufferLineCount - terminalSize!!.rows))
+}
+}
+@Override
+@Synchronized set(cursorPosition) {
+var cursorPosition = cursorPosition
+if (terminalSize!!.rows < bufferLineCount)
+{
+cursorPosition = cursorPosition!!.withRelativeRow(bufferLineCount - terminalSize!!.rows)
+}
+this.cursorBufferPosition = cursorPosition
+correctCursor()
+}
+
+ val dirtyCells:TreeSet<TerminalPosition?>?
+@Synchronized get() {
+return TreeSet(dirtyTerminalCells)
+}
+
+ val andResetDirtyCells:TreeSet<TerminalPosition?>?
+@Synchronized get() {
+val copy = TreeSet(dirtyTerminalCells)
+dirtyTerminalCells!!.clear()
+return copy
+}
+
+ val isWholeBufferDirtyThenReset:Boolean
+@Synchronized get() {
+val copy = wholeBufferDirty
+wholeBufferDirty = false
+return copy
+}
+
+ val bufferLineCount:Int
+@Override
+@Synchronized get() {
+return currentTextBuffer!!.getLineCount()
+}
+
+init{
+this.regularTextBuffer = TextBuffer()
+this.privateModeTextBuffer = TextBuffer()
+this.dirtyTerminalCells = TreeSet()
+this.listeners = ArrayList()
+
+ // Terminal state
+        this.inputQueue = LinkedBlockingQueue()
+this.activeModifiers = EnumSet.noneOf(SGR::class.java)
+this.activeForegroundColor = TextColor.ANSI.DEFAULT
+this.activeBackgroundColor = TextColor.ANSI.DEFAULT
+
+ // Start with regular mode
+        this.currentTextBuffer = regularTextBuffer
+this.wholeBufferDirty = false
+this.isCursorVisible = true
+this.cursorBufferPosition = TerminalPosition.TOP_LEFT_CORNER
+this.savedCursorPosition = TerminalPosition.TOP_LEFT_CORNER
+this.backlogSize = 1000
+}
+
+/**///////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
+    // Terminal interface methods (and related)
+    /**///////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
+    @Override
+@Synchronized  fun getTerminalSize():TerminalSize? {
+return terminalSize
+}
+
+@Override
+@Synchronized  fun setTerminalSize(newSize:TerminalSize?) {
+this.terminalSize = newSize
+trimBufferBacklog()
+correctCursor()
+for (listener in listeners!!)
+{
+listener!!.onResized(this, terminalSize)
+}
+super.onResized(newSize!!.columns, newSize!!.rows)
+}
+
+@Override
+@Synchronized @JvmStatic  fun enterPrivateMode() {
+currentTextBuffer = privateModeTextBuffer
+savedCursorPosition = cursorBufferPosition
+cursorPosition = TerminalPosition.TOP_LEFT_CORNER
+setWholeBufferDirty()
+}
+
+@Override
+@Synchronized @JvmStatic  fun exitPrivateMode() {
+currentTextBuffer = regularTextBuffer
+cursorBufferPosition = savedCursorPosition
+setWholeBufferDirty()
+}
+
+@Override
+@Synchronized @JvmStatic  fun clearScreen() {
+currentTextBuffer!!.clear()
+setWholeBufferDirty()
+cursorPosition = TerminalPosition.TOP_LEFT_CORNER
+}
+
+@Override
+@Synchronized  fun setCursorPosition(x:Int, y:Int) {
+cursorPosition = cursorBufferPosition!!.withColumn(x)!!.withRow(y)
+}
+
+@Override
+@Synchronized  fun putCharacter(c:Char) {
+if (c == '\n')
+{
+moveCursorToNextLine()
+}
+else if (TerminalTextUtils.isPrintableCharacter(c))
+{
+putCharacter(TextCharacter(c, activeForegroundColor, activeBackgroundColor, activeModifiers))
+}
+}
+
+@Override
+@Synchronized  fun putString(string:String?) {
+for (textCharacter in TextCharacter.fromString(string, activeForegroundColor, activeBackgroundColor, activeModifiers))
+{
+putCharacter(textCharacter!!)
+}
+}
+
+@Override
+@Synchronized  fun enableSGR(sgr:SGR?) {
+activeModifiers!!.add(sgr)
+}
+
+@Override
+@Synchronized  fun disableSGR(sgr:SGR?) {
+activeModifiers!!.remove(sgr)
+}
+
+@Override
+@Synchronized @JvmStatic  fun resetColorAndSGR() {
+this.activeModifiers!!.clear()
+this.activeForegroundColor = TextColor.ANSI.DEFAULT
+this.activeBackgroundColor = TextColor.ANSI.DEFAULT
+}
+
+@Override
+@Synchronized  fun setForegroundColor(color:TextColor?) {
+this.activeForegroundColor = color
+}
+
+@Override
+@Synchronized  fun setBackgroundColor(color:TextColor?) {
+this.activeBackgroundColor = color
+}
+
+@Override
+@Synchronized  fun enquireTerminal(timeout:Int, timeoutUnit:TimeUnit?):ByteArray? {
+return getClass().getName().getBytes()
+}
+
+@Override
+@Synchronized @JvmStatic  fun bell() {
+for (listener in listeners!!)
+{
+listener!!.onBell()
+}
+}
+
+@Override
+@Synchronized @JvmStatic  fun flush() {
+for (listener in listeners!!)
+{
+listener!!.onFlush()
+}
+}
+
+@Override
+@JvmStatic  fun close() {
+for (listener in listeners!!)
+{
+listener!!.onClose()
+}
+}
+
+@Override
+@Synchronized  fun pollInput():KeyStroke? {
+return inputQueue!!.poll()
+}
+
+@Override
+@Synchronized  fun readInput():KeyStroke? {
+try
+{
+return inputQueue!!.take()
+}
+catch (e:InterruptedException) {
+throw RuntimeException("Unexpected interrupt", e)
+}
+
+}
+
+@Override
+ fun newTextGraphics():TextGraphics? {
+return VirtualTerminalTextGraphics(this)
+}
+
+/**///////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
+    // VirtualTerminal specific methods
+    /**///////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
+
+    @Override
+@Synchronized  fun addVirtualTerminalListener(listener:VirtualTerminalListener?) {
+if (listener != null)
+{
+listeners!!.add(listener)
+}
+}
+
+@Override
+@Synchronized  fun removeVirtualTerminalListener(listener:VirtualTerminalListener?) {
+listeners!!.remove(listener)
+}
+
+@Override
+@Synchronized  fun setBacklogSize(backlogSize:Int) {
+this.backlogSize = backlogSize
+}
+
+@Override
+ fun addInput(keyStroke:KeyStroke?) {
+inputQueue!!.add(keyStroke)
+}
+
+@Override
+@Synchronized  fun getCharacter(position:TerminalPosition):TextCharacter? {
+return getCharacter(position.column, position.row)
+}
+
+@Override
+@Synchronized  fun getCharacter(column:Int, row:Int):TextCharacter? {
+var row = row
+if (terminalSize!!.rows < currentTextBuffer!!.getLineCount())
+{
+row += currentTextBuffer!!.getLineCount() - terminalSize!!.rows
+}
+return getBufferCharacter(column, row)
+}
+
+@Override
+ fun getBufferCharacter(column:Int, row:Int):TextCharacter? {
+return currentTextBuffer!!.getCharacter(row, column)
+}
+
+@Override
+ fun getBufferCharacter(position:TerminalPosition):TextCharacter? {
+return getBufferCharacter(position.column, position.row)
+}
+
+@Override
+@Synchronized  fun forEachLine(startRow:Int, endRow:Int, bufferWalker:BufferWalker?) {
+val emptyLine = { column-> TextCharacter.DEFAULT_CHARACTER }
+val iterator = currentTextBuffer!!.getLinesFrom(startRow)
+for (row in startRow..endRow)
+{
+var bufferLine = emptyLine
+if (iterator!!.hasNext())
+{
+val list = iterator!!.next()
+bufferLine = { column->
+if (column >= list!!.size())
+{
+return TextCharacter.DEFAULT_CHARACTER
+}
+list!!.get(column) }
+}
+bufferWalker!!.onLine(row, bufferLine)
+}
+}
+
+@Synchronized internal fun putCharacter(terminalCharacter:TextCharacter) {
+if (terminalCharacter.`is`('\t'))
+{
+val nrOfSpaces = TabBehaviour.ALIGN_TO_COLUMN_4.getTabReplacement(cursorBufferPosition!!.column).length()
+var i = 0
+while (i < nrOfSpaces && cursorBufferPosition!!.column < terminalSize!!.columns - 1)
+{
+putCharacter(terminalCharacter.withCharacter(' '))
+i++
+}
+}
+else
+{
+val doubleWidth = terminalCharacter.isDoubleWidth()
+ // If we're at the last column and the user tries to print a double-width character, reset the cell and move
+            // to the next line
+            if (cursorBufferPosition!!.column == terminalSize!!.columns - 1 && doubleWidth)
+{
+currentTextBuffer!!.setCharacter(cursorBufferPosition!!.row, cursorBufferPosition!!.column, TextCharacter.DEFAULT_CHARACTER)
+moveCursorToNextLine()
+}
+if (cursorBufferPosition!!.column == terminalSize!!.columns)
+{
+moveCursorToNextLine()
+}
+
+ // Update the buffer
+            val i = currentTextBuffer!!.setCharacter(cursorBufferPosition!!.row, cursorBufferPosition!!.column, terminalCharacter)
+if (!wholeBufferDirty)
+{
+dirtyTerminalCells!!.add(TerminalPosition(cursorBufferPosition!!.column, cursorBufferPosition!!.row))
+if (i == 1)
+{
+dirtyTerminalCells!!.add(TerminalPosition(cursorBufferPosition!!.column + 1, cursorBufferPosition!!.row))
+}
+else if (i == 2)
+{
+dirtyTerminalCells!!.add(TerminalPosition(cursorBufferPosition!!.column - 1, cursorBufferPosition!!.row))
+}
+if (dirtyTerminalCells!!.size() > (terminalSize!!.columns.toDouble() * terminalSize!!.rows.toDouble() * 0.9))
+{
+setWholeBufferDirty()
+}
+}
+
+ //Advance cursor
+            cursorBufferPosition = cursorBufferPosition!!.withRelativeColumn(if (doubleWidth) 2 else 1)
+if (cursorBufferPosition!!.column > terminalSize!!.columns)
+{
+moveCursorToNextLine()
+}
+}
+}
+
+/**
+ * Moves the text cursor to the first column of the next line and trims the backlog of necessary
+ */
+    private fun moveCursorToNextLine() {
+cursorBufferPosition = cursorBufferPosition!!.withColumn(0)!!.withRelativeRow(1)
+if (cursorBufferPosition!!.row >= currentTextBuffer!!.getLineCount())
+{
+currentTextBuffer!!.newLine()
+}
+trimBufferBacklog()
+correctCursor()
+}
+
+/**
+ * Marks the whole buffer as dirty so every cell is considered in need to repainting. This is used by methods such
+ * as clear and bell that will affect all content at once.
+ */
+    private fun setWholeBufferDirty() {
+wholeBufferDirty = true
+dirtyTerminalCells!!.clear()
+}
+
+private fun trimBufferBacklog() {
+ // Now see if we need to discard lines from the backlog
+        var bufferBacklogSize = backlogSize
+if (currentTextBuffer === privateModeTextBuffer)
+{
+bufferBacklogSize = 0
+}
+val trimBacklogRows = currentTextBuffer!!.getLineCount() - (bufferBacklogSize + terminalSize!!.rows)
+if (trimBacklogRows > 0)
+{
+currentTextBuffer!!.removeTopLines(trimBacklogRows)
+ // Adjust cursor position
+            cursorBufferPosition = cursorBufferPosition!!.withRelativeRow(-trimBacklogRows)
+correctCursor()
+if (!wholeBufferDirty)
+{
+ // Adjust all "dirty" positions
+                val newDirtySet = TreeSet()
+for (dirtyPosition in dirtyTerminalCells!!)
+{
+val adjustedPosition = dirtyPosition!!.withRelativeRow(-trimBacklogRows)
+if (adjustedPosition!!.row >= 0)
+{
+newDirtySet.add(adjustedPosition)
+}
+}
+dirtyTerminalCells!!.clear()
+dirtyTerminalCells!!.addAll(newDirtySet)
+}
+}
+}
+
+private fun correctCursor() {
+this.cursorBufferPosition = cursorBufferPosition!!.withColumn(Math.min(cursorBufferPosition!!.column, terminalSize!!.columns - 1))
+this.cursorBufferPosition = cursorBufferPosition!!.withRow(Math.min(cursorBufferPosition!!.row, Math.max(terminalSize!!.rows, bufferLineCount) - 1))
+this.cursorBufferPosition = TerminalPosition(
+Math.max(cursorBufferPosition!!.column, 0), 
+Math.max(cursorBufferPosition!!.row, 0))
+}
+
+@Override
+ fun toString():String? {
+return currentTextBuffer!!.toString()
+}
+}/**
+ * Creates a new virtual terminal with an initial size set
+ */

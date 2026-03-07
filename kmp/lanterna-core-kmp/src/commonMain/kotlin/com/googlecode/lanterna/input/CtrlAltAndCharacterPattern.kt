@@ -16,46 +16,51 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.input;
-
-import java.util.List;
+package com.googlecode.lanterna.input
 
 /**
  * Character pattern that matches characters pressed while ALT and CTRL keys are held down
  * 
  * @author Martin, Andreas
  */
-public class CtrlAltAndCharacterPattern implements CharacterPattern {
+ class CtrlAltAndCharacterPattern:CharacterPattern {
 
-    @Override
-    public Matching match(List<Character> seq) {
-        int size = seq.size();
-        if (size > 2 || seq.get(0) != KeyDecodingProfile.ESC_CODE) {
-            return null; // nope
-        }
-        if (size == 1) {
-            return Matching.NOT_YET; // maybe later
-        }
-        char ch = seq.get(1);
-        if (ch < 32 && ch != 0x08) {
-            // Control-chars: exclude Esc(^[), but still include ^\, ^], ^^ and ^_
-            char ctrlCode;
-            switch (ch) {
-            case KeyDecodingProfile.ESC_CODE: return null; // nope
-            case 0:  /* ^@ */ ctrlCode = ' '; break;
-            case 28: /* ^\ */ ctrlCode = '\\'; break;
-            case 29: /* ^] */ ctrlCode = ']'; break;
-            case 30: /* ^^ */ ctrlCode = '^'; break;
-            case 31: /* ^_ */ ctrlCode = '_'; break;
-            default: ctrlCode = (char)('a' - 1 + ch);
-            }
-            KeyStroke ks = new KeyStroke( ctrlCode, true, true);
-            return new Matching( ks ); // yep
-        } else if (ch == 0x7f || ch == 0x08) {
-            KeyStroke ks = new KeyStroke( KeyType.BACKSPACE, false, true);
-            return new Matching( ks ); // yep
-        } else {
-            return null; // nope
-        }
-    }
+@Override
+ fun match(seq:List<Character?>):Matching? {
+val size = seq.size()
+if (size > 2 || seq.get(0) !== KeyDecodingProfile.ESC_CODE)
+{
+return null // nope
+}
+if (size == 1)
+{
+return Matching.NOT_YET // maybe later
+}
+val ch = seq.get(1)
+if (ch.toInt() < 32 && ch.toInt() != 0x08)
+{
+ // Control-chars: exclude Esc(^[), but still include ^\, ^], ^^ and ^_
+            val ctrlCode:Char
+when (ch) {
+KeyDecodingProfile.ESC_CODE -> return null // nope
+0  /* ^@ */ -> ctrlCode = ' '
+28 /* ^\ */ -> ctrlCode = '\\'
+29 /* ^] */ -> ctrlCode = ']'
+30 /* ^^ */ -> ctrlCode = '^'
+31 /* ^_ */ -> ctrlCode = '_'
+else -> ctrlCode = ('a'.toInt() - 1 + ch.toInt()).toChar()
+}
+val ks = KeyStroke(ctrlCode, true, true)
+return Matching(ks) // yep
+}
+else if (ch.toInt() == 0x7f || ch.toInt() == 0x08)
+{
+val ks = KeyStroke(KeyType.BACKSPACE, false, true)
+return Matching(ks) // yep
+}
+else
+{
+return null // nope
+}
+}
 }

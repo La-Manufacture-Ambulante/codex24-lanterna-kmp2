@@ -16,65 +16,66 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeUnit
 
 /**
  * Extended interface of TextGUIThread for implementations that uses a separate thread for all GUI event processing and
  * updating.
- *
+ * 
  * @author Martin
  */
-public interface AsynchronousTextGUIThread extends TextGUIThread {
-    /**
-     * Starts the AsynchronousTextGUIThread, typically meaning that the event processing loop will start.
-     */
-    void start();
+ interface AsynchronousTextGUIThread:TextGUIThread {
 
-    /**
-     * Requests that the AsynchronousTextGUIThread stops, typically meaning that the event processing loop will exit
-     */
-    void stop();
+/**
+ * Returns the current status of this GUI thread
+ * @return Current status of the GUI thread
+ */
+     val state:State?
+/**
+ * Starts the AsynchronousTextGUIThread, typically meaning that the event processing loop will start.
+ */
+    @JvmStatic  fun start() 
 
-    /**
-     * Blocks until the GUI loop has stopped
-     * @throws InterruptedException In case this thread was interrupted while waiting for the GUI thread to exit
-     */
-    void waitForStop() throws InterruptedException;
+/**
+ * Requests that the AsynchronousTextGUIThread stops, typically meaning that the event processing loop will exit
+ */
+    @JvmStatic  fun stop() 
 
-    /**
-     * Blocks until the GUI loop has stopped
-     * @throws InterruptedException In case this thread was interrupted while waiting for the GUI thread to exit
-     */
-    void waitForStop(long time, TimeUnit unit) throws InterruptedException;
+/**
+ * Blocks until the GUI loop has stopped
+ * @throws InterruptedException In case this thread was interrupted while waiting for the GUI thread to exit
+ */
+    @Throws(InterruptedException::class)
+@JvmStatic  fun waitForStop() 
 
-    /**
-     * Returns the current status of this GUI thread
-     * @return Current status of the GUI thread
-     */
-    State getState();
+/**
+ * Blocks until the GUI loop has stopped
+ * @throws InterruptedException In case this thread was interrupted while waiting for the GUI thread to exit
+ */
+    @Throws(InterruptedException::class)
+ fun waitForStop(time:Long, unit:TimeUnit?) 
 
-    /**
-     * Enum representing the states of the GUI thread life-cycle
-     */
-    enum State {
-        /**
-         * The instance has been created but not yet started
-         */
-        CREATED,
-        /**
-         * The thread has started an is running
-         */
-        STARTED,
-        /**
-         * The thread is trying to stop but is still running
-         */
-        STOPPING,
-        /**
-         * The thread has stopped
-         */
-        STOPPED,
-        ;
-    }
+/**
+ * Enum representing the states of the GUI thread life-cycle
+ */
+     enum class State {
+/**
+ * The instance has been created but not yet started
+ */
+        CREATED, 
+/**
+ * The thread has started an is running
+ */
+        STARTED, 
+/**
+ * The thread is trying to stop but is still running
+ */
+        STOPPING, 
+/**
+ * The thread has stopped
+ */
+        STOPPED
+}
 }

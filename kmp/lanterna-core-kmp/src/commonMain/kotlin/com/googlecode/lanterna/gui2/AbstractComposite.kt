@@ -16,155 +16,175 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.Collections
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.gui2.menu.MenuBar;
-import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.gui2.menu.MenuBar
+import com.googlecode.lanterna.input.KeyStroke
 
 /**
- * This abstract implementation contains common code for the different {@code Composite} implementations. A
- * {@code Composite} component is one that encapsulates a single component, like borders. Because of this, a
- * {@code Composite} can be seen as a special case of a {@code Container} and indeed this abstract class does in fact
- * implement the {@code Container} interface as well, to make the composites easier to work with internally.
+ * This abstract implementation contains common code for the different `Composite` implementations. A
+ * `Composite` component is one that encapsulates a single component, like borders. Because of this, a
+ * `Composite` can be seen as a special case of a `Container` and indeed this abstract class does in fact
+ * implement the `Container` interface as well, to make the composites easier to work with internally.
  * @author martin
- * @param <T> Should always be itself, see {@code AbstractComponent}
+ * @param <T> Should always be itself, see `AbstractComponent`
+</T> */
+abstract class AbstractComposite<T : Container?>:AbstractComponent<T?>(), Composite, Container {
+
+private var component:Component? = null
+
+ val childCount:Int
+@Override
+get() {
+return if (component != null) 1 else 0
+}
+
+ val childrenList:List<Component?>?
+@Override
+get() {
+if (component != null)
+{
+return Collections.singletonList(component)
+}
+else
+{
+return Collections.emptyList()
+}
+}
+
+ val children:Collection<Component?>?
+@Override
+get() {
+return childrenList
+}
+
+ val isInvalid:Boolean
+@Override
+get() {
+return component != null && component!!.isInvalid()
+}
+/**
+ * Default constructor
  */
-public abstract class AbstractComposite<T extends Container> extends AbstractComponent<T> implements Composite, Container {
-    
-    private Component component;
+    init{
+component = null
+}
 
-    /**
-     * Default constructor
-     */
-    public AbstractComposite() {
-        component = null;
-    }
-    
-    @Override
-    public void setComponent(Component component) {
-        Component oldComponent = this.component;
-        if(oldComponent == component) {
-            return;
-        }
-        if(oldComponent != null) {
-            removeComponent(oldComponent);
-        }
-        if (component != null) {
-            this.component = component;
-            component.onAdded(this);
-            if (getBasePane() != null) {
-                MenuBar menuBar = getBasePane().getMenuBar();
-                if (menuBar == null || menuBar.isEmptyMenuBar()) {
-                    component.setPosition(TerminalPosition.TOP_LEFT_CORNER);
-                } else {
-                    component.setPosition(TerminalPosition.TOP_LEFT_CORNER.withRelativeRow(1));
-                }
-            }
-            invalidate();
-        }
-    }
+@Override
+ fun setComponent(component:Component?) {
+val oldComponent = this.component
+if (oldComponent === component)
+{
+return 
+}
+if (oldComponent != null)
+{
+removeComponent(oldComponent)
+}
+if (component != null)
+{
+this.component = component
+component!!.onAdded(this)
+if (getBasePane() != null)
+{
+val menuBar = getBasePane().getMenuBar()
+if (menuBar == null || menuBar!!.isEmptyMenuBar())
+{
+component!!.setPosition(TerminalPosition.TOP_LEFT_CORNER)
+}
+else
+{
+component!!.setPosition(TerminalPosition.TOP_LEFT_CORNER.withRelativeRow(1))
+}
+}
+invalidate()
+}
+}
 
-    @Override
-    public Component getComponent() {
-        return component;
-    }
+@Override
+ fun getComponent():Component? {
+return component
+}
 
-    @Override
-    public int getChildCount() {
-        return component != null ? 1 : 0;
-    }
+@Override
+ fun containsComponent(component:Component?):Boolean {
+return component != null && component!!.hasParent(this)
+}
 
-    @Override
-    public List<Component> getChildrenList() {
-        if(component != null) {
-            return Collections.singletonList(component);
-        }
-        else {
-            return Collections.emptyList();
-        }
-    }
+@Override
+ fun removeComponent(component:Component?):Boolean {
+if (this.component === component)
+{
+this.component = null
+component!!.onRemoved(this)
+invalidate()
+return true
+}
+return false
+}
 
-    @Override
-    public Collection<Component> getChildren() {
-        return getChildrenList();
-    }
+@Override
+@JvmStatic  fun invalidate() {
+super.invalidate()
 
-    @Override
-    public boolean containsComponent(Component component) {
-        return component != null && component.hasParent(this);
-    }
+ //Propagate
+        if (component != null)
+{
+component!!.invalidate()
+}
+}
 
-    @Override
-    public boolean removeComponent(Component component) {
-        if(this.component == component) {
-            this.component = null;
-            component.onRemoved(this);
-            invalidate();
-            return true;
-        }
-        return false;
-    }
+@Override
+ fun nextFocus(fromThis:Interactable?):Interactable? {
+if (fromThis == null && getComponent() is Interactable)
+{
+val interactable = getComponent() as Interactable?
+if (interactable!!.isEnabled())
+{
+return interactable
+}
+}
+else if (getComponent() is Container)
+{
+return (getComponent() as Container).nextFocus(fromThis)
+}
+return null
+}
 
-    @Override
-    public boolean isInvalid() {
-        return component != null && component.isInvalid();
-    }
+@Override
+ fun previousFocus(fromThis:Interactable?):Interactable? {
+if (fromThis == null && getComponent() is Interactable)
+{
+val interactable = getComponent() as Interactable?
+if (interactable!!.isEnabled())
+{
+return interactable
+}
+}
+else if (getComponent() is Container)
+{
+return (getComponent() as Container).previousFocus(fromThis)
+}
+return null
+}
 
-    @Override
-    public void invalidate() {
-        super.invalidate();
+@Override
+ fun handleInput(key:KeyStroke?):Boolean {
+return false
+}
 
-        //Propagate
-        if(component != null) {
-            component.invalidate();
-        }
-    }
-
-    @Override
-    public Interactable nextFocus(Interactable fromThis) {
-        if(fromThis == null && getComponent() instanceof Interactable) {
-            Interactable interactable = (Interactable) getComponent();
-            if(interactable.isEnabled()) {
-                return interactable;
-            }
-        }
-        else if(getComponent() instanceof Container) {
-            return ((Container)getComponent()).nextFocus(fromThis);
-        }
-        return null;
-    }
-
-    @Override
-    public Interactable previousFocus(Interactable fromThis) {
-        if(fromThis == null && getComponent() instanceof Interactable) {
-            Interactable interactable = (Interactable) getComponent();
-            if(interactable.isEnabled()) {
-                return interactable;
-            }
-        }
-        else if(getComponent() instanceof Container) {
-            return ((Container)getComponent()).previousFocus(fromThis);
-        }
-        return null;
-    }
-
-    @Override
-    public boolean handleInput(KeyStroke key) {
-        return false;
-    }
-
-    @Override
-    public void updateLookupMap(InteractableLookupMap interactableLookupMap) {
-        if(getComponent() instanceof Container) {
-            ((Container)getComponent()).updateLookupMap(interactableLookupMap);
-        }
-        else if(getComponent() instanceof Interactable) {
-            interactableLookupMap.add((Interactable)getComponent());
-        }
-    }
+@Override
+ fun updateLookupMap(interactableLookupMap:InteractableLookupMap?) {
+if (getComponent() is Container)
+{
+(getComponent() as Container).updateLookupMap(interactableLookupMap)
+}
+else if (getComponent() is Interactable)
+{
+interactableLookupMap!!.add(getComponent() as Interactable?)
+}
+}
 }

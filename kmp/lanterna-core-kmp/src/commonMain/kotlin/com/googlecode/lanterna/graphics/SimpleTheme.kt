@@ -16,400 +16,403 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.gui2.table.Table;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.gui2.table.Table
 
-import java.util.*;
+import java.util.*
 
 /**
- * Very basic implementation of {@link Theme} that allows you to quickly define a theme in code. It is a very simple
+ * Very basic implementation of [Theme] that allows you to quickly define a theme in code. It is a very simple
  * implementation that doesn't implement any intelligent fallback based on class hierarchy or package names. If a
  * particular class has not been defined with an explicit override, it will get the default theme style definition.
- *
+ * 
  * @author Martin
  */
-public class SimpleTheme implements Theme {
+ class SimpleTheme/**
+ * Creates a new [SimpleTheme] object that uses the supplied constructor arguments as the default style
+ * @param foreground Color to use as the foreground unless overridden
+ * @param background Color to use as the background unless overridden
+ * @param styles Extra SGR styles to apply unless overridden
+ */
+    (foreground:TextColor?, background:TextColor?, vararg styles:SGR?):Theme {
 
-    /**
-     * Helper method that will quickly setup a new theme with some sensible component overrides.
-     * @param activeIsBold Should focused components also use bold SGR style?
-     * @param baseForeground The base foreground color of the theme
-     * @param baseBackground The base background color of the theme
-     * @param editableForeground Foreground color for editable components, or editable areas of components
-     * @param editableBackground Background color for editable components, or editable areas of components
-     * @param selectedForeground Foreground color for the selection marker when a component has multiple selection states
-     * @param selectedBackground Background color for the selection marker when a component has multiple selection states
-     * @param guiBackground Background color of the GUI, if this theme is assigned to the {@link TextGUI}
-     * @return Assembled {@link SimpleTheme} using the parameters from above
-     */
-    public static SimpleTheme makeTheme(
-            boolean activeIsBold,
-            TextColor baseForeground,
-            TextColor baseBackground,
-            TextColor editableForeground,
-            TextColor editableBackground,
-            TextColor selectedForeground,
-            TextColor selectedBackground,
-            TextColor guiBackground) {
+@get:Override
+@get:Synchronized  val defaultDefinition:Definition?
+private val overrideDefinitions:Map<Class<*>?, Definition?>?
+private var windowPostRenderer:WindowPostRenderer? = null
+private var windowDecorationRenderer:WindowDecorationRenderer? = null
 
-        SGR[] activeStyle = activeIsBold ? new SGR[]{SGR.BOLD} : new SGR[0];
+init{
+this.defaultDefinition = Definition(DefaultMutableThemeStyle(foreground, background, styles))
+this.overrideDefinitions = HashMap()
+this.windowPostRenderer = null
+this.windowDecorationRenderer = null
+}
 
-        SimpleTheme theme = new SimpleTheme(baseForeground, baseBackground);
-        theme.getDefaultDefinition().setSelected(baseBackground, baseForeground, activeStyle);
-        theme.getDefaultDefinition().setActive(selectedForeground, selectedBackground, activeStyle);
+@Override
+@Synchronized  fun getDefinition(clazz:Class<*>?):Definition? {
+val definition = overrideDefinitions!!.get(clazz)
+if (definition == null)
+{
+return defaultDefinition
+}
+return definition
+}
 
-        theme.addOverride(AbstractBorder.class, baseForeground, baseBackground)
-                .setSelected(baseForeground, baseBackground, activeStyle);
-        theme.addOverride(AbstractListBox.class, baseForeground, baseBackground)
-                .setSelected(selectedForeground, selectedBackground, activeStyle);
-        theme.addOverride(Button.class, baseForeground, baseBackground)
-                .setActive(selectedForeground, selectedBackground, activeStyle)
-                .setSelected(selectedForeground, selectedBackground, activeStyle);
-        theme.addOverride(CheckBox.class, baseForeground, baseBackground)
-                .setActive(selectedForeground, selectedBackground, activeStyle)
-                .setPreLight(selectedForeground, selectedBackground, activeStyle)
-                .setSelected(selectedForeground, selectedBackground, activeStyle);
-        theme.addOverride(CheckBoxList.class, baseForeground, baseBackground)
-                .setActive(selectedForeground, selectedBackground, activeStyle);
-        theme.addOverride(ComboBox.class, baseForeground, baseBackground)
-                .setActive(editableForeground, editableBackground, activeStyle)
-                .setPreLight(editableForeground, editableBackground);
-        theme.addOverride(DefaultWindowDecorationRenderer.class, baseForeground, baseBackground)
-                .setActive(baseForeground, baseBackground, activeStyle);
-        theme.addOverride(GUIBackdrop.class, baseForeground, guiBackground);
-        theme.addOverride(RadioBoxList.class, baseForeground, baseBackground)
-                .setActive(selectedForeground, selectedBackground, activeStyle);
-        theme.addOverride(Table.class, baseForeground, baseBackground)
-                .setActive(editableForeground, editableBackground, activeStyle)
-                .setSelected(baseForeground, baseBackground);
-        theme.addOverride(TextBox.class, editableForeground, editableBackground)
-                .setActive(editableForeground, editableBackground, activeStyle)
-                .setSelected(editableForeground, editableBackground, activeStyle);
+/**
+ * Adds an override for a particular class, or overwrites a previously defined override.
+ * @param clazz Class to override the theme for
+ * @param foreground Color to use as the foreground color for this override style
+ * @param background Color to use as the background color for this override style
+ * @param styles SGR styles to apply for this override
+ * @return The newly created [Definition] that corresponds to this override.
+ */
+    @Synchronized  fun addOverride(clazz:Class<*>?, foreground:TextColor?, background:TextColor?, vararg styles:SGR?):Definition {
+val definition = Definition(DefaultMutableThemeStyle(foreground, background, styles))
+overrideDefinitions!!.put(clazz, definition)
+return definition
+}
 
-        theme.setWindowPostRenderer(new WindowShadowRenderer());
+@Override
+@Synchronized  fun getWindowPostRenderer():WindowPostRenderer? {
+return windowPostRenderer
+}
 
-        return theme;
-    }
+/**
+ * Changes the [WindowPostRenderer] this theme will return. If called with `null`, the theme returns no
+ * post renderer and the GUI system will use whatever is the default.
+ * @param windowPostRenderer Post-renderer to use along with this theme, or `null` to remove
+ * @return Itself
+ */
+    @Synchronized  fun setWindowPostRenderer(windowPostRenderer:WindowPostRenderer?):SimpleTheme {
+this.windowPostRenderer = windowPostRenderer
+return this
+}
 
-    private final Definition defaultDefinition;
-    private final Map<Class<?>, Definition> overrideDefinitions;
-    private WindowPostRenderer windowPostRenderer;
-    private WindowDecorationRenderer windowDecorationRenderer;
+@Override
+@Synchronized  fun getWindowDecorationRenderer():WindowDecorationRenderer? {
+return windowDecorationRenderer
+}
 
-    /**
-     * Creates a new {@link SimpleTheme} object that uses the supplied constructor arguments as the default style
-     * @param foreground Color to use as the foreground unless overridden
-     * @param background Color to use as the background unless overridden
-     * @param styles Extra SGR styles to apply unless overridden
-     */
-    public SimpleTheme(TextColor foreground, TextColor background, SGR... styles) {
-        this.defaultDefinition = new Definition(new DefaultMutableThemeStyle(foreground, background, styles));
-        this.overrideDefinitions = new HashMap<>();
-        this.windowPostRenderer = null;
-        this.windowDecorationRenderer = null;
-    }
+/**
+ * Changes the [WindowDecorationRenderer] this theme will return. If called with `null`, the theme
+ * returns no decoration renderer and the GUI system will use whatever is the default.
+ * @param windowDecorationRenderer Decoration renderer to use along with this theme, or `null` to remove
+ * @return Itself
+ */
+    @Synchronized  fun setWindowDecorationRenderer(windowDecorationRenderer:WindowDecorationRenderer?):SimpleTheme {
+this.windowDecorationRenderer = windowDecorationRenderer
+return this
+}
 
-    @Override
-    public synchronized Definition getDefaultDefinition() {
-        return defaultDefinition;
-    }
+ interface RendererProvider<T : Component?> {
+ fun getRenderer(type:Class<T?>?):ComponentRenderer<T?>? 
+}
 
-    @Override
-    public synchronized Definition getDefinition(Class<?> clazz) {
-        Definition definition = overrideDefinitions.get(clazz);
-        if(definition == null) {
-            return getDefaultDefinition();
-        }
-        return definition;
-    }
+/**
+ * Internal class inside [SimpleTheme] used to allow basic editing of the default style and the optional
+ * overrides.
+ */
+     class Definition private constructor(@get:Override
+@get:Synchronized  val normal:ThemeStyle?):ThemeDefinition {
+private var preLight:ThemeStyle? = null
+private var selected:ThemeStyle? = null
+private var active:ThemeStyle? = null
+private var insensitive:ThemeStyle? = null
+private val customStyles:Map<String?, ThemeStyle?>?
+private val properties:Properties?
+private val characterMap:Map<String?, Character?>?
+private val componentRendererMap:Map<Class<*>?, RendererProvider<*>?>?
+private var cursorVisible:Boolean = false
 
-    /**
-     * Adds an override for a particular class, or overwrites a previously defined override.
-     * @param clazz Class to override the theme for
-     * @param foreground Color to use as the foreground color for this override style
-     * @param background Color to use as the background color for this override style
-     * @param styles SGR styles to apply for this override
-     * @return The newly created {@link Definition} that corresponds to this override.
-     */
-    public synchronized Definition addOverride(Class<?> clazz, TextColor foreground, TextColor background, SGR... styles) {
-        Definition definition = new Definition(new DefaultMutableThemeStyle(foreground, background, styles));
-        overrideDefinitions.put(clazz, definition);
-        return definition;
-    }
+init{
+this.preLight = null
+this.selected = null
+this.active = null
+this.insensitive = null
+this.customStyles = HashMap()
+this.properties = Properties()
+this.characterMap = HashMap()
+this.componentRendererMap = HashMap()
+this.cursorVisible = true
+}
 
-    @Override
-    public synchronized WindowPostRenderer getWindowPostRenderer() {
-        return windowPostRenderer;
-    }
+@Override
+@Synchronized  fun getPreLight():ThemeStyle? {
+if (preLight == null)
+{
+return normal
+}
+return preLight
+}
 
-    /**
-     * Changes the {@link WindowPostRenderer} this theme will return. If called with {@code null}, the theme returns no
-     * post renderer and the GUI system will use whatever is the default.
-     * @param windowPostRenderer Post-renderer to use along with this theme, or {@code null} to remove
-     * @return Itself
-     */
-    public synchronized SimpleTheme setWindowPostRenderer(WindowPostRenderer windowPostRenderer) {
-        this.windowPostRenderer = windowPostRenderer;
-        return this;
-    }
+/**
+ * Sets the theme definition style "prelight"
+ * @param foreground Foreground color for this style
+ * @param background Background color for this style
+ * @param styles SGR styles to use
+ * @return Itself
+ */
+        @Synchronized  fun setPreLight(foreground:TextColor?, background:TextColor?, vararg styles:SGR?):Definition {
+this.preLight = DefaultMutableThemeStyle(foreground, background, styles)
+return this
+}
 
-    @Override
-    public synchronized WindowDecorationRenderer getWindowDecorationRenderer() {
-        return windowDecorationRenderer;
-    }
+@Override
+@Synchronized  fun getSelected():ThemeStyle? {
+if (selected == null)
+{
+return normal
+}
+return selected
+}
 
-    /**
-     * Changes the {@link WindowDecorationRenderer} this theme will return. If called with {@code null}, the theme
-     * returns no decoration renderer and the GUI system will use whatever is the default.
-     * @param windowDecorationRenderer Decoration renderer to use along with this theme, or {@code null} to remove
-     * @return Itself
-     */
-    public synchronized SimpleTheme setWindowDecorationRenderer(WindowDecorationRenderer windowDecorationRenderer) {
-        this.windowDecorationRenderer = windowDecorationRenderer;
-        return this;
-    }
+/**
+ * Sets the theme definition style "selected"
+ * @param foreground Foreground color for this style
+ * @param background Background color for this style
+ * @param styles SGR styles to use
+ * @return Itself
+ */
+        @Synchronized  fun setSelected(foreground:TextColor?, background:TextColor?, vararg styles:SGR?):Definition {
+this.selected = DefaultMutableThemeStyle(foreground, background, styles)
+return this
+}
 
-    public interface RendererProvider<T extends Component> {
-        ComponentRenderer<T> getRenderer(Class<T> type);
-    }
+@Override
+@Synchronized  fun getActive():ThemeStyle? {
+if (active == null)
+{
+return normal
+}
+return active
+}
 
-    /**
-     * Internal class inside {@link SimpleTheme} used to allow basic editing of the default style and the optional
-     * overrides.
-     */
-    public static class Definition implements ThemeDefinition {
-        private final ThemeStyle normal;
-        private ThemeStyle preLight;
-        private ThemeStyle selected;
-        private ThemeStyle active;
-        private ThemeStyle insensitive;
-        private final Map<String, ThemeStyle> customStyles;
-        private final Properties properties;
-        private final Map<String, Character> characterMap;
-        private final Map<Class<?>, RendererProvider<?>> componentRendererMap;
-        private boolean cursorVisible;
+/**
+ * Sets the theme definition style "active"
+ * @param foreground Foreground color for this style
+ * @param background Background color for this style
+ * @param styles SGR styles to use
+ * @return Itself
+ */
+        @Synchronized  fun setActive(foreground:TextColor?, background:TextColor?, vararg styles:SGR?):Definition {
+this.active = DefaultMutableThemeStyle(foreground, background, styles)
+return this
+}
 
-        private Definition(ThemeStyle normal) {
-            this.normal = normal;
-            this.preLight = null;
-            this.selected = null;
-            this.active = null;
-            this.insensitive = null;
-            this.customStyles = new HashMap<>();
-            this.properties = new Properties();
-            this.characterMap = new HashMap<>();
-            this.componentRendererMap = new HashMap<>();
-            this.cursorVisible = true;
-        }
+@Override
+@Synchronized  fun getInsensitive():ThemeStyle? {
+if (insensitive == null)
+{
+return normal
+}
+return insensitive
+}
 
-        @Override
-        public synchronized ThemeStyle getNormal() {
-            return normal;
-        }
+/**
+ * Sets the theme definition style "insensitive"
+ * @param foreground Foreground color for this style
+ * @param background Background color for this style
+ * @param styles SGR styles to use
+ * @return Itself
+ */
+        @Synchronized  fun setInsensitive(foreground:TextColor?, background:TextColor?, vararg styles:SGR?):Definition {
+this.insensitive = DefaultMutableThemeStyle(foreground, background, styles)
+return this
+}
 
-        @Override
-        public synchronized ThemeStyle getPreLight() {
-            if(preLight == null) {
-                return normal;
-            }
-            return preLight;
-        }
+@Override
+@Synchronized  fun getCustom(name:String?):ThemeStyle? {
+return customStyles!!.get(name)
+}
 
-        /**
-         * Sets the theme definition style "prelight"
-         * @param foreground Foreground color for this style
-         * @param background Background color for this style
-         * @param styles SGR styles to use
-         * @return Itself
-         */
-        public synchronized Definition setPreLight(TextColor foreground, TextColor background, SGR... styles) {
-            this.preLight = new DefaultMutableThemeStyle(foreground, background, styles);
-            return this;
-        }
+@Override
+@Synchronized  fun getCustom(name:String?, defaultValue:ThemeStyle?):ThemeStyle? {
+val themeStyle = customStyles!!.get(name)
+if (themeStyle == null)
+{
+return defaultValue
+}
+return themeStyle
+}
 
-        @Override
-        public synchronized ThemeStyle getSelected() {
-            if(selected == null) {
-                return normal;
-            }
-            return selected;
-        }
+/**
+ * Adds a custom definition style to the theme using the supplied name. This will be returned using the matching
+ * call to [Definition.getCustom].
+ * @param name Name of the custom style
+ * @param foreground Foreground color for this style
+ * @param background Background color for this style
+ * @param styles SGR styles to use
+ * @return Itself
+ */
+        @Synchronized  fun setCustom(name:String?, foreground:TextColor?, background:TextColor?, vararg styles:SGR?):Definition {
+customStyles!!.put(name, DefaultMutableThemeStyle(foreground, background, styles))
+return this
+}
 
-        /**
-         * Sets the theme definition style "selected"
-         * @param foreground Foreground color for this style
-         * @param background Background color for this style
-         * @param styles SGR styles to use
-         * @return Itself
-         */
-        public synchronized Definition setSelected(TextColor foreground, TextColor background, SGR... styles) {
-            this.selected = new DefaultMutableThemeStyle(foreground, background, styles);
-            return this;
-        }
+@Synchronized  fun getIntegerProperty(name:String?, defaultValue:Int):Int {
+return Integer.parseInt(properties!!.getProperty(name, Integer.toString(defaultValue)))
+}
 
-        @Override
-        public synchronized ThemeStyle getActive() {
-            if(active == null) {
-                return normal;
-            }
-            return active;
-        }
+@Synchronized  fun setIntegerProperty(name:String?, value:Int):Definition {
+properties!!.setProperty(name, Integer.toString(value))
+return this
+}
 
-        /**
-         * Sets the theme definition style "active"
-         * @param foreground Foreground color for this style
-         * @param background Background color for this style
-         * @param styles SGR styles to use
-         * @return Itself
-         */
-        public synchronized Definition setActive(TextColor foreground, TextColor background, SGR... styles) {
-            this.active = new DefaultMutableThemeStyle(foreground, background, styles);
-            return this;
-        }
+@Override
+@Synchronized  fun getBooleanProperty(name:String?, defaultValue:Boolean):Boolean {
+return Boolean.parseBoolean(properties!!.getProperty(name, Boolean.toString(defaultValue)))
+}
 
-        @Override
-        public synchronized ThemeStyle getInsensitive() {
-            if(insensitive == null) {
-                return normal;
-            }
-            return insensitive;
-        }
+/**
+ * Attaches a boolean value property to this [SimpleTheme] that will be returned if calling
+ * [Definition.getBooleanProperty] with the same name.
+ * @param name Name of the property
+ * @param value Value to attach to the property name
+ * @return Itself
+ */
+        @Synchronized  fun setBooleanProperty(name:String?, value:Boolean):Definition {
+properties!!.setProperty(name, Boolean.toString(value))
+return this
+}
 
-        /**
-         * Sets the theme definition style "insensitive"
-         * @param foreground Foreground color for this style
-         * @param background Background color for this style
-         * @param styles SGR styles to use
-         * @return Itself
-         */
-        public synchronized Definition setInsensitive(TextColor foreground, TextColor background, SGR... styles) {
-            this.insensitive = new DefaultMutableThemeStyle(foreground, background, styles);
-            return this;
-        }
+@Override
+@Synchronized  fun isCursorVisible():Boolean {
+return cursorVisible
+}
 
-        @Override
-        public synchronized ThemeStyle getCustom(String name) {
-            return customStyles.get(name);
-        }
+/**
+ * Sets the value that suggests if the cursor should be visible or not (it's still up to the component renderer
+ * if it's going to honour this or not).
+ * @param cursorVisible If `true` then this theme definition would like the text cursor to be displayed,
+ * `false` if not.
+ * @return Itself
+ */
+        @Synchronized  fun setCursorVisible(cursorVisible:Boolean):Definition {
+this.cursorVisible = cursorVisible
+return this
+}
 
-        @Override
-        public synchronized ThemeStyle getCustom(String name, ThemeStyle defaultValue) {
-            ThemeStyle themeStyle = customStyles.get(name);
-            if(themeStyle == null) {
-                return defaultValue;
-            }
-            return themeStyle;
-        }
+@Override
+@Synchronized  fun getCharacter(name:String?, fallback:Char):Char {
+val character = characterMap!!.get(name)
+if (character == null)
+{
+return fallback
+}
+return character!!.toChar()
+}
 
-        /**
-         * Adds a custom definition style to the theme using the supplied name. This will be returned using the matching
-         * call to {@link Definition#getCustom(String)}.
-         * @param name Name of the custom style
-         * @param foreground Foreground color for this style
-         * @param background Background color for this style
-         * @param styles SGR styles to use
-         * @return Itself
-         */
-        public synchronized Definition setCustom(String name, TextColor foreground, TextColor background, SGR... styles) {
-            customStyles.put(name, new DefaultMutableThemeStyle(foreground, background, styles));
-            return this;
-        }
+/**
+ * Stores a character value in this definition under a specific name. This is used to customize the appearance
+ * of certain components. It is returned with call to [Definition.getCharacter] with the
+ * same name.
+ * @param name Symbolic name for the character
+ * @param character Character to attach to the symbolic name
+ * @return Itself
+ */
+        @Synchronized  fun setCharacter(name:String?, character:Char):Definition {
+characterMap!!.put(name, character)
+return this
+}
 
-        public synchronized int getIntegerProperty(String name, int defaultValue) {
-            return Integer.parseInt(properties.getProperty(name, Integer.toString(defaultValue)));
-        }
+@SuppressWarnings("unchecked")
+@Override
+@Synchronized  fun <T : Component?> getRenderer(type:Class<T?>?):ComponentRenderer<T?>? {
+val rendererProvider = componentRendererMap!!.get(type) as RendererProvider<T?>
+if (rendererProvider == null)
+{
+return null
+}
+return rendererProvider!!.getRenderer(type)
+}
 
-        public synchronized Definition setIntegerProperty(String name, int value) {
-            properties.setProperty(name, Integer.toString(value));
-            return this;
-        }
+/**
+ * Registered a callback to get a custom [ComponentRenderer] for a particular class. Use this to make a
+ * certain component (built-in or external) to use a custom renderer.
+ * @param type Class for which to invoke the callback and return the [ComponentRenderer]
+ * @param rendererProvider Callback to invoke when getting a [ComponentRenderer]
+ * @param <T> Type of class
+ * @return Itself
+</T> */
+        @Synchronized  fun <T : Component?> setRenderer(type:Class<T?>?, rendererProvider:RendererProvider<T?>?):Definition {
+if (rendererProvider == null)
+{
+componentRendererMap!!.remove(type)
+}
+else
+{
+componentRendererMap!!.put(type, rendererProvider)
+}
+return this
+}
+}
 
-        @Override
-        public synchronized boolean getBooleanProperty(String name, boolean defaultValue) {
-            return Boolean.parseBoolean(properties.getProperty(name, Boolean.toString(defaultValue)));
-        }
+companion object {
 
-        /**
-         * Attaches a boolean value property to this {@link SimpleTheme} that will be returned if calling
-         * {@link Definition#getBooleanProperty(String, boolean)} with the same name.
-         * @param name Name of the property
-         * @param value Value to attach to the property name
-         * @return Itself
-         */
-        public synchronized Definition setBooleanProperty(String name, boolean value) {
-            properties.setProperty(name, Boolean.toString(value));
-            return this;
-        }
+/**
+ * Helper method that will quickly setup a new theme with some sensible component overrides.
+ * @param activeIsBold Should focused components also use bold SGR style?
+ * @param baseForeground The base foreground color of the theme
+ * @param baseBackground The base background color of the theme
+ * @param editableForeground Foreground color for editable components, or editable areas of components
+ * @param editableBackground Background color for editable components, or editable areas of components
+ * @param selectedForeground Foreground color for the selection marker when a component has multiple selection states
+ * @param selectedBackground Background color for the selection marker when a component has multiple selection states
+ * @param guiBackground Background color of the GUI, if this theme is assigned to the [TextGUI]
+ * @return Assembled [SimpleTheme] using the parameters from above
+ */
+     fun makeTheme(
+activeIsBold:Boolean, 
+baseForeground:TextColor?, 
+baseBackground:TextColor?, 
+editableForeground:TextColor?, 
+editableBackground:TextColor?, 
+selectedForeground:TextColor?, 
+selectedBackground:TextColor?, 
+guiBackground:TextColor?):SimpleTheme {
 
-        @Override
-        public synchronized boolean isCursorVisible() {
-            return cursorVisible;
-        }
+val activeStyle = if (activeIsBold) arrayOf<SGR?>(SGR.BOLD) else arrayOfNulls<SGR?>(0)
 
-        /**
-         * Sets the value that suggests if the cursor should be visible or not (it's still up to the component renderer
-         * if it's going to honour this or not).
-         * @param cursorVisible If {@code true} then this theme definition would like the text cursor to be displayed,
-         *                      {@code false} if not.
-         * @return Itself
-         */
-        public synchronized Definition setCursorVisible(boolean cursorVisible) {
-            this.cursorVisible = cursorVisible;
-            return this;
-        }
+val theme = SimpleTheme(baseForeground, baseBackground)
+theme.defaultDefinition.setSelected(baseBackground, baseForeground, *activeStyle)
+theme.defaultDefinition.setActive(selectedForeground, selectedBackground, *activeStyle)
 
-        @Override
-        public synchronized char getCharacter(String name, char fallback) {
-            Character character = characterMap.get(name);
-            if(character == null) {
-                return fallback;
-            }
-            return character;
-        }
+theme.addOverride(AbstractBorder::class.java, baseForeground, baseBackground)
+.setSelected(baseForeground, baseBackground, *activeStyle)
+theme.addOverride(AbstractListBox::class.java, baseForeground, baseBackground)
+.setSelected(selectedForeground, selectedBackground, *activeStyle)
+theme.addOverride(Button::class.java, baseForeground, baseBackground)
+.setActive(selectedForeground, selectedBackground, *activeStyle)
+.setSelected(selectedForeground, selectedBackground, *activeStyle)
+theme.addOverride(CheckBox::class.java, baseForeground, baseBackground)
+.setActive(selectedForeground, selectedBackground, *activeStyle)
+.setPreLight(selectedForeground, selectedBackground, *activeStyle)
+.setSelected(selectedForeground, selectedBackground, *activeStyle)
+theme.addOverride(CheckBoxList::class.java, baseForeground, baseBackground)
+.setActive(selectedForeground, selectedBackground, *activeStyle)
+theme.addOverride(ComboBox::class.java, baseForeground, baseBackground)
+.setActive(editableForeground, editableBackground, *activeStyle)
+.setPreLight(editableForeground, editableBackground)
+theme.addOverride(DefaultWindowDecorationRenderer::class.java, baseForeground, baseBackground)
+.setActive(baseForeground, baseBackground, *activeStyle)
+theme.addOverride(GUIBackdrop::class.java, baseForeground, guiBackground)
+theme.addOverride(RadioBoxList::class.java, baseForeground, baseBackground)
+.setActive(selectedForeground, selectedBackground, *activeStyle)
+theme.addOverride(Table::class.java, baseForeground, baseBackground)
+.setActive(editableForeground, editableBackground, *activeStyle)
+.setSelected(baseForeground, baseBackground)
+theme.addOverride(TextBox::class.java, editableForeground, editableBackground)
+.setActive(editableForeground, editableBackground, *activeStyle)
+.setSelected(editableForeground, editableBackground, *activeStyle)
 
-        /**
-         * Stores a character value in this definition under a specific name. This is used to customize the appearance
-         * of certain components. It is returned with call to {@link Definition#getCharacter(String, char)} with the
-         * same name.
-         * @param name Symbolic name for the character
-         * @param character Character to attach to the symbolic name
-         * @return Itself
-         */
-        public synchronized Definition setCharacter(String name, char character) {
-            characterMap.put(name, character);
-            return this;
-        }
+theme.setWindowPostRenderer(WindowShadowRenderer())
 
-        @SuppressWarnings("unchecked")
-        @Override
-        public synchronized <T extends Component> ComponentRenderer<T> getRenderer(Class<T> type) {
-            RendererProvider<T> rendererProvider = (RendererProvider<T>)componentRendererMap.get(type);
-            if(rendererProvider == null) {
-                return null;
-            }
-            return rendererProvider.getRenderer(type);
-        }
-
-        /**
-         * Registered a callback to get a custom {@link ComponentRenderer} for a particular class. Use this to make a
-         * certain component (built-in or external) to use a custom renderer.
-         * @param type Class for which to invoke the callback and return the {@link ComponentRenderer}
-         * @param rendererProvider Callback to invoke when getting a {@link ComponentRenderer}
-         * @param <T> Type of class
-         * @return Itself
-         */
-        public synchronized <T extends Component> Definition setRenderer(Class<T> type, RendererProvider<T> rendererProvider) {
-            if(rendererProvider == null) {
-                componentRendererMap.remove(type);
-            }
-            else {
-                componentRendererMap.put(type, rendererProvider);
-            }
-            return this;
-        }
-    }
+return theme
+}
+}
 }

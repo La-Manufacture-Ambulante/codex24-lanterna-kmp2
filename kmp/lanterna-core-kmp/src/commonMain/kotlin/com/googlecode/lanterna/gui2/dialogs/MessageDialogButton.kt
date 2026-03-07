@@ -16,66 +16,56 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.dialogs;
+package com.googlecode.lanterna.gui2.dialogs
 
-import com.googlecode.lanterna.gui2.LocalizedString;
+import com.googlecode.lanterna.gui2.LocalizedString
 
 /**
- * This enum has the available selection of buttons that you can add to a {@code MessageDialog}. They are used both for
+ * This enum has the available selection of buttons that you can add to a `MessageDialog`. They are used both for
  * specifying which buttons the dialog will have but is also returned when the user makes a selection
- *
+ * 
  * @author Martin
  */
-public enum MessageDialogButton {
-    /**
-     * "OK"
-     */
-    OK(LocalizedString.OK, 'o'),
-    /**
-     * "Cancel"
-     */
-    CANCEL(LocalizedString.Cancel, 'c'),
-    /**
-     * "Yes"
-     */
-    YES(LocalizedString.Yes, 'y'),
-    /**
-     * "No"
-     */
-    NO(LocalizedString.No, 'n'),
-    /**
-     * "Close"
-     */
-    CLOSE(LocalizedString.Close, 'x'),
-    /**
-     * "Abort"
-     */
-    ABORT(LocalizedString.Abort, 'a'),
-    /**
-     * "Ignore"
-     */
-    IGNORE(LocalizedString.Ignore, 'i'),
-    /**
-     * "Retry"
-     */
-    RETRY(LocalizedString.Retry, 'r'),
+ enum class MessageDialogButton private constructor(private val label:LocalizedString?,  val acceleratorCharacter:Char) {
+/**
+ * "OK"
+ */
+    OK(LocalizedString.OK, 'o'), 
+/**
+ * "Cancel"
+ */
+    CANCEL(LocalizedString.Cancel, 'c'), 
+/**
+ * "Yes"
+ */
+    YES(LocalizedString.Yes, 'y'), 
+/**
+ * "No"
+ */
+    NO(LocalizedString.No, 'n'), 
+/**
+ * "Close"
+ */
+    CLOSE(LocalizedString.Close, 'x'), 
+/**
+ * "Abort"
+ */
+    ABORT(LocalizedString.Abort, 'a'), 
+/**
+ * "Ignore"
+ */
+    IGNORE(LocalizedString.Ignore, 'i'), 
+/**
+ * "Retry"
+ */
+    RETRY(LocalizedString.Retry, 'r'), 
 
-    /**
-     * "Continue"
-     */
+/**
+ * "Continue"
+ */
     CONTINUE(LocalizedString.Continue, 'c');
-
-    private final LocalizedString label;
-    private final char acceleratorChar;
-
-    MessageDialogButton(final LocalizedString label, char acceleratorChar) {
-        this.label = label;
-        this.acceleratorChar = acceleratorChar;
-    }
-
-    public char getAcceleratorCharacter() { return acceleratorChar; }
-    @Override
-    public String toString() {
-        return label.toString();
-    }
+@Override
+ fun toString():String? {
+return label!!.toString()
+}
 }

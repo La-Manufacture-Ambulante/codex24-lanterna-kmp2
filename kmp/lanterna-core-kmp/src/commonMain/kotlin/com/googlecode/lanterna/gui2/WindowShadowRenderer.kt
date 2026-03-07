@@ -16,83 +16,98 @@
  * 
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.graphics.ThemeDefinition;
-import com.googlecode.lanterna.graphics.ThemedTextGraphics;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.graphics.ThemeDefinition
+import com.googlecode.lanterna.graphics.ThemedTextGraphics
 
 /**
  * This WindowPostRenderer implementation draws a shadow under the window
- *
+ * 
  * @author Martin
  */
-public class WindowShadowRenderer implements WindowPostRenderer {
-    @Override
-    public void postRender(
-            ThemedTextGraphics textGraphics,
-            TextGUI textGUI,
-            Window window) {
+ class WindowShadowRenderer:WindowPostRenderer {
+@Override
+ fun postRender(
+textGraphics:ThemedTextGraphics, 
+textGUI:TextGUI?, 
+window:Window) {
 
-        TerminalPosition windowPosition = window.getPosition();
-        TerminalSize decoratedWindowSize = window.getDecoratedSize();
-        ThemeDefinition themeDefinition = window.getTheme().getDefinition(WindowShadowRenderer.class);
-        textGraphics.applyThemeStyle(themeDefinition.getNormal());
-        char filler = themeDefinition.getCharacter("FILLER", ' ');
-        boolean useDoubleWidth = themeDefinition.getBooleanProperty("DOUBLE_WIDTH", true);
-        boolean useTransparency = themeDefinition.getBooleanProperty("TRANSPARENT", false);
+val windowPosition = window.getPosition()
+val decoratedWindowSize = window.getDecoratedSize()
+val themeDefinition = window.getTheme().getDefinition(WindowShadowRenderer::class.java)
+textGraphics.applyThemeStyle(themeDefinition!!.getNormal())
+val filler = themeDefinition!!.getCharacter("FILLER", ' ')
+val useDoubleWidth = themeDefinition!!.getBooleanProperty("DOUBLE_WIDTH", true)
+val useTransparency = themeDefinition!!.getBooleanProperty("TRANSPARENT", false)
 
-        TerminalPosition lowerLeft = windowPosition.withRelativeColumn(useDoubleWidth ? 2 : 1).withRelativeRow(decoratedWindowSize.getRows());
-        TerminalPosition lowerRight = lowerLeft.withRelativeColumn(decoratedWindowSize.getColumns() - (useDoubleWidth ? 3 : 2));
-        for(int column = lowerLeft.getColumn(); column <= lowerRight.getColumn() + 1; column++) {
-            char characterToDraw = filler;
-            if(useTransparency) {
-                TextCharacter tc = textGraphics.getCharacter(column, lowerLeft.getRow());
-                if (tc != null) {
-                    characterToDraw = tc.getCharacterString().charAt(0);
-                }
-            }
-            textGraphics.setCharacter(column, lowerLeft.getRow(), characterToDraw);
-            if (TerminalTextUtils.isCharDoubleWidth(characterToDraw)) {
-                column++;
-            }
-        }
+val lowerLeft = windowPosition!!.withRelativeColumn(if (useDoubleWidth) 2 else 1)!!.withRelativeRow(decoratedWindowSize!!.rows)
+var lowerRight = lowerLeft!!.withRelativeColumn(decoratedWindowSize!!.columns - (if (useDoubleWidth) 3 else 2))
+var column = lowerLeft!!.column
+while (column <= lowerRight!!.column + 1)
+{
+var characterToDraw = filler
+if (useTransparency)
+{
+val tc = textGraphics.getCharacter(column, lowerLeft!!.row)
+if (tc != null)
+{
+characterToDraw = tc!!.getCharacterString().charAt(0)
+}
+}
+textGraphics.setCharacter(column, lowerLeft!!.row, characterToDraw)
+if (TerminalTextUtils.isCharDoubleWidth(characterToDraw))
+{
+column++
+}
+column++
+}
 
-        lowerRight = lowerRight.withRelativeColumn(1);
-        TerminalPosition upperRight = lowerRight.withRelativeRow(-decoratedWindowSize.getRows() + 1);
-        boolean hasDoubleWidthShadow = false;
-        for(int row = upperRight.getRow(); row < lowerRight.getRow(); row++) {
-            char characterToDraw = filler;
-            if(useTransparency) {
-                TextCharacter tc = textGraphics.getCharacter(upperRight.getColumn(), row);
-                if (tc != null) {
-                    characterToDraw = tc.getCharacterString().charAt(0);
-                }
-            }
-            textGraphics.setCharacter(upperRight.getColumn(), row, characterToDraw);
-            if (TerminalTextUtils.isCharDoubleWidth(characterToDraw)) {
-                hasDoubleWidthShadow = true;
-            }
-        }
+lowerRight = lowerRight!!.withRelativeColumn(1)
+var upperRight = lowerRight!!.withRelativeRow(-decoratedWindowSize!!.rows + 1)
+var hasDoubleWidthShadow = false
+for (row in upperRight!!.row until lowerRight!!.row)
+{
+var characterToDraw = filler
+if (useTransparency)
+{
+val tc = textGraphics.getCharacter(upperRight!!.column, row)
+if (tc != null)
+{
+characterToDraw = tc!!.getCharacterString().charAt(0)
+}
+}
+textGraphics.setCharacter(upperRight!!.column, row, characterToDraw)
+if (TerminalTextUtils.isCharDoubleWidth(characterToDraw))
+{
+hasDoubleWidthShadow = true
+}
+}
 
-        textGraphics.applyThemeStyle(themeDefinition.getNormal());
-        if(useDoubleWidth || hasDoubleWidthShadow) {
-            //Fill the remaining hole
-            upperRight = upperRight.withRelativeColumn(1);
-            for(int row = upperRight.getRow(); row <= lowerRight.getRow(); row++) {
-                char characterToDraw = filler;
-                if(useTransparency) {
-                    TextCharacter tc = textGraphics.getCharacter(upperRight.getColumn(), row);
-                    if (tc != null && !tc.isDoubleWidth()) {
-                        characterToDraw = tc.getCharacterString().charAt(0);
-                    }
-                }
-                TextCharacter neighbour = textGraphics.getCharacter(upperRight.getColumn() - 1, row);
-                // Only need to draw this is the character to the left isn't double-width
-                if (neighbour != null && !neighbour.isDoubleWidth()) {
-                    textGraphics.setCharacter(upperRight.getColumn(), row, characterToDraw);
-                }
-            }
-        }
-    }
+textGraphics.applyThemeStyle(themeDefinition!!.getNormal())
+if (useDoubleWidth || hasDoubleWidthShadow)
+{
+ //Fill the remaining hole
+            upperRight = upperRight!!.withRelativeColumn(1)
+for (row in upperRight!!.row..lowerRight!!.row)
+{
+var characterToDraw = filler
+if (useTransparency)
+{
+val tc = textGraphics.getCharacter(upperRight!!.column, row)
+if (tc != null && !tc!!.isDoubleWidth())
+{
+characterToDraw = tc!!.getCharacterString().charAt(0)
+}
+}
+val neighbour = textGraphics.getCharacter(upperRight!!.column - 1, row)
+ // Only need to draw this is the character to the left isn't double-width
+                if (neighbour != null && !neighbour!!.isDoubleWidth())
+{
+textGraphics.setCharacter(upperRight!!.column, row, characterToDraw)
+}
+}
+}
+}
 }

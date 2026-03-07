@@ -16,38 +16,42 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.input;
-
-import java.util.List;
+package com.googlecode.lanterna.input
 
 /**
  * Character pattern that matches one character as one KeyStroke with the character that was read
  * 
  * @author Martin, Andreas
  */
-public class NormalCharacterPattern implements CharacterPattern {
-    @Override
-    public Matching match(List<Character> seq) {
-        if (seq.size() != 1) {
-            return null; // nope
-        }
-        char ch = seq.get(0);
-        if (isPrintableChar(ch)) {
-            KeyStroke ks = new KeyStroke(ch, false, false);
-            return new Matching( ks );
-        } else {
-            return null; // nope
-        }
-    }
+ class NormalCharacterPattern:CharacterPattern {
+@Override
+ fun match(seq:List<Character?>):Matching? {
+if (seq.size() !== 1)
+{
+return null // nope
+}
+val ch = seq.get(0)
+if (isPrintableChar(ch))
+{
+val ks = KeyStroke(ch, false, false)
+return Matching(ks)
+}
+else
+{
+return null // nope
+}
+}
 
-    /**
-     * From http://stackoverflow.com/questions/220547/printable-char-in-java
-     * @param c character to test
-     * @return True if this is a 'normal', printable character, false otherwise
-     */
-    private static boolean isPrintableChar(char c) {
-        if (Character.isISOControl(c)) { return false; }
-        Character.UnicodeBlock block = Character.UnicodeBlock.of(c);
-        return block != null && block != Character.UnicodeBlock.SPECIALS;
-    }
+/**
+ * From http://stackoverflow.com/questions/220547/printable-char-in-java
+ * @param c character to test
+ * @return True if this is a 'normal', printable character, false otherwise
+ */
+    private fun isPrintableChar(c:Char):Boolean {
+if (Character.isISOControl(c)) {
+return false
+}
+val block = Character.UnicodeBlock.of(c)
+return block != null && block !== Character.UnicodeBlock.SPECIALS
+}
 }

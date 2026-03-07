@@ -16,83 +16,94 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.screen;
+package com.googlecode.lanterna.screen
 
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.terminal.Terminal;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame;
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.terminal.Terminal
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame
 
-import java.awt.*;
-import java.io.IOException;
+import java.awt.*
+import java.io.IOException
 
 /**
  * Test that demonstrates switching between two different screens
  * @author martin
  */
-public class MultiScreenTest {
-    public static void main(String[] args) throws IOException, InterruptedException {
-        Terminal terminal = new TestTerminalFactory(args)
-                                .setTerminalEmulatorFrameAutoCloseTrigger(null)
-                                .createTerminal();
-        Screen redScreen = new TerminalScreen(terminal);
-        Screen greenScreen = new TerminalScreen(terminal);
-        
-        if(terminal instanceof SwingTerminalFrame) {
-            ((SwingTerminalFrame)terminal).setVisible(true);
-        }
-        
-        TextGraphics screenWriter = new ScreenTextGraphics(redScreen);
-        screenWriter.setForegroundColor(TextColor.ANSI.BLACK);
-        screenWriter.setBackgroundColor(TextColor.ANSI.RED);
-        screenWriter.fill(' ');
-        screenWriter.putString(2, 2, "Press space to switch screen or ESC to exit");
-        
-        
-        screenWriter = new ScreenTextGraphics(greenScreen);
-        screenWriter.setBackgroundColor(TextColor.ANSI.GREEN);
-        screenWriter.fill(' ');
-        screenWriter.putString(4, 4, "Press space to switch screen or ESC to exit");
-        
-        mainLoop:
-        while(true) {
-            redScreen.startScreen();
-            redScreen.refresh();
-            while(true) {
-                KeyStroke keyStroke = terminal.pollInput();
-                if(keyStroke == null) {
-                    Thread.sleep(1);
-                }
-                else if(keyStroke.getKeyType() == KeyType.ESCAPE) {
-                    break mainLoop;
-                }
-                else if(keyStroke.getCharacter() == ' ') {
-                    break;
-                }
-            }
-            redScreen.stopScreen();
-            greenScreen.startScreen();
-            greenScreen.refresh();
-            while(true) {
-                KeyStroke keyStroke = terminal.pollInput();
-                if(keyStroke == null) {
-                    Thread.sleep(1);
-                }
-                else if(keyStroke.getKeyType() == KeyType.ESCAPE) {
-                    break mainLoop;
-                }
-                else if(keyStroke.getCharacter() == ' ') {
-                    break;
-                }
-            }
-            greenScreen.stopScreen();
-        }
-        terminal.clearScreen();
-        if(terminal instanceof Window) {
-            ((Window)terminal).dispose();
-        }
-    }
+ object MultiScreenTest {
+@Throws(IOException::class, InterruptedException::class)
+ fun main(args:Array<String?>?) {
+val terminal = TestTerminalFactory(args)
+.setTerminalEmulatorFrameAutoCloseTrigger(null)
+.createTerminal()
+val redScreen = TerminalScreen(terminal)
+val greenScreen = TerminalScreen(terminal)
+
+if (terminal is SwingTerminalFrame)
+{
+(terminal as SwingTerminalFrame).setVisible(true)
+}
+
+var screenWriter:TextGraphics? = ScreenTextGraphics(redScreen)
+screenWriter!!.setForegroundColor(TextColor.ANSI.BLACK)
+screenWriter!!.setBackgroundColor(TextColor.ANSI.RED)
+screenWriter!!.fill(' ')
+screenWriter!!.putString(2, 2, "Press space to switch screen or ESC to exit")
+
+
+screenWriter = ScreenTextGraphics(greenScreen)
+screenWriter!!.setBackgroundColor(TextColor.ANSI.GREEN)
+screenWriter!!.fill(' ')
+screenWriter!!.putString(4, 4, "Press space to switch screen or ESC to exit")
+
+mainLoop@ while (true)
+{
+redScreen.startScreen()
+redScreen.refresh()
+while (true)
+{
+val keyStroke = terminal!!.pollInput()
+if (keyStroke == null)
+{
+Thread.sleep(1)
+}
+else if (keyStroke!!.getKeyType() === KeyType.ESCAPE)
+{
+break@mainLoop
+}
+else if (keyStroke!!.getCharacter() === ' ')
+{
+break
+}
+}
+redScreen.stopScreen()
+greenScreen.startScreen()
+greenScreen.refresh()
+while (true)
+{
+val keyStroke = terminal!!.pollInput()
+if (keyStroke == null)
+{
+Thread.sleep(1)
+}
+else if (keyStroke!!.getKeyType() === KeyType.ESCAPE)
+{
+break@mainLoop
+}
+else if (keyStroke!!.getCharacter() === ' ')
+{
+break
+}
+}
+greenScreen.stopScreen()
+}
+terminal!!.clearScreen()
+if (terminal is Window)
+{
+(terminal as Window).dispose()
+}
+}
 }

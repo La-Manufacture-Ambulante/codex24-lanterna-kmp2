@@ -16,89 +16,63 @@
  * 
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
 
 /**
  * Simple component which draws a solid color over its area. The size this component will request is specified through
  * it's constructor.
- *
+ * 
  * @author Martin
  */
-public class EmptySpace extends AbstractComponent<EmptySpace> {
-    private final TerminalSize size;
-    private TextColor color;
-
+ class EmptySpace/**
+ * Creates an EmptySpace with a specified color (null will make it use a color from the theme) and preferred size
+ * @param color Color to use (null will make it use the theme)
+ * @param size Preferred size
+ */
+     @JvmOverloads  constructor(/**
+ * Returns the color this component is drawn with, or `null` if this component uses whatever the default color
+ * the theme is set to use
+ * @return Color used when drawing or `null` if it's using the theme
+ */
     /**
-     * Creates an EmptySpace with size 1x1 and a default color chosen from the theme
-     */
-    public EmptySpace() {
-        this(null, TerminalSize.ONE);
-    }
+ * Changes the color this component will use when drawn
+ * @param color New color to draw the component with, if `null` then the component will use the theme's
+ * default color
+ */
+     var color:TextColor? = null, private val size:TerminalSize? = TerminalSize.ONE):AbstractComponent<EmptySpace?>() {
 
-    /**
-     * Creates an EmptySpace with a specified color and preferred size of 1x1
-     * @param color Color to use (null will make it use the theme)
-     */
-    public EmptySpace(TextColor color) {
-        this(color, TerminalSize.ONE);
-    }
+/**
+ * Creates an EmptySpace with a specified preferred size (color will be chosen from the theme)
+ * @param size Preferred size
+ */
+     constructor(size:TerminalSize?) : this(null, size) {}
 
-    /**
-     * Creates an EmptySpace with a specified preferred size (color will be chosen from the theme)
-     * @param size Preferred size
-     */
-    public EmptySpace(TerminalSize size) {
-        this(null, size);
-    }
+@Override
+protected fun createDefaultRenderer():ComponentRenderer<EmptySpace?>? {
+return object:ComponentRenderer<EmptySpace?>() {
 
-    /**
-     * Creates an EmptySpace with a specified color (null will make it use a color from the theme) and preferred size
-     * @param color Color to use (null will make it use the theme)
-     * @param size Preferred size
-     */
-    public EmptySpace(TextColor color, TerminalSize size) {
-        this.color = color;
-        this.size = size;
-    }
-
-    /**
-     * Changes the color this component will use when drawn
-     * @param color New color to draw the component with, if {@code null} then the component will use the theme's
-     *              default color
-     */
-    public void setColor(TextColor color) {
-        this.color = color;
-    }
-
-    /**
-     * Returns the color this component is drawn with, or {@code null} if this component uses whatever the default color
-     * the theme is set to use
-     * @return Color used when drawing or {@code null} if it's using the theme
-     */
-    public TextColor getColor() {
-        return color;
-    }
-
-    @Override
-    protected ComponentRenderer<EmptySpace> createDefaultRenderer() {
-        return new ComponentRenderer<EmptySpace>() {
-
-            @Override
-            public TerminalSize getPreferredSize(EmptySpace component) {
-                return size;
-            }
-
-            @Override
-            public void drawComponent(TextGUIGraphics graphics, EmptySpace component) {
-                graphics.applyThemeStyle(component.getThemeDefinition().getNormal());
-                if(color != null) {
-                    graphics.setBackgroundColor(color);
-                }
-                graphics.fill(' ');
-            }
-        };
-    }
+@Override
+ fun getPreferredSize(component:EmptySpace?):TerminalSize? {
+return size
 }
+
+@Override
+ fun drawComponent(graphics:TextGUIGraphics?, component:EmptySpace?) {
+graphics!!.applyThemeStyle(component!!.getThemeDefinition().getNormal())
+if (color != null)
+{
+graphics!!.setBackgroundColor(color)
+}
+graphics!!.fill(' ')
+}
+}
+}
+}/**
+ * Creates an EmptySpace with size 1x1 and a default color chosen from the theme
+ *//**
+ * Creates an EmptySpace with a specified color and preferred size of 1x1
+ * @param color Color to use (null will make it use the theme)
+ */

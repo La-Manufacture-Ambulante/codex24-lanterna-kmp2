@@ -16,36 +16,36 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TextColor
 
-import java.util.EnumSet;
+import java.util.EnumSet
 
 /**
  * ThemeStyle is the lowest entry in the theme hierarchy, containing the actual colors and SGRs to use. When drawing a
- * component, you would pick out a {@link ThemeDefinition} that applies to the whole component and then choose to
- * activate individual {@link ThemeStyle}s when drawing the different parts of the component.
+ * component, you would pick out a [ThemeDefinition] that applies to the whole component and then choose to
+ * activate individual [ThemeStyle]s when drawing the different parts of the component.
  * @author Martin
  */
-public interface ThemeStyle {
-    /**
-     * Returns the foreground color associated with this style
-     * @return foreground color associated with this style
-     */
-    TextColor getForeground();
+ interface ThemeStyle {
+/**
+ * Returns the foreground color associated with this style
+ * @return foreground color associated with this style
+ */
+     val foreground:TextColor?
 
-    /**
-     * Returns the background color associated with this style
-     * @return background color associated with this style
-     */
-    TextColor getBackground();
+/**
+ * Returns the background color associated with this style
+ * @return background color associated with this style
+ */
+     val background:TextColor?
 
-    /**
-     * Returns the set of SGR flags associated with this style. This {@code EnumSet} is either unmodifiable or a copy so
-     * altering it will not change the theme in any way.
-     * @return SGR flags associated with this style
-     */
-    EnumSet<SGR> getSGRs();
+/**
+ * Returns the set of SGR flags associated with this style. This `EnumSet` is either unmodifiable or a copy so
+ * altering it will not change the theme in any way.
+ * @return SGR flags associated with this style
+ */
+     val sgRs:EnumSet<SGR?>?
 }

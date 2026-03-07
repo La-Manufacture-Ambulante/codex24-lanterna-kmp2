@@ -16,48 +16,48 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.gui2.WindowDecorationRenderer;
-import com.googlecode.lanterna.gui2.WindowPostRenderer;
+import com.googlecode.lanterna.gui2.WindowDecorationRenderer
+import com.googlecode.lanterna.gui2.WindowPostRenderer
 
 /**
  * Allows you to more easily wrap an existing theme and alter the behaviour in some special cases. You normally create a
  * new class that extends from this and override some of the methods to divert the call depending on what you are trying
  * to do. For an example, please see Issue409 in the test code.
  * @see DelegatingThemeDefinition
+ * 
  * @see DefaultMutableThemeStyle
+ * 
  * @see Theme
  */
-public class DelegatingTheme implements Theme {
-    private final Theme theme;
+ class DelegatingTheme/**
+ * Creates a new [DelegatingTheme] with a default implementation that will forward all calls to the
+ * [Theme] that is passed in.
+ * @param theme Other theme to delegate all calls to
+ */
+    (private val theme:Theme?):Theme {
 
-    /**
-     * Creates a new {@link DelegatingTheme} with a default implementation that will forward all calls to the
-     * {@link Theme} that is passed in.
-     * @param theme Other theme to delegate all calls to
-     */
-    public DelegatingTheme(Theme theme) {
-        this.theme = theme;
-    }
+ val defaultDefinition:ThemeDefinition?
+@Override
+get() {
+return theme!!.getDefaultDefinition()
+}
 
-    @Override
-    public ThemeDefinition getDefaultDefinition() {
-        return theme.getDefaultDefinition();
-    }
+ val windowPostRenderer:WindowPostRenderer?
+@Override
+get() {
+return theme!!.getWindowPostRenderer()
+}
 
-    @Override
-    public ThemeDefinition getDefinition(Class<?> clazz) {
-        return theme.getDefinition(clazz);
-    }
+ val windowDecorationRenderer:WindowDecorationRenderer?
+@Override
+get() {
+return theme!!.getWindowDecorationRenderer()
+}
 
-    @Override
-    public WindowPostRenderer getWindowPostRenderer() {
-        return theme.getWindowPostRenderer();
-    }
-
-    @Override
-    public WindowDecorationRenderer getWindowDecorationRenderer() {
-        return theme.getWindowDecorationRenderer();
-    }
+@Override
+ fun getDefinition(clazz:Class<*>?):ThemeDefinition? {
+return theme!!.getDefinition(clazz)
+}
 }

@@ -16,115 +16,115 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.dialogs;
+package com.googlecode.lanterna.gui2.dialogs
 
-import com.googlecode.lanterna.gui2.Window;
+import com.googlecode.lanterna.gui2.Window
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collections
+import java.util.HashSet
 
 /**
  * Abstract class for dialog building, containing much shared code between different kinds of dialogs
  * @param <B> The real type of the builder class
  * @param <T> Type of dialog this builder is building
  * @author Martin
+</T></B> */
+abstract class AbstractDialogBuilder<B, T : DialogWindow?>/**
+ * Default constructor for a dialog builder
+ * @param title Title to assign to the dialog
  */
-public abstract class AbstractDialogBuilder<B, T extends DialogWindow> {
-    protected String title;
-    protected String description;
-    protected Set<Window.Hint> extraWindowHints;
+    (protected var title:String?) {
+protected var description:String? = null
+protected var extraWindowHints:Set<Window.Hint?>? = null
 
-    /**
-     * Default constructor for a dialog builder
-     * @param title Title to assign to the dialog
-     */
-    public AbstractDialogBuilder(String title) {
-        this.title = title;
-        this.description = null;
-        this.extraWindowHints = Collections.singleton(Window.Hint.CENTERED);
-    }
+init{
+this.description = null
+this.extraWindowHints = Collections.singleton(Window.Hint.CENTERED)
+}
 
-    /**
-     * Changes the title of the dialog
-     * @param title New title
-     * @return Itself
-     */
-    public B setTitle(String title) {
-        if(title == null) {
-            title = "";
-        }
-        this.title = title;
-        return self();
-    }
+/**
+ * Changes the title of the dialog
+ * @param title New title
+ * @return Itself
+ */
+     fun setTitle(title:String?):B? {
+var title = title
+if (title == null)
+{
+title = ""
+}
+this.title = title
+return self()
+}
 
-    /**
-     * Returns the title that the built dialog will have
-     * @return Title that the built dialog will have
-     */
-    public String getTitle() {
-        return title;
-    }
+/**
+ * Returns the title that the built dialog will have
+ * @return Title that the built dialog will have
+ */
+     fun getTitle():String? {
+return title
+}
 
-    /**
-     * Changes the description of the dialog
-     * @param description New description
-     * @return Itself
-     */
-    public B setDescription(String description) {
-        this.description = description;
-        return self();
-    }
+/**
+ * Changes the description of the dialog
+ * @param description New description
+ * @return Itself
+ */
+     fun setDescription(description:String?):B? {
+this.description = description
+return self()
+}
 
-    /**
-     * Returns the description that the built dialog will have
-     * @return Description that the built dialog will have
-     */
-    public String getDescription() {
-        return description;
-    }
+/**
+ * Returns the description that the built dialog will have
+ * @return Description that the built dialog will have
+ */
+     fun getDescription():String? {
+return description
+}
 
-    /**
-     * Assigns a set of extra window hints that you want the built dialog to have
-     * @param extraWindowHints Window hints to assign to the window in addition to the ones the builder will put
-     * @return Itself
-     */
-    public B setExtraWindowHints(Set<Window.Hint> extraWindowHints) {
-        this.extraWindowHints = extraWindowHints;
-        return self();
-    }
+/**
+ * Assigns a set of extra window hints that you want the built dialog to have
+ * @param extraWindowHints Window hints to assign to the window in addition to the ones the builder will put
+ * @return Itself
+ */
+     fun setExtraWindowHints(extraWindowHints:Set<Window.Hint?>?):B? {
+this.extraWindowHints = extraWindowHints
+return self()
+}
 
-    /**
-     * Returns the list of extra window hints that will be assigned to the window when built
-     * @return List of extra window hints that will be assigned to the window when built
-     */
-    public Set<Window.Hint> getExtraWindowHints() {
-        return extraWindowHints;
-    }
+/**
+ * Returns the list of extra window hints that will be assigned to the window when built
+ * @return List of extra window hints that will be assigned to the window when built
+ */
+     fun getExtraWindowHints():Set<Window.Hint?>? {
+return extraWindowHints
+}
 
-    /**
-     * Helper method for casting this to {@code type} parameter {@code B}
-     * @return {@code this} as {@code B}
-     */
-    protected abstract B self();
+/**
+ * Helper method for casting this to `type` parameter `B`
+ * @return `this` as `B`
+ */
+    protected abstract fun self():B? 
 
-    /**
-     * Builds the dialog according to the builder implementation
-     * @return New dialog object
-     */
-    protected abstract T buildDialog();
+/**
+ * Builds the dialog according to the builder implementation
+ * @return New dialog object
+ */
+    protected abstract fun buildDialog():T? 
 
-    /**
-     * Builds a new dialog following the specifications of this builder
-     * @return New dialog built following the specifications of this builder
-     */
-    public final T build() {
-        T dialog = buildDialog();
-        if(!extraWindowHints.isEmpty()) {
-            Set<Window.Hint> combinedHints = new HashSet<>(dialog.getHints());
-            combinedHints.addAll(extraWindowHints);
-            dialog.setHints(combinedHints);
-        }
-        return dialog;
-    }
+/**
+ * Builds a new dialog following the specifications of this builder
+ * @return New dialog built following the specifications of this builder
+ */
+     fun build():T? {
+val dialog = buildDialog()
+if (!extraWindowHints!!.isEmpty())
+{
+val combinedHints = HashSet(dialog!!.getHints())
+combinedHints.addAll(extraWindowHints)
+dialog!!.setHints(combinedHints)
+}
+return dialog
+}
 }

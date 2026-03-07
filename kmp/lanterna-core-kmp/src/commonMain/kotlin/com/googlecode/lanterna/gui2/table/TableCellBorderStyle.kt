@@ -16,42 +16,31 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.table;
+package com.googlecode.lanterna.gui2.table
 
 /**
  * Describing how table cells are separated when drawn
  */
-public enum TableCellBorderStyle {
-    /**
-     * There is no separation between table cells, they are drawn immediately next to each other
-     */
-    NONE(0),
-    /**
-     * There is a single space of separation between the cells, drawn as a single line
-     */
-    SINGLE_LINE(1),
-    /**
-     * There is a single space of separation between the cells, drawn as a double line
-     */
-    DOUBLE_LINE(1),
-    /**
-     * There is a single space of separation between the cells, kept empty
-     */
-    EMPTY_SPACE(1),
-    ;
-
-    private final int size;
-
-    TableCellBorderStyle(int size) {
-        this.size = size;
-    }
-
-    /**
-     * Returns the number of rows (for vertical borders) or columns (for horizontal borders) this table cell border will
-     * take up when used.
-     * @return Size of the border, in rows or columns depending on the context
-     */
-    int getSize() {
-        return size;
-    }
+ enum class TableCellBorderStyle private constructor(/**
+ * Returns the number of rows (for vertical borders) or columns (for horizontal borders) this table cell border will
+ * take up when used.
+ * @return Size of the border, in rows or columns depending on the context
+ */
+    internal val size:Int) {
+/**
+ * There is no separation between table cells, they are drawn immediately next to each other
+ */
+    NONE(0), 
+/**
+ * There is a single space of separation between the cells, drawn as a single line
+ */
+    SINGLE_LINE(1), 
+/**
+ * There is a single space of separation between the cells, drawn as a double line
+ */
+    DOUBLE_LINE(1), 
+/**
+ * There is a single space of separation between the cells, kept empty
+ */
+    EMPTY_SPACE(1)
 }

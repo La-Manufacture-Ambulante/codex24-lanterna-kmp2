@@ -1,14 +1,14 @@
-package com.googlecode.lanterna.examples;
+package com.googlecode.lanterna.examples
 
-import java.io.IOException;
+import java.io.IOException
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.screen.Screen
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.terminal.Terminal
 
 
 /**
@@ -16,25 +16,25 @@ import com.googlecode.lanterna.terminal.Terminal;
  * from the character '*'
  * 
  * @author Peter Borkuti
- *
  */
-public class DrawRectangle {
+ object DrawRectangle {
 
-	public static void main(String[] args) throws IOException {
-		Terminal terminal = new DefaultTerminalFactory().createTerminal();
-		Screen screen = new TerminalScreen(terminal);
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
+val terminal = DefaultTerminalFactory().createTerminal()
+val screen = TerminalScreen(terminal)
 
-		TextGraphics tGraphics = screen.newTextGraphics();
+val tGraphics = screen.newTextGraphics()
 
-		screen.startScreen();
-		screen.clear();
+screen.startScreen()
+screen.clear()
 
-		tGraphics.drawRectangle(
-			new TerminalPosition(3,3), new TerminalSize(10,10), '*');
-		screen.refresh();
+tGraphics!!.drawRectangle(
+TerminalPosition(3, 3), TerminalSize(10, 10), '*')
+screen.refresh()
 
-		screen.readInput();
-		screen.stopScreen();
-	}
+screen.readInput()
+screen.stopScreen()
+}
 
 }

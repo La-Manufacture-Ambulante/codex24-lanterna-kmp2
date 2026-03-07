@@ -16,127 +16,140 @@
  * 
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.graphics.ThemeDefinition;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.graphics.ThemeDefinition
 
 /**
  * Default window decoration renderer that is used unless overridden with another decoration renderer. The windows are
  * drawn using a bevel colored line and the window title in the top-left corner, very similar to ordinary titled
  * borders.
- *
+ * 
  * @author Martin
  */
-public class DefaultWindowDecorationRenderer implements WindowDecorationRenderer {
+ class DefaultWindowDecorationRenderer:WindowDecorationRenderer {
 
-    private static final int TITLE_POSITION_WITH_PADDING = 4;
-    private static final int TITLE_POSITION_WITHOUT_PADDING = 3;
+@Override
+ fun draw(textGUI:WindowBasedTextGUI?, graphics:TextGUIGraphics?, window:Window):TextGUIGraphics? {
+var title = window.getTitle()
+if (title == null)
+{
+title = ""
+}
 
-    @Override
-    public TextGUIGraphics draw(WindowBasedTextGUI textGUI, TextGUIGraphics graphics, Window window) {
-        String title = window.getTitle();
-        if(title == null) {
-            title = "";
-        }
+val drawableArea = graphics!!.getSize()
+val themeDefinition = window.getTheme().getDefinition(DefaultWindowDecorationRenderer::class.java)
+val horizontalLine = themeDefinition!!.getCharacter("HORIZONTAL_LINE", Symbols.SINGLE_LINE_HORIZONTAL)
+val verticalLine = themeDefinition!!.getCharacter("VERTICAL_LINE", Symbols.SINGLE_LINE_VERTICAL)
+val bottomLeftCorner = themeDefinition!!.getCharacter("BOTTOM_LEFT_CORNER", Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER)
+val topLeftCorner = themeDefinition!!.getCharacter("TOP_LEFT_CORNER", Symbols.SINGLE_LINE_TOP_LEFT_CORNER)
+val bottomRightCorner = themeDefinition!!.getCharacter("BOTTOM_RIGHT_CORNER", Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER)
+val topRightCorner = themeDefinition!!.getCharacter("TOP_RIGHT_CORNER", Symbols.SINGLE_LINE_TOP_RIGHT_CORNER)
+val titleSeparatorLeft = themeDefinition!!.getCharacter("TITLE_SEPARATOR_LEFT", Symbols.SINGLE_LINE_HORIZONTAL)
+val titleSeparatorRight = themeDefinition!!.getCharacter("TITLE_SEPARATOR_RIGHT", Symbols.SINGLE_LINE_HORIZONTAL)
+val useTitlePadding = themeDefinition!!.getBooleanProperty("TITLE_PADDING", false)
+val centerTitle = themeDefinition!!.getBooleanProperty("CENTER_TITLE", false)
 
-        TerminalSize drawableArea = graphics.getSize();
-        ThemeDefinition themeDefinition = window.getTheme().getDefinition(DefaultWindowDecorationRenderer.class);
-        char horizontalLine = themeDefinition.getCharacter("HORIZONTAL_LINE", Symbols.SINGLE_LINE_HORIZONTAL);
-        char verticalLine = themeDefinition.getCharacter("VERTICAL_LINE", Symbols.SINGLE_LINE_VERTICAL);
-        char bottomLeftCorner = themeDefinition.getCharacter("BOTTOM_LEFT_CORNER", Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER);
-        char topLeftCorner = themeDefinition.getCharacter("TOP_LEFT_CORNER", Symbols.SINGLE_LINE_TOP_LEFT_CORNER);
-        char bottomRightCorner = themeDefinition.getCharacter("BOTTOM_RIGHT_CORNER", Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER);
-        char topRightCorner = themeDefinition.getCharacter("TOP_RIGHT_CORNER", Symbols.SINGLE_LINE_TOP_RIGHT_CORNER);
-        char titleSeparatorLeft = themeDefinition.getCharacter("TITLE_SEPARATOR_LEFT", Symbols.SINGLE_LINE_HORIZONTAL);
-        char titleSeparatorRight = themeDefinition.getCharacter("TITLE_SEPARATOR_RIGHT", Symbols.SINGLE_LINE_HORIZONTAL);
-        boolean useTitlePadding = themeDefinition.getBooleanProperty("TITLE_PADDING", false);
-        boolean centerTitle = themeDefinition.getBooleanProperty("CENTER_TITLE", false);
+var titleHorizontalPosition = if (useTitlePadding) TITLE_POSITION_WITH_PADDING else TITLE_POSITION_WITHOUT_PADDING
+val titleMaxColumns = drawableArea!!.columns - titleHorizontalPosition * 2
+if (centerTitle)
+{
+titleHorizontalPosition = (drawableArea!!.columns / 2) - (TerminalTextUtils.getColumnWidth(title) / 2)
+titleHorizontalPosition = Math.max(titleHorizontalPosition, if (useTitlePadding) TITLE_POSITION_WITH_PADDING else TITLE_POSITION_WITHOUT_PADDING)
+}
+val actualTitle = TerminalTextUtils.fitString(title, titleMaxColumns)
+val titleActualColumns = TerminalTextUtils.getColumnWidth(actualTitle)
 
-        int titleHorizontalPosition = useTitlePadding ? TITLE_POSITION_WITH_PADDING : TITLE_POSITION_WITHOUT_PADDING;
-        int titleMaxColumns = drawableArea.getColumns() - titleHorizontalPosition * 2;
-        if(centerTitle) {
-            titleHorizontalPosition = (drawableArea.getColumns() / 2) - (TerminalTextUtils.getColumnWidth(title) / 2);
-            titleHorizontalPosition = Math.max(titleHorizontalPosition, useTitlePadding ? TITLE_POSITION_WITH_PADDING : TITLE_POSITION_WITHOUT_PADDING);
-        }
-        String actualTitle = TerminalTextUtils.fitString(title, titleMaxColumns);
-        int titleActualColumns = TerminalTextUtils.getColumnWidth(actualTitle);
+ // Don't draw highlights on menu popup windows
+        if (window.getHints().contains(Window.Hint.MENU_POPUP))
+{
+graphics!!.applyThemeStyle(themeDefinition!!.getNormal())
+}
+else
+{
+graphics!!.applyThemeStyle(themeDefinition!!.getPreLight())
+}
+graphics!!.drawLine(TerminalPosition(0, drawableArea!!.rows - 2), TerminalPosition(0, 1), verticalLine)
+graphics!!.drawLine(TerminalPosition(1, 0), TerminalPosition(drawableArea!!.columns - 2, 0), horizontalLine)
+graphics!!.setCharacter(0, 0, topLeftCorner)
+graphics!!.setCharacter(0, drawableArea!!.rows - 1, bottomLeftCorner)
 
-        // Don't draw highlights on menu popup windows
-        if (window.getHints().contains(Window.Hint.MENU_POPUP)) {
-            graphics.applyThemeStyle(themeDefinition.getNormal());
-        }
-        else {
-            graphics.applyThemeStyle(themeDefinition.getPreLight());
-        }
-        graphics.drawLine(new TerminalPosition(0, drawableArea.getRows() - 2), new TerminalPosition(0, 1), verticalLine);
-        graphics.drawLine(new TerminalPosition(1, 0), new TerminalPosition(drawableArea.getColumns() - 2, 0), horizontalLine);
-        graphics.setCharacter(0, 0, topLeftCorner);
-        graphics.setCharacter(0, drawableArea.getRows() - 1, bottomLeftCorner);
+if (!actualTitle!!.isEmpty() && drawableArea!!.columns > 8)
+{
+var separatorOffset = 1
+if (useTitlePadding)
+{
+graphics!!.setCharacter(titleHorizontalPosition - 1, 0, ' ')
+graphics!!.setCharacter(titleHorizontalPosition + titleActualColumns, 0, ' ')
+separatorOffset = 2
+}
+graphics!!.setCharacter(titleHorizontalPosition - separatorOffset, 0, titleSeparatorLeft)
+graphics!!.setCharacter(titleHorizontalPosition + titleActualColumns + separatorOffset - 1, 0, titleSeparatorRight)
+}
 
-        if(!actualTitle.isEmpty() && drawableArea.getColumns() > 8) {
-            int separatorOffset = 1;
-            if(useTitlePadding) {
-                graphics.setCharacter(titleHorizontalPosition - 1, 0, ' ');
-                graphics.setCharacter(titleHorizontalPosition + titleActualColumns, 0, ' ');
-                separatorOffset = 2;
-            }
-            graphics.setCharacter(titleHorizontalPosition - separatorOffset, 0, titleSeparatorLeft);
-            graphics.setCharacter(titleHorizontalPosition + titleActualColumns + separatorOffset - 1, 0, titleSeparatorRight);
-        }
+graphics!!.applyThemeStyle(themeDefinition!!.getNormal())
+graphics!!.drawLine(
+TerminalPosition(drawableArea!!.columns - 1, 1), 
+TerminalPosition(drawableArea!!.columns - 1, drawableArea!!.rows - 2), 
+verticalLine)
+graphics!!.drawLine(
+TerminalPosition(1, drawableArea!!.rows - 1), 
+TerminalPosition(drawableArea!!.columns - 2, drawableArea!!.rows - 1), 
+horizontalLine)
 
-        graphics.applyThemeStyle(themeDefinition.getNormal());
-        graphics.drawLine(
-                new TerminalPosition(drawableArea.getColumns() - 1, 1),
-                new TerminalPosition(drawableArea.getColumns() - 1, drawableArea.getRows() - 2),
-                verticalLine);
-        graphics.drawLine(
-                new TerminalPosition(1, drawableArea.getRows() - 1),
-                new TerminalPosition(drawableArea.getColumns() - 2, drawableArea.getRows() - 1),
-                horizontalLine);
+graphics!!.setCharacter(drawableArea!!.columns - 1, 0, topRightCorner)
+graphics!!.setCharacter(drawableArea!!.columns - 1, drawableArea!!.rows - 1, bottomRightCorner)
 
-        graphics.setCharacter(drawableArea.getColumns() - 1, 0, topRightCorner);
-        graphics.setCharacter(drawableArea.getColumns() - 1, drawableArea.getRows() - 1, bottomRightCorner);
+if (!actualTitle!!.isEmpty())
+{
+if (textGUI!!.getActiveWindow() === window)
+{
+graphics!!.applyThemeStyle(themeDefinition!!.getActive())
+}
+else
+{
+graphics!!.applyThemeStyle(themeDefinition!!.getInsensitive())
+}
+graphics!!.putString(titleHorizontalPosition, 0, actualTitle)
+}
 
-        if(!actualTitle.isEmpty()) {
-            if(textGUI.getActiveWindow() == window) {
-                graphics.applyThemeStyle(themeDefinition.getActive());
-            }
-            else {
-                graphics.applyThemeStyle(themeDefinition.getInsensitive());
-            }
-            graphics.putString(titleHorizontalPosition, 0, actualTitle);
-        }
+return graphics!!.newTextGraphics(
+TerminalPosition(1, 1), 
+drawableArea!!
+ // Make sure we don't make the new graphic's area smaller than 0
+                        .withRelativeColumns(-(Math.min(2, drawableArea!!.columns)))!!
+.withRelativeRows(-(Math.min(2, drawableArea!!.rows))))
+}
 
-        return graphics.newTextGraphics(
-                new TerminalPosition(1, 1),
-                drawableArea
-                        // Make sure we don't make the new graphic's area smaller than 0
-                        .withRelativeColumns(-(Math.min(2, drawableArea.getColumns())))
-                        .withRelativeRows(-(Math.min(2, drawableArea.getRows()))));
-    }
+@Override
+ fun getDecoratedSize(window:Window, contentAreaSize:TerminalSize?):TerminalSize? {
+val themeDefinition = window.getTheme().getDefinition(DefaultWindowDecorationRenderer::class.java)
+val useTitlePadding = themeDefinition!!.getBooleanProperty("TITLE_PADDING", false)
 
-    @Override
-    public TerminalSize getDecoratedSize(Window window, TerminalSize contentAreaSize) {
-        ThemeDefinition themeDefinition = window.getTheme().getDefinition(DefaultWindowDecorationRenderer.class);
-        boolean useTitlePadding = themeDefinition.getBooleanProperty("TITLE_PADDING", false);
+val titleWidth = TerminalTextUtils.getColumnWidth(window.getTitle())
+var minPadding = TITLE_POSITION_WITHOUT_PADDING * 2
+if (useTitlePadding)
+{
+minPadding = TITLE_POSITION_WITH_PADDING * 2
+}
 
-        int titleWidth = TerminalTextUtils.getColumnWidth(window.getTitle());
-        int minPadding = TITLE_POSITION_WITHOUT_PADDING * 2;
-        if(useTitlePadding) {
-            minPadding = TITLE_POSITION_WITH_PADDING * 2;
-        }
+return contentAreaSize!!
+.withRelativeColumns(2)!!
+.withRelativeRows(2)!!
+.max(TerminalSize(titleWidth + minPadding, 1))  //Make sure the title fits!
+}
 
-        return contentAreaSize
-                .withRelativeColumns(2)
-                .withRelativeRows(2)
-                .max(new TerminalSize(titleWidth + minPadding, 1));  //Make sure the title fits!
-    }
+@Override
+ fun getOffset(window:Window?):TerminalPosition {
+return OFFSET
+}
 
-    private static final TerminalPosition OFFSET = new TerminalPosition(1, 1);
+companion object {
 
-    @Override
-    public TerminalPosition getOffset(Window window) {
-        return OFFSET;
-    }
+private val TITLE_POSITION_WITH_PADDING = 4
+private val TITLE_POSITION_WITHOUT_PADDING = 3
+
+private val OFFSET = TerminalPosition(1, 1)
+}
 }

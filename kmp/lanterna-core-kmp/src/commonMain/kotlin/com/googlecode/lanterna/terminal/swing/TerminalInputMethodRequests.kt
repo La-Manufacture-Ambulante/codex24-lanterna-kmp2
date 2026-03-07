@@ -1,60 +1,54 @@
-package com.googlecode.lanterna.terminal.swing;
+package com.googlecode.lanterna.terminal.swing
 
-import com.googlecode.lanterna.TerminalPosition;
+import com.googlecode.lanterna.TerminalPosition
 
-import java.awt.*;
-import java.awt.font.TextHitInfo;
-import java.awt.im.InputMethodRequests;
-import java.text.AttributedCharacterIterator;
+import java.awt.*
+import java.awt.font.TextHitInfo
+import java.awt.im.InputMethodRequests
+import java.text.AttributedCharacterIterator
 
-class TerminalInputMethodRequests implements InputMethodRequests {
+internal class TerminalInputMethodRequests(private val owner:Component?, private val terminalImplementation:GraphicalTerminalImplementation?):InputMethodRequests {
 
-    private Component owner;
-    private GraphicalTerminalImplementation terminalImplementation;
-    
-    public TerminalInputMethodRequests(Component owner, GraphicalTerminalImplementation terminalImplementation) {
-        this.owner = owner;
-        this.terminalImplementation = terminalImplementation;
-    }
-    
-    @Override
-    public Rectangle getTextLocation(TextHitInfo offset) {
-        Point location = owner.getLocationOnScreen();
-        TerminalPosition cursorPosition = terminalImplementation.getCursorPosition();
+ val insertPositionOffset:Int
+@Override
+get() {
+return 0
+}
 
-        int offsetX = cursorPosition.getColumn() * terminalImplementation.getFontWidth();
-        int offsetY = cursorPosition.getRow() * terminalImplementation.getFontHeight() + terminalImplementation.getFontHeight();
+ val committedTextLength:Int
+@Override
+get() {
+return 0
+}
 
-        return new Rectangle(location.x + offsetX, location.y + offsetY, 0, 0);
-    }
+@Override
+ fun getTextLocation(offset:TextHitInfo?):Rectangle? {
+val location = owner!!.getLocationOnScreen()
+val cursorPosition = terminalImplementation!!.getCursorPosition()
 
-    @Override
-    public TextHitInfo getLocationOffset(int x, int y) {
-        return null;
-    }
+val offsetX = cursorPosition!!.column * terminalImplementation!!.getFontWidth()
+val offsetY = cursorPosition!!.row * terminalImplementation!!.getFontHeight() + terminalImplementation!!.getFontHeight()
 
-    @Override
-    public int getInsertPositionOffset() {
-        return 0;
-    }
+return Rectangle(location!!.x + offsetX, location!!.y + offsetY, 0, 0)
+}
 
-    @Override
-    public AttributedCharacterIterator getCommittedText(int beginIndex, int endIndex, AttributedCharacterIterator.Attribute[] attributes) {
-        return null;
-    }
+@Override
+ fun getLocationOffset(x:Int, y:Int):TextHitInfo? {
+return null
+}
 
-    @Override
-    public int getCommittedTextLength() {
-        return 0;
-    }
+@Override
+ fun getCommittedText(beginIndex:Int, endIndex:Int, attributes:Array<AttributedCharacterIterator.Attribute?>?):AttributedCharacterIterator? {
+return null
+}
 
-    @Override
-    public AttributedCharacterIterator cancelLatestCommittedText(AttributedCharacterIterator.Attribute[] attributes) {
-        return null;
-    }
+@Override
+ fun cancelLatestCommittedText(attributes:Array<AttributedCharacterIterator.Attribute?>?):AttributedCharacterIterator? {
+return null
+}
 
-    @Override
-    public AttributedCharacterIterator getSelectedText(AttributedCharacterIterator.Attribute[] attributes) {
-        return null;
-    }
+@Override
+ fun getSelectedText(attributes:Array<AttributedCharacterIterator.Attribute?>?):AttributedCharacterIterator? {
+return null
+}
 }

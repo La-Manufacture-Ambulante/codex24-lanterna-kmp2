@@ -16,10 +16,9 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.input;
+package com.googlecode.lanterna.input
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Arrays
 
 /**
  * Very simple pattern that matches the input stream against a pre-defined list of characters. For the pattern to match,
@@ -27,69 +26,70 @@ import java.util.List;
  * 
  * @author Martin, Andreas
  */
-public class BasicCharacterPattern implements CharacterPattern {
-    private final KeyStroke result;
-    private final char[] pattern;
+ class BasicCharacterPattern/**
+ * Creates a new BasicCharacterPattern that matches a particular sequence of characters into a `KeyStroke`
+ * @param result `KeyStroke` that this pattern will translate to
+ * @param pattern Sequence of characters that translates into the `KeyStroke`
+ */
+    (/**
+ * Returns the keystroke that this pattern results in
+ * @return The keystoke this pattern will return if it matches
+ */
+     val result:KeyStroke?, vararg pattern:Char):CharacterPattern {
+private val pattern:CharArray?
 
-    /**
-     * Creates a new BasicCharacterPattern that matches a particular sequence of characters into a {@code KeyStroke}
-     * @param result {@code KeyStroke} that this pattern will translate to
-     * @param pattern Sequence of characters that translates into the {@code KeyStroke}
-     */
-    public BasicCharacterPattern(KeyStroke result, char... pattern) {
-        this.result = result;
-        this.pattern = pattern;
-    }
+init{
+this.pattern = pattern
+}
 
-    /**
-     * Returns the characters that makes up this pattern, as an array that is a copy of the array used internally
-     * @return Array of characters that defines this pattern
-     */
-    public char[] getPattern() {
-        return Arrays.copyOf(pattern, pattern.length);
-    }
+/**
+ * Returns the characters that makes up this pattern, as an array that is a copy of the array used internally
+ * @return Array of characters that defines this pattern
+ */
+     fun getPattern():CharArray? {
+return Arrays.copyOf(pattern, pattern!!.size)
+}
 
-    /**
-     * Returns the keystroke that this pattern results in
-     * @return The keystoke this pattern will return if it matches
-     */
-    public KeyStroke getResult() {
-        return result;
-    }
+@Override
+ fun match(seq:List<Character?>):Matching? {
+val size = seq.size()
 
-    @Override
-    public Matching match(List<Character> seq) {
-        int size = seq.size();
-        
-        if(size > pattern.length) {
-            return null; // nope
-        }
-        for (int i = 0; i < size; i++) {
-            if (pattern[i] != seq.get(i)) {
-                return null; // nope
-            }
-        }
-        if (size == pattern.length) {
-            return new Matching( getResult() ); // yep
-        } else {
-            return Matching.NOT_YET; // maybe later
-        }
-    }
+if (size > pattern!!.size)
+{
+return null // nope
+}
+for (i in 0 until size)
+{
+if (pattern!![i] != seq.get(i))
+{
+return null // nope
+}
+}
+if (size == pattern!!.size)
+{
+return Matching(result) // yep
+}
+else
+{
+return Matching.NOT_YET // maybe later
+}
+}
 
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof BasicCharacterPattern)) {
-            return false;
-        }
+@Override
+ fun equals(obj:Object?):Boolean {
+if (!(obj is BasicCharacterPattern))
+{
+return false
+}
 
-        BasicCharacterPattern other = (BasicCharacterPattern) obj;
-        return Arrays.equals(this.pattern, other.pattern);
-    }
+val other = obj as BasicCharacterPattern?
+return Arrays.equals(this.pattern, other!!.pattern)
+}
 
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 53 * hash + Arrays.hashCode(this.pattern);
-        return hash;
-    }
+@Override
+ fun hashCode():Int {
+var hash = 3
+hash = 53 * hash + Arrays.hashCode(this.pattern)
+return hash
+}
 }

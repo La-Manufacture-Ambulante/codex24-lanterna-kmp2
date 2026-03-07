@@ -17,38 +17,41 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextColor
 
-import java.io.IOException;
+import java.io.IOException
 
 /**
- *
+ * 
  * @author Martin
  */
-public class BlinkTest {
-    public static void main(String[] args) throws IOException {
-        Terminal rawTerminal = new TestTerminalFactory(args).createTerminal();
-        rawTerminal.enterPrivateMode();
-        rawTerminal.clearScreen();
-        rawTerminal.setForegroundColor(TextColor.ANSI.RED);
-        rawTerminal.enableSGR(SGR.BLINK);
-        rawTerminal.setCursorPosition(10, 10);
-        rawTerminal.putCharacter('H');
-        rawTerminal.putCharacter('e');
-        rawTerminal.putCharacter('l');
-        rawTerminal.putCharacter('l');
-        rawTerminal.putCharacter('o');
-        rawTerminal.putCharacter('!');
-        rawTerminal.setCursorPosition(0, 0);
-        rawTerminal.flush();
-        try {
-            Thread.sleep(5000);
-        }
-        catch(InterruptedException e) {}
-        rawTerminal.exitPrivateMode();
-    }
+ object BlinkTest {
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
+val rawTerminal = TestTerminalFactory(args).createTerminal()
+rawTerminal!!.enterPrivateMode()
+rawTerminal!!.clearScreen()
+rawTerminal!!.setForegroundColor(TextColor.ANSI.RED)
+rawTerminal!!.enableSGR(SGR.BLINK)
+rawTerminal!!.setCursorPosition(10, 10)
+rawTerminal!!.putCharacter('H')
+rawTerminal!!.putCharacter('e')
+rawTerminal!!.putCharacter('l')
+rawTerminal!!.putCharacter('l')
+rawTerminal!!.putCharacter('o')
+rawTerminal!!.putCharacter('!')
+rawTerminal!!.setCursorPosition(0, 0)
+rawTerminal!!.flush()
+try
+{
+Thread.sleep(5000)
+}
+catch (e:InterruptedException) {}
+
+rawTerminal!!.exitPrivateMode()
+}
 }

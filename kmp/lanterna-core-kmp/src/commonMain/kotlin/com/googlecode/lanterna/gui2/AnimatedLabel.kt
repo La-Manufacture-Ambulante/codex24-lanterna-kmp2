@@ -16,166 +16,170 @@
  * 
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TerminalSize
 
-import java.lang.ref.WeakReference;
-import java.util.*;
+import java.lang.ref.WeakReference
+import java.util.*
 
 /**
  * This is a special label that contains not just a single text to display but a number of frames that are cycled
  * through. The class will manage a timer on its own and ensure the label is updated and redrawn. There is a static
- * helper method available to create the classic "spinning bar": {@code createClassicSpinningLine()}
+ * helper method available to create the classic "spinning bar": `createClassicSpinningLine()`
  */
-public class AnimatedLabel extends Label {
-    private static Timer TIMER = null;
-    private static final WeakHashMap<AnimatedLabel, TimerTask> SCHEDULED_TASKS = new WeakHashMap<>();
+ class AnimatedLabel/**
+ * Creates a new animated label, initially set to one frame. You will need to add more frames and call
+ * `startAnimation()` for this to start moving.
+ * 
+ * @param firstFrameText The content of the label at the first frame
+ */
+    (firstFrameText:String?):Label(firstFrameText) {
 
-    /**
-     * Creates a classic spinning bar which can be used to signal to the user that an operation in is process.
-     * @return {@code AnimatedLabel} instance which is setup to show a spinning bar
-     */
-    public static AnimatedLabel createClassicSpinningLine() {
-        return createClassicSpinningLine(150);
-    }
+private val frames:List<Array<String?>?>?
+private var combinedMaximumPreferredSize:TerminalSize? = null
+private var currentFrame:Int = 0
 
-    /**
-     * Creates a classic spinning bar which can be used to signal to the user that an operation in is process.
-     * @param speed Delay in between each frame
-     * @return {@code AnimatedLabel} instance which is setup to show a spinning bar
-     */
-    public static AnimatedLabel createClassicSpinningLine(int speed) {
-        AnimatedLabel animatedLabel = new AnimatedLabel("-");
-        animatedLabel.addFrame("\\");
-        animatedLabel.addFrame("|");
-        animatedLabel.addFrame("/");
-        animatedLabel.startAnimation(speed);
-        return animatedLabel;
-    }
+init{
+frames = ArrayList()
+currentFrame = 0
+combinedMaximumPreferredSize = TerminalSize.ZERO
 
-    private final List<String[]> frames;
-    private TerminalSize combinedMaximumPreferredSize;
-    private int currentFrame;
-
-    /**
-     * Creates a new animated label, initially set to one frame. You will need to add more frames and call
-     * {@code startAnimation()} for this to start moving.
-     *
-     * @param firstFrameText The content of the label at the first frame
-     */
-    public AnimatedLabel(String firstFrameText) {
-        super(firstFrameText);
-        frames = new ArrayList<>();
-        currentFrame = 0;
-        combinedMaximumPreferredSize = TerminalSize.ZERO;
-
-        String[] lines = splitIntoMultipleLines(firstFrameText);
-        frames.add(lines);
-        ensurePreferredSize(lines);
-    }
-
-    @Override
-    protected synchronized TerminalSize calculatePreferredSize() {
-        return super.calculatePreferredSize().max(combinedMaximumPreferredSize);
-    }
-
-    /**
-     * Adds one more frame at the end of the list of frames
-     * @param text Text to use for the label at this frame
-     * @return Itself
-     */
-    public synchronized AnimatedLabel addFrame(String text) {
-        String[] lines = splitIntoMultipleLines(text);
-        frames.add(lines);
-        ensurePreferredSize(lines);
-        return this;
-    }
-
-    private void ensurePreferredSize(String[] lines) {
-        combinedMaximumPreferredSize = combinedMaximumPreferredSize.max(getBounds(lines, combinedMaximumPreferredSize));
-    }
-
-    /**
-     * Advances the animated label to the next frame. You normally don't need to call this manually as it will be done
-     * by the animation thread.
-     */
-    public synchronized void nextFrame() {
-        currentFrame++;
-        if(currentFrame >= frames.size()) {
-            currentFrame = 0;
-        }
-        super.setLines(frames.get(currentFrame));
-        invalidate();
-    }
-
-    @Override
-    public void onRemoved(Container container) {
-        stopAnimation();
-    }
-
-    /**
-     * Starts the animation thread which will periodically call {@code nextFrame()} at the interval specified by the
-     * {@code millisecondsPerFrame} parameter. After all frames have been cycled through, it will start over from the
-     * first frame again.
-     * @param millisecondsPerFrame The interval in between every frame
-     * @return Itself
-     */
-    public synchronized AnimatedLabel startAnimation(long millisecondsPerFrame) {
-        if(TIMER == null) {
-            TIMER = new Timer("AnimatedLabel");
-        }
-        AnimationTimerTask animationTimerTask = new AnimationTimerTask(this);
-        SCHEDULED_TASKS.put(this, animationTimerTask);
-        TIMER.scheduleAtFixedRate(animationTimerTask, millisecondsPerFrame, millisecondsPerFrame);
-        return this;
-    }
-
-    /**
-     * Halts the animation thread and the label will stop at whatever was the current frame at the time when this was
-     * called
-     * @return Itself
-     */
-    public synchronized AnimatedLabel stopAnimation() {
-        removeTaskFromTimer(this);
-        return this;
-    }
-
-    private static synchronized void removeTaskFromTimer(AnimatedLabel animatedLabel) {
-        SCHEDULED_TASKS.get(animatedLabel).cancel();
-        SCHEDULED_TASKS.remove(animatedLabel);
-        canCloseTimer();
-    }
-
-    private static synchronized void canCloseTimer() {
-        if(SCHEDULED_TASKS.isEmpty()) {
-            TIMER.cancel();
-            TIMER = null;
-        }
-    }
-
-    private static class AnimationTimerTask extends TimerTask {
-        private final WeakReference<AnimatedLabel> labelRef;
-
-        private AnimationTimerTask(AnimatedLabel label) {
-            this.labelRef = new WeakReference<>(label);
-        }
-
-        @Override
-        public void run() {
-            AnimatedLabel animatedLabel = labelRef.get();
-            if(animatedLabel == null) {
-                cancel();
-                canCloseTimer();
-            }
-            else {
-                if(animatedLabel.getBasePane() == null) {
-                    animatedLabel.stopAnimation();
-                }
-                else {
-                    animatedLabel.nextFrame();
-                }
-            }
-        }
-    }
+val lines = splitIntoMultipleLines(firstFrameText)
+frames!!.add(lines)
+ensurePreferredSize(lines)
 }
+
+@Override
+@Synchronized protected fun calculatePreferredSize():TerminalSize? {
+return super.calculatePreferredSize().max(combinedMaximumPreferredSize)
+}
+
+/**
+ * Adds one more frame at the end of the list of frames
+ * @param text Text to use for the label at this frame
+ * @return Itself
+ */
+    @Synchronized  fun addFrame(text:String?):AnimatedLabel {
+val lines = splitIntoMultipleLines(text)
+frames!!.add(lines)
+ensurePreferredSize(lines)
+return this
+}
+
+private fun ensurePreferredSize(lines:Array<String?>?) {
+combinedMaximumPreferredSize = combinedMaximumPreferredSize!!.max(getBounds(lines, combinedMaximumPreferredSize))
+}
+
+/**
+ * Advances the animated label to the next frame. You normally don't need to call this manually as it will be done
+ * by the animation thread.
+ */
+    @Synchronized  fun nextFrame() {
+currentFrame++
+if (currentFrame >= frames!!.size())
+{
+currentFrame = 0
+}
+super.setLines(frames!!.get(currentFrame))
+invalidate()
+}
+
+@Override
+ fun onRemoved(container:Container?) {
+stopAnimation()
+}
+
+/**
+ * Starts the animation thread which will periodically call `nextFrame()` at the interval specified by the
+ * `millisecondsPerFrame` parameter. After all frames have been cycled through, it will start over from the
+ * first frame again.
+ * @param millisecondsPerFrame The interval in between every frame
+ * @return Itself
+ */
+    @Synchronized  fun startAnimation(millisecondsPerFrame:Long):AnimatedLabel {
+if (TIMER == null)
+{
+TIMER = Timer("AnimatedLabel")
+}
+val animationTimerTask = AnimationTimerTask(this)
+SCHEDULED_TASKS.put(this, animationTimerTask)
+TIMER!!.scheduleAtFixedRate(animationTimerTask, millisecondsPerFrame, millisecondsPerFrame)
+return this
+}
+
+/**
+ * Halts the animation thread and the label will stop at whatever was the current frame at the time when this was
+ * called
+ * @return Itself
+ */
+    @Synchronized  fun stopAnimation():AnimatedLabel {
+removeTaskFromTimer(this)
+return this
+}
+
+private class AnimationTimerTask private constructor(label:AnimatedLabel?):TimerTask() {
+private val labelRef:WeakReference<AnimatedLabel?>?
+
+init{
+this.labelRef = WeakReference(label)
+}
+
+@Override
+ fun run() {
+val animatedLabel = labelRef!!.get()
+if (animatedLabel == null)
+{
+cancel()
+canCloseTimer()
+}
+else
+{
+if (animatedLabel!!.getBasePane() == null)
+{
+animatedLabel!!.stopAnimation()
+}
+else
+{
+animatedLabel!!.nextFrame()
+}
+}
+}
+}
+
+companion object {
+private var TIMER:Timer? = null
+private val SCHEDULED_TASKS = WeakHashMap()
+
+/**
+ * Creates a classic spinning bar which can be used to signal to the user that an operation in is process.
+ * @param speed Delay in between each frame
+ * @return `AnimatedLabel` instance which is setup to show a spinning bar
+ */
+    @JvmOverloads  fun createClassicSpinningLine(speed:Int = 150):AnimatedLabel {
+val animatedLabel = AnimatedLabel("-")
+animatedLabel.addFrame("\\")
+animatedLabel.addFrame("|")
+animatedLabel.addFrame("/")
+animatedLabel.startAnimation(speed.toLong())
+return animatedLabel
+}
+
+@Synchronized private fun removeTaskFromTimer(animatedLabel:AnimatedLabel?) {
+SCHEDULED_TASKS.get(animatedLabel).cancel()
+SCHEDULED_TASKS.remove(animatedLabel)
+canCloseTimer()
+}
+
+@Synchronized private fun canCloseTimer() {
+if (SCHEDULED_TASKS.isEmpty())
+{
+TIMER!!.cancel()
+TIMER = null
+}
+}
+}
+}/**
+ * Creates a classic spinning bar which can be used to signal to the user that an operation in is process.
+ * @return `AnimatedLabel` instance which is setup to show a spinning bar
+ */

@@ -16,28 +16,28 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
 
 /**
  * Implementation of WindowDecorationRenderer that is doesn't render any window decorations
  * @author Martin
  */
-public class EmptyWindowDecorationRenderer implements WindowDecorationRenderer {
-    @Override
-    public TextGUIGraphics draw(WindowBasedTextGUI textGUI, TextGUIGraphics graphics, Window window) {
-        return graphics;
-    }
+ class EmptyWindowDecorationRenderer:WindowDecorationRenderer {
+@Override
+ fun draw(textGUI:WindowBasedTextGUI?, graphics:TextGUIGraphics?, window:Window?):TextGUIGraphics? {
+return graphics
+}
 
-    @Override
-    public TerminalSize getDecoratedSize(Window window, TerminalSize contentAreaSize) {
-        return contentAreaSize;
-    }
+@Override
+ fun getDecoratedSize(window:Window?, contentAreaSize:TerminalSize?):TerminalSize? {
+return contentAreaSize
+}
 
-    @Override
-    public TerminalPosition getOffset(Window window) {
-        return TerminalPosition.TOP_LEFT_CORNER;
-    }
+@Override
+ fun getOffset(window:Window?):TerminalPosition {
+return TerminalPosition.TOP_LEFT_CORNER
+}
 }

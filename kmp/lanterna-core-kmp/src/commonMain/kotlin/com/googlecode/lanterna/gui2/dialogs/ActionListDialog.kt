@@ -16,91 +16,92 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.dialogs;
+package com.googlecode.lanterna.gui2.dialogs
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.gui2.*;
-
-import java.util.List;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.gui2.*
 
 /**
  * Dialog containing a multiple item action list box
  * @author Martin
  */
-public class ActionListDialog extends DialogWindow {
+ class ActionListDialog internal constructor(
+title:String?, 
+description:String?, 
+actionListPreferredSize:TerminalSize?, 
+canCancel:Boolean, 
+closeAutomatically:Boolean, 
+actions:List<Runnable?>):DialogWindow(title) {
 
-    ActionListDialog(
-            String title,
-            String description,
-            TerminalSize actionListPreferredSize,
-            boolean canCancel,
-            final boolean closeAutomatically,
-            List<Runnable> actions) {
+init{
 
-        super(title);
+val listBox = ActionListBox(actionListPreferredSize)
+for (action in actions)
+{
+listBox.addItem(action!!.toString(), { action!!.run()
+if (closeAutomatically)
+{
+close()
+} })
+}
 
-        ActionListBox listBox = new ActionListBox(actionListPreferredSize);
-        for(final Runnable action: actions) {
-            listBox.addItem(action.toString(), () -> {
-                action.run();
-                if(closeAutomatically) {
-                    close();
-                }
-            });
-        }
+val mainPanel = Panel()
+mainPanel.setLayoutManager(
+GridLayout(1)
+.setLeftMarginSize(1)
+.setRightMarginSize(1))
+if (description != null)
+{
+mainPanel.addComponent(Label(description))
+mainPanel.addComponent(EmptySpace(TerminalSize.ONE))
+}
+listBox.setLayoutData(
+GridLayout.createLayoutData(
+GridLayout.Alignment.FILL, 
+GridLayout.Alignment.CENTER, 
+true, 
+false))
+.addTo(mainPanel)
+mainPanel.addComponent(EmptySpace(TerminalSize.ONE))
 
-        Panel mainPanel = new Panel();
-        mainPanel.setLayoutManager(
-                new GridLayout(1)
-                        .setLeftMarginSize(1)
-                        .setRightMarginSize(1));
-        if(description != null) {
-            mainPanel.addComponent(new Label(description));
-            mainPanel.addComponent(new EmptySpace(TerminalSize.ONE));
-        }
-        listBox.setLayoutData(
-                GridLayout.createLayoutData(
-                        GridLayout.Alignment.FILL,
-                        GridLayout.Alignment.CENTER,
-                        true,
-                        false))
-                .addTo(mainPanel);
-        mainPanel.addComponent(new EmptySpace(TerminalSize.ONE));
+if (canCancel)
+{
+val buttonPanel = Panel()
+buttonPanel.setLayoutManager(GridLayout(2).setHorizontalSpacing(1))
+buttonPanel.addComponent(Button(LocalizedString.Cancel.toString(), ???({ this.onCancel() })).setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.CENTER, true, false)))
+buttonPanel.setLayoutData(
+GridLayout.createLayoutData(
+GridLayout.Alignment.END, 
+GridLayout.Alignment.CENTER, 
+false, 
+false))
+.addTo(mainPanel)
+}
+setComponent(mainPanel)
+}
 
-        if(canCancel) {
-            Panel buttonPanel = new Panel();
-            buttonPanel.setLayoutManager(new GridLayout(2).setHorizontalSpacing(1));
-            buttonPanel.addComponent(new Button(LocalizedString.Cancel.toString(), this::onCancel).setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.CENTER, true, false)));
-            buttonPanel.setLayoutData(
-                    GridLayout.createLayoutData(
-                            GridLayout.Alignment.END,
-                            GridLayout.Alignment.CENTER,
-                            false,
-                            false))
-                    .addTo(mainPanel);
-        }
-        setComponent(mainPanel);
-    }
+private fun onCancel() {
+close()
+}
 
-    private void onCancel() {
-        close();
-    }
+companion object {
 
-    /**
-     * Helper method for immediately displaying a {@code ActionListDialog}, the method will return when the dialog is
-     * closed
-     * @param textGUI Text GUI the dialog should be added to
-     * @param title Title of the dialog
-     * @param description Description of the dialog
-     * @param items Items in the {@code ActionListBox}, the label will be taken from each {@code Runnable} by calling
-     *              {@code toString()} on each one
-     */
-    public static void showDialog(WindowBasedTextGUI textGUI, String title, String description, Runnable... items) {
-        ActionListDialog actionListDialog = new ActionListDialogBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .addActions(items)
-                .build();
-        actionListDialog.showDialog(textGUI);
-    }
+/**
+ * Helper method for immediately displaying a `ActionListDialog`, the method will return when the dialog is
+ * closed
+ * @param textGUI Text GUI the dialog should be added to
+ * @param title Title of the dialog
+ * @param description Description of the dialog
+ * @param items Items in the `ActionListBox`, the label will be taken from each `Runnable` by calling
+ * `toString()` on each one
+ */
+     fun showDialog(textGUI:WindowBasedTextGUI?, title:String?, description:String?, vararg items:Runnable?) {
+val actionListDialog = ActionListDialogBuilder()
+.setTitle(title)
+.setDescription(description)
+.addActions(items)
+.build()
+actionListDialog!!.showDialog(textGUI)
+}
+}
 }

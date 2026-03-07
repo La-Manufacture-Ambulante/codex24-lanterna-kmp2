@@ -17,43 +17,46 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 
-package com.googlecode.lanterna;
+package com.googlecode.lanterna
 
-import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
+import java.lang.reflect.Field
+import java.util.HashSet
 
 /**
  * This program will print all ACS symbols to standard out, it's a good test
  * to see if your terminal emulator supports these UTF-8 characters or not.
  * @author Martin
  */
-public class TestACS
-{
-    private static final Set<String> NEW_LINE_AFTER = new HashSet<String>() {{
-        add("MALE");
-        add("ARROW_LEFT");
-        add("BLOCK_SPARSE");
-        add("DOUBLE_LINE_VERTICAL");
-        add("DOUBLE_LINE_TOP_RIGHT_CORNER");
-        add("DOUBLE_LINE_BOTTOM_RIGHT_CORNER");
-        add("DOUBLE_LINE_CROSS");
-        add("SINGLE_LINE_T_LEFT");
-        add("SINGLE_LINE_T_DOUBLE_LEFT");
-        add("DOUBLE_LINE_T_LEFT");
-        add("DOUBLE_LINE_T_SINGLE_LEFT");
-    }};
+ object TestACS {
+private val NEW_LINE_AFTER = object:HashSet<String?>() {
+init{
+add("MALE")
+add("ARROW_LEFT")
+add("BLOCK_SPARSE")
+add("DOUBLE_LINE_VERTICAL")
+add("DOUBLE_LINE_TOP_RIGHT_CORNER")
+add("DOUBLE_LINE_BOTTOM_RIGHT_CORNER")
+add("DOUBLE_LINE_CROSS")
+add("SINGLE_LINE_T_LEFT")
+add("SINGLE_LINE_T_DOUBLE_LEFT")
+add("DOUBLE_LINE_T_LEFT")
+add("DOUBLE_LINE_T_SINGLE_LEFT")
+}
+}
 
-    public static void main(String[] args)
-    {
-        for(Field field : Symbols.class.getFields()) {
-            field.setAccessible(true);
-            try {
-                System.out.printf("%1$s = %2$s%n%3$s", field.getName(), field.get(null),
-                        NEW_LINE_AFTER.contains(field.getName()) ? System.lineSeparator() : "");
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+ fun main(args:Array<String?>?) {
+for (field in Symbols::class.java!!.getFields())
+{
+field!!.setAccessible(true)
+try
+{
+System.out.printf("%1\$s = %2\$s%n%3\$s", field!!.getName(), field!!.get(null), 
+if (NEW_LINE_AFTER.contains(field!!.getName())) System.lineSeparator() else "")
+}
+catch (e:IllegalAccessException) {
+e!!.printStackTrace()
+}
+
+}
+}
 }

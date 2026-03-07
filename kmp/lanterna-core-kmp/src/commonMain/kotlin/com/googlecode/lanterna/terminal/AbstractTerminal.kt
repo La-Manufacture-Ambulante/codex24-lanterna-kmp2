@@ -16,73 +16,77 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.graphics.TextGraphics;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.graphics.TextGraphics
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException
+import java.util.ArrayList
 
 /**
  * Containing a some very fundamental functionality that should be common (and usable) to all terminal implementations.
  * All the Terminal implementers within Lanterna extends from this class.
- *
+ * 
  * @author Martin
  */
-public abstract class AbstractTerminal implements Terminal {
+abstract class AbstractTerminal protected constructor():Terminal {
 
-    private final List<TerminalResizeListener> resizeListeners;
-    private TerminalSize lastKnownSize;
+private val resizeListeners:List<TerminalResizeListener?>?
+private var lastKnownSize:TerminalSize? = null
 
-    protected AbstractTerminal() {
-        this.resizeListeners = new ArrayList<>();
-        this.lastKnownSize = null;
-    }
+init{
+this.resizeListeners = ArrayList()
+this.lastKnownSize = null
+}
 
-    @Override
-    public void addResizeListener(TerminalResizeListener listener) {
-        if (listener != null) {
-            resizeListeners.add(listener);
-        }
-    }
+@Override
+ fun addResizeListener(listener:TerminalResizeListener?) {
+if (listener != null)
+{
+resizeListeners!!.add(listener)
+}
+}
 
-    @Override
-    public void removeResizeListener(TerminalResizeListener listener) {
-        if (listener != null) {
-            resizeListeners.remove(listener);
-        }
-    }
+@Override
+ fun removeResizeListener(listener:TerminalResizeListener?) {
+if (listener != null)
+{
+resizeListeners!!.remove(listener)
+}
+}
 
-    /**
-     * Call this method when the terminal has been resized or the initial size of the terminal has been discovered. It
-     * will trigger all resize listeners, but only if the size has changed from before.
-     *
-     * @param columns Number of columns in the new size
-     * @param rows Number of rows in the new size
-     */
-    protected synchronized void onResized(int columns, int rows) {
-        onResized(new TerminalSize(columns, rows));
-    }
+/**
+ * Call this method when the terminal has been resized or the initial size of the terminal has been discovered. It
+ * will trigger all resize listeners, but only if the size has changed from before.
+ * 
+ * @param columns Number of columns in the new size
+ * @param rows Number of rows in the new size
+ */
+    @Synchronized protected fun onResized(columns:Int, rows:Int) {
+onResized(TerminalSize(columns, rows))
+}
 
-    /**
-     * Call this method when the terminal has been resized or the initial size of the terminal has been discovered. It
-     * will trigger all resize listeners, but only if the size has changed from before.
-     *
-     * @param newSize Last discovered terminal size
-     */
-    protected synchronized void onResized(TerminalSize newSize) {
-        if (lastKnownSize == null || !lastKnownSize.equals(newSize)) {
-            lastKnownSize = newSize;
-            for (TerminalResizeListener resizeListener : resizeListeners) {
-                resizeListener.onResized(this, lastKnownSize);
-            }
-        }
-    }
+/**
+ * Call this method when the terminal has been resized or the initial size of the terminal has been discovered. It
+ * will trigger all resize listeners, but only if the size has changed from before.
+ * 
+ * @param newSize Last discovered terminal size
+ */
+    @Synchronized protected fun onResized(newSize:TerminalSize?) {
+if (lastKnownSize == null || !lastKnownSize!!.equals(newSize))
+{
+lastKnownSize = newSize
+for (resizeListener in resizeListeners!!)
+{
+resizeListener!!.onResized(this, lastKnownSize)
+}
+}
+}
 
-    @Override
-    public TextGraphics newTextGraphics() throws IOException {
-        return new TerminalTextGraphics(this);
-    }
+@Override
+@Throws(IOException::class)
+ fun newTextGraphics():TextGraphics? {
+return TerminalTextGraphics(this)
+}
 }

@@ -16,31 +16,34 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.bundle.LanternaThemes;
-import org.junit.Assert;
-import org.junit.Test;
+import com.googlecode.lanterna.bundle.LanternaThemes
+import org.junit.Assert
+import org.junit.Test
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Collections
 
-public class RedundantThemeDeclarationsTest {
-    @Test
-    public void noThemeDeclarationsAreRedundant() {
-        for(String theme: LanternaThemes.getRegisteredThemes()) {
-            Theme registeredTheme = LanternaThemes.getRegisteredTheme(theme);
-            List<String> redundantDeclarations = ((PropertyTheme) registeredTheme).findRedundantDeclarations();
-            try {
-                Assert.assertEquals(Collections.emptyList(), redundantDeclarations);
-            }
-            catch(AssertionError e) {
-                System.out.println("Redundant definitions in theme '" + theme + "':");
-                for(String declaration: redundantDeclarations) {
-                    System.out.println(declaration);
-                }
-                throw e;
-            }
-        }
-    }
+ class RedundantThemeDeclarationsTest {
+@Test
+@JvmStatic  fun noThemeDeclarationsAreRedundant() {
+for (theme in LanternaThemes.getRegisteredThemes())
+{
+val registeredTheme = LanternaThemes.getRegisteredTheme(theme)
+val redundantDeclarations = (registeredTheme as PropertyTheme).findRedundantDeclarations()
+try
+{
+Assert.assertEquals(Collections.emptyList(), redundantDeclarations)
+}
+catch (e:AssertionError) {
+System.out.println("Redundant definitions in theme '" + theme + "':")
+for (declaration in redundantDeclarations!!)
+{
+System.out.println(declaration)
+}
+throw e
+}
+
+}
+}
 }

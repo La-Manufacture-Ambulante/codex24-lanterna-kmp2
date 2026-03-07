@@ -17,7 +17,7 @@
  * Copyright (C) 2010-2020 Martin Berglund
  */
 
-package com.googlecode.lanterna;
+package com.googlecode.lanterna
 
 /**
  * Some text graphics, taken from http://en.wikipedia.org/wiki/Codepage_437 but converted to its UTF-8 counterpart.
@@ -25,302 +25,301 @@ package com.googlecode.lanterna;
  * Previously this class was known as ACS, which was taken from ncurses (meaning "Alternative Character Set").
  * @author martin
  */
-public class Symbols {
-    private Symbols() {}
+ object Symbols {
 
-    /**
-     * ☺
-     */
-    public static final char FACE_WHITE = 0x263A;
-    /**
-     * ☻
-     */
-    public static final char FACE_BLACK = 0x263B;
-    /**
-     * ♥
-     */
-    public static final char HEART = 0x2665;
-    /**
-     * ♣
-     */
-    public static final char CLUB = 0x2663;
-    /**
-     * ♦
-     */
-    public static final char DIAMOND = 0x2666;
-    /**
-     * ♠
-     */
-    public static final char SPADES = 0x2660;
-    /**
-     * •
-     */
-    public static final char BULLET = 0x2022;
-    /**
-     * ◘
-     */
-    public static final char INVERSE_BULLET = 0x25d8;
-    /**
-     * ○
-     */
-    public static final char WHITE_CIRCLE = 0x25cb;
-    /**
-     * ◙
-     */
-    public static final char INVERSE_WHITE_CIRCLE = 0x25d9;
+/**
+ * ☺
+ */
+     val FACE_WHITE:Char = 0x263A.toChar()
+/**
+ * ☻
+ */
+     val FACE_BLACK:Char = 0x263B.toChar()
+/**
+ * ♥
+ */
+     val HEART:Char = 0x2665.toChar()
+/**
+ * ♣
+ */
+     val CLUB:Char = 0x2663.toChar()
+/**
+ * ♦
+ */
+     val DIAMOND:Char = 0x2666.toChar()
+/**
+ * ♠
+ */
+     val SPADES:Char = 0x2660.toChar()
+/**
+ * •
+ */
+     val BULLET:Char = 0x2022.toChar()
+/**
+ * ◘
+ */
+     val INVERSE_BULLET:Char = 0x25d8.toChar()
+/**
+ * ○
+ */
+     val WHITE_CIRCLE:Char = 0x25cb.toChar()
+/**
+ * ◙
+ */
+     val INVERSE_WHITE_CIRCLE:Char = 0x25d9.toChar()
 
-    /**
-     * ■
-     */
-    public static final char SOLID_SQUARE = 0x25A0;
-    /**
-     * ▪
-     */
-    public static final char SOLID_SQUARE_SMALL = 0x25AA;
-    /**
-     * □
-     */
-    public static final char OUTLINED_SQUARE = 0x25A1;
-    /**
-     * ▫
-     */
-    public static final char OUTLINED_SQUARE_SMALL = 0x25AB;
+/**
+ * ■
+ */
+     val SOLID_SQUARE:Char = 0x25A0.toChar()
+/**
+ * ▪
+ */
+     val SOLID_SQUARE_SMALL:Char = 0x25AA.toChar()
+/**
+ * □
+ */
+     val OUTLINED_SQUARE:Char = 0x25A1.toChar()
+/**
+ * ▫
+ */
+     val OUTLINED_SQUARE_SMALL:Char = 0x25AB.toChar()
 
-    /**
-     * ♀
-     */
-    public static final char FEMALE = 0x2640;
-    /**
-     * ♂
-     */
-    public static final char MALE = 0x2642;
+/**
+ * ♀
+ */
+     val FEMALE:Char = 0x2640.toChar()
+/**
+ * ♂
+ */
+     val MALE:Char = 0x2642.toChar()
 
-    /**
-     * ↑
-     */
-    public static final char ARROW_UP = 0x2191;
-    /**
-     * ↓
-     */
-    public static final char ARROW_DOWN = 0x2193;
-    /**
-     * →
-     */
-    public static final char ARROW_RIGHT = 0x2192;
-    /**
-     * ←
-     */
-    public static final char ARROW_LEFT = 0x2190;
+/**
+ * ↑
+ */
+     val ARROW_UP:Char = 0x2191.toChar()
+/**
+ * ↓
+ */
+     val ARROW_DOWN:Char = 0x2193.toChar()
+/**
+ * →
+ */
+     val ARROW_RIGHT:Char = 0x2192.toChar()
+/**
+ * ←
+ */
+     val ARROW_LEFT:Char = 0x2190.toChar()
 
-    /**
-     * █
-     */
-    public static final char BLOCK_SOLID = 0x2588;
-    /**
-     * ▓
-     */
-    public static final char BLOCK_DENSE = 0x2593;
-    /**
-     * ▒
-     */
-    public static final char BLOCK_MIDDLE = 0x2592;
-    /**
-     * ░
-     */
-    public static final char BLOCK_SPARSE = 0x2591;
+/**
+ * █
+ */
+     val BLOCK_SOLID:Char = 0x2588.toChar()
+/**
+ * ▓
+ */
+     val BLOCK_DENSE:Char = 0x2593.toChar()
+/**
+ * ▒
+ */
+     val BLOCK_MIDDLE:Char = 0x2592.toChar()
+/**
+ * ░
+ */
+     val BLOCK_SPARSE:Char = 0x2591.toChar()
 
-    /**
-     * ►
-     */
-    public static final char TRIANGLE_RIGHT_POINTING_BLACK = 0x25BA;
-    /**
-     * ◄
-     */
-    public static final char TRIANGLE_LEFT_POINTING_BLACK = 0x25C4;
-    /**
-     * ▲
-     */
-    public static final char TRIANGLE_UP_POINTING_BLACK = 0x25B2;
-    /**
-     * ▼
-     */
-    public static final char TRIANGLE_DOWN_POINTING_BLACK = 0x25BC;
+/**
+ * ►
+ */
+     val TRIANGLE_RIGHT_POINTING_BLACK:Char = 0x25BA.toChar()
+/**
+ * ◄
+ */
+     val TRIANGLE_LEFT_POINTING_BLACK:Char = 0x25C4.toChar()
+/**
+ * ▲
+ */
+     val TRIANGLE_UP_POINTING_BLACK:Char = 0x25B2.toChar()
+/**
+ * ▼
+ */
+     val TRIANGLE_DOWN_POINTING_BLACK:Char = 0x25BC.toChar()
 
-    /**
-     * ⏴
-     */
-    public static final char TRIANGLE_RIGHT_POINTING_MEDIUM_BLACK = 0x23F4;
-    /**
-     * ⏵
-     */
-    public static final char TRIANGLE_LEFT_POINTING_MEDIUM_BLACK = 0x23F5;
-    /**
-     * ⏶
-     */
-    public static final char TRIANGLE_UP_POINTING_MEDIUM_BLACK = 0x23F6;
-    /**
-     * ⏷
-     */
-    public static final char TRIANGLE_DOWN_POINTING_MEDIUM_BLACK = 0x23F7;
+/**
+ * ⏴
+ */
+     val TRIANGLE_RIGHT_POINTING_MEDIUM_BLACK:Char = 0x23F4.toChar()
+/**
+ * ⏵
+ */
+     val TRIANGLE_LEFT_POINTING_MEDIUM_BLACK:Char = 0x23F5.toChar()
+/**
+ * ⏶
+ */
+     val TRIANGLE_UP_POINTING_MEDIUM_BLACK:Char = 0x23F6.toChar()
+/**
+ * ⏷
+ */
+     val TRIANGLE_DOWN_POINTING_MEDIUM_BLACK:Char = 0x23F7.toChar()
 
 
-    /**
-     * ─
-     */
-    public static final char SINGLE_LINE_HORIZONTAL = 0x2500;
-    /**
-     * ━
-     */
-    public static final char BOLD_SINGLE_LINE_HORIZONTAL = 0x2501;
-    /**
-     * ╾
-     */
-    public static final char BOLD_TO_NORMAL_SINGLE_LINE_HORIZONTAL = 0x257E;
-    /**
-     * ╼
-     */
-    public static final char BOLD_FROM_NORMAL_SINGLE_LINE_HORIZONTAL = 0x257C;
-    /**
-     * ═
-     */
-    public static final char DOUBLE_LINE_HORIZONTAL = 0x2550;
-    /**
-     * │
-     */
-    public static final char SINGLE_LINE_VERTICAL = 0x2502;
-    /**
-     * ┃
-     */
-    public static final char BOLD_SINGLE_LINE_VERTICAL = 0x2503;
-    /**
-     * ╿
-     */
-    public static final char BOLD_TO_NORMAL_SINGLE_LINE_VERTICAL = 0x257F;
-    /**
-     * ╽
-     */
-    public static final char BOLD_FROM_NORMAL_SINGLE_LINE_VERTICAL = 0x257D;
-    /**
-     * ║
-     */
-    public static final char DOUBLE_LINE_VERTICAL = 0x2551;
+/**
+ * ─
+ */
+     val SINGLE_LINE_HORIZONTAL:Char = 0x2500.toChar()
+/**
+ * ━
+ */
+     val BOLD_SINGLE_LINE_HORIZONTAL:Char = 0x2501.toChar()
+/**
+ * ╾
+ */
+     val BOLD_TO_NORMAL_SINGLE_LINE_HORIZONTAL:Char = 0x257E.toChar()
+/**
+ * ╼
+ */
+     val BOLD_FROM_NORMAL_SINGLE_LINE_HORIZONTAL:Char = 0x257C.toChar()
+/**
+ * ═
+ */
+     val DOUBLE_LINE_HORIZONTAL:Char = 0x2550.toChar()
+/**
+ * │
+ */
+     val SINGLE_LINE_VERTICAL:Char = 0x2502.toChar()
+/**
+ * ┃
+ */
+     val BOLD_SINGLE_LINE_VERTICAL:Char = 0x2503.toChar()
+/**
+ * ╿
+ */
+     val BOLD_TO_NORMAL_SINGLE_LINE_VERTICAL:Char = 0x257F.toChar()
+/**
+ * ╽
+ */
+     val BOLD_FROM_NORMAL_SINGLE_LINE_VERTICAL:Char = 0x257D.toChar()
+/**
+ * ║
+ */
+     val DOUBLE_LINE_VERTICAL:Char = 0x2551.toChar()
 
-    /**
-     * ┌
-     */
-    public static final char SINGLE_LINE_TOP_LEFT_CORNER = 0x250C;
-    /**
-     * ╔
-     */
-    public static final char DOUBLE_LINE_TOP_LEFT_CORNER = 0x2554;
-    /**
-     * ┐
-     */
-    public static final char SINGLE_LINE_TOP_RIGHT_CORNER = 0x2510;
-    /**
-     * ╗
-     */
-    public static final char DOUBLE_LINE_TOP_RIGHT_CORNER = 0x2557;
+/**
+ * ┌
+ */
+     val SINGLE_LINE_TOP_LEFT_CORNER:Char = 0x250C.toChar()
+/**
+ * ╔
+ */
+     val DOUBLE_LINE_TOP_LEFT_CORNER:Char = 0x2554.toChar()
+/**
+ * ┐
+ */
+     val SINGLE_LINE_TOP_RIGHT_CORNER:Char = 0x2510.toChar()
+/**
+ * ╗
+ */
+     val DOUBLE_LINE_TOP_RIGHT_CORNER:Char = 0x2557.toChar()
 
-    /**
-     * └
-     */
-    public static final char SINGLE_LINE_BOTTOM_LEFT_CORNER = 0x2514;
-    /**
-     * ╚
-     */
-    public static final char DOUBLE_LINE_BOTTOM_LEFT_CORNER = 0x255A;
-    /**
-     * ┘
-     */
-    public static final char SINGLE_LINE_BOTTOM_RIGHT_CORNER = 0x2518;
-    /**
-     * ╝
-     */
-    public static final char DOUBLE_LINE_BOTTOM_RIGHT_CORNER = 0x255D;
+/**
+ * └
+ */
+     val SINGLE_LINE_BOTTOM_LEFT_CORNER:Char = 0x2514.toChar()
+/**
+ * ╚
+ */
+     val DOUBLE_LINE_BOTTOM_LEFT_CORNER:Char = 0x255A.toChar()
+/**
+ * ┘
+ */
+     val SINGLE_LINE_BOTTOM_RIGHT_CORNER:Char = 0x2518.toChar()
+/**
+ * ╝
+ */
+     val DOUBLE_LINE_BOTTOM_RIGHT_CORNER:Char = 0x255D.toChar()
 
-    /**
-     * ┼
-     */
-    public static final char SINGLE_LINE_CROSS = 0x253C;
-    /**
-     * ╬
-     */
-    public static final char DOUBLE_LINE_CROSS = 0x256C;
-    /**
-     * ╪
-     */
-    public static final char DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS = 0x256A;
-    /**
-     * ╫
-     */
-    public static final char DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS = 0x256B;
+/**
+ * ┼
+ */
+     val SINGLE_LINE_CROSS:Char = 0x253C.toChar()
+/**
+ * ╬
+ */
+     val DOUBLE_LINE_CROSS:Char = 0x256C.toChar()
+/**
+ * ╪
+ */
+     val DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS:Char = 0x256A.toChar()
+/**
+ * ╫
+ */
+     val DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS:Char = 0x256B.toChar()
 
-    /**
-     * ┴
-     */
-    public static final char SINGLE_LINE_T_UP = 0x2534;
-    /**
-     * ┬
-     */
-    public static final char SINGLE_LINE_T_DOWN = 0x252C;
-    /**
-     * ├
-     */
-    public static final char SINGLE_LINE_T_RIGHT = 0x251c;
-    /**
-     * ┤
-     */
-    public static final char SINGLE_LINE_T_LEFT = 0x2524;
+/**
+ * ┴
+ */
+     val SINGLE_LINE_T_UP:Char = 0x2534.toChar()
+/**
+ * ┬
+ */
+     val SINGLE_LINE_T_DOWN:Char = 0x252C.toChar()
+/**
+ * ├
+ */
+     val SINGLE_LINE_T_RIGHT:Char = 0x251c.toChar()
+/**
+ * ┤
+ */
+     val SINGLE_LINE_T_LEFT:Char = 0x2524.toChar()
 
-    /**
-     * ╨
-     */
-    public static final char SINGLE_LINE_T_DOUBLE_UP = 0x2568;
-    /**
-     * ╥
-     */
-    public static final char SINGLE_LINE_T_DOUBLE_DOWN = 0x2565;
-    /**
-     * ╞
-     */
-    public static final char SINGLE_LINE_T_DOUBLE_RIGHT = 0x255E;
-    /**
-     * ╡
-     */
-    public static final char SINGLE_LINE_T_DOUBLE_LEFT = 0x2561;
+/**
+ * ╨
+ */
+     val SINGLE_LINE_T_DOUBLE_UP:Char = 0x2568.toChar()
+/**
+ * ╥
+ */
+     val SINGLE_LINE_T_DOUBLE_DOWN:Char = 0x2565.toChar()
+/**
+ * ╞
+ */
+     val SINGLE_LINE_T_DOUBLE_RIGHT:Char = 0x255E.toChar()
+/**
+ * ╡
+ */
+     val SINGLE_LINE_T_DOUBLE_LEFT:Char = 0x2561.toChar()
 
-    /**
-     * ╩
-     */
-    public static final char DOUBLE_LINE_T_UP = 0x2569;
-    /**
-     * ╦
-     */
-    public static final char DOUBLE_LINE_T_DOWN = 0x2566;
-    /**
-     * ╠
-     */
-    public static final char DOUBLE_LINE_T_RIGHT = 0x2560;
-    /**
-     * ╣
-     */
-    public static final char DOUBLE_LINE_T_LEFT = 0x2563;
+/**
+ * ╩
+ */
+     val DOUBLE_LINE_T_UP:Char = 0x2569.toChar()
+/**
+ * ╦
+ */
+     val DOUBLE_LINE_T_DOWN:Char = 0x2566.toChar()
+/**
+ * ╠
+ */
+     val DOUBLE_LINE_T_RIGHT:Char = 0x2560.toChar()
+/**
+ * ╣
+ */
+     val DOUBLE_LINE_T_LEFT:Char = 0x2563.toChar()
 
-    /**
-     * ╧
-     */
-    public static final char DOUBLE_LINE_T_SINGLE_UP = 0x2567;
-    /**
-     * ╤
-     */
-    public static final char DOUBLE_LINE_T_SINGLE_DOWN = 0x2564;
-    /**
-     * ╟
-     */
-    public static final char DOUBLE_LINE_T_SINGLE_RIGHT = 0x255F;
-    /**
-     * ╢
-     */
-    public static final char DOUBLE_LINE_T_SINGLE_LEFT = 0x2562;
+/**
+ * ╧
+ */
+     val DOUBLE_LINE_T_SINGLE_UP:Char = 0x2567.toChar()
+/**
+ * ╤
+ */
+     val DOUBLE_LINE_T_SINGLE_DOWN:Char = 0x2564.toChar()
+/**
+ * ╟
+ */
+     val DOUBLE_LINE_T_SINGLE_RIGHT:Char = 0x255F.toChar()
+/**
+ * ╢
+ */
+     val DOUBLE_LINE_T_SINGLE_LEFT:Char = 0x2562.toChar()
 }

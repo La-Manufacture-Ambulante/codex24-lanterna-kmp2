@@ -17,36 +17,37 @@
  * Copyright (C) 2010-2024 Martin Berglund
  * Author celyo (github)
  */
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import java.io.IOException;
+import java.io.IOException
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.screen.*;
-import com.googlecode.lanterna.terminal.*;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.screen.*
+import com.googlecode.lanterna.terminal.*
 
-public class Issue249 {
-    public static void main(String[] args) throws IOException {
+ object Issue249 {
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
 
-        // Setup terminal and screen layers
-        Terminal terminal = new DefaultTerminalFactory().createTerminal();
-        Screen screen = new TerminalScreen(terminal);
-        screen.startScreen();
+ // Setup terminal and screen layers
+        val terminal = DefaultTerminalFactory().createTerminal()
+val screen = TerminalScreen(terminal)
+screen.startScreen()
 
-        TerminalSize screenSize = screen.getTerminalSize();
+val screenSize = screen.getTerminalSize()
 
-        // Create panel to hold components
-        Panel panel = new Panel();
-        panel.setPreferredSize(screenSize);
+ // Create panel to hold components
+        val panel = Panel()
+panel.setPreferredSize(screenSize)
 
-        // Create window to hold the panel
-        BasicWindow window = new BasicWindow();
-        window.setComponent(panel);
+ // Create window to hold the panel
+        val window = BasicWindow()
+window.setComponent(panel)
 
-        // Create gui and start gui
-        MultiWindowTextGUI gui = new MultiWindowTextGUI(screen, new DefaultWindowManager(), new EmptySpace(TextColor.ANSI.BLUE));
-        gui.addWindowAndWait(window);
-      }
+ // Create gui and start gui
+        val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
+gui.addWindowAndWait(window)
+}
 }

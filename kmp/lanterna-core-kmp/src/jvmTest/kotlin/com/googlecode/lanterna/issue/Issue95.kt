@@ -16,39 +16,42 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame;
-import com.googlecode.lanterna.terminal.swing.TerminalEmulatorAutoCloseTrigger;
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.screen.Screen
+import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame
+import com.googlecode.lanterna.terminal.swing.TerminalEmulatorAutoCloseTrigger
 
-import java.io.IOException;
-import javax.swing.WindowConstants;
+import java.io.IOException
+import javax.swing.WindowConstants
 
 /**
- *
+ * 
  * @author martin
  */
-public class Issue95 {
-    public static void main(String[] args) throws InterruptedException, IOException {
-        SwingTerminalFrame terminal = new SwingTerminalFrame(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_EXIT_PRIVATE_MODE);
-        terminal.setCursorVisible(false);
+ object Issue95 {
+@Throws(InterruptedException::class, IOException::class)
+ fun main(args:Array<String?>?) {
+val terminal = SwingTerminalFrame(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_EXIT_PRIVATE_MODE)
+terminal.setCursorVisible(false)
 
-        Screen screen = new TerminalScreen(terminal);
-        screen.startScreen();
-        
-        terminal.setTitle("Freedom: An arena-battle roguelike");
-        terminal.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        terminal.setResizable(false);
-        terminal.setVisible(true);
+val screen = TerminalScreen(terminal)
+screen.startScreen()
 
-        while(screen.pollInput() == null) {
-            if(screen.doResizeIfNecessary() != null) {
-                screen.refresh();
-            }
-            Thread.sleep(100);
-        }
-        screen.stopScreen();
-    }
+terminal.setTitle("Freedom: An arena-battle roguelike")
+terminal.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+terminal.setResizable(false)
+terminal.setVisible(true)
+
+while (screen.pollInput() == null)
+{
+if (screen.doResizeIfNecessary() != null)
+{
+screen.refresh()
+}
+Thread.sleep(100)
+}
+screen.stopScreen()
+}
 }

@@ -16,21 +16,4 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-module com.googlecode.lanterna {
-    exports com.googlecode.lanterna;
-    exports com.googlecode.lanterna.bundle;
-    exports com.googlecode.lanterna.graphics;
-    exports com.googlecode.lanterna.gui2;
-    exports com.googlecode.lanterna.gui2.dialogs;
-    exports com.googlecode.lanterna.gui2.table;
-    exports com.googlecode.lanterna.gui2.menu;
-    exports com.googlecode.lanterna.input;
-    exports com.googlecode.lanterna.screen;
-    exports com.googlecode.lanterna.terminal;
-    exports com.googlecode.lanterna.terminal.ansi;
-    exports com.googlecode.lanterna.terminal.swing;
-    exports com.googlecode.lanterna.terminal.virtual;
 
-    requires static java.desktop;
-    requires static com.sun.jna;
-}

@@ -16,154 +16,178 @@
  * 
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import java.io.*;
+import java.io.*
 
 /**
  * Use this program to see what the terminal emulator is sending through stdin; byte for byte
  */
-public class InputTest {
-    public static void main(String[] args) throws IOException {
-        boolean useReader = false;
-        boolean privateMode = false;
-        for(String parameter: args) {
-            if("--mouse-click".equals(parameter)) {
-                writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '0', (byte) '0', (byte) 'h');
-                writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '0', (byte) '5', (byte) 'h');
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                    try {
-                        writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '0', (byte) '0', (byte) 'l');
-                    }
-                    catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                }));
-            }
-            else if("--mouse-drag".equals(parameter)) {
-                writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '0', (byte) '2', (byte) 'h');
-                writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '0', (byte) '5', (byte) 'h');
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                    try {
-                        writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '0', (byte) '2', (byte) 'l');
-                    }
-                    catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                }));
-            }
-            else if("--mouse-move".equals(parameter)) {
-                writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '0', (byte) '3', (byte) 'h');
-                writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '0', (byte) '5', (byte) 'h');
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                    try {
-                        writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '0', (byte) '3', (byte) 'l');
-                    }
-                    catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                }));
-            }
-            else if("--reader".equals(parameter)) {
-                useReader = true;
-            }
-            else if("--cbreak".equals(parameter)) {
-                exec("sh", "-c", "stty -icanon < /dev/tty");
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                    try {
-                        exec("sh", "-c", "stty icanon < /dev/tty");
-                    }
-                    catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                }));
-            }
-            else if("--no-echo".equals(parameter)) {
-                exec("sh", "-c", "stty -echo < /dev/tty");
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                    try {
-                        exec("sh", "-c", "stty echo < /dev/tty");
-                    }
-                    catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                }));
-            }
-            else if("--private".equals(parameter)) {
-                privateMode = true;
-            }
-            else {
-                System.err.println("Unknown parameter " + parameter);
-                return;
-            }
-        }
-        if(privateMode) {
-            writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '4', (byte) '9', (byte) 'h');
-            Runtime.getRuntime().addShutdownHook(new Thread("RestoreTerminal") {
-                @Override
-                public void run() {
-                    try {
-                        writeCSISequenceToTerminal((byte) '?', (byte) '1', (byte) '0', (byte) '4', (byte) '9', (byte) 'l');
-                    }
-                    catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        }
-        if(useReader) {
-            InputStreamReader reader = new InputStreamReader(System.in);
-            while(true) {
-                int inChar = reader.read();
-                if(inChar == -1) {
-                    break;
-                }
-                System.out.println(formatData(inChar));
-            }
-        }
-        else {
-            while(true) {
-                int inByte = System.in.read();
-                if(inByte == -1) {
-                    break;
-                }
-                System.out.println(formatData(inByte));
-            }
-        }
-    }
+ object InputTest {
+@Throws(IOException::class)
+ fun main(args:Array<String?>) {
+var useReader = false
+var privateMode = false
+for (parameter in args)
+{
+if ("--mouse-click".equals(parameter))
+{
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '0'.toByte(), 'h'.toByte())
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '5'.toByte(), 'h'.toByte())
+Runtime.getRuntime().addShutdownHook(Thread({ try
+{
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '0'.toByte(), 'l'.toByte())
+}
+catch (e:IOException) {
+e!!.printStackTrace()
+}
+ }))
+}
+else if ("--mouse-drag".equals(parameter))
+{
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '2'.toByte(), 'h'.toByte())
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '5'.toByte(), 'h'.toByte())
+Runtime.getRuntime().addShutdownHook(Thread({ try
+{
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '2'.toByte(), 'l'.toByte())
+}
+catch (e:IOException) {
+e!!.printStackTrace()
+}
+ }))
+}
+else if ("--mouse-move".equals(parameter))
+{
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '3'.toByte(), 'h'.toByte())
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '5'.toByte(), 'h'.toByte())
+Runtime.getRuntime().addShutdownHook(Thread({ try
+{
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '0'.toByte(), '3'.toByte(), 'l'.toByte())
+}
+catch (e:IOException) {
+e!!.printStackTrace()
+}
+ }))
+}
+else if ("--reader".equals(parameter))
+{
+useReader = true
+}
+else if ("--cbreak".equals(parameter))
+{
+exec("sh", "-c", "stty -icanon < /dev/tty")
+Runtime.getRuntime().addShutdownHook(Thread({ try
+{
+exec("sh", "-c", "stty icanon < /dev/tty")
+}
+catch (e:IOException) {
+e!!.printStackTrace()
+}
+ }))
+}
+else if ("--no-echo".equals(parameter))
+{
+exec("sh", "-c", "stty -echo < /dev/tty")
+Runtime.getRuntime().addShutdownHook(Thread({ try
+{
+exec("sh", "-c", "stty echo < /dev/tty")
+}
+catch (e:IOException) {
+e!!.printStackTrace()
+}
+ }))
+}
+else if ("--private".equals(parameter))
+{
+privateMode = true
+}
+else
+{
+System.err.println("Unknown parameter " + parameter!!)
+return@Runtime.getRuntime().addShutdownHook 
+}
+}
+if (privateMode)
+{
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '4'.toByte(), '9'.toByte(), 'h'.toByte())
+Runtime.getRuntime().addShutdownHook(object:Thread("RestoreTerminal") {
+@Override
+@JvmStatic  fun run() {
+try
+{
+writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '4'.toByte(), '9'.toByte(), 'l'.toByte())
+}
+catch (e:IOException) {
+e!!.printStackTrace()
+}
 
-    private static String formatData(int inByte) {
-        String charString = Character.toString((char)inByte);
-        if(Character.isISOControl(inByte)) {
-            charString = "<control character>";
-        }
-        return inByte + " (0x" + Integer.toString(inByte, 16) + ", b" + Integer.toString(inByte, 2) + ", '" + charString + "')";
-    }
+}
+})
+}
+if (useReader)
+{
+val reader = InputStreamReader(System.`in`)
+while (true)
+{
+val inChar = reader.read()
+if (inChar == -1)
+{
+break
+}
+System.out.println(formatData(inChar))
+}
+}
+else
+{
+while (true)
+{
+val inByte = System.`in`.read()
+if (inByte == -1)
+{
+break
+}
+System.out.println(formatData(inByte))
+}
+}
+}
 
-    private static void writeCSISequenceToTerminal(byte... bytes) throws IOException {
-        System.out.write(new byte[] { (byte)0x1b, (byte)'['});
-        System.out.write(bytes);
-        System.out.flush();
-    }
+private fun formatData(inByte:Int):String {
+var charString = Character.toString(inByte.toChar())
+if (Character.isISOControl(inByte))
+{
+charString = "<control character>"
+}
+return inByte + " (0x" + Integer.toString(inByte, 16) + ", b" + Integer.toString(inByte, 2) + ", '" + charString + "')"
+}
 
-    private static String exec(String... cmd) throws IOException {
-        ProcessBuilder pb = new ProcessBuilder(cmd);
-        Process process = pb.start();
-        ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
-        InputStream stdout = process.getInputStream();
-        int readByte = stdout.read();
-        while(readByte >= 0) {
-            stdoutBuffer.write(readByte);
-            readByte = stdout.read();
-        }
-        ByteArrayInputStream stdoutBufferInputStream = new ByteArrayInputStream(stdoutBuffer.toByteArray());
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stdoutBufferInputStream));
-        StringBuilder builder = new StringBuilder();
-        String line;
-        while((line = reader.readLine()) != null) {
-            builder.append(line);
-        }
-        reader.close();
-        return builder.toString();
-    }
+@Throws(IOException::class)
+private fun writeCSISequenceToTerminal(vararg bytes:Byte) {
+System.out.write(byteArrayOf(0x1b.toByte(), '['.toByte()))
+System.out.write(bytes)
+System.out.flush()
+}
+
+@Throws(IOException::class)
+private fun exec(vararg cmd:String?):String? {
+val pb = ProcessBuilder(cmd)
+val process = pb.start()
+val stdoutBuffer = ByteArrayOutputStream()
+val stdout = process!!.getInputStream()
+var readByte = stdout!!.read()
+while (readByte >= 0)
+{
+stdoutBuffer.write(readByte)
+readByte = stdout!!.read()
+}
+val stdoutBufferInputStream = ByteArrayInputStream(stdoutBuffer.toByteArray())
+val reader = BufferedReader(InputStreamReader(stdoutBufferInputStream))
+val builder = StringBuilder()
+val line:String?
+while ((line = reader.readLine()) != null)
+{
+builder.append(line)
+}
+reader.close()
+return builder.toString()
+}
 }

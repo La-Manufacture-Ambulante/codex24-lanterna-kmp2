@@ -16,98 +16,99 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.dialogs;
+package com.googlecode.lanterna.gui2.dialogs
 
-import com.googlecode.lanterna.gui2.Window;
+import com.googlecode.lanterna.gui2.Window
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.ArrayList
+import java.util.HashSet
 
 /**
- * Dialog builder for the {@code MessageDialog} class, use this to create instances of that class and to customize
+ * Dialog builder for the `MessageDialog` class, use this to create instances of that class and to customize
  * them
  * @author Martin
  */
-public class MessageDialogBuilder {
-    private String title;
-    private String text;
-    private final List<MessageDialogButton> buttons;
-    private final Set<Window.Hint> extraWindowHints;
+ class MessageDialogBuilder {
+private var title:String? = null
+private var text:String? = null
+private val buttons:List<MessageDialogButton?>?
+private val extraWindowHints:Set<Window.Hint?>?
+/**
+ * Default constructor
+ */
+    init{
+this.title = "MessageDialog"
+this.text = "Text"
+this.buttons = ArrayList()
+this.extraWindowHints = HashSet()
+this.extraWindowHints!!.add(Window.Hint.CENTERED)
+this.extraWindowHints!!.add(Window.Hint.MODAL)
+}
 
-    /**
-     * Default constructor
-     */
-    public MessageDialogBuilder() {
-        this.title = "MessageDialog";
-        this.text = "Text";
-        this.buttons = new ArrayList<>();
-        this.extraWindowHints = new HashSet<>();
-        this.extraWindowHints.add(Window.Hint.CENTERED);
-        this.extraWindowHints.add(Window.Hint.MODAL);        
-    }
+/**
+ * Builds a new `MessageDialog` from the properties in the builder
+ * @return Newly build `MessageDialog`
+ */
+     fun build():MessageDialog? {
+val messageDialog = MessageDialog(
+title, 
+text, 
+buttons!!.toArray(arrayOfNulls<MessageDialogButton?>(0)))
+messageDialog.setHints(extraWindowHints)
+return messageDialog
+}
 
-    /**
-     * Builds a new {@code MessageDialog} from the properties in the builder
-     * @return Newly build {@code MessageDialog}
-     */
-    public MessageDialog build() {
-        MessageDialog messageDialog = new MessageDialog(
-                title,
-                text,
-                buttons.toArray(new MessageDialogButton[0]));
-        messageDialog.setHints(extraWindowHints);
-        return messageDialog;
-    }
+/**
+ * Sets the title of the `MessageDialog`
+ * @param title New title of the message dialog
+ * @return Itself
+ */
+     fun setTitle(title:String?):MessageDialogBuilder {
+var title = title
+if (title == null)
+{
+title = ""
+}
+this.title = title
+return this
+}
 
-    /**
-     * Sets the title of the {@code MessageDialog}
-     * @param title New title of the message dialog
-     * @return Itself
-     */
-    public MessageDialogBuilder setTitle(String title) {
-        if(title == null) {
-            title = "";
-        }
-        this.title = title;
-        return this;
-    }
+/**
+ * Sets the main text of the `MessageDialog`
+ * @param text Main text of the `MessageDialog`
+ * @return Itself
+ */
+     fun setText(text:String?):MessageDialogBuilder {
+var text = text
+if (text == null)
+{
+text = ""
+}
+this.text = text
+return this
+}
 
-    /**
-     * Sets the main text of the {@code MessageDialog}
-     * @param text Main text of the {@code MessageDialog}
-     * @return Itself
-     */
-    public MessageDialogBuilder setText(String text) {
-        if(text == null) {
-            text = "";
-        }
-        this.text = text;
-        return this;
-    }
+/**
+ * Assigns a set of extra window hints that you want the built dialog to have
+ * @param extraWindowHints Window hints to assign to the window in addition to the ones the builder will put
+ * @return Itself
+ */
+     fun setExtraWindowHints(extraWindowHints:Collection<Window.Hint?>?):MessageDialogBuilder {
+this.extraWindowHints!!.clear()
+this.extraWindowHints!!.addAll(extraWindowHints)
+return this
+}
 
-    /**
-     * Assigns a set of extra window hints that you want the built dialog to have
-     * @param extraWindowHints Window hints to assign to the window in addition to the ones the builder will put
-     * @return Itself
-     */
-    public MessageDialogBuilder setExtraWindowHints(Collection<Window.Hint> extraWindowHints) {
-        this.extraWindowHints.clear();
-        this.extraWindowHints.addAll(extraWindowHints);
-        return this;
-    }
-
-    /**
-     * Adds a button to the dialog
-     * @param button Button to add to the dialog
-     * @return Itself
-     */
-    public MessageDialogBuilder addButton(MessageDialogButton button) {
-        if(button != null) {
-            buttons.add(button);
-        }
-        return this;
-    }
+/**
+ * Adds a button to the dialog
+ * @param button Button to add to the dialog
+ * @return Itself
+ */
+     fun addButton(button:MessageDialogButton?):MessageDialogBuilder {
+if (button != null)
+{
+buttons!!.add(button)
+}
+return this
+}
 }

@@ -1,53 +1,61 @@
-package com.googlecode.lanterna.bundle;
+package com.googlecode.lanterna.bundle
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.Assert
+import org.junit.Test
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.util.Scanner;
+import java.io.FileInputStream
+import java.io.IOException
+import java.io.InputStream
+import java.lang.reflect.Field
+import java.util.Scanner
 
 /**
  * To ensure our bundled default theme matches the theme definition file in resources
  */
-public class DefaultThemeTest {
-    @Test
-    public void ensureResourceFileDefaultTestIsTheSameAsTheEmbeddedTest() throws NoSuchFieldException, IllegalAccessException, IOException {
-        String embeddedDefinition = getEmbeddedDefinition();
-        String resourceDefinition = getResourceDefinition();
-        Assert.assertEquals(resourceDefinition, embeddedDefinition);
-    }
+ class DefaultThemeTest {
 
-    private String getEmbeddedDefinition() throws NoSuchFieldException, IllegalAccessException {
-        Field definitionField = DefaultTheme.class.getDeclaredField("definition");
-        definitionField.setAccessible(true);
-        return (String)definitionField.get(null);
-    }
+private val embeddedDefinition:String?
+@Throws(NoSuchFieldException::class, IllegalAccessException::class)
+get() {
+val definitionField = DefaultTheme::class.java!!.getDeclaredField("definition")
+definitionField!!.setAccessible(true)
+return definitionField!!.get(null) as String
+}
 
-    private String getResourceDefinition() throws IOException {
-        ClassLoader classLoader = DefaultThemeTest.class.getClassLoader();
-        InputStream resourceAsStream = null;
-        try {
-            resourceAsStream = classLoader.getResourceAsStream("default-theme.properties");
-            if (resourceAsStream == null) {
-                resourceAsStream = new FileInputStream("src/main/resources/default-theme.properties");
-            }
+private// https://stackoverflow.com/questions/309424/read-convert-an-inputstream-to-a-string
+ // Normalize line endings to LF
+ val resourceDefinition:String?
+@Throws(IOException::class)
+get() {
+val classLoader = DefaultThemeTest::class.java!!.getClassLoader()
+var resourceAsStream:InputStream? = null
+try
+{
+resourceAsStream = classLoader!!.getResourceAsStream("default-theme.properties")
+if (resourceAsStream == null)
+{
+resourceAsStream = FileInputStream("src/main/resources/default-theme.properties")
+}
+val s = Scanner(resourceAsStream).useDelimiter("\\A")
+var definition:String? = if (s!!.hasNext()) s!!.next() else ""
+definition = definition!!.replace("\r\n", "\n")
 
-            // https://stackoverflow.com/questions/309424/read-convert-an-inputstream-to-a-string
-            Scanner s = new Scanner(resourceAsStream).useDelimiter("\\A");
-            String definition = s.hasNext() ? s.next() : "";
+return definition
+}
 
-            // Normalize line endings to LF
-            definition = definition.replace("\r\n", "\n");
-
-            return definition;
-        }
-        finally {
-            if(resourceAsStream != null) {
-                resourceAsStream.close();
-            }
-        }
-    }
+finally
+{
+if (resourceAsStream != null)
+{
+resourceAsStream!!.close()
+}
+}
+}
+@Test
+@Throws(NoSuchFieldException::class, IllegalAccessException::class, IOException::class)
+@JvmStatic  fun ensureResourceFileDefaultTestIsTheSameAsTheEmbeddedTest() {
+val embeddedDefinition = embeddedDefinition
+val resourceDefinition = resourceDefinition
+Assert.assertEquals(resourceDefinition, embeddedDefinition)
+}
 }

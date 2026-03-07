@@ -16,116 +16,104 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.screen;
+package com.googlecode.lanterna.screen
 
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.TextCharacter;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.terminal.Terminal
 
-import java.io.IOException;
+import java.io.IOException
 
-public class SimpleScreenTest {
+ object SimpleScreenTest {
 
-    private static final TextColor[] COLORS_TO_CYCLE = new TextColor[] {
-            TextColor.ANSI.BLACK,
-            TextColor.ANSI.WHITE,
-            TextColor.ANSI.BLUE,
-            TextColor.ANSI.CYAN,
-            TextColor.ANSI.GREEN,
-            TextColor.ANSI.MAGENTA,
-            TextColor.ANSI.RED,
-            TextColor.ANSI.YELLOW,
-    };
+private val COLORS_TO_CYCLE = arrayOf<TextColor?>(TextColor.ANSI.BLACK, TextColor.ANSI.WHITE, TextColor.ANSI.BLUE, TextColor.ANSI.CYAN, TextColor.ANSI.GREEN, TextColor.ANSI.MAGENTA, TextColor.ANSI.RED, TextColor.ANSI.YELLOW)
 
-    public static void main(String[] args) throws IOException {
-        Terminal terminal = new TestTerminalFactory(args).createTerminal();
-        Screen screen = new TerminalScreen(terminal);
-        screen.startScreen();
-        screen.refresh();
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
+val terminal = TestTerminalFactory(args).createTerminal()
+val screen = TerminalScreen(terminal)
+screen.startScreen()
+screen.refresh()
 
-        TextGraphics textGraphics = screen.newTextGraphics();
+val textGraphics = screen.newTextGraphics()
 
-        int foregroundCycle = 1;
-        int backgroundCycle = 0;
+var foregroundCycle = 1
+var backgroundCycle = 0
 
-        mainLoop:
-        while(true) {
-            KeyStroke keyStroke = screen.readInput();
-            switch(keyStroke.getKeyType()) {
-                case EOF:
-                case ESCAPE:
-                    break mainLoop;
+mainLoop@ while (true)
+{
+val keyStroke = screen.readInput()
+when (keyStroke!!.getKeyType()) {
+EOF, ESCAPE -> break@mainLoop
 
-                case ARROW_UP:
-                    screen.setCursorPosition(screen.getCursorPosition().withRelativeRow(-1));
-                    break;
+ARROW_UP -> screen.setCursorPosition(screen.getCursorPosition().withRelativeRow(-1))
 
-                case ARROW_DOWN:
-                    screen.setCursorPosition(screen.getCursorPosition().withRelativeRow(1));
-                    break;
+ARROW_DOWN -> screen.setCursorPosition(screen.getCursorPosition().withRelativeRow(1))
 
-                case ARROW_LEFT:
-                    screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(-1));
-                    break;
+ARROW_LEFT -> screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(-1))
 
-                case ARROW_RIGHT:
-                    screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(1));
-                    break;
+ARROW_RIGHT -> screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(1))
 
-                case CHARACTER:
-                    if(keyStroke.isCtrlDown()) {
-                        switch(keyStroke.getCharacter()) {
-                            case 'k':
-                                screen.setCharacter(screen.getCursorPosition(), new TextCharacter('桜', COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]));
-                                screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(2));
-                                break;
+CHARACTER -> if (keyStroke!!.isCtrlDown())
+{
+when (keyStroke!!.getCharacter()) {
+'k' -> {
+screen.setCharacter(screen.getCursorPosition(), TextCharacter('桜', COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
+screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(2))
+}
 
-                            case 'f':
-                                foregroundCycle++;
-                                if(foregroundCycle >= COLORS_TO_CYCLE.length) {
-                                    foregroundCycle = 0;
-                                }
-                                break;
+'f' -> {
+foregroundCycle++
+if (foregroundCycle >= COLORS_TO_CYCLE.size)
+{
+foregroundCycle = 0
+}
+}
 
-                            case 'b':
-                                backgroundCycle++;
-                                if(backgroundCycle >= COLORS_TO_CYCLE.length) {
-                                    backgroundCycle = 0;
-                                }
-                                break;
-                        }
-                        if(COLORS_TO_CYCLE[foregroundCycle] != TextColor.ANSI.BLACK) {
-                            textGraphics.setBackgroundColor(TextColor.ANSI.BLACK);
-                        }
-                        else {
-                            textGraphics.setBackgroundColor(TextColor.ANSI.WHITE);
-                        }
-                        textGraphics.setForegroundColor(COLORS_TO_CYCLE[foregroundCycle]);
-                        textGraphics.putString(0, screen.getTerminalSize().getRows() - 2, "Foreground color");
+'b' -> {
+backgroundCycle++
+if (backgroundCycle >= COLORS_TO_CYCLE.size)
+{
+backgroundCycle = 0
+}
+}
+}
+if (COLORS_TO_CYCLE[foregroundCycle] !== TextColor.ANSI.BLACK)
+{
+textGraphics!!.setBackgroundColor(TextColor.ANSI.BLACK)
+}
+else
+{
+textGraphics!!.setBackgroundColor(TextColor.ANSI.WHITE)
+}
+textGraphics!!.setForegroundColor(COLORS_TO_CYCLE[foregroundCycle])
+textGraphics!!.putString(0, screen.getTerminalSize().getRows() - 2, "Foreground color")
 
-                        if(COLORS_TO_CYCLE[backgroundCycle] != TextColor.ANSI.BLACK) {
-                            textGraphics.setBackgroundColor(TextColor.ANSI.BLACK);
-                        }
-                        else {
-                            textGraphics.setBackgroundColor(TextColor.ANSI.WHITE);
-                        }
-                        textGraphics.setForegroundColor(COLORS_TO_CYCLE[backgroundCycle]);
-                        textGraphics.putString(0, screen.getTerminalSize().getRows() - 1, "Background color");
-                    }
-                    else {
-                        screen.setCharacter(screen.getCursorPosition(), new TextCharacter(keyStroke.getCharacter(), COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]));
-                        screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(1));
-                        break;
-                    }
-                default:
-            }
+if (COLORS_TO_CYCLE[backgroundCycle] !== TextColor.ANSI.BLACK)
+{
+textGraphics!!.setBackgroundColor(TextColor.ANSI.BLACK)
+}
+else
+{
+textGraphics!!.setBackgroundColor(TextColor.ANSI.WHITE)
+}
+textGraphics!!.setForegroundColor(COLORS_TO_CYCLE[backgroundCycle])
+textGraphics!!.putString(0, screen.getTerminalSize().getRows() - 1, "Background color")
+}
+else
+{
+screen.setCharacter(screen.getCursorPosition(), TextCharacter(keyStroke!!.getCharacter(), COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
+screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(1))
+break
+}
+}
 
-            screen.refresh();
-        }
+screen.refresh()
+}
 
-        screen.stopScreen();
-    }
+screen.stopScreen()
+}
 }

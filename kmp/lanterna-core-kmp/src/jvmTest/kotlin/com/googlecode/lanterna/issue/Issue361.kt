@@ -1,31 +1,32 @@
 /*
  * Author Andrey Zelyaev(zella), slightly modified by Andreas(avl42)
  */
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.screen.*;
-import com.googlecode.lanterna.terminal.*;
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.screen.*
+import com.googlecode.lanterna.terminal.*
 
-import java.util.Collections;
+import java.util.Collections
 
-public class Issue361 {
+ object Issue361 {
 
-    public static void main(String[] args) throws Exception {
+@Throws(Exception::class)
+ fun main(args:Array<String?>?) {
 
-        Terminal terminal = new DefaultTerminalFactory().createTerminal();
-        Screen screen = new TerminalScreen(terminal);
-        screen.startScreen();
+val terminal = DefaultTerminalFactory().createTerminal()
+val screen = TerminalScreen(terminal)
+screen.startScreen()
 
-        BasicWindow window1 = new BasicWindow();
-        window1.setHints(Collections.singletonList(Window.Hint.CENTERED));
+val window1 = BasicWindow()
+window1.setHints(Collections.singletonList(Window.Hint.CENTERED))
 
-        BasicWindow window2 = new BasicWindow();
-        window2.setHints(Collections.<Window.Hint>emptyList());
+val window2 = BasicWindow()
+window2.setHints(Collections.emptyList<Window.Hint?>())
 
-        // Create gui and start gui
-        MultiWindowTextGUI gui = new MultiWindowTextGUI(screen);
-        gui.addWindow(window2);
-        gui.addWindowAndWait(window1);
-    }
+ // Create gui and start gui
+        val gui = MultiWindowTextGUI(screen)
+gui.addWindow(window2)
+gui.addWindowAndWait(window1)
+}
 }

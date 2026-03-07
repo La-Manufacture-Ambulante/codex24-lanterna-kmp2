@@ -16,27 +16,25 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.bundle;
+package com.googlecode.lanterna.bundle
 
-import java.util.Locale;
+import java.util.Locale
 
 /**
  * This class permits to get easily localized strings about the UI.
  * @author silveryocha
  */
-public class LocalizedUIBundle extends BundleLocator {
+ class LocalizedUIBundle private constructor(bundleName:String?):BundleLocator(bundleName) {
+companion object {
 
-    private static final LocalizedUIBundle MY_BUNDLE = new LocalizedUIBundle("multilang.lanterna-ui");
+private val MY_BUNDLE = LocalizedUIBundle("multilang.lanterna-ui")
 
-    public static String get(String key, String... parameters) {
-        return get(Locale.getDefault(), key, parameters);
-    }
+ fun get(key:String?, vararg parameters:String?):String? {
+return get(Locale.getDefault(), key, parameters)
+}
 
-    public static String get(Locale locale, String key, String... parameters) {
-        return MY_BUNDLE.getBundleKeyValue(locale, key, (Object[])parameters);
-    }
-
-    private LocalizedUIBundle(final String bundleName) {
-        super(bundleName);
-    }
+ fun get(locale:Locale?, key:String?, vararg parameters:String?):String? {
+return MY_BUNDLE.getBundleKeyValue(locale, key, parameters as Array<Object?>?)
+}
+}
 }

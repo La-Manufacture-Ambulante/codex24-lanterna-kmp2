@@ -17,67 +17,87 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 
-package com.googlecode.lanterna;
+package com.googlecode.lanterna
 
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.MouseCaptureMode;
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.terminal.MouseCaptureMode
 
 /**
  * This class provides a unified way for the test program to get their terminal
  * objects
  * @author Martin
  */
-public class TestTerminalFactory extends DefaultTerminalFactory {
+ class TestTerminalFactory:DefaultTerminalFactory {
 
-    public TestTerminalFactory() {
-    }
+ constructor() {}
 
-    public TestTerminalFactory(String[] args) {
-        parseArgs(args);
-    }
+ constructor(args:Array<String?>?) {
+parseArgs(args)
+}
 
-    public void parseArgs(String[] args) {
-        if (args == null) { return; }
-        for(String arg: args) {
-            if (arg == null) { continue; }
-            String[] tok = arg.split("=", 2);
-            arg = tok[0]; // only the part before "="
-            String par = tok.length > 1 ? tok[1] : "";
-            if("--text-terminal".equals(arg) || "--no-swing".equals(arg)) {
-                setPreferTerminalEmulator(false);
-                setForceTextTerminal(true);
-            }
-            else if("--awt".equals(arg)) {
-                setForceTextTerminal(false);
-                setPreferTerminalEmulator(true);
-                setForceAWTOverSwing(true);
-            }
-            else if("--swing".equals(arg)) {
-                setForceTextTerminal(false);
-                setPreferTerminalEmulator(true);
-                setForceAWTOverSwing(false);
-            }
-            else if("--mouse-click".equals(arg)) {
-                setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE);
-            }
-            else if("--mouse-drag".equals(arg)) {
-                setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE_DRAG);
-            }
-            else if("--mouse-move".equals(arg)) {
-                setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE_DRAG_MOVE);
-            }
-            else if("--telnet-port".equals(arg)) {
-                int port = 1024; // default for option w/o param
-                try { port = Integer.parseInt(par); }
-                catch (NumberFormatException e) {}
-                setTelnetPort(port);
-            }
-            else if("--with-timeout".equals(arg)) {
-                int inputTimeout = 40; // default for option w/o param
-                try { inputTimeout = Integer.parseInt(par); }
-                catch (NumberFormatException e) {}
-                setInputTimeout(inputTimeout);
-            }
-        }
-    }
+ fun parseArgs(args:Array<String?>?) {
+if (args == null) {
+return 
+}
+for (arg in args!!)
+{
+if (arg == null) {
+continue
+}
+val tok = arg!!.split("=", 2)
+arg = tok!![0] // only the part before "="
+val par = if (tok!!.size > 1) tok!![1] else ""
+if ("--text-terminal".equals(arg) || "--no-swing".equals(arg))
+{
+setPreferTerminalEmulator(false)
+setForceTextTerminal(true)
+}
+else if ("--awt".equals(arg))
+{
+setForceTextTerminal(false)
+setPreferTerminalEmulator(true)
+setForceAWTOverSwing(true)
+}
+else if ("--swing".equals(arg))
+{
+setForceTextTerminal(false)
+setPreferTerminalEmulator(true)
+setForceAWTOverSwing(false)
+}
+else if ("--mouse-click".equals(arg))
+{
+setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE)
+}
+else if ("--mouse-drag".equals(arg))
+{
+setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE_DRAG)
+}
+else if ("--mouse-move".equals(arg))
+{
+setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE_DRAG_MOVE)
+}
+else if ("--telnet-port".equals(arg))
+{
+var port = 1024 // default for option w/o param
+try
+{
+port = Integer.parseInt(par)
+}
+catch (e:NumberFormatException) {}
+
+setTelnetPort(port)
+}
+else if ("--with-timeout".equals(arg))
+{
+var inputTimeout = 40 // default for option w/o param
+try
+{
+inputTimeout = Integer.parseInt(par)
+}
+catch (e:NumberFormatException) {}
+
+setInputTimeout(inputTimeout)
+}
+}
+}
 }

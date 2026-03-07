@@ -16,258 +16,276 @@
  * 
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.graphics.*;
-import com.googlecode.lanterna.input.*;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.graphics.*
+import com.googlecode.lanterna.input.*
 
-import java.util.*;
+import java.util.*
 
 /**
  * @author ginkoblongata
  */
-public class SplitPanel extends Panel {
+ class SplitPanel/**
+ * 
+ */
+     protected constructor(private val compA:Component?, private val compB:Component?, private val isHorizontal:Boolean):Panel() {
+private val thumb:ImageComponent?
+private var ratio = 0.5
 
-    private final Component compA;
-    private final ImageComponent thumb;
-    private final Component compB;
+ val isInvalid:Boolean
+@Override
+get() {
+return super.isInvalid()
+}
 
-    private boolean isHorizontal;
-    private double ratio = 0.5;
+init{
+thumb = makeThumb()
+setLayoutManager(ScrollPanelLayoutManager())
+setRatio(10, 10)
 
-    public static SplitPanel ofHorizontal(Component left, Component right) {
-        SplitPanel split = new SplitPanel(left, right, true);
-        return split;
-    }
+addComponent(compA)
+addComponent(thumb)
+addComponent(compB)
+}
 
-    public static SplitPanel ofVertical(Component top, Component bottom) {
-        SplitPanel split = new SplitPanel(top, bottom, false);
-        return split;
-    }
+internal fun makeThumb():ImageComponent? {
+val imageComponent = object:ImageComponent() {
+internal var aSize:TerminalSize? = null
+internal var bSize:TerminalSize? = null
+internal var tSize:TerminalSize? = null
+internal var down:TerminalPosition? = null
+internal var drag:TerminalPosition? = null
 
-    /**
-     *
-     */
-    protected SplitPanel(Component a, Component b, boolean isHorizontal) {
-        this.compA = a;
-        this.compB = b;
-        this.isHorizontal = isHorizontal;
-        thumb = makeThumb();
-        setLayoutManager(new ScrollPanelLayoutManager());
-        setRatio(10, 10);
+@Override
+ fun handleKeyStroke(keyStroke:KeyStroke?):Result? {
+val result:Result?
+if (keyStroke is MouseAction)
+{
+result = handleMouseAction((keyStroke as MouseAction?)!!)
+}
+else
+{
+result = super.handleKeyStroke(keyStroke)
+}// TODO: Implement keyboard based resizing
+return result
+}
 
-        addComponent(a);
-        addComponent(thumb);
-        addComponent(b);
-    }
+private fun handleMouseAction(mouseAction:MouseAction):Result? {
+if (mouseAction.isMouseDown())
+{
+aSize = compA!!.getSize()
+bSize = compB!!.getSize()
+tSize = thumb!!.getSize()
+down = mouseAction.getPosition()
+}
+if (mouseAction.isMouseDrag())
+{
+drag = mouseAction.getPosition()
 
-    ImageComponent makeThumb() {
-        ImageComponent imageComponent = new ImageComponent() {
-            TerminalSize aSize;
-            TerminalSize bSize;
-            TerminalSize tSize;
-            TerminalPosition down = null;
-            TerminalPosition drag = null;
-
-            @Override
-            public Result handleKeyStroke(KeyStroke keyStroke) {
-                Result result;
-                if (keyStroke instanceof MouseAction) {
-                    result = handleMouseAction((MouseAction) keyStroke);
-                }
-                // TODO: Implement keyboard based resizing
-                else {
-                    result = super.handleKeyStroke(keyStroke);
-                }
-                return result;
-            }
-
-            private Result handleMouseAction(MouseAction mouseAction) {
-                if (mouseAction.isMouseDown()) {
-                    aSize = compA.getSize();
-                    bSize = compB.getSize();
-                    tSize = thumb.getSize();
-                    down = mouseAction.getPosition();
-                }
-                if (mouseAction.isMouseDrag()) {
-                    drag = mouseAction.getPosition();
-
-                    // xxxxxxxxxxxxxxxxxxxxx
+ // xxxxxxxxxxxxxxxxxxxxx
                     // this is a hack, should not be needed if the pane drag
                     // only on mouse down'd comp stuff was completely working
-                    if (down == null) {
-                        down = drag;
-                    }
-                    // xxxxxxxxxxxxxxxxxxxxx
+                    if (down == null)
+{
+down = drag
+}
+ // xxxxxxxxxxxxxxxxxxxxx
 
-                    int delta = isHorizontal ? drag.minus(down).getColumn() : drag.minus(down).getRow();
-                    // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-                    if (isHorizontal) {
-                        int a = Math.max(1, tSize.getColumns() + aSize.getColumns() + delta);
-                        int b = Math.max(1, bSize.getColumns() - delta);
-                        setRatio(a, b);
-                    } else {
-                        int a = Math.max(1, tSize.getRows() + aSize.getRows() + delta);
-                        int b = Math.max(1, bSize.getRows() - delta);
-                        setRatio(a, b);
-                    }
-                    // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+                    val delta = if (isHorizontal) drag!!.minus(down!!)!!.column else drag!!.minus(down!!)!!.row
+ // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+                    if (isHorizontal)
+{
+val a = Math.max(1, tSize!!.columns + aSize!!.columns + delta)
+val b = Math.max(1, bSize!!.columns - delta)
+setRatio(a, b)
+}
+else
+{
+val a = Math.max(1, tSize!!.rows + aSize!!.rows + delta)
+val b = Math.max(1, bSize!!.rows - delta)
+setRatio(a, b)
+}
+ // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
                 }
-                if (mouseAction.isMouseUp()) {
-                    down = null;
-                    drag = null;
-                }
-                return Result.HANDLED;
-            }
-        };
-        return imageComponent;
-    }
+if (mouseAction.isMouseUp())
+{
+down = null
+drag = null
+}
+return Result.HANDLED
+}
+}
+return imageComponent
+}
 
-    class ScrollPanelLayoutManager implements LayoutManager {
+internal inner class ScrollPanelLayoutManager:LayoutManager {
 
-        boolean hasChanged;
+ var hasChanged:Boolean = false
+init{
+hasChanged = true
+}
 
-        public ScrollPanelLayoutManager() {
-            hasChanged = true;
-        }
 
+@Override
+ fun getPreferredSize(components:List<Component?>?):TerminalSize {
+val sizeA = compA!!.getPreferredSize()
+val aWidth = sizeA!!.columns
+val aHeight = sizeA!!.rows
+val sizeB = compB!!.getPreferredSize()
+val bWidth = sizeB!!.columns
+val bHeight = sizeB!!.rows
 
-        @Override
-        public TerminalSize getPreferredSize(List<Component> components) {
-            TerminalSize sizeA = compA.getPreferredSize();
-            int aWidth = sizeA.getColumns();
-            int aHeight = sizeA.getRows();
-            TerminalSize sizeB = compB.getPreferredSize();
-            int bWidth = sizeB.getColumns();
-            int bHeight = sizeB.getRows();
+val tWidth = thumb!!.getPreferredSize().getColumns()
+val tHeight = thumb!!.getPreferredSize().getRows()
 
-            int tWidth = thumb.getPreferredSize().getColumns();
-            int tHeight = thumb.getPreferredSize().getRows();
+if (isHorizontal)
+{
+return TerminalSize(aWidth + tWidth + bWidth, Math.max(aHeight, Math.max(tHeight, bHeight)))
+}
+else
+{
+return TerminalSize(Math.max(aWidth, Math.max(tWidth, bWidth)), aHeight + tHeight + bHeight)
+}
+}
 
-            if (isHorizontal) {
-                return new TerminalSize(aWidth + tWidth + bWidth, Math.max(aHeight, Math.max(tHeight, bHeight)));
-            } else {
-                return new TerminalSize(Math.max(aWidth, Math.max(tWidth, bWidth)), aHeight + tHeight + bHeight);
-            }
-        }
+@Override
+ fun doLayout(area:TerminalSize?, components:List<Component?>?) {
+val size = getSize()
 
-        @Override
-        public void doLayout(TerminalSize area, List<Component> components) {
-            TerminalSize size = getSize();
-
-            // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
             // TODO: themed
-            int length = isHorizontal ? size.getRows() : size.getColumns();
-            TerminalSize tsize = new TerminalSize(isHorizontal ? 1 : length, !isHorizontal ? 1 : length);
-            TextImage textImage = new BasicTextImage(tsize);
-            Theme theme = getTheme();
-            ThemeDefinition themeDefinition = theme.getDefaultDefinition();
-            ThemeStyle themeStyle = themeDefinition.getNormal();
+            val length = if (isHorizontal) size!!.rows else size!!.columns
+val tsize = TerminalSize(if (isHorizontal) 1 else length, if (!isHorizontal) 1 else length)
+val textImage = BasicTextImage(tsize)
+val theme = getTheme()
+val themeDefinition = theme!!.getDefaultDefinition()
+val themeStyle = themeDefinition!!.getNormal()
 
-            TextCharacter thumbRenderer = TextCharacter.fromCharacter(
-                    isHorizontal ? Symbols.SINGLE_LINE_VERTICAL : Symbols.SINGLE_LINE_HORIZONTAL,
-                    themeStyle.getForeground(),
-                    themeStyle.getBackground());
-            if (thumb.isFocused()) {
-                thumbRenderer = thumbRenderer.withModifier(SGR.BOLD);
-            }
+var thumbRenderer = TextCharacter.fromCharacter(
+if (isHorizontal) Symbols.SINGLE_LINE_VERTICAL else Symbols.SINGLE_LINE_HORIZONTAL, 
+themeStyle!!.getForeground(), 
+themeStyle!!.getBackground())
+if (thumb!!.isFocused())
+{
+thumbRenderer = thumbRenderer!!.withModifier(SGR.BOLD)
+}
 
-            textImage.setAll(thumbRenderer);
-            thumb.setTextImage(textImage);
-            // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+textImage.setAll(thumbRenderer)
+thumb!!.setTextImage(textImage)
+ // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-            int tWidth = thumb.getPreferredSize().getColumns();
-            int tHeight = thumb.getPreferredSize().getRows();
+            val tWidth = thumb!!.getPreferredSize().getColumns()
+val tHeight = thumb!!.getPreferredSize().getRows()
 
-            int w = size.getColumns();
-            int h = size.getRows();
+var w = size!!.columns
+var h = size!!.rows
 
-            if (isHorizontal) {
-                w -= tWidth;
-            } else {
-                h -= tHeight;
-            }
+if (isHorizontal)
+{
+w -= tWidth
+}
+else
+{
+h -= tHeight
+}
 
-            TerminalSize compAPrevSize = compA.getSize();
-            TerminalSize compBPrevSize = compB.getSize();
-            TerminalSize thumbPrevSize = thumb.getSize();
-            TerminalPosition compAPrevPos = compA.getPosition();
-            TerminalPosition compBPrevPos = compB.getPosition();
-            TerminalPosition thumbPrevPos = thumb.getPosition();
+val compAPrevSize = compA!!.getSize()
+val compBPrevSize = compB!!.getSize()
+val thumbPrevSize = thumb!!.getSize()
+val compAPrevPos = compA!!.getPosition()
+val compBPrevPos = compB!!.getPosition()
+val thumbPrevPos = thumb!!.getPosition()
 
-            if (isHorizontal) {
-                int leftWidth = Math.max(0, (int) (w * ratio));
-                int leftHeight = Math.max(0, Math.min(compA.getPreferredSize().getRows(), h));
+if (isHorizontal)
+{
+val leftWidth = Math.max(0, (w * ratio).toInt())
+val leftHeight = Math.max(0, Math.min(compA!!.getPreferredSize().getRows(), h))
 
-                int rightWidth = Math.max(0, w - leftWidth);
-                int rightHeight = Math.max(0, Math.min(compB.getPreferredSize().getRows(), h));
+val rightWidth = Math.max(0, w - leftWidth)
+val rightHeight = Math.max(0, Math.min(compB!!.getPreferredSize().getRows(), h))
 
-                compA.setSize(new TerminalSize(leftWidth, leftHeight));
-                thumb.setSize(thumb.getPreferredSize());
-                compB.setSize(new TerminalSize(rightWidth, rightHeight));
+compA!!.setSize(TerminalSize(leftWidth, leftHeight))
+thumb!!.setSize(thumb!!.getPreferredSize())
+compB!!.setSize(TerminalSize(rightWidth, rightHeight))
 
-                compA.setPosition(new TerminalPosition(0, 0));
-                thumb.setPosition(new TerminalPosition(leftWidth, h / 2 - tHeight / 2));
-                compB.setPosition(new TerminalPosition(leftWidth + tWidth, 0));
-            } else {
-                int leftWidth = Math.max(0, Math.min(compA.getPreferredSize().getColumns(), w));
-                int leftHeight = Math.max(0, (int) (h * ratio));
+compA!!.setPosition(TerminalPosition(0, 0))
+thumb!!.setPosition(TerminalPosition(leftWidth, h / 2 - tHeight / 2))
+compB!!.setPosition(TerminalPosition(leftWidth + tWidth, 0))
+}
+else
+{
+val leftWidth = Math.max(0, Math.min(compA!!.getPreferredSize().getColumns(), w))
+val leftHeight = Math.max(0, (h * ratio).toInt())
 
-                int rightWidth = Math.max(0, Math.min(compB.getPreferredSize().getColumns(), w));
-                int rightHeight = Math.max(0, h - leftHeight);
+val rightWidth = Math.max(0, Math.min(compB!!.getPreferredSize().getColumns(), w))
+val rightHeight = Math.max(0, h - leftHeight)
 
-                compA.setSize(new TerminalSize(leftWidth, leftHeight));
-                thumb.setSize(thumb.getPreferredSize());
-                compB.setSize(new TerminalSize(rightWidth, rightHeight));
+compA!!.setSize(TerminalSize(leftWidth, leftHeight))
+thumb!!.setSize(thumb!!.getPreferredSize())
+compB!!.setSize(TerminalSize(rightWidth, rightHeight))
 
-                compA.setPosition(new TerminalPosition(0, 0));
-                thumb.setPosition(new TerminalPosition(w / 2 - tWidth / 2, leftHeight));
-                compB.setPosition(new TerminalPosition(0, leftHeight + tHeight));
-            }
+compA!!.setPosition(TerminalPosition(0, 0))
+thumb!!.setPosition(TerminalPosition(w / 2 - tWidth / 2, leftHeight))
+compB!!.setPosition(TerminalPosition(0, leftHeight + tHeight))
+}
 
-            hasChanged = !compAPrevPos.equals(compA.getPosition()) ||
-                    !compAPrevSize.equals(compA.getSize()) ||
-                    !compBPrevPos.equals(compB.getPosition()) ||
-                    !compBPrevSize.equals(compB.getSize()) ||
-                    !thumbPrevPos.equals(thumb.getPosition()) ||
-                    !thumbPrevSize.equals(thumb.getSize());
-        }
+hasChanged = (!compAPrevPos!!.equals(compA!!.getPosition()) || 
+!compAPrevSize!!.equals(compA!!.getSize()) || 
+!compBPrevPos!!.equals(compB!!.getPosition()) || 
+!compBPrevSize!!.equals(compB!!.getSize()) || 
+!thumbPrevPos!!.equals(thumb!!.getPosition()) || 
+!thumbPrevSize!!.equals(thumb!!.getSize()))
+}
 
-        @Override
-        public boolean hasChanged() {
-            return hasChanged;
-        }
-    }
+@Override
+ fun hasChanged():Boolean {
+return hasChanged
+}
+}
 
-    /*
+ /*
      * Use whatever sizing.
      *
      *
      */
-    public void setRatio(int left, int right) {
-        if (left == 0 || right == 0) {
-            ratio = 0.5;
-        }
-        else {
-            int total = Math.abs(left) + Math.abs(right);
-            ratio = (double) left / (double) total;
-        }
-    }
+     fun setRatio(left:Int, right:Int) {
+if (left == 0 || right == 0)
+{
+ratio = 0.5
+}
+else
+{
+val total = Math.abs(left) + Math.abs(right)
+ratio = left.toDouble() / total.toDouble()
+}
+}
 
-    public void setThumbVisible(boolean visible) {
-        thumb.setVisible(visible);
+ fun setThumbVisible(visible:Boolean) {
+thumb!!.setVisible(visible)
 
-        if (visible) {
-            this.setPreferredSize(null);
-        } else {
-            thumb.setPreferredSize(new TerminalSize(1, 1));
-        }
-    }
+if (visible)
+{
+this.setPreferredSize(null)
+}
+else
+{
+thumb!!.setPreferredSize(TerminalSize(1, 1))
+}
+}
 
-    @Override
-    public boolean isInvalid() {
-        return super.isInvalid();
-    }
+companion object {
+
+ fun ofHorizontal(left:Component?, right:Component?):SplitPanel {
+val split = SplitPanel(left, right, true)
+return split
+}
+
+ fun ofVertical(top:Component?, bottom:Component?):SplitPanel {
+val split = SplitPanel(top, bottom, false)
+return split
+}
+}
 }
 

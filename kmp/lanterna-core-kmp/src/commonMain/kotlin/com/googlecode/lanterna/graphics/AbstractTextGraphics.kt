@@ -16,391 +16,409 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.screen.TabBehaviour;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.screen.TabBehaviour
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EnumSet;
+import java.util.Arrays
+import java.util.EnumSet
 
 /**
  * This class hold the default logic for drawing the basic text graphic as exposed by TextGraphic. All implementations
  * rely on a setCharacter method being implemented in subclasses.
  * @author Martin
  */
-public abstract class AbstractTextGraphics implements TextGraphics {
-    protected TextColor foregroundColor;
-    protected TextColor backgroundColor;
-    protected TabBehaviour tabBehaviour;
-    protected final EnumSet<SGR> activeModifiers;
-    private final ShapeRenderer shapeRenderer;
+abstract class AbstractTextGraphics protected constructor():TextGraphics {
+protected var foregroundColor:TextColor? = null
+protected var backgroundColor:TextColor? = null
+protected var tabBehaviour:TabBehaviour? = null
+@get:Override
+ val activeModifiers:EnumSet<SGR?>?
+private val shapeRenderer:ShapeRenderer?
 
-    protected AbstractTextGraphics() {
-        this.activeModifiers = EnumSet.noneOf(SGR.class);
-        this.tabBehaviour = TabBehaviour.ALIGN_TO_COLUMN_4;
-        this.foregroundColor = TextColor.ANSI.DEFAULT;
-        this.backgroundColor = TextColor.ANSI.DEFAULT;
-        this.shapeRenderer = new DefaultShapeRenderer(this::setCharacter);
-    }
+/**
+ * Returns screen coordinates of top-left corner of this TextGraphics.
+ * The default implementation returns [TerminalPosition.TOP_LEFT_CORNER].
+ * Subclasses that offset the graphics must override this method.
+ * 
+ * @return screen coordinates of top-left corner.
+ */
+    protected val screenLocation:TerminalPosition
+get() {
+return TerminalPosition.TOP_LEFT_CORNER
+}
 
-    @Override
-    public TextColor getBackgroundColor() {
-        return backgroundColor;
-    }
+init{
+this.activeModifiers = EnumSet.noneOf(SGR::class.java)
+this.tabBehaviour = TabBehaviour.ALIGN_TO_COLUMN_4
+this.foregroundColor = TextColor.ANSI.DEFAULT
+this.backgroundColor = TextColor.ANSI.DEFAULT
+this.shapeRenderer = DefaultShapeRenderer(???({ this.setCharacter() }))
+}
 
-    @Override
-    public TextGraphics setBackgroundColor(final TextColor backgroundColor) {
-        this.backgroundColor = backgroundColor;
-        return this;
-    }
+@Override
+ fun getBackgroundColor():TextColor? {
+return backgroundColor
+}
 
-    @Override
-    public TextColor getForegroundColor() {
-        return foregroundColor;
-    }
+@Override
+ fun setBackgroundColor(backgroundColor:TextColor?):TextGraphics? {
+this.backgroundColor = backgroundColor
+return this
+}
 
-    @Override
-    public TextGraphics setForegroundColor(final TextColor foregroundColor) {
-        this.foregroundColor = foregroundColor;
-        return this;
-    }
+@Override
+ fun getForegroundColor():TextColor? {
+return foregroundColor
+}
 
-    @Override
-    public TextGraphics enableModifiers(SGR... modifiers) {
-        enableModifiers(Arrays.asList(modifiers));
-        return this;
-    }
+@Override
+ fun setForegroundColor(foregroundColor:TextColor?):TextGraphics? {
+this.foregroundColor = foregroundColor
+return this
+}
 
-    private void enableModifiers(Collection<SGR> modifiers) {
-        this.activeModifiers.addAll(modifiers);
-    }
+@Override
+ fun enableModifiers(vararg modifiers:SGR?):TextGraphics? {
+enableModifiers(Arrays.asList(modifiers))
+return this
+}
 
-    @Override
-    public TextGraphics disableModifiers(SGR... modifiers) {
-        disableModifiers(Arrays.asList(modifiers));
-        return this;
-    }
+private fun enableModifiers(modifiers:Collection<SGR?>?) {
+this.activeModifiers!!.addAll(modifiers)
+}
 
-    private void disableModifiers(Collection<SGR> modifiers) {
-        this.activeModifiers.removeAll(modifiers);
-    }
+@Override
+ fun disableModifiers(vararg modifiers:SGR?):TextGraphics? {
+disableModifiers(Arrays.asList(modifiers))
+return this
+}
 
-    @Override
-    public synchronized TextGraphics setModifiers(EnumSet<SGR> modifiers) {
-        activeModifiers.clear();
-        activeModifiers.addAll(modifiers);
-        return this;
-    }
+private fun disableModifiers(modifiers:Collection<SGR?>?) {
+this.activeModifiers!!.removeAll(modifiers)
+}
 
-    @Override
-    public TextGraphics clearModifiers() {
-        this.activeModifiers.clear();
-        return this;
-    }
+@Override
+@Synchronized  fun setModifiers(modifiers:EnumSet<SGR?>?):TextGraphics? {
+activeModifiers!!.clear()
+activeModifiers!!.addAll(modifiers)
+return this
+}
 
-    @Override
-    public EnumSet<SGR> getActiveModifiers() {
-        return activeModifiers;
-    }
+@Override
+ fun clearModifiers():TextGraphics? {
+this.activeModifiers!!.clear()
+return this
+}
 
-    @Override
-    public TabBehaviour getTabBehaviour() {
-        return tabBehaviour;
-    }
+@Override
+ fun getTabBehaviour():TabBehaviour? {
+return tabBehaviour
+}
 
-    @Override
-    public TextGraphics setTabBehaviour(TabBehaviour tabBehaviour) {
-        if(tabBehaviour != null) {
-            this.tabBehaviour = tabBehaviour;
-        }
-        return this;
-    }
+@Override
+ fun setTabBehaviour(tabBehaviour:TabBehaviour?):TextGraphics? {
+if (tabBehaviour != null)
+{
+this.tabBehaviour = tabBehaviour
+}
+return this
+}
 
-    @Override
-    public TextGraphics fill(char c) {
-        fillRectangle(TerminalPosition.TOP_LEFT_CORNER, getSize(), c);
-        return this;
-    }
+@Override
+ fun fill(c:Char):TextGraphics? {
+fillRectangle(TerminalPosition.TOP_LEFT_CORNER, getSize(), c)
+return this
+}
 
-    @Override
-    public TextGraphics setCharacter(int column, int row, char character) {
-        return setCharacter(column, row, newTextCharacter(character));
-    }
+@Override
+ fun setCharacter(column:Int, row:Int, character:Char):TextGraphics? {
+return setCharacter(column, row, newTextCharacter(character).toChar())
+}
 
-    @Override
-    public TextGraphics setCharacter(TerminalPosition position, TextCharacter textCharacter) {
-        setCharacter(position.getColumn(), position.getRow(), textCharacter);
-        return this;
-    }
+@Override
+ fun setCharacter(position:TerminalPosition, textCharacter:TextCharacter?):TextGraphics? {
+setCharacter(position.column, position.row, textCharacter!!.toChar())
+return this
+}
 
-    @Override
-    public TextGraphics setCharacter(TerminalPosition position, char character) {
-        return setCharacter(position.getColumn(), position.getRow(), character);
-    }
+@Override
+ fun setCharacter(position:TerminalPosition, character:Char):TextGraphics? {
+return setCharacter(position.column, position.row, character)
+}
 
-    @Override
-    public TextGraphics drawLine(TerminalPosition fromPosition, TerminalPosition toPoint, char character) {
-        return drawLine(fromPosition, toPoint, newTextCharacter(character));
-    }
+@Override
+ fun drawLine(fromPosition:TerminalPosition?, toPoint:TerminalPosition?, character:Char):TextGraphics? {
+return drawLine(fromPosition, toPoint, newTextCharacter(character))
+}
 
-    @Override
-    public TextGraphics drawLine(TerminalPosition fromPoint, TerminalPosition toPoint, TextCharacter character) {
-        shapeRenderer.drawLine(fromPoint, toPoint, character);
-        return this;
-    }
+@Override
+ fun drawLine(fromPoint:TerminalPosition?, toPoint:TerminalPosition?, character:TextCharacter?):TextGraphics? {
+shapeRenderer!!.drawLine(fromPoint, toPoint, character)
+return this
+}
 
-    @Override
-    public TextGraphics drawLine(int fromX, int fromY, int toX, int toY, char character) {
-        return drawLine(fromX, fromY, toX, toY, newTextCharacter(character));
-    }
+@Override
+ fun drawLine(fromX:Int, fromY:Int, toX:Int, toY:Int, character:Char):TextGraphics? {
+return drawLine(fromX, fromY, toX, toY, newTextCharacter(character))
+}
 
-    @Override
-    public TextGraphics drawLine(int fromX, int fromY, int toX, int toY, TextCharacter character) {
-        return drawLine(new TerminalPosition(fromX, fromY), new TerminalPosition(toX, toY), character);
-    }
+@Override
+ fun drawLine(fromX:Int, fromY:Int, toX:Int, toY:Int, character:TextCharacter?):TextGraphics? {
+return drawLine(TerminalPosition(fromX, fromY), TerminalPosition(toX, toY), character)
+}
 
-    @Override
-    public TextGraphics drawTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, char character) {
-        return drawTriangle(p1, p2, p3, newTextCharacter(character));
-    }
+@Override
+ fun drawTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:Char):TextGraphics? {
+return drawTriangle(p1, p2, p3, newTextCharacter(character))
+}
 
-    @Override
-    public TextGraphics drawTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, TextCharacter character) {
-        shapeRenderer.drawTriangle(p1, p2, p3, character);
-        return this;
-    }
+@Override
+ fun drawTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:TextCharacter?):TextGraphics? {
+shapeRenderer!!.drawTriangle(p1, p2, p3, character)
+return this
+}
 
-    @Override
-    public TextGraphics fillTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, char character) {
-        return fillTriangle(p1, p2, p3, newTextCharacter(character));
-    }
+@Override
+ fun fillTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:Char):TextGraphics? {
+return fillTriangle(p1, p2, p3, newTextCharacter(character))
+}
 
-    @Override
-    public TextGraphics fillTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, TextCharacter character) {
-        shapeRenderer.fillTriangle(p1, p2, p3, character);
-        return this;
-    }
+@Override
+ fun fillTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:TextCharacter?):TextGraphics? {
+shapeRenderer!!.fillTriangle(p1, p2, p3, character)
+return this
+}
 
-    @Override
-    public TextGraphics drawRectangle(TerminalPosition topLeft, TerminalSize size, char character) {
-        return drawRectangle(topLeft, size, newTextCharacter(character));
-    }
+@Override
+ fun drawRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:Char):TextGraphics? {
+return drawRectangle(topLeft, size, newTextCharacter(character))
+}
 
-    @Override
-    public TextGraphics drawRectangle(TerminalPosition topLeft, TerminalSize size, TextCharacter character) {
-        shapeRenderer.drawRectangle(topLeft, size, character);
-        return this;
-    }
+@Override
+ fun drawRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:TextCharacter?):TextGraphics? {
+shapeRenderer!!.drawRectangle(topLeft, size, character)
+return this
+}
 
-    @Override
-    public TextGraphics fillRectangle(TerminalPosition topLeft, TerminalSize size, char character) {
-        return fillRectangle(topLeft, size, newTextCharacter(character));
-    }
+@Override
+ fun fillRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:Char):TextGraphics? {
+return fillRectangle(topLeft, size, newTextCharacter(character))
+}
 
-    @Override
-    public TextGraphics fillRectangle(TerminalPosition topLeft, TerminalSize size, TextCharacter character) {
-        shapeRenderer.fillRectangle(topLeft, size, character);
-        return this;
-    }
+@Override
+ fun fillRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:TextCharacter?):TextGraphics? {
+shapeRenderer!!.fillRectangle(topLeft, size, character)
+return this
+}
 
-    @Override
-    public TextGraphics drawImage(TerminalPosition topLeft, TextImage image) {
-        return drawImage(topLeft, image, TerminalPosition.TOP_LEFT_CORNER, image.getSize());
-    }
+@Override
+@JvmOverloads  fun drawImage(
+topLeft:TerminalPosition?, 
+image:TextImage?, 
+sourceImageTopLeft:TerminalPosition = TerminalPosition.TOP_LEFT_CORNER, 
+sourceImageSize:TerminalSize? = image!!.getSize()):TextGraphics? {
+var topLeft = topLeft
+var sourceImageTopLeft = sourceImageTopLeft
+var sourceImageSize = sourceImageSize
 
-    @Override
-    public TextGraphics drawImage(
-            TerminalPosition topLeft,
-            TextImage image,
-            TerminalPosition sourceImageTopLeft,
-            TerminalSize sourceImageSize) {
+ // If the source image position is negative, offset the whole image
+        if (sourceImageTopLeft.column < 0)
+{
+topLeft = topLeft!!.withRelativeColumn(-sourceImageTopLeft.column)
+sourceImageSize = sourceImageSize!!.withRelativeColumns(sourceImageTopLeft.column)
+sourceImageTopLeft = sourceImageTopLeft.withColumn(0)
+}
+if (sourceImageTopLeft.row < 0)
+{
+topLeft = topLeft!!.withRelativeRow(-sourceImageTopLeft.row)
+sourceImageSize = sourceImageSize!!.withRelativeRows(sourceImageTopLeft.row)
+sourceImageTopLeft = sourceImageTopLeft.withRow(0)
+}
 
-        // If the source image position is negative, offset the whole image
-        if(sourceImageTopLeft.getColumn() < 0) {
-            topLeft = topLeft.withRelativeColumn(-sourceImageTopLeft.getColumn());
-            sourceImageSize = sourceImageSize.withRelativeColumns(sourceImageTopLeft.getColumn());
-            sourceImageTopLeft = sourceImageTopLeft.withColumn(0);
-        }
-        if(sourceImageTopLeft.getRow() < 0) {
-            topLeft = topLeft.withRelativeRow(-sourceImageTopLeft.getRow());
-            sourceImageSize = sourceImageSize.withRelativeRows(sourceImageTopLeft.getRow());
-            sourceImageTopLeft = sourceImageTopLeft.withRow(0);
-        }
+ // cropping specified image-subrectangle to the image itself:
+        var fromRow = Math.max(sourceImageTopLeft.row, 0)
+var untilRow = Math.min(sourceImageTopLeft.row + sourceImageSize!!.rows, image!!.getSize().getRows())
+var fromColumn = Math.max(sourceImageTopLeft.column, 0)
+var untilColumn = Math.min(sourceImageTopLeft.column + sourceImageSize!!.columns, image!!.getSize().getColumns())
 
-        // cropping specified image-subrectangle to the image itself:
-        int fromRow = Math.max(sourceImageTopLeft.getRow(), 0);
-        int untilRow = Math.min(sourceImageTopLeft.getRow() + sourceImageSize.getRows(), image.getSize().getRows());
-        int fromColumn = Math.max(sourceImageTopLeft.getColumn(), 0);
-        int untilColumn = Math.min(sourceImageTopLeft.getColumn() + sourceImageSize.getColumns(), image.getSize().getColumns());
+ // difference between position in image and position on target:
+        val diffRow = topLeft!!.row - sourceImageTopLeft.row
+val diffColumn = topLeft!!.column - sourceImageTopLeft.column
 
-        // difference between position in image and position on target:
-        int diffRow = topLeft.getRow() - sourceImageTopLeft.getRow();
-        int diffColumn = topLeft.getColumn() - sourceImageTopLeft.getColumn();
+ // top/left-crop at target(TextGraphics) rectangle: (only matters, if topLeft has a negative coordinate)
+        fromRow = Math.max(fromRow, -diffRow)
+fromColumn = Math.max(fromColumn, -diffColumn)
 
-        // top/left-crop at target(TextGraphics) rectangle: (only matters, if topLeft has a negative coordinate)
-        fromRow = Math.max(fromRow, -diffRow);
-        fromColumn = Math.max(fromColumn, -diffColumn);
+ // bot/right-crop at target(TextGraphics) rectangle: (only matters, if topLeft has a negative coordinate)
+        untilRow = Math.min(untilRow, getSize().getRows() - diffRow)
+untilColumn = Math.min(untilColumn, getSize().getColumns() - diffColumn)
 
-        // bot/right-crop at target(TextGraphics) rectangle: (only matters, if topLeft has a negative coordinate)
-        untilRow = Math.min(untilRow, getSize().getRows() - diffRow);
-        untilColumn = Math.min(untilColumn, getSize().getColumns() - diffColumn);
+if (fromRow >= untilRow || fromColumn >= untilColumn)
+{
+return this
+}
+for (row in fromRow until untilRow)
+{
+for (column in fromColumn until untilColumn)
+{
+setCharacter(column + diffColumn, row + diffRow, image!!.getCharacterAt(column, row))
+}
+}
+return this
+}
 
-        if (fromRow >= untilRow || fromColumn >= untilColumn) {
-            return this;
-        }
-        for (int row = fromRow; row < untilRow; row++) {
-            for (int column = fromColumn; column < untilColumn; column++) {
-                setCharacter(column + diffColumn, row + diffRow, image.getCharacterAt(column, row));
-            }
-        }
-        return this;
-    }
+@Override
+ fun putString(column:Int, row:Int, string:String?):TextGraphics? {
+var string = string
+string = prepareStringForPut(column, string!!)
+var offset = 0
+for (i in 0 until string!!.length())
+{
+val character = string!!.charAt(i)
+setCharacter(column + offset, row, newTextCharacter(character).toChar())
+offset += getOffsetToNextCharacter(character)
+}
+return this
+}
 
-    @Override
-    public TextGraphics putString(int column, int row, String string) {
-        string = prepareStringForPut(column, string);
-        int offset = 0;
-        for(int i = 0; i < string.length(); i++) {
-            char character = string.charAt(i);
-            setCharacter(column + offset, row, newTextCharacter(character));
-            offset += getOffsetToNextCharacter(character);
-        }
-        return this;
-    }
+@Override
+ fun putString(position:TerminalPosition, string:String?):TextGraphics? {
+putString(position.column, position.row, string)
+return this
+}
 
-    @Override
-    public TextGraphics putString(TerminalPosition position, String string) {
-        putString(position.getColumn(), position.getRow(), string);
-        return this;
-    }
+@Override
+ fun putString(column:Int, row:Int, string:String?, extraModifier:SGR?, vararg optionalExtraModifiers:SGR?):TextGraphics? {
+clearModifiers()
+return putString(column, row, string, EnumSet.of(extraModifier, optionalExtraModifiers))
+}
 
-    @Override
-    public TextGraphics putString(int column, int row, String string, SGR extraModifier, SGR... optionalExtraModifiers) {
-        clearModifiers();
-        return putString(column, row, string, EnumSet.of(extraModifier, optionalExtraModifiers));
-    }
+@Override
+ fun putString(column:Int, row:Int, string:String?, extraModifiers:Collection<SGR?>?):TextGraphics? {
+val newModifiers = EnumSet.copyOf(extraModifiers)
+newModifiers!!.removeAll(activeModifiers)
+enableModifiers(newModifiers)
+putString(column, row, string)
+disableModifiers(newModifiers)
+return this
+}
 
-    @Override
-    public TextGraphics putString(int column, int row, String string, Collection<SGR> extraModifiers) {
-        Collection<SGR> newModifiers = EnumSet.copyOf(extraModifiers);
-        newModifiers.removeAll(activeModifiers);
-        enableModifiers(newModifiers);
-        putString(column, row, string);
-        disableModifiers(newModifiers);
-        return this;
-    }
+@Override
+ fun putString(position:TerminalPosition, string:String?, extraModifier:SGR?, vararg optionalExtraModifiers:SGR?):TextGraphics? {
+putString(position.column, position.row, string, extraModifier, *optionalExtraModifiers)
+return this
+}
 
-    @Override
-    public TextGraphics putString(TerminalPosition position, String string, SGR extraModifier, SGR... optionalExtraModifiers) {
-        putString(position.getColumn(), position.getRow(), string, extraModifier, optionalExtraModifiers);
-        return this;
-    }
+@Override
+@Synchronized  fun putCSIStyledString(column:Int, row:Int, string:String?):TextGraphics? {
+var string = string
+val original = StyleSet.Set(this)
+string = prepareStringForPut(column, string!!)
+var offset = 0
+var i = 0
+while (i < string!!.length())
+{
+val character = string!!.charAt(i)
+val controlSequence = TerminalTextUtils.getANSIControlSequenceAt(string, i)
+if (controlSequence != null)
+{
+TerminalTextUtils.updateModifiersFromCSICode(controlSequence, this, original)
 
-    @Override
-    public synchronized TextGraphics putCSIStyledString(int column, int row, String string) {
-        StyleSet.Set original = new StyleSet.Set(this);
-        string = prepareStringForPut(column, string);
-        int offset = 0;
-        for(int i = 0; i < string.length(); i++) {
-            char character = string.charAt(i);
-            String controlSequence = TerminalTextUtils.getANSIControlSequenceAt(string, i);
-            if(controlSequence != null) {
-                TerminalTextUtils.updateModifiersFromCSICode(controlSequence, this, original);
+ // Skip the control sequence, leaving one extra, since we'll add it when we loop
+                i += controlSequence!!.length() - 1
+i++
+continue
+}
 
-                // Skip the control sequence, leaving one extra, since we'll add it when we loop
-                i += controlSequence.length() - 1;
-                continue;
-            }
+setCharacter(column + offset, row, newTextCharacter(character).toChar())
+offset += getOffsetToNextCharacter(character)
+i++
+}
 
-            setCharacter(column + offset, row, newTextCharacter(character));
-            offset += getOffsetToNextCharacter(character);
-        }
+setStyleFrom(original)
+return this
+}
 
-        setStyleFrom(original);
-        return this;
-    }
+@Override
+ fun putCSIStyledString(position:TerminalPosition, string:String?):TextGraphics? {
+return putCSIStyledString(position.column, position.row, string)
+}
 
-    @Override
-    public TextGraphics putCSIStyledString(TerminalPosition position, String string) {
-        return putCSIStyledString(position.getColumn(), position.getRow(), string);
-    }
+@Override
+ fun getCharacter(position:TerminalPosition):TextCharacter? {
+return getCharacter(position.column, position.row)
+}
 
-    @Override
-    public TextCharacter getCharacter(TerminalPosition position) {
-        return getCharacter(position.getColumn(), position.getRow());
-    }
-    
-    /**
-     * Returns screen coordinates of top-left corner of this TextGraphics.
-     * The default implementation returns {@link TerminalPosition#TOP_LEFT_CORNER}.
-     * Subclasses that offset the graphics must override this method.
-     * 
-     * @return screen coordinates of top-left corner.
-     */
-    protected TerminalPosition getScreenLocation() {
-        return TerminalPosition.TOP_LEFT_CORNER;
-    }
+@Override
+ fun toScreenPosition(pos:TerminalPosition?):TerminalPosition? {
+val max = screenLocation.plus(
+TerminalPosition(getSize().getColumns() - 1, getSize().getRows() - 1))
+val loc = screenLocation.plus(pos)
+if (loc!!.column > max!!.column || loc!!.row > max!!.row)
+{
+return null
+}
+else
+{
+return loc
+}
+}
 
-    @Override
-    public TerminalPosition toScreenPosition(TerminalPosition pos) {
-        TerminalPosition max = getScreenLocation().plus(
-                new TerminalPosition(getSize().getColumns() - 1, getSize().getRows() - 1));
-        TerminalPosition loc = getScreenLocation().plus(pos);
-        if (loc.getColumn() > max.getColumn() || loc.getRow() > max.getRow()) {
-            return null;
-        } else {
-            return loc;
-        }
-    }
-
-    @Override
-    public TextGraphics newTextGraphics(TerminalPosition topLeftCorner, TerminalSize size) throws IllegalArgumentException {
-        TerminalSize writableArea = getSize();
-        if(topLeftCorner.getColumn() + size.getColumns() <= 0 ||
-                topLeftCorner.getColumn() >= writableArea.getColumns() ||
-                topLeftCorner.getRow() + size.getRows() <= 0 ||
-                topLeftCorner.getRow() >= writableArea.getRows()) {
-            //The area selected is completely outside of this TextGraphics, so we can return a "null" object that doesn't
+@Override
+@Throws(IllegalArgumentException::class)
+ fun newTextGraphics(topLeftCorner:TerminalPosition, size:TerminalSize):TextGraphics? {
+val writableArea = getSize()
+if ((topLeftCorner.column + size.columns <= 0 || 
+topLeftCorner.column >= writableArea!!.columns || 
+topLeftCorner.row + size.rows <= 0 || 
+topLeftCorner.row >= writableArea!!.rows))
+{
+ //The area selected is completely outside of this TextGraphics, so we can return a "null" object that doesn't
             //do anything because it is impossible to change anything anyway
-            return new NullTextGraphics(size);
-        }
-        return new SubTextGraphics(this, topLeftCorner, getScreenLocation(), size);
-    }
+            return NullTextGraphics(size)
+}
+return SubTextGraphics(this, topLeftCorner, screenLocation, size)
+}
 
-    private TextCharacter newTextCharacter(char character) {
-        return new TextCharacter(character, foregroundColor, backgroundColor, activeModifiers);
-    }
+private fun newTextCharacter(character:Char):TextCharacter {
+return TextCharacter(character, foregroundColor, backgroundColor, activeModifiers)
+}
 
-    private String prepareStringForPut(int column, String string) {
-        if(string.contains("\n")) {
-            string = string.substring(0, string.indexOf("\n"));
-        }
-        if(string.contains("\r")) {
-            string = string.substring(0, string.indexOf("\r"));
-        }
-        string = tabBehaviour.replaceTabs(string, column);
-        return string;
-    }
+private fun prepareStringForPut(column:Int, string:String):String? {
+var string = string
+if (string.contains("\n"))
+{
+string = string.substring(0, string.indexOf("\n"))
+}
+if (string.contains("\r"))
+{
+string = string.substring(0, string.indexOf("\r"))
+}
+string = tabBehaviour!!.replaceTabs(string, column)
+return string
+}
 
-    private int getOffsetToNextCharacter(char character) {
-        if(TerminalTextUtils.isCharDoubleWidth(character)) {
-            //CJK characters are twice the normal characters in width, so next character position is two columns forward
-            return 2;
-        }
-        else {
-            //For "normal" characters we advance to the next column
-            return 1;
-        }
-    }
+private fun getOffsetToNextCharacter(character:Char):Int {
+if (TerminalTextUtils.isCharDoubleWidth(character))
+{
+ //CJK characters are twice the normal characters in width, so next character position is two columns forward
+            return 2
+}
+else
+{
+ //For "normal" characters we advance to the next column
+            return 1
+}
+}
 
-    @Override
-    public TextGraphics setStyleFrom(StyleSet<?> source) {
-        setBackgroundColor(source.getBackgroundColor());
-        setForegroundColor(source.getForegroundColor());
-        setModifiers(source.getActiveModifiers());
-        return this;
-    }
+@Override
+ fun setStyleFrom(source:StyleSet<*>):TextGraphics? {
+setBackgroundColor(source.getBackgroundColor())
+setForegroundColor(source.getForegroundColor())
+setModifiers(source.getActiveModifiers())
+return this
+}
 
 }

@@ -16,50 +16,49 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.gui2.table.Table;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.gui2.table.Table
+import com.googlecode.lanterna.screen.Screen
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.terminal.Terminal
 
-import java.io.IOException;
-import java.util.List;
+import java.io.IOException
 
-public class Issue212 {
-    public static void main(String[] args) throws IOException {
-        final Table<String> table = new Table<>("Column 1", "Column 2",
-                "Column 3");
-        table.getTableModel().addRow("1", "2", "3");
-        table.getTableModel().addRow("1", "2", "3");
-        table.getTableModel().addRow("1", "2", "3");
-        table.getTableModel().addRow("1", "2", "3");
-        table.getTableModel().addRow("1", "2", "3");
-        table.setSelectAction(() -> {
-            List<String> data = table.getTableModel().getRow(
-                    table.getSelectedRow());
-            for (String aData : data) {
-                System.out.println(aData);
-            }
-        });
+ object Issue212 {
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
+val table = Table("Column 1", "Column 2", 
+"Column 3")
+table.getTableModel().addRow("1", "2", "3")
+table.getTableModel().addRow("1", "2", "3")
+table.getTableModel().addRow("1", "2", "3")
+table.getTableModel().addRow("1", "2", "3")
+table.getTableModel().addRow("1", "2", "3")
+table.setSelectAction({ val data = table.getTableModel().getRow(
+table.getSelectedRow())
+for (aData in data!!)
+{
+System.out.println(aData)
+} })
 
-        Window win = new BasicWindow();
-        win.setComponent(table);
+val win = BasicWindow()
+win.setComponent(table)
 
-        DefaultTerminalFactory factory = new DefaultTerminalFactory();
-        Terminal terminal = factory.createTerminal();
+val factory = DefaultTerminalFactory()
+val terminal = factory.createTerminal()
 
-        Screen screen = new TerminalScreen(terminal);
-        screen.startScreen();
+val screen = TerminalScreen(terminal)
+screen.startScreen()
 
-        // Create gui and start gui
-        MultiWindowTextGUI gui = new MultiWindowTextGUI(screen,
-                new DefaultWindowManager(), new EmptySpace(TextColor.ANSI.BLUE));
-        gui.addWindowAndWait(win);
+ // Create gui and start gui
+        val gui = MultiWindowTextGUI(screen, 
+DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
+gui.addWindowAndWait(win)
 
-        screen.stopScreen();
-    }
+screen.stopScreen()
+}
 }

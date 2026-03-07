@@ -16,115 +16,105 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.dialogs;
+package com.googlecode.lanterna.gui2.dialogs
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.gui2.LocalizedString;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.gui2.LocalizedString
 
-import java.io.File;
+import java.io.File
 
 /**
- * Dialog builder for the {@code FileDialog} class, use this to create instances of that class and to customize
+ * Dialog builder for the `FileDialog` class, use this to create instances of that class and to customize
  * them
  * @author Martin
  */
-public class FileDialogBuilder extends AbstractDialogBuilder<FileDialogBuilder, FileDialog> {
+ class FileDialogBuilder:AbstractDialogBuilder<FileDialogBuilder?, FileDialog?>("FileDialog") {
 
-    private String actionLabel;
-    private TerminalSize suggestedSize;
-    private File selectedFile;
-    private boolean showHiddenDirectories;
-
+private var actionLabel:String? = null
+private var suggestedSize:TerminalSize? = null
+private var selectedFile:File? = null
+/**
+ * Checks if hidden files and directories will be visible in the dialog
+ * @return If `true` then hidden files and directories will be visible
+ */
     /**
-     * Default constructor
-     */
-    public FileDialogBuilder() {
-        super("FileDialog");
-        actionLabel = LocalizedString.OK.toString();
-        suggestedSize = new TerminalSize(45, 10);
-        showHiddenDirectories = false;
-        selectedFile = null;
-    }
+ * Sets if hidden files and directories should be visible in the dialog (default: `false`
+ * @param showHiddenDirectories If `true` then hidden files and directories will be visible
+ */
+     var isShowHiddenDirectories:Boolean = false
+/**
+ * Default constructor
+ */
+    init{
+actionLabel = LocalizedString.OK.toString()
+suggestedSize = TerminalSize(45, 10)
+isShowHiddenDirectories = false
+selectedFile = null
+}
 
-    @Override
-    protected FileDialog buildDialog() {
-        return new FileDialog(title, description, actionLabel, suggestedSize, showHiddenDirectories, selectedFile);
-    }
+@Override
+protected fun buildDialog():FileDialog? {
+return FileDialog(title, description, actionLabel, suggestedSize, isShowHiddenDirectories, selectedFile)
+}
 
-    /**
-     * Defines the label to be but on the confirmation button (default: "ok"). You probably want to set this to
-     * {@code LocalizedString.Save.toString()} or {@code LocalizedString.Open.toString()}
-     * @param actionLabel Label to put on the confirmation button
-     * @return Itself
-     */
-    public FileDialogBuilder setActionLabel(String actionLabel) {
-        this.actionLabel = actionLabel;
-        return this;
-    }
+/**
+ * Defines the label to be but on the confirmation button (default: "ok"). You probably want to set this to
+ * `LocalizedString.Save.toString()` or `LocalizedString.Open.toString()`
+ * @param actionLabel Label to put on the confirmation button
+ * @return Itself
+ */
+     fun setActionLabel(actionLabel:String?):FileDialogBuilder {
+this.actionLabel = actionLabel
+return this
+}
 
-    /**
-     * Returns the label on the confirmation button
-     * @return Label on the confirmation button
-     */
-    public String getActionLabel() {
-        return actionLabel;
-    }
+/**
+ * Returns the label on the confirmation button
+ * @return Label on the confirmation button
+ */
+     fun getActionLabel():String? {
+return actionLabel
+}
 
-    /**
-     * Sets the suggested size for the file dialog, it won't have exactly this size but roughly. Default suggested size
-     * is 45x10.
-     * @param suggestedSize Suggested size for the file dialog
-     * @return Itself
-     */
-    public FileDialogBuilder setSuggestedSize(TerminalSize suggestedSize) {
-        this.suggestedSize = suggestedSize;
-        return this;
-    }
+/**
+ * Sets the suggested size for the file dialog, it won't have exactly this size but roughly. Default suggested size
+ * is 45x10.
+ * @param suggestedSize Suggested size for the file dialog
+ * @return Itself
+ */
+     fun setSuggestedSize(suggestedSize:TerminalSize?):FileDialogBuilder {
+this.suggestedSize = suggestedSize
+return this
+}
 
-    /**
-     * Returns the suggested size for the file dialog
-     * @return Suggested size for the file dialog
-     */
-    public TerminalSize getSuggestedSize() {
-        return suggestedSize;
-    }
+/**
+ * Returns the suggested size for the file dialog
+ * @return Suggested size for the file dialog
+ */
+     fun getSuggestedSize():TerminalSize? {
+return suggestedSize
+}
 
-    /**
-     * Sets the file that is initially selected in the dialog
-     * @param selectedFile File that is initially selected in the dialog
-     * @return Itself
-     */
-    public FileDialogBuilder setSelectedFile(File selectedFile) {
-        this.selectedFile = selectedFile;
-        return this;
-    }
+/**
+ * Sets the file that is initially selected in the dialog
+ * @param selectedFile File that is initially selected in the dialog
+ * @return Itself
+ */
+     fun setSelectedFile(selectedFile:File?):FileDialogBuilder {
+this.selectedFile = selectedFile
+return this
+}
 
-    /**
-     * Returns the file that is initially selected in the dialog
-     * @return File that is initially selected in the dialog
-     */
-    public File getSelectedFile() {
-        return selectedFile;
-    }
+/**
+ * Returns the file that is initially selected in the dialog
+ * @return File that is initially selected in the dialog
+ */
+     fun getSelectedFile():File? {
+return selectedFile
+}
 
-    /**
-     * Sets if hidden files and directories should be visible in the dialog (default: {@code false}
-     * @param showHiddenDirectories If {@code true} then hidden files and directories will be visible
-     */
-    public void setShowHiddenDirectories(boolean showHiddenDirectories) {
-        this.showHiddenDirectories = showHiddenDirectories;
-    }
-
-    /**
-     * Checks if hidden files and directories will be visible in the dialog
-     * @return If {@code true} then hidden files and directories will be visible
-     */
-    public boolean isShowHiddenDirectories() {
-        return showHiddenDirectories;
-    }
-
-    @Override
-    protected FileDialogBuilder self() {
-        return this;
-    }
+@Override
+protected fun self():FileDialogBuilder {
+return this
+}
 }

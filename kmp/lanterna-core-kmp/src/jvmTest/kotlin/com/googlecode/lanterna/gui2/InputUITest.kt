@@ -16,90 +16,101 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
 
-import java.io.IOException;
+import java.io.IOException
 
 @SuppressWarnings("rawtypes")
-public class InputUITest extends TestBase {
-    public static void main(String[] args) throws IOException, InterruptedException {
-        new InputUITest().run(args);
-    }
+ class InputUITest:TestBase() {
 
-    @Override
-    public void init(WindowBasedTextGUI textGUI) {
-        final BasicWindow window = new BasicWindow("Input test");
+@Override
+ fun init(textGUI:WindowBasedTextGUI) {
+val window = BasicWindow("Input test")
 
-        Interactable interactable = new AbstractInteractableComponent() {
-            private String lastKey;
+val interactable = object:AbstractInteractableComponent() {
+private var lastKey:String? = null
 
-            @Override
-            protected Result handleKeyStroke(KeyStroke keyStroke) {
-                if (keyStroke.getKeyType() == KeyType.TAB) {
-                    return super.handleKeyStroke(keyStroke);
-                }
-                if (keyStroke.getKeyType() == KeyType.CHARACTER) 
-                {
-                	if (keyStroke.getCharacter().equals(' '))
-                	{
-                		lastKey = "SPACE";
-                	}
-                	else lastKey = keyStroke.getCharacter() + "";
-                }
-                else {
-                    lastKey = keyStroke.getKeyType().toString();
-                }
-                if (keyStroke.isCtrlDown()) {
-                    lastKey += " + CTRL";
-                }
-                if (keyStroke.isAltDown()) {
-                    lastKey += " + ALT";
-                }
-                if (keyStroke.isShiftDown()) {
-                    lastKey += " + SHIFT";
-                }
-                return Result.HANDLED;
-            }
+@Override
+protected fun handleKeyStroke(keyStroke:KeyStroke?):Result? {
+if (keyStroke!!.getKeyType() === KeyType.TAB)
+{
+return super.handleKeyStroke(keyStroke)
+}
+if (keyStroke!!.getKeyType() === KeyType.CHARACTER)
+{
+if (keyStroke!!.getCharacter().equals(' '))
+{
+lastKey = "SPACE"
+}
+else
+lastKey = keyStroke!!.getCharacter() + ""
+}
+else
+{
+lastKey = keyStroke!!.getKeyType().toString()
+}
+if (keyStroke!!.isCtrlDown())
+{
+lastKey += " + CTRL"
+}
+if (keyStroke!!.isAltDown())
+{
+lastKey += " + ALT"
+}
+if (keyStroke!!.isShiftDown())
+{
+lastKey += " + SHIFT"
+}
+return Result.HANDLED
+}
 
-            @Override
-            protected InteractableRenderer createDefaultRenderer() {
-                return new InteractableRenderer() {
-                    @Override
-                    public TerminalPosition getCursorLocation(Component component) {
-                        TerminalSize adjustedSize = component.getSize().withRelative(-1, -1);
-                        return new TerminalPosition(adjustedSize.getColumns(), adjustedSize.getRows());
-                    }
+@Override
+protected fun createDefaultRenderer():InteractableRenderer? {
+return object:InteractableRenderer() {
+@Override
+ fun getCursorLocation(component:Component?):TerminalPosition {
+val adjustedSize = component!!.getSize().withRelative(-1, -1)
+return TerminalPosition(adjustedSize!!.columns, adjustedSize!!.rows)
+}
 
-                    @Override
-                    public TerminalSize getPreferredSize(Component component) {
-                        return new TerminalSize(70, 5);
-                    }
+@Override
+ fun getPreferredSize(component:Component?):TerminalSize {
+return TerminalSize(70, 5)
+}
 
-                    @Override
-                    public void drawComponent(TextGUIGraphics graphics, Component component) {
-                        graphics.setBackgroundColor(TextColor.ANSI.BLACK);
-                        graphics.setForegroundColor(TextColor.ANSI.WHITE);
-                        graphics.fill(' ');
-                        if (lastKey != null) {
-                            int leftPosition = 35 - (lastKey.length() / 2);
-                            graphics.putString(leftPosition, 2, lastKey);
-                        }
-                    }
-                };
-            }
-        };
+@Override
+ fun drawComponent(graphics:TextGUIGraphics?, component:Component?) {
+graphics!!.setBackgroundColor(TextColor.ANSI.BLACK)
+graphics!!.setForegroundColor(TextColor.ANSI.WHITE)
+graphics!!.fill(' ')
+if (lastKey != null)
+{
+val leftPosition = 35 - (lastKey!!.length() / 2)
+graphics!!.putString(leftPosition, 2, lastKey)
+}
+}
+}
+}
+}
 
-        window.setComponent(
-                Panels.vertical(
-                        interactable.withBorder(Borders.doubleLineBevel("Press any key to test capturing the KeyStroke")),
-                        new Label("Use the TAB key to shift focus"),
-                        new Button("Close", window::close)));
-        textGUI.addWindow(window);
-    }
+window.setComponent(
+Panels.vertical(
+interactable.withBorder(Borders.doubleLineBevel("Press any key to test capturing the KeyStroke")), 
+Label("Use the TAB key to shift focus"), 
+Button("Close", ???({ window.close() }))))
+textGUI.addWindow(window)
+}
+
+companion object {
+@Throws(IOException::class, InterruptedException::class)
+ fun main(args:Array<String?>?) {
+InputUITest().run(args)
+}
+}
 }

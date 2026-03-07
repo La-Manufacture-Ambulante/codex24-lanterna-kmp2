@@ -16,45 +16,46 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.screen.Screen
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.terminal.Terminal
 
-import java.io.IOException;
+import java.io.IOException
 
-public class Issue221 {
-    public static void main(String[] args) throws IOException {
+ object Issue221 {
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
 
-        // Setup terminal and screen layers
-        Terminal terminal = new DefaultTerminalFactory().createTerminal();
-        Screen screen = new TerminalScreen(terminal);
-        screen.startScreen();
+ // Setup terminal and screen layers
+        val terminal = DefaultTerminalFactory().createTerminal()
+val screen = TerminalScreen(terminal)
+screen.startScreen()
 
-        // Create panel to hold components
-        Panel panel = new Panel();
-        panel.setLayoutManager(new GridLayout(2));
+ // Create panel to hold components
+        val panel = Panel()
+panel.setLayoutManager(GridLayout(2))
 
-        panel.addComponent(new Label("The List"));
-        RadioBoxList<String> box = new RadioBoxList<>();
-        box.addItem("Item 1");
-        box.addItem("Item 2");
-        box.addItem("Item 3");
-        box.addListener((selected, previous) -> System.out.println("Selected Index: " + selected + ", previous: " + previous));
+panel.addComponent(Label("The List"))
+val box = RadioBoxList()
+box.addItem("Item 1")
+box.addItem("Item 2")
+box.addItem("Item 3")
+box.addListener({ selected, previous-> System.out.println("Selected Index: " + selected + ", previous: " + previous) })
 
-        panel.addComponent(box);
+panel.addComponent(box)
 
-        // Create window to hold the panel
-        BasicWindow window = new BasicWindow();
-        window.setComponent(panel);
+ // Create window to hold the panel
+        val window = BasicWindow()
+window.setComponent(panel)
 
-        // Create gui and start gui
-        MultiWindowTextGUI gui = new MultiWindowTextGUI(screen, new DefaultWindowManager(), new EmptySpace(TextColor.ANSI.BLUE));
-        gui.addWindowAndWait(window);
-    }
+ // Create gui and start gui
+        val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
+gui.addWindowAndWait(window)
+}
 
 }

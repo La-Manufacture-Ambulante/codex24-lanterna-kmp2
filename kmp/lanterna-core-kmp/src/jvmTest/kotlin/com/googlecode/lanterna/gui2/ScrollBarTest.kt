@@ -16,79 +16,83 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TerminalSize
 
-import java.io.IOException;
-import java.util.regex.Pattern;
+import java.io.IOException
+import java.util.regex.Pattern
 
-public class ScrollBarTest extends TestBase {
-    public static void main(String[] args) throws IOException, InterruptedException {
-        new ScrollBarTest().run(args);
-    }
+ class ScrollBarTest:TestBase() {
 
-    @Override
-    public void init(WindowBasedTextGUI textGUI) {
-        final BasicWindow basicWindow = new BasicWindow("ScrollBar test");
-        Panel contentPanel = new Panel();
-        contentPanel.setLayoutManager(new GridLayout(2));
+@Override
+ fun init(textGUI:WindowBasedTextGUI) {
+val basicWindow = BasicWindow("ScrollBar test")
+val contentPanel = Panel()
+contentPanel.setLayoutManager(GridLayout(2))
 
-        Panel controlPanel = new Panel();
-        final CheckBox checkVerticalTrackerGrow = new CheckBox().setChecked(true);
-        final CheckBox checkHorizontalTrackerGrow = new CheckBox().setChecked(true);
-        final TextBox textBoxVerticalSize = new TextBox("10").setValidationPattern(Pattern.compile("[0-9]+"));
-        final TextBox textBoxHorizontalSize = new TextBox("10").setValidationPattern(Pattern.compile("[0-9]+"));
-        final TextBox textBoxVerticalPosition = new TextBox("0").setValidationPattern(Pattern.compile("[0-9]+"));
-        final TextBox textBoxHorizontalPosition = new TextBox("0").setValidationPattern(Pattern.compile("[0-9]+"));
-        final TextBox textBoxVerticalMax = new TextBox("100").setValidationPattern(Pattern.compile("[0-9]+"));
-        final TextBox textBoxHorizontalMax = new TextBox("100").setValidationPattern(Pattern.compile("[0-9]+"));
-        final ScrollBar verticalScroll = new ScrollBar(Direction.VERTICAL);
-        final ScrollBar horizontalScroll = new ScrollBar(Direction.HORIZONTAL);
-        Button buttonRefresh = new Button("Refresh", () -> {
-            ((ScrollBar.DefaultScrollBarRenderer)verticalScroll.getRenderer()).setGrowScrollTracker(checkVerticalTrackerGrow.isChecked());
-            verticalScroll.setScrollMaximum(getInteger(textBoxVerticalMax.getText(), 100));
-            verticalScroll.setScrollPosition(getInteger(textBoxVerticalPosition.getText(), 100));
-            verticalScroll.setViewSize(getInteger(textBoxVerticalSize.getText(), 1));
-            ((ScrollBar.DefaultScrollBarRenderer)horizontalScroll.getRenderer()).setGrowScrollTracker(checkHorizontalTrackerGrow.isChecked());
-            horizontalScroll.setScrollMaximum(getInteger(textBoxHorizontalMax.getText(), 0));
-            horizontalScroll.setScrollPosition(getInteger(textBoxHorizontalPosition.getText(), 0));
-            horizontalScroll.setViewSize(getInteger(textBoxHorizontalSize.getText(), 1));
-        });
-        Button closeButton = new Button("Close", basicWindow::close);
+val controlPanel = Panel()
+val checkVerticalTrackerGrow = CheckBox().setChecked(true)
+val checkHorizontalTrackerGrow = CheckBox().setChecked(true)
+val textBoxVerticalSize = TextBox("10").setValidationPattern(Pattern.compile("[0-9]+"))
+val textBoxHorizontalSize = TextBox("10").setValidationPattern(Pattern.compile("[0-9]+"))
+val textBoxVerticalPosition = TextBox("0").setValidationPattern(Pattern.compile("[0-9]+"))
+val textBoxHorizontalPosition = TextBox("0").setValidationPattern(Pattern.compile("[0-9]+"))
+val textBoxVerticalMax = TextBox("100").setValidationPattern(Pattern.compile("[0-9]+"))
+val textBoxHorizontalMax = TextBox("100").setValidationPattern(Pattern.compile("[0-9]+"))
+val verticalScroll = ScrollBar(Direction.VERTICAL)
+val horizontalScroll = ScrollBar(Direction.HORIZONTAL)
+val buttonRefresh = Button("Refresh", { (verticalScroll.getRenderer() as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(checkVerticalTrackerGrow!!.isChecked())
+verticalScroll.setScrollMaximum(getInteger(textBoxVerticalMax!!.getText(), 100))
+verticalScroll.setScrollPosition(getInteger(textBoxVerticalPosition!!.getText(), 100))
+verticalScroll.setViewSize(getInteger(textBoxVerticalSize!!.getText(), 1))
+(horizontalScroll.getRenderer() as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(checkHorizontalTrackerGrow!!.isChecked())
+horizontalScroll.setScrollMaximum(getInteger(textBoxHorizontalMax!!.getText(), 0))
+horizontalScroll.setScrollPosition(getInteger(textBoxHorizontalPosition!!.getText(), 0))
+horizontalScroll.setViewSize(getInteger(textBoxHorizontalSize!!.getText(), 1)) })
+val closeButton = Button("Close", ???({ basicWindow.close() }))
 
-        verticalScroll.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.FILL, false, true));
-        horizontalScroll.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2));
-        buttonRefresh.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.BEGINNING, true, true, 2, 1));
+verticalScroll.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.FILL, false, true))
+horizontalScroll.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))
+buttonRefresh.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.BEGINNING, true, true, 2, 1))
 
-        contentPanel.addComponent(controlPanel.withBorder(Borders.singleLine("Control")));
-        contentPanel.addComponent(verticalScroll);
-        contentPanel.addComponent(horizontalScroll);
+contentPanel.addComponent(controlPanel.withBorder(Borders.singleLine("Control")))
+contentPanel.addComponent(verticalScroll)
+contentPanel.addComponent(horizontalScroll)
 
-        controlPanel.setLayoutManager(new GridLayout(2));
-        controlPanel.addComponent(new Label("Vertical tracker grows:")).addComponent(checkVerticalTrackerGrow);
-        controlPanel.addComponent(new Label("Vertical view size:")).addComponent(textBoxVerticalSize);
-        controlPanel.addComponent(new Label("Vertical scroll position:")).addComponent(textBoxVerticalPosition);
-        controlPanel.addComponent(new Label("Vertical scroll max:")).addComponent(textBoxVerticalMax);
-        controlPanel.addComponent(new EmptySpace(TerminalSize.ONE)).addComponent(new EmptySpace(TerminalSize.ONE));
-        controlPanel.addComponent(new Label("Horizontal tracker grows:")).addComponent(checkHorizontalTrackerGrow);
-        controlPanel.addComponent(new Label("Horizontal view size:")).addComponent(textBoxHorizontalSize);
-        controlPanel.addComponent(new Label("Horizontal scroll position:")).addComponent(textBoxHorizontalPosition);
-        controlPanel.addComponent(new Label("Horizontal scroll max:")).addComponent(textBoxHorizontalMax);
-        controlPanel.addComponent(new EmptySpace(TerminalSize.ONE)).addComponent(new EmptySpace(TerminalSize.ONE));
-        controlPanel.addComponent(buttonRefresh);
-        contentPanel.addComponent(closeButton);
+controlPanel.setLayoutManager(GridLayout(2))
+controlPanel.addComponent(Label("Vertical tracker grows:")).addComponent(checkVerticalTrackerGrow)
+controlPanel.addComponent(Label("Vertical view size:")).addComponent(textBoxVerticalSize)
+controlPanel.addComponent(Label("Vertical scroll position:")).addComponent(textBoxVerticalPosition)
+controlPanel.addComponent(Label("Vertical scroll max:")).addComponent(textBoxVerticalMax)
+controlPanel.addComponent(EmptySpace(TerminalSize.ONE)).addComponent(EmptySpace(TerminalSize.ONE))
+controlPanel.addComponent(Label("Horizontal tracker grows:")).addComponent(checkHorizontalTrackerGrow)
+controlPanel.addComponent(Label("Horizontal view size:")).addComponent(textBoxHorizontalSize)
+controlPanel.addComponent(Label("Horizontal scroll position:")).addComponent(textBoxHorizontalPosition)
+controlPanel.addComponent(Label("Horizontal scroll max:")).addComponent(textBoxHorizontalMax)
+controlPanel.addComponent(EmptySpace(TerminalSize.ONE)).addComponent(EmptySpace(TerminalSize.ONE))
+controlPanel.addComponent(buttonRefresh)
+contentPanel.addComponent(closeButton)
 
-        basicWindow.setComponent(contentPanel);
-        textGUI.addWindow(basicWindow);
-    }
+basicWindow.setComponent(contentPanel)
+textGUI.addWindow(basicWindow)
+}
 
-    private int getInteger(String text, int defaultValue) {
-        try {
-            return Integer.parseInt(text);
-        }
-        catch(NumberFormatException e) {
-            return defaultValue;
-        }
-    }
+private fun getInteger(text:String?, defaultValue:Int):Int {
+try
+{
+return Integer.parseInt(text)
+}
+catch (e:NumberFormatException) {
+return defaultValue
+}
+
+}
+
+companion object {
+@Throws(IOException::class, InterruptedException::class)
+ fun main(args:Array<String?>?) {
+ScrollBarTest().run(args)
+}
+}
 }

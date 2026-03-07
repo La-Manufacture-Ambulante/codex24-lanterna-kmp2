@@ -16,71 +16,83 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
 
-import java.awt.*;
-import java.io.IOException;
+import java.awt.*
+import java.io.IOException
 
 /**
- *
+ * 
  * @author martin
  */
-public class PrivateModeTest {
+ object PrivateModeTest {
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-        Terminal terminal = new TestTerminalFactory(args)
-                                .setTerminalEmulatorFrameAutoCloseTrigger(null)
-                                .createTerminal();
-        boolean normalTerminal = true;
-        printNormalTerminalText(terminal);
-        KeyStroke keyStroke = null;
-        while(keyStroke == null || keyStroke.getKeyType() != KeyType.ESCAPE) {
-            keyStroke = terminal.pollInput();
-            if(keyStroke != null && keyStroke.getKeyType() == KeyType.CHARACTER && keyStroke.getCharacter() == ' ') {
-                normalTerminal = !normalTerminal;
-                if(normalTerminal) {
-                    terminal.exitPrivateMode();
-                    printNormalTerminalText(terminal);
-                }
-                else {
-                    terminal.enterPrivateMode();
-                    printPrivateModeTerminalText(terminal);
-                }
-            }
-            else {
-                Thread.sleep(1);
-            }
-        }
-        if(!normalTerminal) {
-            terminal.exitPrivateMode();
-        }
-        terminal.putCharacter('\n');
-        if(terminal instanceof Window) {
-            ((Window) terminal).dispose();
-        }
-    }
+@Throws(IOException::class, InterruptedException::class)
+ fun main(args:Array<String?>?) {
+val terminal = TestTerminalFactory(args)
+.setTerminalEmulatorFrameAutoCloseTrigger(null)
+.createTerminal()
+var normalTerminal = true
+printNormalTerminalText(terminal!!)
+var keyStroke:KeyStroke? = null
+while (keyStroke == null || keyStroke!!.getKeyType() !== KeyType.ESCAPE)
+{
+keyStroke = terminal!!.pollInput()
+if (keyStroke != null && keyStroke!!.getKeyType() === KeyType.CHARACTER && keyStroke!!.getCharacter() === ' ')
+{
+normalTerminal = !normalTerminal
+if (normalTerminal)
+{
+terminal!!.exitPrivateMode()
+printNormalTerminalText(terminal!!)
+}
+else
+{
+terminal!!.enterPrivateMode()
+printPrivateModeTerminalText(terminal!!)
+}
+}
+else
+{
+Thread.sleep(1)
+}
+}
+if (!normalTerminal)
+{
+terminal!!.exitPrivateMode()
+}
+terminal!!.putCharacter('\n')
+if (terminal is Window)
+{
+(terminal as Window).dispose()
+}
+}
 
-    private static void printNormalTerminalText(Terminal terminal) throws IOException {
-        terminal.clearScreen();
-        terminal.setCursorPosition(5, 3);
-        String text = "Normal terminal, press space to switch";
-        for(int i = 0; i < text.length(); i++) {
-            terminal.putCharacter(text.charAt(i));
-        }
-        terminal.flush();
-    }
+@Throws(IOException::class)
+private fun printNormalTerminalText(terminal:Terminal) {
+terminal.clearScreen()
+terminal.setCursorPosition(5, 3)
+val text = "Normal terminal, press space to switch"
+for (i in 0 until text.length())
+{
+terminal.putCharacter(text.charAt(i))
+}
+terminal.flush()
+}
 
-    private static void printPrivateModeTerminalText(Terminal terminal) throws IOException {
-        terminal.clearScreen();
-        terminal.setCursorPosition(5, 3);
-        String text = "Private mode terminal, press space to switch";
-        for(int i = 0; i < text.length(); i++) {
-            terminal.putCharacter(text.charAt(i));
-        }
-        terminal.flush();
-    }
+@Throws(IOException::class)
+private fun printPrivateModeTerminalText(terminal:Terminal) {
+terminal.clearScreen()
+terminal.setCursorPosition(5, 3)
+val text = "Private mode terminal, press space to switch"
+for (i in 0 until text.length())
+{
+terminal.putCharacter(text.charAt(i))
+}
+terminal.flush()
+}
 }

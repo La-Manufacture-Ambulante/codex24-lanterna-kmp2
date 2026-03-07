@@ -16,132 +16,131 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.graphics.*;
-import com.googlecode.lanterna.screen.TabBehaviour;
-
-import java.util.Collection;
-import java.util.EnumSet;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.graphics.*
+import com.googlecode.lanterna.screen.TabBehaviour
+import java.util.EnumSet
 
 /**
  * TextGraphics implementation used by TextGUI when doing any drawing operation.
  * @author Martin
  */
-public interface TextGUIGraphics extends ThemedTextGraphics, TextGraphics {
-    /**
-     * Returns the {@code TextGUI} this {@code TextGUIGraphics} belongs to
-     * @return {@code TextGUI} this {@code TextGUIGraphics} belongs to
-     */
-    TextGUI getTextGUI();
+ interface TextGUIGraphics:ThemedTextGraphics, TextGraphics {
+/**
+ * Returns the `TextGUI` this `TextGUIGraphics` belongs to
+ * @return `TextGUI` this `TextGUIGraphics` belongs to
+ */
+     val textGUI:TextGUI?
 
-    @Override
-    TextGUIGraphics newTextGraphics(TerminalPosition topLeftCorner, TerminalSize size) throws IllegalArgumentException;
+@Override
+@Throws(IllegalArgumentException::class)
+ fun newTextGraphics(topLeftCorner:TerminalPosition?, size:TerminalSize?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics applyThemeStyle(ThemeStyle themeStyle);
+@Override
+ fun applyThemeStyle(themeStyle:ThemeStyle?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics setBackgroundColor(TextColor backgroundColor);
+@Override
+ fun setBackgroundColor(backgroundColor:TextColor?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics setForegroundColor(TextColor foregroundColor);
+@Override
+ fun setForegroundColor(foregroundColor:TextColor?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics enableModifiers(SGR... modifiers);
+@Override
+ fun enableModifiers(vararg modifiers:SGR?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics disableModifiers(SGR... modifiers);
+@Override
+ fun disableModifiers(vararg modifiers:SGR?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics setModifiers(EnumSet<SGR> modifiers);
+@Override
+ fun setModifiers(modifiers:EnumSet<SGR?>?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics clearModifiers();
+@Override
+ fun clearModifiers():TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics setTabBehaviour(TabBehaviour tabBehaviour);
+@Override
+ fun setTabBehaviour(tabBehaviour:TabBehaviour?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics fill(char c);
+@Override
+ fun fill(c:Char):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics fillRectangle(TerminalPosition topLeft, TerminalSize size, char character);
+@Override
+ fun fillRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:Char):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics fillRectangle(TerminalPosition topLeft, TerminalSize size, TextCharacter character);
+@Override
+ fun fillRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:TextCharacter?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics drawRectangle(TerminalPosition topLeft, TerminalSize size, char character);
+@Override
+ fun drawRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:Char):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics drawRectangle(TerminalPosition topLeft, TerminalSize size, TextCharacter character);
+@Override
+ fun drawRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:TextCharacter?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics fillTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, char character);
+@Override
+ fun fillTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:Char):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics fillTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, TextCharacter character);
+@Override
+ fun fillTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:TextCharacter?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics drawTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, char character);
+@Override
+ fun drawTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:Char):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics drawTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, TextCharacter character);
+@Override
+ fun drawTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:TextCharacter?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics drawLine(TerminalPosition fromPoint, TerminalPosition toPoint, char character);
+@Override
+ fun drawLine(fromPoint:TerminalPosition?, toPoint:TerminalPosition?, character:Char):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics drawLine(TerminalPosition fromPoint, TerminalPosition toPoint, TextCharacter character);
+@Override
+ fun drawLine(fromPoint:TerminalPosition?, toPoint:TerminalPosition?, character:TextCharacter?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics drawLine(int fromX, int fromY, int toX, int toY, char character);
+@Override
+ fun drawLine(fromX:Int, fromY:Int, toX:Int, toY:Int, character:Char):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics drawLine(int fromX, int fromY, int toX, int toY, TextCharacter character);
+@Override
+ fun drawLine(fromX:Int, fromY:Int, toX:Int, toY:Int, character:TextCharacter?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics drawImage(TerminalPosition topLeft, TextImage image);
+@Override
+ fun drawImage(topLeft:TerminalPosition?, image:TextImage?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics drawImage(TerminalPosition topLeft, TextImage image, TerminalPosition sourceImageTopLeft, TerminalSize sourceImageSize);
+@Override
+ fun drawImage(topLeft:TerminalPosition?, image:TextImage?, sourceImageTopLeft:TerminalPosition?, sourceImageSize:TerminalSize?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics setCharacter(TerminalPosition position, char character);
+@Override
+ fun setCharacter(position:TerminalPosition?, character:Char):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics setCharacter(TerminalPosition position, TextCharacter character);
+@Override
+ fun setCharacter(position:TerminalPosition?, character:TextCharacter?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics setCharacter(int column, int row, char character);
+@Override
+ fun setCharacter(column:Int, row:Int, character:Char):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics setCharacter(int column, int row, TextCharacter character);
+@Override
+ fun setCharacter(column:Int, row:Int, character:TextCharacter?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics putString(int column, int row, String string);
+@Override
+ fun putString(column:Int, row:Int, string:String?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics putString(TerminalPosition position, String string);
+@Override
+ fun putString(position:TerminalPosition?, string:String?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics putString(int column, int row, String string, SGR extraModifier, SGR... optionalExtraModifiers);
+@Override
+ fun putString(column:Int, row:Int, string:String?, extraModifier:SGR?, vararg optionalExtraModifiers:SGR?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics putString(TerminalPosition position, String string, SGR extraModifier, SGR... optionalExtraModifiers);
+@Override
+ fun putString(position:TerminalPosition?, string:String?, extraModifier:SGR?, vararg optionalExtraModifiers:SGR?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics putString(int column, int row, String string, Collection<SGR> extraModifiers);
+@Override
+ fun putString(column:Int, row:Int, string:String?, extraModifiers:Collection<SGR?>?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics putCSIStyledString(int column, int row, String string);
+@Override
+ fun putCSIStyledString(column:Int, row:Int, string:String?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics putCSIStyledString(TerminalPosition position, String string);
+@Override
+ fun putCSIStyledString(position:TerminalPosition?, string:String?):TextGUIGraphics? 
 
-    @Override
-    TextGUIGraphics setStyleFrom(StyleSet<?> source);
+@Override
+ fun setStyleFrom(source:StyleSet<*>?):TextGUIGraphics? 
 
 }
