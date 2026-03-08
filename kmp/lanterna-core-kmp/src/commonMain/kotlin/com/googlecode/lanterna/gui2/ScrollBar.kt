@@ -23,292 +23,283 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.graphics.ThemeDefinition
 
 /**
- * Classic scrollbar that can be used to display where inside a larger component a view is showing. This implementation
- * is not interactable and needs to be driven externally, meaning you can't focus on the scrollbar itself, you have to
- * update its state as part of another component being modified. `ScrollBar`s are either horizontal or vertical,
- * which affects the way they appear and how they are drawn.
- * 
- * 
- * This class works on two concepts, the min-position-max values and the view size. The minimum value is always 0 and
- * cannot be changed. The maximum value is 100 and can be adjusted programmatically. Position value is whever along the
- * axis of 0 to max the scrollbar's tracker currently is placed. The view size is an important concept, it determines
- * how big the tracker should be and limits the position so that it can only reach `maximum value - view size`.
- * 
- * 
- * The regular way to use the `ScrollBar` class is to tie it to the model-view of another component and set the
- * scrollbar's maximum to the total height (or width, if the scrollbar is horizontal) of the model-view. View size
- * should then be assigned based on the current size of the view, meaning as the terminal and/or the GUI changes and the
- * components visible space changes, the scrollbar's view size is updated along with it. Finally the position of the
- * scrollbar should be equal to the scroll offset in the component.
- * 
- * @author Martin
+ * Classic scrollbar that can be used to display where inside a larger component a view is showing.
  */
- class ScrollBar/**
- * Creates a new `ScrollBar` with a specified direction
- * @param direction Direction of the scrollbar
- */
-    (/**
- * Returns the direction of this `ScrollBar`
- * @return Direction of this `ScrollBar`
- */
-     val direction:Direction?):AbstractComponent<ScrollBar?>() {
-private var maximum:Int = 0
-private var position:Int = 0
-private var viewSize:Int = 0
+class ScrollBar(val direction: Direction?) : AbstractComponent<ScrollBar>() {
+    private var maximum: Int = 100
+    private var scrollPosition: Int = 0
+    private var viewSize: Int = 0
 
-init{
-this.maximum = 100
-this.position = 0
-this.viewSize = 0
-}
+    fun setScrollMaximum(maximum: Int): ScrollBar {
+        require(maximum >= 0) { "Cannot set ScrollBar maximum to $maximum" }
+        if (this.maximum != maximum) {
+            this.maximum = maximum
+            invalidate()
+        }
+        return this
+    }
 
-/**
- * Sets the maximum value the scrollbar's position (minus the view size) can have
- * @param maximum Maximum value
- * @return Itself
- */
-     fun setScrollMaximum(maximum:Int):ScrollBar {
-if (maximum < 0)
-{
-throw IllegalArgumentException("Cannot set ScrollBar maximum to " + maximum)
-}
-if (this.maximum != maximum)
-{
-this.maximum = maximum
-invalidate()
-}
-return this
-}
+    fun getScrollMaximum(): Int = maximum
 
-/**
- * Returns the maximum scroll value
- * @return Maximum scroll value
- */
-     fun getScrollMaximum():Int {
-return maximum
-}
+    fun setScrollPosition(position: Int): ScrollBar {
+        val newPosition = minOf(position, maximum)
+        if (scrollPosition != newPosition) {
+            scrollPosition = newPosition
+            invalidate()
+        }
+        return this
+    }
 
+    fun getScrollPosition(): Int = scrollPosition
 
-/**
- * Sets the scrollbar's position, should be a value between 0 and `maximum - view size`
- * @param position Scrollbar's tracker's position
- * @return Itself
- */
-     fun setScrollPosition(position:Int):ScrollBar {
-val newPosition = Math.min(position, this.maximum)
-if (this.position != newPosition)
-{
-this.position = newPosition
-invalidate()
-}
-return this
-}
+    fun setViewSize(viewSize: Int): ScrollBar {
+        this.viewSize = viewSize
+        return this
+    }
 
-/**
- * Returns the position of the `ScrollBar`'s tracker
- * @return Position of the `ScrollBar`'s tracker
- */
-     fun getScrollPosition():Int {
-return position
-}
+    fun getViewSize(): Int {
+        if (viewSize > 0) {
+            return viewSize
+        }
+        val currentSize = size ?: TerminalSize.ZERO
+        return if (direction == Direction.HORIZONTAL) currentSize.columns else currentSize.rows
+    }
 
-/**
- * Sets the view size of the scrollbar, determining how big the scrollbar's tracker should be and also affecting the
- * maximum value of tracker's position
- * @param viewSize View size of the scrollbar
- * @return Itself
- */
-     fun setViewSize(viewSize:Int):ScrollBar {
-this.viewSize = viewSize
-return this
-}
+    override fun createDefaultRenderer(): ComponentRenderer<ScrollBar?> {
+        return DefaultScrollBarRenderer()
+    }
 
-/**
- * Returns the view size of the scrollbar
- * @return View size of the scrollbar
- */
-     fun getViewSize():Int {
-if (viewSize > 0)
-{
-return viewSize
-}
-if (direction === Direction.HORIZONTAL)
-{
-return getSize().getColumns()
-}
-else
-{
-return getSize().getRows()
-}
-}
+    abstract class ScrollBarRenderer : ComponentRenderer<ScrollBar?> {
+        override fun getPreferredSize(component: ScrollBar?): TerminalSize {
+            return TerminalSize.ONE
+        }
+    }
 
-@Override
-protected fun createDefaultRenderer():ComponentRenderer<ScrollBar?>? {
-return DefaultScrollBarRenderer()
-}
+    class DefaultScrollBarRenderer : ScrollBarRenderer() {
+        private var growScrollTracker: Boolean = true
 
-/**
- * Helper class for making new `ScrollBar` renderers a little bit cleaner
- */
-    abstract class ScrollBarRenderer:ComponentRenderer<ScrollBar?> {
-@Override
- fun getPreferredSize(component:ScrollBar?):TerminalSize {
-return TerminalSize.ONE
-}
-}
+        fun setGrowScrollTracker(growScrollTracker: Boolean) {
+            this.growScrollTracker = growScrollTracker
+        }
 
-/**
- * Default renderer for `ScrollBar` which will be used unless overridden. This will draw a scrollbar using
- * arrows at each extreme end, a background color for spaces between those arrows and the tracker and then the
- * tracker itself in three different styles depending on the size of the tracker. All characters and colors are
- * customizable through whatever theme is currently in use.
- */
-     class DefaultScrollBarRenderer:ScrollBarRenderer() {
+        override fun drawComponent(graphics: TextGUIGraphics?, component: ScrollBar?) {
+            val activeGraphics = graphics ?: return
+            val activeComponent = component ?: return
+            val size = activeGraphics.size ?: TerminalSize.ZERO
+            val direction = activeComponent.direction
+            var position = activeComponent.getScrollPosition()
+            val maximum = activeComponent.getScrollMaximum()
+            val viewSize = activeComponent.getViewSize()
 
-private var growScrollTracker:Boolean = false
-/**
- * Default constructor
- */
-        init{
-this.growScrollTracker = true
-}
+            if (size.rows == 0 || size.columns == 0) {
+                return
+            }
 
-/**
- * Should tracker automatically grow in size along with the `ScrollBar` (default: `true`)
- * @param growScrollTracker Automatically grow tracker
- */
-         fun setGrowScrollTracker(growScrollTracker:Boolean) {
-this.growScrollTracker = growScrollTracker
-}
+            if (position + viewSize >= maximum) {
+                position = maxOf(0, maximum - viewSize)
+                activeComponent.setScrollPosition(position)
+            }
 
-@Override
- fun drawComponent(graphics:TextGUIGraphics, component:ScrollBar) {
-val size = graphics.getSize()
-val direction = component.direction
-var position = component.getScrollPosition()
-val maximum = component.getScrollMaximum()
-val viewSize = component.getViewSize()
+            val themeDefinition: ThemeDefinition = activeComponent.themeDefinition ?: return
+            activeGraphics.applyThemeStyle(themeDefinition.normal)
 
-if (size!!.rows == 0 || size!!.columns == 0)
-{
-return 
-}
+            if (direction == Direction.VERTICAL) {
+                drawVertical(activeGraphics, themeDefinition, size, position, maximum, viewSize)
+            } else {
+                drawHorizontal(activeGraphics, themeDefinition, size, position, maximum, viewSize)
+            }
+        }
 
- //Adjust position if necessary
-            if (position + viewSize >= maximum)
-{
-position = Math.max(0, maximum - viewSize)
-component.setScrollPosition(position)
-}
+        private fun drawVertical(
+            graphics: TextGUIGraphics,
+            themeDefinition: ThemeDefinition,
+            size: TerminalSize,
+            position: Int,
+            maximum: Int,
+            viewSize: Int,
+        ) {
+            when (size.rows) {
+                1 -> graphics.setCharacter(0, 0, themeDefinition.getCharacter("VERTICAL_BACKGROUND", Symbols.BLOCK_MIDDLE))
+                2 -> {
+                    graphics.setCharacter(0, 0, themeDefinition.getCharacter("UP_ARROW", Symbols.TRIANGLE_UP_POINTING_BLACK))
+                    graphics.setCharacter(
+                        0,
+                        1,
+                        themeDefinition.getCharacter("DOWN_ARROW", Symbols.TRIANGLE_DOWN_POINTING_BLACK),
+                    )
+                }
+                else -> {
+                    val scrollableArea = size.rows - 2
+                    var scrollTrackerSize = 1
+                    if (growScrollTracker) {
+                        val ratio = clampRatio(viewSize.toFloat() / maximum.toFloat())
+                        scrollTrackerSize = maxOf(1, (ratio * scrollableArea.toFloat()).toInt())
+                    }
 
-val themeDefinition = component.getThemeDefinition()
-graphics.applyThemeStyle(themeDefinition!!.getNormal())
+                    val denominator = (maximum - viewSize).toFloat()
+                    val ratio = clampRatio(if (denominator == 0f) 0f else position.toFloat() / denominator)
+                    val scrollTrackerPosition = (ratio * (scrollableArea - scrollTrackerSize).toFloat()).toInt() + 1
 
-if (direction === Direction.VERTICAL)
-{
-if (size!!.rows == 1)
-{
-graphics.setCharacter(0, 0, themeDefinition!!.getCharacter("VERTICAL_BACKGROUND", Symbols.BLOCK_MIDDLE))
-}
-else if (size!!.rows == 2)
-{
-graphics.setCharacter(0, 0, themeDefinition!!.getCharacter("UP_ARROW", Symbols.TRIANGLE_UP_POINTING_BLACK))
-graphics.setCharacter(0, 1, themeDefinition!!.getCharacter("DOWN_ARROW", Symbols.TRIANGLE_DOWN_POINTING_BLACK))
-}
-else
-{
-val scrollableArea = size!!.rows - 2
-var scrollTrackerSize = 1
-if (growScrollTracker)
-{
-val ratio = clampRatio(viewSize.toFloat() / maximum.toFloat())
-scrollTrackerSize = Math.max(1, (ratio * scrollableArea.toFloat()).toInt())
-}
+                    graphics.setCharacter(0, 0, themeDefinition.getCharacter("UP_ARROW", Symbols.TRIANGLE_UP_POINTING_BLACK))
+                    graphics.drawLine(
+                        0,
+                        1,
+                        0,
+                        size.rows - 2,
+                        themeDefinition.getCharacter("VERTICAL_BACKGROUND", Symbols.BLOCK_MIDDLE),
+                    )
+                    graphics.setCharacter(
+                        0,
+                        size.rows - 1,
+                        themeDefinition.getCharacter("DOWN_ARROW", Symbols.TRIANGLE_DOWN_POINTING_BLACK),
+                    )
+                    when (scrollTrackerSize) {
+                        1 -> graphics.setCharacter(
+                            0,
+                            scrollTrackerPosition,
+                            themeDefinition.getCharacter("VERTICAL_SMALL_TRACKER", Symbols.BLOCK_SOLID),
+                        )
+                        2 -> {
+                            graphics.setCharacter(
+                                0,
+                                scrollTrackerPosition,
+                                themeDefinition.getCharacter("VERTICAL_TRACKER_TOP", Symbols.BLOCK_SOLID),
+                            )
+                            graphics.setCharacter(
+                                0,
+                                scrollTrackerPosition + 1,
+                                themeDefinition.getCharacter("VERTICAL_TRACKER_BOTTOM", Symbols.BLOCK_SOLID),
+                            )
+                        }
+                        else -> {
+                            graphics.setCharacter(
+                                0,
+                                scrollTrackerPosition,
+                                themeDefinition.getCharacter("VERTICAL_TRACKER_TOP", Symbols.BLOCK_SOLID),
+                            )
+                            graphics.drawLine(
+                                0,
+                                scrollTrackerPosition + 1,
+                                0,
+                                scrollTrackerPosition + scrollTrackerSize - 2,
+                                themeDefinition.getCharacter("VERTICAL_TRACKER_BACKGROUND", Symbols.BLOCK_SOLID),
+                            )
+                            graphics.setCharacter(
+                                0,
+                                scrollTrackerPosition + (scrollTrackerSize / 2),
+                                themeDefinition.getCharacter("VERTICAL_SMALL_TRACKER", Symbols.BLOCK_SOLID),
+                            )
+                            graphics.setCharacter(
+                                0,
+                                scrollTrackerPosition + scrollTrackerSize - 1,
+                                themeDefinition.getCharacter("VERTICAL_TRACKER_BOTTOM", Symbols.BLOCK_SOLID),
+                            )
+                        }
+                    }
+                }
+            }
+        }
 
-val ratio = clampRatio(position.toFloat() / (maximum - viewSize).toFloat())
-val scrollTrackerPosition = (ratio * (scrollableArea - scrollTrackerSize).toFloat()).toInt() + 1
+        private fun drawHorizontal(
+            graphics: TextGUIGraphics,
+            themeDefinition: ThemeDefinition,
+            size: TerminalSize,
+            position: Int,
+            maximum: Int,
+            viewSize: Int,
+        ) {
+            when (size.columns) {
+                1 -> graphics.setCharacter(
+                    0,
+                    0,
+                    themeDefinition.getCharacter("HORIZONTAL_BACKGROUND", Symbols.BLOCK_MIDDLE),
+                )
+                2 -> {
+                    graphics.setCharacter(0, 0, Symbols.TRIANGLE_LEFT_POINTING_BLACK)
+                    graphics.setCharacter(1, 0, Symbols.TRIANGLE_RIGHT_POINTING_BLACK)
+                }
+                else -> {
+                    val scrollableArea = size.columns - 2
+                    var scrollTrackerSize = 1
+                    if (growScrollTracker) {
+                        val ratio = clampRatio(viewSize.toFloat() / maximum.toFloat())
+                        scrollTrackerSize = maxOf(1, (ratio * scrollableArea.toFloat()).toInt())
+                    }
 
-graphics.setCharacter(0, 0, themeDefinition!!.getCharacter("UP_ARROW", Symbols.TRIANGLE_UP_POINTING_BLACK))
-graphics.drawLine(0, 1, 0, size!!.rows - 2, themeDefinition!!.getCharacter("VERTICAL_BACKGROUND", Symbols.BLOCK_MIDDLE))
-graphics.setCharacter(0, size!!.rows - 1, themeDefinition!!.getCharacter("DOWN_ARROW", Symbols.TRIANGLE_DOWN_POINTING_BLACK))
-if (scrollTrackerSize == 1)
-{
-graphics.setCharacter(0, scrollTrackerPosition, themeDefinition!!.getCharacter("VERTICAL_SMALL_TRACKER", Symbols.BLOCK_SOLID))
-}
-else if (scrollTrackerSize == 2)
-{
-graphics.setCharacter(0, scrollTrackerPosition, themeDefinition!!.getCharacter("VERTICAL_TRACKER_TOP", Symbols.BLOCK_SOLID))
-graphics.setCharacter(0, scrollTrackerPosition + 1, themeDefinition!!.getCharacter("VERTICAL_TRACKER_BOTTOM", Symbols.BLOCK_SOLID))
-}
-else
-{
-graphics.setCharacter(0, scrollTrackerPosition, themeDefinition!!.getCharacter("VERTICAL_TRACKER_TOP", Symbols.BLOCK_SOLID))
-graphics.drawLine(0, scrollTrackerPosition + 1, 0, scrollTrackerPosition + scrollTrackerSize - 2, themeDefinition!!.getCharacter("VERTICAL_TRACKER_BACKGROUND", Symbols.BLOCK_SOLID))
-graphics.setCharacter(0, scrollTrackerPosition + (scrollTrackerSize / 2), themeDefinition!!.getCharacter("VERTICAL_SMALL_TRACKER", Symbols.BLOCK_SOLID))
-graphics.setCharacter(0, scrollTrackerPosition + scrollTrackerSize - 1, themeDefinition!!.getCharacter("VERTICAL_TRACKER_BOTTOM", Symbols.BLOCK_SOLID))
-}
-}
-}
-else
-{
-if (size!!.columns == 1)
-{
-graphics.setCharacter(0, 0, themeDefinition!!.getCharacter("HORIZONTAL_BACKGROUND", Symbols.BLOCK_MIDDLE))
-}
-else if (size!!.columns == 2)
-{
-graphics.setCharacter(0, 0, Symbols.TRIANGLE_LEFT_POINTING_BLACK)
-graphics.setCharacter(1, 0, Symbols.TRIANGLE_RIGHT_POINTING_BLACK)
-}
-else
-{
-val scrollableArea = size!!.columns - 2
-var scrollTrackerSize = 1
-if (growScrollTracker)
-{
-val ratio = clampRatio(viewSize.toFloat() / maximum.toFloat())
-scrollTrackerSize = Math.max(1, (ratio * scrollableArea.toFloat()).toInt())
-}
+                    val denominator = (maximum - viewSize).toFloat()
+                    val ratio = clampRatio(if (denominator == 0f) 0f else position.toFloat() / denominator)
+                    val scrollTrackerPosition = (ratio * (scrollableArea - scrollTrackerSize).toFloat()).toInt() + 1
 
-val ratio = clampRatio(position.toFloat() / (maximum - viewSize).toFloat())
-val scrollTrackerPosition = (ratio * (scrollableArea - scrollTrackerSize).toFloat()).toInt() + 1
+                    graphics.setCharacter(
+                        0,
+                        0,
+                        themeDefinition.getCharacter("LEFT_ARROW", Symbols.TRIANGLE_LEFT_POINTING_BLACK),
+                    )
+                    graphics.drawLine(
+                        1,
+                        0,
+                        size.columns - 2,
+                        0,
+                        themeDefinition.getCharacter("HORIZONTAL_BACKGROUND", Symbols.BLOCK_MIDDLE),
+                    )
+                    graphics.setCharacter(
+                        size.columns - 1,
+                        0,
+                        themeDefinition.getCharacter("RIGHT_ARROW", Symbols.TRIANGLE_RIGHT_POINTING_BLACK),
+                    )
+                    when (scrollTrackerSize) {
+                        1 -> graphics.setCharacter(
+                            scrollTrackerPosition,
+                            0,
+                            themeDefinition.getCharacter("HORIZONTAL_SMALL_TRACKER", Symbols.BLOCK_SOLID),
+                        )
+                        2 -> {
+                            graphics.setCharacter(
+                                scrollTrackerPosition,
+                                0,
+                                themeDefinition.getCharacter("HORIZONTAL_TRACKER_LEFT", Symbols.BLOCK_SOLID),
+                            )
+                            graphics.setCharacter(
+                                scrollTrackerPosition + 1,
+                                0,
+                                themeDefinition.getCharacter("HORIZONTAL_TRACKER_RIGHT", Symbols.BLOCK_SOLID),
+                            )
+                        }
+                        else -> {
+                            graphics.setCharacter(
+                                scrollTrackerPosition,
+                                0,
+                                themeDefinition.getCharacter("HORIZONTAL_TRACKER_LEFT", Symbols.BLOCK_SOLID),
+                            )
+                            graphics.drawLine(
+                                scrollTrackerPosition + 1,
+                                0,
+                                scrollTrackerPosition + scrollTrackerSize - 2,
+                                0,
+                                themeDefinition.getCharacter("HORIZONTAL_TRACKER_BACKGROUND", Symbols.BLOCK_SOLID),
+                            )
+                            graphics.setCharacter(
+                                scrollTrackerPosition + (scrollTrackerSize / 2),
+                                0,
+                                themeDefinition.getCharacter("HORIZONTAL_SMALL_TRACKER", Symbols.BLOCK_SOLID),
+                            )
+                            graphics.setCharacter(
+                                scrollTrackerPosition + scrollTrackerSize - 1,
+                                0,
+                                themeDefinition.getCharacter("HORIZONTAL_TRACKER_RIGHT", Symbols.BLOCK_SOLID),
+                            )
+                        }
+                    }
+                }
+            }
+        }
 
-graphics.setCharacter(0, 0, themeDefinition!!.getCharacter("LEFT_ARROW", Symbols.TRIANGLE_LEFT_POINTING_BLACK))
-graphics.drawLine(1, 0, size!!.columns - 2, 0, themeDefinition!!.getCharacter("HORIZONTAL_BACKGROUND", Symbols.BLOCK_MIDDLE))
-graphics.setCharacter(size!!.columns - 1, 0, themeDefinition!!.getCharacter("RIGHT_ARROW", Symbols.TRIANGLE_RIGHT_POINTING_BLACK))
-if (scrollTrackerSize == 1)
-{
-graphics.setCharacter(scrollTrackerPosition, 0, themeDefinition!!.getCharacter("HORIZONTAL_SMALL_TRACKER", Symbols.BLOCK_SOLID))
-}
-else if (scrollTrackerSize == 2)
-{
-graphics.setCharacter(scrollTrackerPosition, 0, themeDefinition!!.getCharacter("HORIZONTAL_TRACKER_LEFT", Symbols.BLOCK_SOLID))
-graphics.setCharacter(scrollTrackerPosition + 1, 0, themeDefinition!!.getCharacter("HORIZONTAL_TRACKER_RIGHT", Symbols.BLOCK_SOLID))
-}
-else
-{
-graphics.setCharacter(scrollTrackerPosition, 0, themeDefinition!!.getCharacter("HORIZONTAL_TRACKER_LEFT", Symbols.BLOCK_SOLID))
-graphics.drawLine(scrollTrackerPosition + 1, 0, scrollTrackerPosition + scrollTrackerSize - 2, 0, themeDefinition!!.getCharacter("HORIZONTAL_TRACKER_BACKGROUND", Symbols.BLOCK_SOLID))
-graphics.setCharacter(scrollTrackerPosition + (scrollTrackerSize / 2), 0, themeDefinition!!.getCharacter("HORIZONTAL_SMALL_TRACKER", Symbols.BLOCK_SOLID))
-graphics.setCharacter(scrollTrackerPosition + scrollTrackerSize - 1, 0, themeDefinition!!.getCharacter("HORIZONTAL_TRACKER_RIGHT", Symbols.BLOCK_SOLID))
-}
-}
-}
-}
-
-private fun clampRatio(value:Float):Float {
-if (value < 0.0f)
-{
-return 0.0f
-}
-else if (value > 1.0f)
-{
-return 1.0f
-}
-else
-{
-return value
-}
-}
-}
+        private fun clampRatio(value: Float): Float {
+            return when {
+                value < 0.0f -> 0.0f
+                value > 1.0f -> 1.0f
+                else -> value
+            }
+        }
+    }
 }
