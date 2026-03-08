@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,529 +13,384 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
-
 import java.util.ArrayList
-import java.util.IdentityHashMap
 import java.util.Collections
-import java.util.stream.Collectors
+import java.util.IdentityHashMap
 
 /**
  * Simple layout manager the puts all components on a single line, either horizontally or vertically.
  */
- class LinearLayout/**
- * Standard constructor that creates a `LinearLayout` with a specified direction to position the components on
- * @param direction Direction for this `Direction`
- */
-     @JvmOverloads  constructor(private val direction:Direction? = Direction.VERTICAL):LayoutManager {
-private var spacing:Int = 0
-private var changed:Boolean = false
-/**
- * This enum type will decide the alignment of a component on the counter-axis, meaning the horizontal alignment on
- * vertical `LinearLayout`s and vertical alignment on horizontal `LinearLayout`s.
- */
-     enum class Alignment {
-/**
- * The component will be placed to the left (for vertical layouts) or top (for horizontal layouts)
- */
-        BEGINNING, 
-/**
- * The component will be placed horizontally centered (for vertical layouts) or vertically centered (for
- * horizontal layouts)
- */
-        CENTER, 
-/**
- * The component will be placed to the right (for vertical layouts) or bottom (for horizontal layouts)
- */
-        END, 
-/**
- * The component will be forced to take up all the horizontal space (for vertical layouts) or vertical space
- * (for horizontal layouts)
- */
-        FILL
-}
+class LinearLayout @JvmOverloads constructor(
+    private val direction: Direction = Direction.VERTICAL,
+) : LayoutManager {
+    enum class Alignment {
+        BEGINNING,
+        CENTER,
+        END,
+        FILL,
+    }
 
-/**
- * This enum type will what to do with a component if the container has extra space to offer. This can happen if the
- * window runs in full screen or the window has been programmatically set to a fixed size, above the preferred size
- * of the window.
- */
-     enum class GrowPolicy {
-/**
- * This is the default grow policy, the component will not become larger than the preferred size, even if the
- * container can offer more.
- */
-        NONE, 
-/**
- * With this grow policy, if the container has more space available then this component will be grown to fill
- * the extra space.
- */
-        CAN_GROW
-}
+    enum class GrowPolicy {
+        NONE,
+        CAN_GROW,
+    }
 
-private class LinearLayoutData(private val alignment:Alignment?, private val growPolicy:GrowPolicy?):LayoutData
+    private class LinearLayoutData(
+        val alignment: Alignment,
+        val growPolicy: GrowPolicy,
+    ) : LayoutData
 
-init{
-this.spacing = if (direction === Direction.HORIZONTAL) 1 else 0
-this.changed = true
-}
+    private var spacing: Int = if (direction == Direction.HORIZONTAL) 1 else 0
+    private var changed: Boolean = true
 
-/**
- * Sets the amount of empty space to put in between components. For horizontal layouts, this is number of columns
- * (by default 1) and for vertical layouts this is number of rows (by default 0).
- * @param spacing Spacing between components, either in number of columns or rows depending on the direction
- * @return Itself
- */
-     fun setSpacing(spacing:Int):LinearLayout {
-this.spacing = spacing
-this.changed = true
-return this
-}
+    fun setSpacing(spacing: Int): LinearLayout {
+        this.spacing = spacing
+        this.changed = true
+        return this
+    }
 
-/**
- * Returns the amount of empty space to put in between components. For horizontal layouts, this is number of columns
- * (by default 1) and for vertical layouts this is number of rows (by default 0).
- * @return Spacing between components, either in number of columns or rows depending on the direction
- */
-     fun getSpacing():Int {
-return spacing
-}
+    fun getSpacing(): Int = spacing
 
-@Override
- fun getPreferredSize(components:List<Component?>?):TerminalSize {
-var components = components
- // Filter out invisible components
-        components = components!!.stream().filter(???({ Component.isVisible() })).collect(Collectors.toList())
+    override fun getPreferredSize(components: List<Component?>?): TerminalSize {
+        val visibleComponents = components.orEmpty().filter { it?.isVisible == true }.map { it!! }
+        return if (direction == Direction.VERTICAL) {
+            getPreferredSizeVertically(visibleComponents)
+        } else {
+            getPreferredSizeHorizontally(visibleComponents)
+        }
+    }
 
-if (direction === Direction.VERTICAL)
-{
-return getPreferredSizeVertically(components!!)
-}
-else
-{
-return getPreferredSizeHorizontally(components!!)
-}
-}
+    private fun getPreferredSizeVertically(components: List<Component>): TerminalSize {
+        var maxWidth = 0
+        var height = 0
+        for (component in components) {
+            val preferredSize = component.preferredSize ?: TerminalSize.ZERO
+            if (maxWidth < preferredSize.columns) {
+                maxWidth = preferredSize.columns
+            }
+            height += preferredSize.rows
+        }
+        height += spacing * (components.size - 1)
+        return TerminalSize(maxWidth, kotlin.math.max(0, height))
+    }
 
-private fun getPreferredSizeVertically(components:List<Component?>):TerminalSize {
-var maxWidth = 0
-var height = 0
-for (component in components)
-{
-val preferredSize = component!!.getPreferredSize()
-if (maxWidth < preferredSize!!.columns)
-{
-maxWidth = preferredSize!!.columns
-}
-height += preferredSize!!.rows
-}
-height += spacing * (components.size() - 1)
-return TerminalSize(maxWidth, Math.max(0, height))
-}
+    private fun getPreferredSizeHorizontally(components: List<Component>): TerminalSize {
+        var maxHeight = 0
+        var width = 0
+        for (component in components) {
+            val preferredSize = component.preferredSize ?: TerminalSize.ZERO
+            if (maxHeight < preferredSize.rows) {
+                maxHeight = preferredSize.rows
+            }
+            width += preferredSize.columns
+        }
+        width += spacing * (components.size - 1)
+        return TerminalSize(kotlin.math.max(0, width), maxHeight)
+    }
 
-private fun getPreferredSizeHorizontally(components:List<Component?>):TerminalSize {
-var maxHeight = 0
-var width = 0
-for (component in components)
-{
-val preferredSize = component!!.getPreferredSize()
-if (maxHeight < preferredSize!!.rows)
-{
-maxHeight = preferredSize!!.rows
-}
-width += preferredSize!!.columns
-}
-width += spacing * (components.size() - 1)
-return TerminalSize(Math.max(0, width), maxHeight)
-}
+    override fun hasChanged(): Boolean = changed
 
-@Override
- fun hasChanged():Boolean {
-return changed
-}
+    override fun doLayout(area: TerminalSize?, components: List<Component?>?) {
+        if (area == null) {
+            changed = false
+            return
+        }
+        val visibleComponents = components.orEmpty().filter { it?.isVisible == true }.map { it!! }
+        if (direction == Direction.VERTICAL) {
+            if (java.lang.Boolean.getBoolean(USE_OLD_NON_FLEX_LAYOUT_PROPERTY)) {
+                doVerticalLayout(area, visibleComponents)
+            } else {
+                doFlexibleVerticalLayout(area, visibleComponents)
+            }
+        } else {
+            if (java.lang.Boolean.getBoolean(USE_OLD_NON_FLEX_LAYOUT_PROPERTY)) {
+                doHorizontalLayout(area, visibleComponents)
+            } else {
+                doFlexibleHorizontalLayout(area, visibleComponents)
+            }
+        }
+        changed = false
+    }
 
-@Override
- fun doLayout(area:TerminalSize?, components:List<Component?>?) {
-var components = components
- // Filter out invisible components
-        components = components!!.stream().filter(???({ Component.isVisible() })).collect(Collectors.toList())
+    @Deprecated("")
+    private fun doVerticalLayout(area: TerminalSize, components: List<Component>) {
+        var remainingVerticalSpace = area.rows
+        val availableHorizontalSpace = area.columns
+        for (component in components) {
+            if (remainingVerticalSpace <= 0) {
+                component.setPosition(TerminalPosition.TOP_LEFT_CORNER)
+                component.setSize(TerminalSize.ZERO)
+            } else {
+                var alignment = Alignment.BEGINNING
+                val layoutData = component.layoutData
+                if (layoutData is LinearLayoutData) {
+                    alignment = layoutData.alignment
+                }
 
-if (direction === Direction.VERTICAL)
-{
-if (Boolean.getBoolean("com.googlecode.lanterna.gui2.LinearLayout.useOldNonFlexLayout"))
-{
-doVerticalLayout(area!!, components!!)
-}
-else
-{
-doFlexibleVerticalLayout(area!!, components!!)
-}
-}
-else
-{
-if (Boolean.getBoolean("com.googlecode.lanterna.gui2.LinearLayout.useOldNonFlexLayout"))
-{
-doHorizontalLayout(area!!, components!!)
-}
-else
-{
-doFlexibleHorizontalLayout(area!!, components!!)
-}
-}
-this.changed = false
-}
+                val preferredSize = component.preferredSize ?: TerminalSize.ZERO
+                var decidedSize = TerminalSize(
+                    kotlin.math.min(availableHorizontalSpace, preferredSize.columns),
+                    kotlin.math.min(remainingVerticalSpace, preferredSize.rows),
+                )
+                if (alignment == Alignment.FILL) {
+                    decidedSize = decidedSize.withColumns(availableHorizontalSpace) ?: decidedSize
+                    alignment = Alignment.BEGINNING
+                }
 
-@Deprecated
-private fun doVerticalLayout(area:TerminalSize, components:List<Component?>) {
-var remainingVerticalSpace = area.rows
-val availableHorizontalSpace = area.columns
-for (component in components)
-{
-if (remainingVerticalSpace <= 0)
-{
-component!!.setPosition(TerminalPosition.TOP_LEFT_CORNER)
-component!!.setSize(TerminalSize.ZERO)
-}
-else
-{
-var alignment:Alignment? = Alignment.BEGINNING
-val layoutData = component!!.getLayoutData()
-if (layoutData is LinearLayoutData)
-{
-alignment = (layoutData as LinearLayoutData).alignment
-}
+                var position = (component.position ?: TerminalPosition.TOP_LEFT_CORNER)
+                    .withRow(area.rows - remainingVerticalSpace) ?: TerminalPosition.TOP_LEFT_CORNER
+                position = when (alignment) {
+                    Alignment.END -> position.withColumn(availableHorizontalSpace - decidedSize.columns)
+                    Alignment.CENTER -> position.withColumn((availableHorizontalSpace - decidedSize.columns) / 2)
+                    else -> position.withColumn(0)
+                } ?: TerminalPosition.TOP_LEFT_CORNER
+                component.setPosition(position)
+                component.setSize((component.size ?: TerminalSize.ZERO).with(decidedSize))
+                remainingVerticalSpace -= decidedSize.rows + spacing
+            }
+        }
+    }
 
-val preferredSize = component!!.getPreferredSize()
-var decidedSize:TerminalSize? = TerminalSize(
-Math.min(availableHorizontalSpace, preferredSize!!.columns), 
-Math.min(remainingVerticalSpace, preferredSize!!.rows))
-if (alignment == Alignment.FILL)
-{
-decidedSize = decidedSize!!.withColumns(availableHorizontalSpace)
-alignment = Alignment.BEGINNING
-}
+    private fun doFlexibleVerticalLayout(area: TerminalSize, components: List<Component>) {
+        var availableVerticalSpace = area.rows
+        val availableHorizontalSpace = area.columns
+        val fittingMap = IdentityHashMap<Component, TerminalSize>()
+        var totalRequiredVerticalSpace = 0
 
-var position = component!!.getPosition()
-position = position!!.withRow(area.rows - remainingVerticalSpace)
-when (alignment) {
-LinearLayout.Alignment.END -> position = position!!.withColumn(availableHorizontalSpace - decidedSize!!.columns)
-LinearLayout.Alignment.CENTER -> position = position!!.withColumn((availableHorizontalSpace - decidedSize!!.columns) / 2)
-LinearLayout.Alignment.BEGINNING -> position = position!!.withColumn(0)
-else -> position = position!!.withColumn(0)
-}
-component!!.setPosition(position)
-component!!.setSize(component!!.getSize().with(decidedSize))
-remainingVerticalSpace -= decidedSize!!.rows + spacing
-}
-}
-}
+        for (component in components) {
+            var alignment = Alignment.BEGINNING
+            val layoutData = component.layoutData
+            if (layoutData is LinearLayoutData) {
+                alignment = layoutData.alignment
+            }
 
-private fun doFlexibleVerticalLayout(area:TerminalSize, components:List<Component?>) {
-var availableVerticalSpace = area.rows
-val availableHorizontalSpace = area.columns
-val fittingMap = IdentityHashMap()
-var totalRequiredVerticalSpace = 0
+            val preferredSize = component.preferredSize ?: TerminalSize.ZERO
+            var fittingSize = TerminalSize(
+                kotlin.math.min(availableHorizontalSpace, preferredSize.columns),
+                preferredSize.rows,
+            )
+            if (alignment == Alignment.FILL) {
+                fittingSize = fittingSize.withColumns(availableHorizontalSpace) ?: fittingSize
+            }
 
-for (component in components)
-{
-var alignment:Alignment? = Alignment.BEGINNING
-val layoutData = component!!.getLayoutData()
-if (layoutData is LinearLayoutData)
-{
-alignment = (layoutData as LinearLayoutData).alignment
-}
-
-val preferredSize = component!!.getPreferredSize()
-var fittingSize:TerminalSize? = TerminalSize(
-Math.min(availableHorizontalSpace, preferredSize!!.columns), 
-preferredSize!!.rows)
-if (alignment == Alignment.FILL)
-{
-fittingSize = fittingSize!!.withColumns(availableHorizontalSpace)
-}
-
-fittingMap.put(component, fittingSize)
-totalRequiredVerticalSpace += fittingSize!!.rows + spacing
-}
-if (!components.isEmpty())
-{
- // Remove the last spacing
+            fittingMap[component] = fittingSize
+            totalRequiredVerticalSpace += fittingSize.rows + spacing
+        }
+        if (components.isNotEmpty()) {
             totalRequiredVerticalSpace -= spacing
-}
+        }
 
- // If we can't fit everything, trim the down the size of the largest components until it fits
-        if (availableVerticalSpace < totalRequiredVerticalSpace)
-{
-val copyOfComponents = ArrayList(components)
-Collections.reverse(copyOfComponents)
-copyOfComponents.sort({ o1, o2-> 
- // Reverse sort
-                -Integer.compare(fittingMap.get(o1).getRows(), fittingMap.get(o2).getRows()) })
+        if (availableVerticalSpace < totalRequiredVerticalSpace) {
+            val copyOfComponents = ArrayList(components)
+            Collections.reverse(copyOfComponents)
+            copyOfComponents.sortByDescending { fittingMap[it]?.rows ?: 0 }
 
-while (availableVerticalSpace < totalRequiredVerticalSpace)
-{
-val largestSize = fittingMap.get(copyOfComponents.get(0)).getRows()
-for (largeComponent in copyOfComponents)
-{
-val currentSize = fittingMap.get(largeComponent)
-if (largestSize > currentSize!!.rows)
-{
-break
-}
-fittingMap.put(largeComponent, currentSize!!.withRelativeRows(-1))
-totalRequiredVerticalSpace--
-if (availableHorizontalSpace >= totalRequiredVerticalSpace)
-{
-break
-}
-}
-}
-}
+            while (availableVerticalSpace < totalRequiredVerticalSpace) {
+                val largestSize = fittingMap[copyOfComponents[0]]?.rows ?: 0
+                for (largeComponent in copyOfComponents) {
+                    val currentSize = fittingMap[largeComponent] ?: TerminalSize.ZERO
+                    if (largestSize > currentSize.rows) {
+                        break
+                    }
+                    fittingMap[largeComponent] = currentSize.withRelativeRows(-1) ?: TerminalSize.ZERO
+                    totalRequiredVerticalSpace--
+                    if (availableVerticalSpace >= totalRequiredVerticalSpace) {
+                        break
+                    }
+                }
+            }
+        }
 
- // If we have more space available than we need, grow components to fill
-        if (availableVerticalSpace > totalRequiredVerticalSpace)
-{
-var resizedOneComponent = false
-while (availableVerticalSpace > totalRequiredVerticalSpace)
-{
-for (component in components)
-{
-val layoutData = component!!.getLayoutData() as LinearLayoutData
-val currentSize = fittingMap.get(component)
-if (layoutData != null && layoutData!!.growPolicy == GrowPolicy.CAN_GROW)
-{
-fittingMap.put(component, currentSize!!.withRelativeRows(1))
-availableVerticalSpace--
-resizedOneComponent = true
-}
-if (availableVerticalSpace <= totalRequiredVerticalSpace)
-{
-break
-}
-}
-if (!resizedOneComponent)
-{
-break
-}
-}
-}
+        if (availableVerticalSpace > totalRequiredVerticalSpace) {
+            while (availableVerticalSpace > totalRequiredVerticalSpace) {
+                var resizedOneComponent = false
+                for (component in components) {
+                    val layoutData = component.layoutData as? LinearLayoutData
+                    val currentSize = fittingMap[component] ?: TerminalSize.ZERO
+                    if (layoutData != null && layoutData.growPolicy == GrowPolicy.CAN_GROW) {
+                        fittingMap[component] = currentSize.withRelativeRows(1) ?: currentSize
+                        availableVerticalSpace--
+                        resizedOneComponent = true
+                    }
+                    if (availableVerticalSpace <= totalRequiredVerticalSpace) {
+                        break
+                    }
+                }
+                if (!resizedOneComponent) {
+                    break
+                }
+            }
+        }
 
- // Assign the sizes and positions
         var topPosition = 0
-for (component in components)
-{
-var alignment:Alignment? = Alignment.BEGINNING
-val layoutData = component!!.getLayoutData()
-if (layoutData is LinearLayoutData)
-{
-alignment = (layoutData as LinearLayoutData).alignment
-}
+        for (component in components) {
+            var alignment = Alignment.BEGINNING
+            val layoutData = component.layoutData
+            if (layoutData is LinearLayoutData) {
+                alignment = layoutData.alignment
+            }
 
-val decidedSize = fittingMap.get(component)
-var position = component!!.getPosition()
-position = position!!.withRow(topPosition)
-when (alignment) {
-LinearLayout.Alignment.END -> position = position!!.withColumn(availableHorizontalSpace - decidedSize!!.columns)
-LinearLayout.Alignment.CENTER -> position = position!!.withColumn((availableHorizontalSpace - decidedSize!!.columns) / 2)
-LinearLayout.Alignment.BEGINNING -> position = position!!.withColumn(0)
-else -> position = position!!.withColumn(0)
-}
-component!!.setPosition(component!!.getPosition().with(position))
-component!!.setSize(component!!.getSize().with(decidedSize))
-topPosition += decidedSize!!.rows + spacing
-}
-}
+            val decidedSize = fittingMap[component] ?: TerminalSize.ZERO
+            var position = (component.position ?: TerminalPosition.TOP_LEFT_CORNER)
+                .withRow(topPosition) ?: TerminalPosition.TOP_LEFT_CORNER
+            position = when (alignment) {
+                Alignment.END -> position.withColumn(availableHorizontalSpace - decidedSize.columns)
+                Alignment.CENTER -> position.withColumn((availableHorizontalSpace - decidedSize.columns) / 2)
+                else -> position.withColumn(0)
+            } ?: TerminalPosition.TOP_LEFT_CORNER
+            component.setPosition((component.position ?: TerminalPosition.TOP_LEFT_CORNER).with(position))
+            component.setSize((component.size ?: TerminalSize.ZERO).with(decidedSize))
+            topPosition += decidedSize.rows + spacing
+        }
+    }
 
-@Deprecated
-private fun doHorizontalLayout(area:TerminalSize, components:List<Component?>) {
-var remainingHorizontalSpace = area.columns
-val availableVerticalSpace = area.rows
-for (component in components)
-{
-if (remainingHorizontalSpace <= 0)
-{
-component!!.setPosition(TerminalPosition.TOP_LEFT_CORNER)
-component!!.setSize(TerminalSize.ZERO)
-}
-else
-{
-var alignment:Alignment? = Alignment.BEGINNING
-val layoutData = component!!.getLayoutData()
-if (layoutData is LinearLayoutData)
-{
-alignment = (layoutData as LinearLayoutData).alignment
-}
+    @Deprecated("")
+    private fun doHorizontalLayout(area: TerminalSize, components: List<Component>) {
+        var remainingHorizontalSpace = area.columns
+        val availableVerticalSpace = area.rows
+        for (component in components) {
+            if (remainingHorizontalSpace <= 0) {
+                component.setPosition(TerminalPosition.TOP_LEFT_CORNER)
+                component.setSize(TerminalSize.ZERO)
+            } else {
+                var alignment = Alignment.BEGINNING
+                val layoutData = component.layoutData
+                if (layoutData is LinearLayoutData) {
+                    alignment = layoutData.alignment
+                }
 
-val preferredSize = component!!.getPreferredSize()
-var decidedSize:TerminalSize? = TerminalSize(
-Math.min(remainingHorizontalSpace, preferredSize!!.columns), 
-Math.min(availableVerticalSpace, preferredSize!!.rows))
-if (alignment == Alignment.FILL)
-{
-decidedSize = decidedSize!!.withRows(availableVerticalSpace)
-alignment = Alignment.BEGINNING
-}
+                val preferredSize = component.preferredSize ?: TerminalSize.ZERO
+                var decidedSize = TerminalSize(
+                    kotlin.math.min(remainingHorizontalSpace, preferredSize.columns),
+                    kotlin.math.min(availableVerticalSpace, preferredSize.rows),
+                )
+                if (alignment == Alignment.FILL) {
+                    decidedSize = decidedSize.withRows(availableVerticalSpace) ?: decidedSize
+                    alignment = Alignment.BEGINNING
+                }
 
-var position = component!!.getPosition()
-position = position!!.withColumn(area.columns - remainingHorizontalSpace)
-when (alignment) {
-LinearLayout.Alignment.END -> position = position!!.withRow(availableVerticalSpace - decidedSize!!.rows)
-LinearLayout.Alignment.CENTER -> position = position!!.withRow((availableVerticalSpace - decidedSize!!.rows) / 2)
-LinearLayout.Alignment.BEGINNING -> position = position!!.withRow(0)
-else -> position = position!!.withRow(0)
-}
-component!!.setPosition(position)
-component!!.setSize(component!!.getSize().with(decidedSize))
-remainingHorizontalSpace -= decidedSize!!.columns + spacing
-}
-}
-}
+                var position = (component.position ?: TerminalPosition.TOP_LEFT_CORNER)
+                    .withColumn(area.columns - remainingHorizontalSpace) ?: TerminalPosition.TOP_LEFT_CORNER
+                position = when (alignment) {
+                    Alignment.END -> position.withRow(availableVerticalSpace - decidedSize.rows)
+                    Alignment.CENTER -> position.withRow((availableVerticalSpace - decidedSize.rows) / 2)
+                    else -> position.withRow(0)
+                } ?: TerminalPosition.TOP_LEFT_CORNER
+                component.setPosition(position)
+                component.setSize((component.size ?: TerminalSize.ZERO).with(decidedSize))
+                remainingHorizontalSpace -= decidedSize.columns + spacing
+            }
+        }
+    }
 
-private fun doFlexibleHorizontalLayout(area:TerminalSize, components:List<Component?>) {
-val availableVerticalSpace = area.rows
-var availableHorizontalSpace = area.columns
-val fittingMap = IdentityHashMap()
-var totalRequiredHorizontalSpace = 0
+    private fun doFlexibleHorizontalLayout(area: TerminalSize, components: List<Component>) {
+        val availableVerticalSpace = area.rows
+        var availableHorizontalSpace = area.columns
+        val fittingMap = IdentityHashMap<Component, TerminalSize>()
+        var totalRequiredHorizontalSpace = 0
 
-for (component in components)
-{
-var alignment:Alignment? = Alignment.BEGINNING
-val layoutData = component!!.getLayoutData()
-if (layoutData is LinearLayoutData)
-{
-alignment = (layoutData as LinearLayoutData).alignment
-}
+        for (component in components) {
+            var alignment = Alignment.BEGINNING
+            val layoutData = component.layoutData
+            if (layoutData is LinearLayoutData) {
+                alignment = layoutData.alignment
+            }
 
-val preferredSize = component!!.getPreferredSize()
-var fittingSize:TerminalSize? = TerminalSize(
-preferredSize!!.columns, 
-Math.min(availableVerticalSpace, preferredSize!!.rows))
-if (alignment == Alignment.FILL)
-{
-fittingSize = fittingSize!!.withRows(availableVerticalSpace)
-}
+            val preferredSize = component.preferredSize ?: TerminalSize.ZERO
+            var fittingSize = TerminalSize(
+                preferredSize.columns,
+                kotlin.math.min(availableVerticalSpace, preferredSize.rows),
+            )
+            if (alignment == Alignment.FILL) {
+                fittingSize = fittingSize.withRows(availableVerticalSpace) ?: fittingSize
+            }
 
-fittingMap.put(component, fittingSize)
-totalRequiredHorizontalSpace += fittingSize!!.columns + spacing
-}
-if (!components.isEmpty())
-{
- // Remove the last spacing
+            fittingMap[component] = fittingSize
+            totalRequiredHorizontalSpace += fittingSize.columns + spacing
+        }
+        if (components.isNotEmpty()) {
             totalRequiredHorizontalSpace -= spacing
-}
+        }
 
- // If we can't fit everything, trim the down the size of the largest components until it fits
-        if (availableHorizontalSpace < totalRequiredHorizontalSpace)
-{
-val copyOfComponents = ArrayList(components)
-Collections.reverse(copyOfComponents)
-copyOfComponents.sort({ o1, o2-> 
- // Reverse sort
-                -Integer.compare(fittingMap.get(o1).getColumns(), fittingMap.get(o2).getColumns()) })
+        if (availableHorizontalSpace < totalRequiredHorizontalSpace) {
+            val copyOfComponents = ArrayList(components)
+            Collections.reverse(copyOfComponents)
+            copyOfComponents.sortByDescending { fittingMap[it]?.columns ?: 0 }
 
-while (availableHorizontalSpace < totalRequiredHorizontalSpace)
-{
-val largestSize = fittingMap.get(copyOfComponents.get(0)).getColumns()
-for (largeComponent in copyOfComponents)
-{
-val currentSize = fittingMap.get(largeComponent)
-if (largestSize > currentSize!!.columns)
-{
-break
-}
-fittingMap.put(largeComponent, currentSize!!.withRelativeColumns(-1))
-totalRequiredHorizontalSpace--
-if (availableHorizontalSpace >= totalRequiredHorizontalSpace)
-{
-break
-}
-}
-}
-}
+            while (availableHorizontalSpace < totalRequiredHorizontalSpace) {
+                val largestSize = fittingMap[copyOfComponents[0]]?.columns ?: 0
+                for (largeComponent in copyOfComponents) {
+                    val currentSize = fittingMap[largeComponent] ?: TerminalSize.ZERO
+                    if (largestSize > currentSize.columns) {
+                        break
+                    }
+                    fittingMap[largeComponent] = currentSize.withRelativeColumns(-1) ?: TerminalSize.ZERO
+                    totalRequiredHorizontalSpace--
+                    if (availableHorizontalSpace >= totalRequiredHorizontalSpace) {
+                        break
+                    }
+                }
+            }
+        }
 
- // If we have more space available than we need, grow components to fill
-        if (availableHorizontalSpace > totalRequiredHorizontalSpace)
-{
-var resizedOneComponent = false
-while (availableHorizontalSpace > totalRequiredHorizontalSpace)
-{
-for (component in components)
-{
-val layoutData = component!!.getLayoutData() as LinearLayoutData
-val currentSize = fittingMap.get(component)
-if (layoutData != null && layoutData!!.growPolicy == GrowPolicy.CAN_GROW)
-{
-fittingMap.put(component, currentSize!!.withRelativeColumns(1))
-availableHorizontalSpace--
-resizedOneComponent = true
-}
-if (availableHorizontalSpace <= totalRequiredHorizontalSpace)
-{
-break
-}
-}
-if (!resizedOneComponent)
-{
-break
-}
-}
-}
+        if (availableHorizontalSpace > totalRequiredHorizontalSpace) {
+            while (availableHorizontalSpace > totalRequiredHorizontalSpace) {
+                var resizedOneComponent = false
+                for (component in components) {
+                    val layoutData = component.layoutData as? LinearLayoutData
+                    val currentSize = fittingMap[component] ?: TerminalSize.ZERO
+                    if (layoutData != null && layoutData.growPolicy == GrowPolicy.CAN_GROW) {
+                        fittingMap[component] = currentSize.withRelativeColumns(1) ?: currentSize
+                        availableHorizontalSpace--
+                        resizedOneComponent = true
+                    }
+                    if (availableHorizontalSpace <= totalRequiredHorizontalSpace) {
+                        break
+                    }
+                }
+                if (!resizedOneComponent) {
+                    break
+                }
+            }
+        }
 
- // Assign the sizes and positions
         var leftPosition = 0
-for (component in components)
-{
-var alignment:Alignment? = Alignment.BEGINNING
-val layoutData = component!!.getLayoutData()
-if (layoutData is LinearLayoutData)
-{
-alignment = (layoutData as LinearLayoutData).alignment
-}
+        for (component in components) {
+            var alignment = Alignment.BEGINNING
+            val layoutData = component.layoutData
+            if (layoutData is LinearLayoutData) {
+                alignment = layoutData.alignment
+            }
 
-val decidedSize = fittingMap.get(component)
-var position = component!!.getPosition()
-position = position!!.withColumn(leftPosition)
-when (alignment) {
-LinearLayout.Alignment.END -> position = position!!.withRow(availableVerticalSpace - decidedSize!!.rows)
-LinearLayout.Alignment.CENTER -> position = position!!.withRow((availableVerticalSpace - decidedSize!!.rows) / 2)
-LinearLayout.Alignment.BEGINNING -> position = position!!.withRow(0)
-else -> position = position!!.withRow(0)
-}
-component!!.setPosition(component!!.getPosition().with(position))
-component!!.setSize(component!!.getSize().with(decidedSize))
-leftPosition += decidedSize!!.columns + spacing
-}
-}
+            val decidedSize = fittingMap[component] ?: TerminalSize.ZERO
+            var position = (component.position ?: TerminalPosition.TOP_LEFT_CORNER)
+                .withColumn(leftPosition) ?: TerminalPosition.TOP_LEFT_CORNER
+            position = when (alignment) {
+                Alignment.END -> position.withRow(availableVerticalSpace - decidedSize.rows)
+                Alignment.CENTER -> position.withRow((availableVerticalSpace - decidedSize.rows) / 2)
+                else -> position.withRow(0)
+            } ?: TerminalPosition.TOP_LEFT_CORNER
+            component.setPosition((component.position ?: TerminalPosition.TOP_LEFT_CORNER).with(position))
+            component.setSize((component.size ?: TerminalSize.ZERO).with(decidedSize))
+            leftPosition += decidedSize.columns + spacing
+        }
+    }
 
-companion object {
+    companion object {
+        private const val USE_OLD_NON_FLEX_LAYOUT_PROPERTY =
+            "com.googlecode.lanterna.gui2.LinearLayout.useOldNonFlexLayout"
 
-/**
- * Creates a `LayoutData` for `LinearLayout` that assigns a component to a particular alignment on its
- * counter-axis, meaning the horizontal alignment on vertical `LinearLayout`s and vertical alignment on
- * horizontal `LinearLayout`s.
- * @param alignment Alignment to store in the `LayoutData` object
- * @param growPolicy When policy to apply to the component if the parent container has more space available along
- * the main axis.
- * @return `LayoutData` object created for `LinearLayout`s with the specified alignment
- * @see Alignment
- */
-    @JvmOverloads  fun createLayoutData(alignment:Alignment?, growPolicy:GrowPolicy? = GrowPolicy.NONE):LayoutData {
-return LinearLayoutData(alignment, growPolicy)
+        fun createLayoutData(alignment: Alignment): LayoutData =
+            createLayoutData(alignment, GrowPolicy.NONE)
+
+        fun createLayoutData(alignment: Alignment, growPolicy: GrowPolicy): LayoutData =
+            LinearLayoutData(alignment, growPolicy)
+    }
 }
-}
-}/**
- * Creates a `LayoutData` for `LinearLayout` that assigns a component to a particular alignment on its
- * counter-axis, meaning the horizontal alignment on vertical `LinearLayout`s and vertical alignment on
- * horizontal `LinearLayout`s.
- * @param alignment Alignment to store in the `LayoutData` object
- * @return `LayoutData` object created for `LinearLayout`s with the specified alignment
- * @see Alignment
- *//**
- * Default constructor, creates a vertical `LinearLayout`
- */

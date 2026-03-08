@@ -19,44 +19,31 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.gui2.Window.Hint
 import com.googlecode.lanterna.gui2.menu.MenuItem
 
-import java.util.Arrays
-
 /**
- * This class is a [Window] implementation that automatically sets some common settings that you'd want on
- * specifically popup windows with menu items. It ensures that the window is modal and has a fixed position (rather than
- * letting the window manager choose).
+ * Popup window wrapper for menu items.
  */
- class MenuPopupWindow/**
- * Creates a new popup window with a relative position to the component supplied.
- * @param parent Component that this popup menu is triggered from
- */
-    (parent:Component?):AbstractWindow() {
-private val menuItemPanel:Panel?
+class MenuPopupWindow(parent: Component?) : AbstractWindow() {
+    private val menuItemPanel: Panel = Panel(LinearLayout(Direction.VERTICAL))
 
-init{
-setHints(Arrays.asList(Hint.MODAL, Hint.MENU_POPUP, Hint.FIXED_POSITION))
-if (parent != null)
-{
-val menuPositionGlobal = parent!!.toGlobal(TerminalPosition.TOP_LEFT_CORNER)
-setPosition(menuPositionGlobal!!.withRelative(0, 1))
-}
-menuItemPanel = Panel(LinearLayout(Direction.VERTICAL))
-setComponent(menuItemPanel)
-}
+    init {
+        setHints(listOf(Hint.MODAL, Hint.MENU_POPUP, Hint.FIXED_POSITION))
+        if (parent != null) {
+            val menuPositionGlobal = parent.toGlobal(TerminalPosition.TOP_LEFT_CORNER)
+            position = menuPositionGlobal?.withRelative(0, 1)
+        }
+        component = menuItemPanel
+    }
 
-/**
- * Adds a new menu item to this popup window. The item will automatically be selected if it's the first one added.
- * @param menuItem Menu item to add to the popup window.
- */
-     fun addMenuItem(menuItem:MenuItem?) {
-menuItemPanel!!.addComponent(menuItem)
-menuItem!!.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL))
-if (menuItemPanel!!.getChildCount() === 1)
-{
-setFocusedInteractable(menuItem)
-}
-invalidate()
-}
+    fun addMenuItem(menuItem: MenuItem?) {
+        requireNotNull(menuItem) { "menuItem cannot be null" }
+        menuItemPanel.addComponent(menuItem)
+        menuItem.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL))
+        if (menuItemPanel.childCount == 1) {
+            focusedInteractable = menuItem
+        }
+        invalidate()
+    }
 }
