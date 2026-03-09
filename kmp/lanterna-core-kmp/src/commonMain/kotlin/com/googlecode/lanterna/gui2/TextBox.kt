@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,1097 +13,767 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
 
-import java.util.ArrayList
-import java.util.regex.Pattern
-
+import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
+import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.graphics.ThemeDefinition
 import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
+import java.util.ArrayList
+import java.util.regex.Pattern
 
 /**
- * This component keeps a text content that is editable by the user. A TextBox can be single line or multiline and lets
- * the user navigate the cursor in the text area by using the arrow keys, page up, page down, home and end. For
- * multi-line `TextBox`:es, scrollbars will be automatically displayed if needed.
- * 
- * 
- * Size-wise, a `TextBox` should be hard-coded to a particular size, it's not good at guessing how large it should
- * be. You can do this through the constructor.
+ * Editable text component supporting single-line and multi-line modes.
  */
- class TextBox/**
- * Main constructor of the `TextBox` which decides size, initial content and style
- * @param preferredSize Size of the `TextBox`
- * @param initialContent Initial content of the `TextBox`
- * @param style Style to use for this `TextBox`, instead of auto-detecting
- */
-     @JvmOverloads  constructor(preferredSize:TerminalSize?, initialContent:String?, private val style:Style? = if ((preferredSize != null && preferredSize!!.rows > 1) || initialContent!!.contains("\n")) Style.MULTI_LINE else Style.SINGLE_LINE):AbstractInteractableComponent<TextBox?>() {
+class TextBox @JvmOverloads constructor(
+    preferredSize: TerminalSize?,
+    initialContent: String,
+    private val style: Style =
+        if ((preferredSize != null && preferredSize.rows > 1) || initialContent.contains("\n")) {
+            Style.MULTI_LINE
+        } else {
+            Style.SINGLE_LINE
+        },
+) : AbstractInteractableComponent<TextBox>() {
 
-private val lines:List<String?>?
+    enum class Style {
+        SINGLE_LINE,
+        MULTI_LINE,
+    }
 
-/**
- * Returns the position of the caret, as a `TerminalPosition` where the row and columns equals the coordinates
- * in a multi-line `TextBox` and for single-line `TextBox` you can ignore the `row` component.
- * @return Position of the text input caret
- */
-     var caretPosition:TerminalPosition? = null
-private set
-private var caretWarp:Boolean = false
-private var readOnly:Boolean = false
-private var horizontalFocusSwitching:Boolean = false
-private var verticalFocusSwitching:Boolean = false
-private val maxLineLength:Int
-private var longestRow:Int = 0
-private var mask:Character? = null
-private var validationPattern:Pattern? = null
-private var textChangeListener:TextChangeListener? = null
+    private val lines: MutableList<String> = ArrayList()
+    private var caretPosition: TerminalPosition = TerminalPosition.TOP_LEFT_CORNER
+    private var caretWarp: Boolean = false
+    private var readOnly: Boolean = false
+    private var horizontalFocusSwitching: Boolean = style == Style.SINGLE_LINE
+    private var verticalFocusSwitching: Boolean = true
+    private val maxLineLength: Int = -1
+    internal var longestRow: Int = 1
+    private var mask: Char? = null
+    private var validationPattern: Pattern? = null
+    private var textChangeListener: TextChangeListener? = null
 
- val renderer:TextBoxRenderer?
-@Override
-get() {
-return super.getRenderer() as TextBoxRenderer
-}
+    constructor() : this(TerminalSize(10, 1), "", Style.SINGLE_LINE)
 
-/**
- * Returns the text in this `TextBox`, for multi-line mode all lines will be concatenated together with \n as
- * separator.
- * @return The text inside this `TextBox`
- */
-     val text:String?
-@Synchronized get() {
-val bob = StringBuilder(lines!!.get(0))
-for (i in 1 until lines!!.size())
-{
-bob.append("\n").append(lines!!.get(i))
-}
-return bob.toString()
-}
+    constructor(initialContent: String) : this(
+        null,
+        initialContent,
+        if (initialContent.contains("\n")) Style.MULTI_LINE else Style.SINGLE_LINE,
+    )
 
-/**
- * Returns the number of lines currently in this TextBox. For single-line TextBox:es, this will always return 1.
- * @return Number of lines of text currently in this TextBox
- */
-     val lineCount:Int
-@Synchronized get() {
-return lines!!.size()
-}
+    constructor(initialContent: String, style: Style) : this(null, initialContent, style)
 
-/**
- * Enum value to force a `TextBox` to be either single line or multi line. This is usually auto-detected if
- * the text box has some initial content by scanning that content for \n characters.
- */
-     enum class Style {
-/**
- * The `TextBox` contains a single line of text and is typically drawn on one row
- */
-        SINGLE_LINE, 
-/**
- * The `TextBox` contains a none, one or many lines of text and is normally drawn over multiple lines
- */
-        MULTI_LINE
-}
+    constructor(preferredSize: TerminalSize?) : this(
+        preferredSize,
+        "",
+        if (preferredSize != null && preferredSize.rows > 1) Style.MULTI_LINE else Style.SINGLE_LINE,
+    )
 
-/**
- * Default constructor, this creates a single-line `TextBox` of size 10 which is initially empty
- */
-     constructor() : this(TerminalSize(10, 1), "", Style.SINGLE_LINE) {}
+    constructor(preferredSize: TerminalSize?, style: Style) : this(preferredSize, "", style)
 
-/**
- * Constructor that creates a `TextBox` with an initial content and attempting to be big enough to display
- * the whole text at once without scrollbars
- * @param initialContent Initial content of the `TextBox`
- */
-     constructor(initialContent:String?) : this(null, initialContent, if (initialContent!!.contains("\n")) Style.MULTI_LINE else Style.SINGLE_LINE) {}
+    constructor(preferredSize: TerminalSize?, initialContent: String) : this(
+        preferredSize,
+        initialContent,
+        if ((preferredSize != null && preferredSize.rows > 1) || initialContent.contains("\n")) {
+            Style.MULTI_LINE
+        } else {
+            Style.SINGLE_LINE
+        },
+    )
 
-/**
- * Creates a `TextBox` that has an initial content and attempting to be big enough to display the whole text
- * at once without scrollbars.
- * 
- * @param initialContent Initial content of the `TextBox`
- * @param style Forced style instead of auto-detecting
- */
-     constructor(initialContent:String?, style:Style?) : this(null, initialContent, style) {}
+    init {
+        setText(initialContent)
+        caretPosition = TerminalPosition.TOP_LEFT_CORNER.withColumn(getLine(0).length)!!
+        val resolvedPreferredSize = preferredSize ?: TerminalSize(kotlin.math.max(10, longestRow), lines.size)
+        setPreferredSize(resolvedPreferredSize)
+    }
 
-/**
- * Creates a new empty `TextBox` with a specific size and style
- * @param preferredSize Size of the `TextBox`
- * @param style Style to use
- */
-    @JvmOverloads  constructor(preferredSize:TerminalSize?, style:Style? = if ((preferredSize != null && preferredSize!!.rows > 1)) Style.MULTI_LINE else Style.SINGLE_LINE) : this(preferredSize, "", style) {}
+    var validationRegex: Pattern?
+        get() = validationPattern
+        @Synchronized set(value) {
+            if (value != null) {
+                for (line in lines) {
+                    if (!validated(line)) {
+                        throw IllegalStateException("TextBox validation pattern $value does not match existing content")
+                    }
+                }
+            }
+            validationPattern = value
+        }
 
-init{
-var preferredSize = preferredSize
-this.lines = ArrayList()
-this.readOnly = false
-this.caretWarp = false
-this.verticalFocusSwitching = true
-this.horizontalFocusSwitching = (style == Style.SINGLE_LINE)
-this.caretPosition = TerminalPosition.TOP_LEFT_CORNER
-this.maxLineLength = -1
-this.longestRow = 1    //To fit the cursor
-this.mask = null
-this.validationPattern = null
-this.textChangeListener = null
-setText(initialContent!!)
+    @Synchronized
+    fun setValidationPattern(validationPattern: Pattern?): TextBox {
+        validationRegex = validationPattern
+        return this
+    }
 
- // Re-adjust caret position
-        this.caretPosition = TerminalPosition.TOP_LEFT_CORNER.withColumn(getLine(0)!!.length())
+    @Synchronized
+    fun setTextChangeListener(textChangeListener: TextChangeListener?): TextBox {
+        this.textChangeListener = textChangeListener
+        return this
+    }
 
-if (preferredSize == null)
-{
-preferredSize = TerminalSize(Math.max(10, longestRow), lines!!.size())
-}
-setPreferredSize(preferredSize)
-}
+    @Synchronized
+    fun setText(text: String): TextBox {
+        var split = text.split("\n")
+        if (split.isEmpty()) {
+            split = listOf("")
+        }
+        lines.clear()
+        longestRow = 1
+        for (line in split) {
+            addLine(line)
+        }
+        if (caretPosition.row > lines.size - 1) {
+            caretPosition = caretPosition.withRow(lines.size - 1)!!
+        }
+        if (caretPosition.column > lines[caretPosition.row].length) {
+            caretPosition = caretPosition.withColumn(lines[caretPosition.row].length)!!
+        }
+        invalidate()
+        return this
+    }
 
-/**
- * Sets a pattern on which the content of the text box is to be validated. For multi-line TextBox:s, the pattern is
- * checked against each line individually, not the content as a whole. Partial matchings will not be allowed, the
- * whole pattern must match, however, empty lines will always be allowed. When the user tried to modify the content
- * of the TextBox in a way that does not match the pattern, the operation will be silently ignored. If you set this
- * pattern to `null`, all validation is turned off.
- * @param validationPattern Pattern to validate the lines in this TextBox against, or `null` to disable
- * @return itself
- */
-    @Synchronized  fun setValidationPattern(validationPattern:Pattern?):TextBox {
-if (validationPattern != null)
-{
-for (line in lines!!)
-{
-if (!validated(line))
-{
-throw IllegalStateException("TextBox validation pattern " + validationPattern + " does not match existing content")
-}
-}
-}
-this.validationPattern = validationPattern
-return this
-}
+    override val renderer: TextBoxRenderer?
+        get() = super.renderer as TextBoxRenderer?
 
-/**
- * Assigns a change listener for when the TextBox content has changed. This can be either by user interactions with
- * the component or through programmatically adding and removing lines (there is a flag set on the callback to make
- * it possible to distinguish between the two).
- * @param textChangeListener Text change listener to invoke when the TextBox content has changed
- * @return Itself
- */
-    @Synchronized  fun setTextChangeListener(textChangeListener:TextChangeListener?):TextBox {
-this.textChangeListener = textChangeListener
-return this
-}
+    @Synchronized
+    fun addLine(line: String): TextBox {
+        val bob = StringBuilder()
+        for (i in line.indices) {
+            val c = line[i]
+            if (c == '\n' && style == Style.MULTI_LINE) {
+                val string = bob.toString()
+                val lineWidth = TerminalTextUtils.getColumnWidth(string)
+                lines.add(string)
+                if (longestRow < lineWidth + 1) {
+                    longestRow = lineWidth + 1
+                }
+                addLine(line.substring(i + 1))
+                return this
+            } else if (Character.isISOControl(c)) {
+                continue
+            }
+            bob.append(c)
+        }
 
-/**
- * Updates the text content of the `TextBox` to the supplied string.
- * @param text New text to assign to the `TextBox`
- * @return Itself
- */
-    @Synchronized  fun setText(text:String):TextBox {
-var split = text.split("\n")
-if (split!!.size == 0)
-{
-split = arrayOf<String?>("")
-}
-lines!!.clear()
-longestRow = 1
-for (line in split!!)
-{
-addLine(line!!)
-}
-if (caretPosition!!.row > lines!!.size() - 1)
-{
-caretPosition = caretPosition!!.withRow(lines!!.size() - 1)
-}
-if (caretPosition!!.column > lines!!.get(caretPosition!!.row).length())
-{
-caretPosition = caretPosition!!.withColumn(lines!!.get(caretPosition!!.row).length())
-}
-invalidate()
-return this
-}
+        val string = bob.toString()
+        if (!validated(string)) {
+            throw IllegalStateException("TextBox validation pattern $validationPattern does not match the supplied text")
+        }
+        val lineWidth = TerminalTextUtils.getColumnWidth(string)
+        lines.add(string)
+        if (longestRow < lineWidth + 1) {
+            longestRow = lineWidth + 1
+        }
+        fireOnTextChanged(false)
+        invalidate()
+        return this
+    }
 
-/**
- * Adds a single line to the `TextBox` at the end, this only works when in multi-line mode
- * @param line Line to add at the end of the content in this `TextBox`
- * @return Itself
- */
-    @Synchronized  fun addLine(line:String):TextBox {
-val bob = StringBuilder()
-for (i in 0 until line.length())
-{
-val c = line.charAt(i)
-if (c == '\n' && style == Style.MULTI_LINE)
-{
-val string = bob.toString()
-val lineWidth = TerminalTextUtils.getColumnWidth(string)
-lines!!.add(string)
-if (longestRow < lineWidth + 1)
-{
-longestRow = lineWidth + 1
-}
-addLine(line.substring(i + 1))
-return this
-}
-else if (Character.isISOControl(c))
-{
-continue
-}
+    @Synchronized
+    fun removeLine(lineIndex: Int): TextBox {
+        if (style == Style.SINGLE_LINE) {
+            if (lineIndex == 0) {
+                setText("")
+                return this
+            }
+            throw ArrayIndexOutOfBoundsException("Cannot remove line $lineIndex from a single-line TextBox")
+        }
 
-bob.append(c)
-}
-val string = bob.toString()
-if (!validated(string))
-{
-throw IllegalStateException("TextBox validation pattern " + validationPattern + " does not match the supplied text")
-}
-val lineWidth = TerminalTextUtils.getColumnWidth(string)
-lines!!.add(string)
-if (longestRow < lineWidth + 1)
-{
-longestRow = lineWidth + 1
-}
-fireOnTextChanged(false)
-invalidate()
-return this
-}
+        if (lineIndex < 0 || lineIndex >= lines.size) {
+            throw ArrayIndexOutOfBoundsException("Invalid line index for TextBox with ${lines.size} lines: $lineIndex")
+        }
+        lines.removeAt(lineIndex)
+        when {
+            caretPosition.row == lineIndex -> setCaretPosition(caretPosition.row, caretPosition.column)
+            caretPosition.row > lineIndex -> setCaretPosition(caretPosition.row - 1, caretPosition.column)
+        }
+        fireOnTextChanged(false)
+        return this
+    }
 
-/**
- * Removes a line from a [TextBox] component. If the component is single-line, they only valid call to this
- * method is `removeLine(0)` which has the same effect as calling `setText("")`. For multi-line text
- * boxes, the line at the specified index will be removed. Will throw [ArrayIndexOutOfBoundsException] if you
- * specified an incorrect index.
- * @param lineIndex Index of the line to remove, has to be 0 or greater and less than the number of lines in the
- * text box
- * @return Itself
- */
-    @Synchronized  fun removeLine(lineIndex:Int):TextBox {
-if (style == Style.SINGLE_LINE)
-{
-if (lineIndex == 0)
-{
-setText("")
-return this
-}
-else
-{
-throw ArrayIndexOutOfBoundsException("Cannot remove line " + lineIndex + " from a single-line TextBox")
-}
-}
+    fun setCaretWarp(caretWarp: Boolean): TextBox {
+        this.caretWarp = caretWarp
+        return this
+    }
 
-if (lineIndex < 0 || lineIndex >= lines!!.size())
-{
-throw ArrayIndexOutOfBoundsException("Invalid line index for TextBox with " + lines!!.size() + " lines: " + lineIndex)
-}
-lines!!.remove(lineIndex)
-if (caretPosition!!.row == lineIndex)
-{
- // Validate the caret can still stay in this position
-            setCaretPosition(caretPosition!!.row, caretPosition!!.column)
-}
-else if (caretPosition!!.row > lineIndex)
-{
- // Update caret position
-            setCaretPosition(caretPosition!!.row - 1, caretPosition!!.column)
-}
-fireOnTextChanged(false)
-return this
-}
+    fun isCaretWarp(): Boolean = caretWarp
 
-/**
- * Sets if the caret should jump to the beginning of the next line if right arrow is pressed while at the end of a
- * line. Similarly, pressing left arrow at the beginning of a line will make the caret jump to the end of the
- * previous line. This only makes sense for multi-line TextBox:es; for single-line ones it has no effect. By default
- * this is `false`.
- * @param caretWarp Whether the caret will warp at the beginning/end of lines
- * @return Itself
- */
-     fun setCaretWarp(caretWarp:Boolean):TextBox {
-this.caretWarp = caretWarp
-return this
-}
+    fun getCaretPosition(): TerminalPosition = caretPosition
 
-/**
- * Checks whether caret warp mode is enabled or not. See `setCaretWarp` for more details.
- * @return `true` if caret warp mode is enabled
- */
-     fun isCaretWarp():Boolean {
-return caretWarp
-}
+    @Synchronized
+    fun setCaretPosition(column: Int): TextBox {
+        return setCaretPosition(caretPosition.row, column)
+    }
 
-/**
- * Moves the text caret position horizontally to a new position in the [TextBox]. For multi-line
- * [TextBox]:es, this will move the cursor within the current line. If the position is out of bounds, it is
- * automatically set back into range.
- * @param column Position, in characters, within the [TextBox] (on the current line for multi-line
- * [TextBox]:es) to where the text cursor should be moved
- * @return Itself
- */
-    @Synchronized  fun setCaretPosition(column:Int):TextBox? {
-return setCaretPosition(caretPosition!!.row, column)
-}
+    @Synchronized
+    fun setCaretPosition(line: Int, column: Int): TextBox {
+        var resolvedLine = line
+        var resolvedColumn = column
+        if (resolvedLine < 0) {
+            resolvedLine = 0
+        } else if (resolvedLine >= lines.size) {
+            resolvedLine = lines.size - 1
+        }
+        if (resolvedColumn < 0) {
+            resolvedColumn = 0
+        } else if (resolvedColumn > lines[resolvedLine].length) {
+            resolvedColumn = lines[resolvedLine].length
+        }
+        caretPosition = caretPosition.withRow(resolvedLine)!!.withColumn(resolvedColumn)!!
+        return this
+    }
 
-/**
- * Moves the text caret position to a new position in the [TextBox]. For single-line [TextBox]:es, the
- * line component is not used. If one of the positions are out of bounds, it is automatically set back into range.
- * @param line Which line inside the [TextBox] to move the caret to (0 being the first line), ignored if the
- * [TextBox] is single-line
- * @param column  What column on the specified line to move the text caret to (0 being the first column)
- * @return Itself
- */
-    @Synchronized  fun setCaretPosition(line:Int, column:Int):TextBox {
-var line = line
-var column = column
-if (line < 0)
-{
-line = 0
-}
-else if (line >= lines!!.size())
-{
-line = lines!!.size() - 1
-}
-if (column < 0)
-{
-column = 0
-}
-else if (column > lines!!.get(line).length())
-{
-column = lines!!.get(line).length()
-}
-caretPosition = caretPosition!!.withRow(line)!!.withColumn(column)
-return this
-}
+    val text: String
+        @Synchronized get() {
+            val bob = StringBuilder(lines[0])
+            for (i in 1 until lines.size) {
+                bob.append("\n").append(lines[i])
+            }
+            return bob.toString()
+        }
 
-/**
- * Helper method, it will return the content of the `TextBox` unless it's empty in which case it will return
- * the supplied default value
- * @param defaultValueIfEmpty Value to return if the `TextBox` is empty
- * @return Text in the `TextBox` or `defaultValueIfEmpty` is the `TextBox` is empty
- */
-     fun getTextOrDefault(defaultValueIfEmpty:String?):String? {
-val text = text
-if (text!!.isEmpty())
-{
-return defaultValueIfEmpty
-}
-return text
-}
+    fun getTextOrDefault(defaultValueIfEmpty: String): String {
+        val text = text
+        return if (text.isEmpty()) defaultValueIfEmpty else text
+    }
 
-/**
- * Returns the current text mask, meaning the substitute to draw instead of the text inside the `TextBox`.
- * This is normally used for password input fields so the password isn't shown
- * @return Current text mask or `null` if there is no mask
- */
-     fun getMask():Character? {
-return mask
-}
+    fun getMask(): Char? = mask
 
-/**
- * Sets the current text mask, meaning the substitute to draw instead of the text inside the `TextBox`.
- * This is normally used for password input fields so the password isn't shown
- * @param mask New text mask or `null` if there is no mask
- * @return Itself
- */
-     fun setMask(mask:Character?):TextBox {
-if (mask != null && TerminalTextUtils.isCharCJK(mask))
-{
-throw IllegalArgumentException("Cannot use a CJK character as a mask")
-}
-this.mask = mask
-invalidate()
-return this
-}
+    fun setMask(mask: Char?): TextBox {
+        if (mask != null && TerminalTextUtils.isCharCJK(mask)) {
+            throw IllegalArgumentException("Cannot use a CJK character as a mask")
+        }
+        this.mask = mask
+        invalidate()
+        return this
+    }
 
-/**
- * Returns `true` if this `TextBox` is in read-only mode, meaning text input from the user through the
- * keyboard is prevented
- * @return `true` if this `TextBox` is in read-only mode
- */
-     fun isReadOnly():Boolean {
-return readOnly
-}
+    fun isReadOnly(): Boolean = readOnly
 
-/**
- * Sets the read-only mode of the `TextBox`, meaning text input from the user through the keyboard is
- * prevented. The user can still focus and scroll through the text in this mode.
- * @param readOnly If `true` then the `TextBox` will switch to read-only mode
- * @return Itself
- */
-     fun setReadOnly(readOnly:Boolean):TextBox {
-this.readOnly = readOnly
-invalidate()
-return this
-}
+    fun setReadOnly(readOnly: Boolean): TextBox {
+        this.readOnly = readOnly
+        invalidate()
+        return this
+    }
 
-/**
- * If `true`, the component will switch to the next available component above if the cursor is at the top of
- * the TextBox and the user presses the 'up' array key, or switch to the next available component below if the
- * cursor is at the bottom of the TextBox and the user presses the 'down' array key. The means that for single-line
- * TextBox:es, pressing up and down will always switch focus.
- * @return `true` if vertical focus switching is enabled
- */
-     fun isVerticalFocusSwitching():Boolean {
-return verticalFocusSwitching
-}
+    fun isVerticalFocusSwitching(): Boolean = verticalFocusSwitching
 
-/**
- * If set to `true`, the component will switch to the next available component above if the cursor is at the
- * top of the TextBox and the user presses the 'up' array key, or switch to the next available component below if
- * the cursor is at the bottom of the TextBox and the user presses the 'down' array key. The means that for
- * single-line TextBox:es, pressing up and down will always switch focus with this mode enabled.
- * @param verticalFocusSwitching If called with true, vertical focus switching will be enabled
- * @return Itself
- */
-     fun setVerticalFocusSwitching(verticalFocusSwitching:Boolean):TextBox {
-this.verticalFocusSwitching = verticalFocusSwitching
-return this
-}
+    fun setVerticalFocusSwitching(verticalFocusSwitching: Boolean): TextBox {
+        this.verticalFocusSwitching = verticalFocusSwitching
+        return this
+    }
 
-/**
- * If `true`, the TextBox will switch focus to the next available component to the left if the cursor in the
- * TextBox is at the left-most position (index 0) on the row and the user pressed the 'left' arrow key, or vice
- * versa for pressing the 'right' arrow key when the cursor in at the right-most position of the current row.
- * @return `true` if horizontal focus switching is enabled
- */
-     fun isHorizontalFocusSwitching():Boolean {
-return horizontalFocusSwitching
-}
+    fun isHorizontalFocusSwitching(): Boolean = horizontalFocusSwitching
 
-/**
- * If set to `true`, the TextBox will switch focus to the next available component to the left if the cursor
- * in the TextBox is at the left-most position (index 0) on the row and the user pressed the 'left' arrow key, or
- * vice versa for pressing the 'right' arrow key when the cursor in at the right-most position of the current row.
- * @param horizontalFocusSwitching If called with true, horizontal focus switching will be enabled
- * @return Itself
- */
-     fun setHorizontalFocusSwitching(horizontalFocusSwitching:Boolean):TextBox {
-this.horizontalFocusSwitching = horizontalFocusSwitching
-return this
-}
+    fun setHorizontalFocusSwitching(horizontalFocusSwitching: Boolean): TextBox {
+        this.horizontalFocusSwitching = horizontalFocusSwitching
+        return this
+    }
 
-/**
- * Returns the line on the specific row. For non-multiline TextBox:es, calling this with index set to 0 will return
- * the same as calling `getText()`. If the row index is invalid (less than zero or equals or larger than the
- * number of rows), this method will throw IndexOutOfBoundsException.
- * @param index Index of the row to return the contents from
- * @return The line at the specified index, as a String
- * @throws IndexOutOfBoundsException if the row index is less than zero or too large
- */
-    @Synchronized  fun getLine(index:Int):String? {
-return lines!!.get(index)
-}
+    @Synchronized
+    fun getLine(index: Int): String = lines[index]
 
-@Override
-protected fun createDefaultRenderer():TextBoxRenderer {
-return DefaultTextBoxRenderer()
-}
+    @Synchronized
+    fun getLineCount(): Int = lines.size
 
-@Override
-@Synchronized  fun handleKeyStroke(keyStroke:KeyStroke?):Result? {
-if (readOnly)
-{
-return handleKeyStrokeReadOnly(keyStroke!!)
-}
-var line = lines!!.get(caretPosition!!.row)
-var lineWasModified = false
-var result:Result? = null
-when (keyStroke!!.getKeyType()) {
-CHARACTER -> {
-if (maxLineLength == -1 || maxLineLength > line!!.length() + 1)
-{
-line = line!!.substring(0, caretPosition!!.column) + keyStroke!!.getCharacter() + line!!.substring(caretPosition!!.column)
-if (validated(line))
-{
-lines!!.set(caretPosition!!.row, line)
-lineWasModified = true
-caretPosition = caretPosition!!.withRelativeColumn(1)
-}
-}
-result = Result.HANDLED
-}
-BACKSPACE -> {
-if (caretPosition!!.column > 0)
-{
-line = line!!.substring(0, caretPosition!!.column - 1) + line!!.substring(caretPosition!!.column)
-if (validated(line))
-{
-lines!!.set(caretPosition!!.row, line)
-lineWasModified = true
-caretPosition = caretPosition!!.withRelativeColumn(-1)
-}
-}
-else if (style == Style.MULTI_LINE && caretPosition!!.row > 0)
-{
-val concatenatedLines = lines!!.get(caretPosition!!.row - 1) + line!!
-if (validated(concatenatedLines))
-{
-lines!!.remove(caretPosition!!.row)
-caretPosition = caretPosition!!.withRelativeRow(-1)
-caretPosition = caretPosition!!.withColumn(lines!!.get(caretPosition!!.row).length())
-lines!!.set(caretPosition!!.row, concatenatedLines)
-lineWasModified = true
-}
-}
-result = Result.HANDLED
-}
-DELETE -> {
-if (caretPosition!!.column < line!!.length())
-{
-line = line!!.substring(0, caretPosition!!.column) + line!!.substring(caretPosition!!.column + 1)
-if (validated(line))
-{
-lines!!.set(caretPosition!!.row, line)
-lineWasModified = true
-}
-}
-else if (style == Style.MULTI_LINE && caretPosition!!.row < lines!!.size() - 1)
-{
-val concatenatedLines = line!! + lines!!.get(caretPosition!!.row + 1)
-if (validated(concatenatedLines))
-{
-lines!!.set(caretPosition!!.row, concatenatedLines)
-lines!!.remove(caretPosition!!.row + 1)
-lineWasModified = true
-}
-}
-result = Result.HANDLED
-}
-ARROW_LEFT -> {
-if (caretPosition!!.column > 0)
-{
-caretPosition = caretPosition!!.withRelativeColumn(-1)
-}
-else if (style == Style.MULTI_LINE && caretWarp && caretPosition!!.row > 0)
-{
-caretPosition = caretPosition!!.withRelativeRow(-1)
-caretPosition = caretPosition!!.withColumn(lines!!.get(caretPosition!!.row).length())
-}
-else if (horizontalFocusSwitching)
-{
-result = Result.MOVE_FOCUS_LEFT
-}
-result = if (result == null) Result.HANDLED else result
-}
-ARROW_RIGHT -> {
-if (caretPosition!!.column < lines!!.get(caretPosition!!.row).length())
-{
-caretPosition = caretPosition!!.withRelativeColumn(1)
-}
-else if (style == Style.MULTI_LINE && caretWarp && caretPosition!!.row < lines!!.size() - 1)
-{
-caretPosition = caretPosition!!.withRelativeRow(1)
-caretPosition = caretPosition!!.withColumn(0)
-}
-else if (horizontalFocusSwitching)
-{
-result = Result.MOVE_FOCUS_RIGHT
-}
-result = if (result == null) Result.HANDLED else result
-}
-ARROW_UP -> {
-if (canMoveCaretUp())
-{
-performMoveCaretUp()
-}
-else if (verticalFocusSwitching)
-{
-result = Result.MOVE_FOCUS_UP
-}
-result = if (result == null) Result.HANDLED else result
-}
-ARROW_DOWN -> {
-if (canMoveCaretDown())
-{
-performMoveCaretDown()
-}
-else if (verticalFocusSwitching)
-{
-result = Result.MOVE_FOCUS_DOWN
-}
-result = if (result == null) Result.HANDLED else result
-}
-END -> {
-caretPosition = caretPosition!!.withColumn(line!!.length())
-result = Result.HANDLED
-}
-ENTER -> {
-if (style == Style.SINGLE_LINE)
-{
-result = Result.MOVE_FOCUS_NEXT
-break
-}
-val newLine = line!!.substring(caretPosition!!.column)
-val oldLine = line!!.substring(0, caretPosition!!.column)
-if (validated(newLine) && validated(oldLine))
-{
-lines!!.set(caretPosition!!.row, oldLine)
-lines!!.add(caretPosition!!.row + 1, newLine)
-caretPosition = caretPosition!!.withColumn(0)!!.withRelativeRow(1)
-lineWasModified = true
-}
-result = Result.HANDLED
-}
-HOME -> {
-caretPosition = caretPosition!!.withColumn(0)
-result = Result.HANDLED
-}
-PAGE_DOWN -> {
-caretPosition = caretPosition!!.withRelativeRow(getSize().getRows())
-if (caretPosition!!.row > lines!!.size() - 1)
-{
-caretPosition = caretPosition!!.withRow(lines!!.size() - 1)
-}
-if (lines!!.get(caretPosition!!.row).length() < caretPosition!!.column)
-{
-caretPosition = caretPosition!!.withColumn(lines!!.get(caretPosition!!.row).length())
-}
-result = Result.HANDLED
-}
-PAGE_UP -> {
-caretPosition = caretPosition!!.withRelativeRow(-getSize().getRows())
-if (caretPosition!!.row < 0)
-{
-caretPosition = caretPosition!!.withRow(0)
-}
-if (lines!!.get(caretPosition!!.row).length() < caretPosition!!.column)
-{
-caretPosition = caretPosition!!.withColumn(lines!!.get(caretPosition!!.row).length())
-}
-result = Result.HANDLED
-}
-MOUSE_EVENT -> {
-if (!isFocused())
-{
-break
-}
-if (isMouseMove(keyStroke))
-{
- // do nothing
-                    result = Result.UNHANDLED
-break
-}
-val mouseAction = keyStroke as MouseAction?
-val actionType = mouseAction!!.getActionType()
-if (actionType === MouseActionType.SCROLL_UP)
-{
-if (canMoveCaretUp())
-{
-performMoveCaretUp()
-}
-}
-else if (actionType === MouseActionType.SCROLL_DOWN)
-{
-if (canMoveCaretDown())
-{
-performMoveCaretDown()
-}
-}
-else
-{
-val offset = renderer!!.viewTopLeft
-var newCaretPositionColumn = mouseAction!!.getPosition().getColumn() - getGlobalPosition().getColumn() + offset!!.column
-val newCaretPositionRow = mouseAction!!.getPosition().getRow() - getGlobalPosition().getRow() + offset!!.row
-if (newCaretPositionRow >= 0 && newCaretPositionRow < lines!!.size())
-{
-val newActiveLine = lines!!.get(newCaretPositionRow)
-val minPositionAttempt = 0
-val maxPositionAttempt = newActiveLine!!.length()
-newCaretPositionColumn = Math.max(minPositionAttempt, Math.min(newCaretPositionColumn, maxPositionAttempt))
+    override fun createDefaultRenderer(): TextBoxRenderer {
+        return DefaultTextBoxRenderer()
+    }
 
-caretPosition = caretPosition!!.with(TerminalPosition(newCaretPositionColumn, newCaretPositionRow))
-}
-}
-result = Result.HANDLED
-}
-}
-if (result == null)
-{
-result = super.handleKeyStroke(keyStroke)
-}
-else if (lineWasModified)
-{
-fireOnTextChanged(true)
-}
-return result
-}
+    @Synchronized
+    override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
+        if (readOnly) {
+            return handleKeyStrokeReadOnly(keyStroke)
+        }
 
-private fun canMoveCaretUp():Boolean {
-return caretPosition!!.row > 0
-}
-private fun canMoveCaretDown():Boolean {
-return caretPosition!!.row < lines!!.size() - 1
-}
-private fun performMoveCaretUp() {
-val trueColumnPosition = TerminalTextUtils.getColumnIndex(lines!!.get(caretPosition!!.row), caretPosition!!.column)
-caretPosition = caretPosition!!.withRelativeRow(-1)
-val line = lines!!.get(caretPosition!!.row)
-if (trueColumnPosition > TerminalTextUtils.getColumnWidth(line))
-{
-caretPosition = caretPosition!!.withColumn(line!!.length())
-}
-else
-{
-caretPosition = caretPosition!!.withColumn(TerminalTextUtils.getStringCharacterIndex(line, trueColumnPosition))
-}
-}
-private fun performMoveCaretDown() {
-val trueColumnPosition = TerminalTextUtils.getColumnIndex(lines!!.get(caretPosition!!.row), caretPosition!!.column)
-caretPosition = caretPosition!!.withRelativeRow(1)
-val line = lines!!.get(caretPosition!!.row)
-if (trueColumnPosition > TerminalTextUtils.getColumnWidth(line))
-{
-caretPosition = caretPosition!!.withColumn(line!!.length())
-}
-else
-{
-caretPosition = caretPosition!!.withColumn(TerminalTextUtils.getStringCharacterIndex(line, trueColumnPosition))
-}
-}
+        var line = lines[caretPosition.row]
+        var lineWasModified = false
+        var result: Interactable.Result? = null
 
-private fun validated(line:String?):Boolean {
-return validationPattern == null || line!!.isEmpty() || validationPattern!!.matcher(line).matches()
-}
+        when (keyStroke.keyType) {
+            KeyType.CHARACTER -> {
+                if (maxLineLength == -1 || maxLineLength > line.length + 1) {
+                    line = line.substring(0, caretPosition.column) + keyStroke.character + line.substring(caretPosition.column)
+                    if (validated(line)) {
+                        lines[caretPosition.row] = line
+                        lineWasModified = true
+                        caretPosition = caretPosition.withRelativeColumn(1)!!
+                    }
+                }
+                result = Interactable.Result.HANDLED
+            }
 
-private fun handleKeyStrokeReadOnly(keyStroke:KeyStroke):Result? {
-when (keyStroke.getKeyType()) {
-ARROW_LEFT -> {
-if (renderer!!.viewTopLeft!!.column == 0 && horizontalFocusSwitching)
-{
-return Result.MOVE_FOCUS_LEFT
-}
-renderer!!.viewTopLeft = renderer!!.viewTopLeft!!.withRelativeColumn(-1)
-return Result.HANDLED
-}
-ARROW_RIGHT -> {
-if (renderer!!.viewTopLeft!!.column + getSize().getColumns() === longestRow && horizontalFocusSwitching)
-{
-return Result.MOVE_FOCUS_RIGHT
-}
-renderer!!.viewTopLeft = renderer!!.viewTopLeft!!.withRelativeColumn(1)
-return Result.HANDLED
-}
-ARROW_UP -> {
-if (renderer!!.viewTopLeft!!.row == 0 && verticalFocusSwitching)
-{
-return Result.MOVE_FOCUS_UP
-}
-renderer!!.viewTopLeft = renderer!!.viewTopLeft!!.withRelativeRow(-1)
-return Result.HANDLED
-}
-ARROW_DOWN -> {
-if (renderer!!.viewTopLeft!!.row + getSize().getRows() === lines!!.size() && verticalFocusSwitching)
-{
-return Result.MOVE_FOCUS_DOWN
-}
-renderer!!.viewTopLeft = renderer!!.viewTopLeft!!.withRelativeRow(1)
-return Result.HANDLED
-}
-HOME -> {
-renderer!!.viewTopLeft = TerminalPosition.TOP_LEFT_CORNER
-return Result.HANDLED
-}
-END -> {
-renderer!!.viewTopLeft = TerminalPosition.TOP_LEFT_CORNER.withRow(lineCount - getSize().getRows())
-return Result.HANDLED
-}
-PAGE_DOWN -> {
-renderer!!.viewTopLeft = renderer!!.viewTopLeft!!.withRelativeRow(getSize().getRows())
-return Result.HANDLED
-}
-PAGE_UP -> {
-renderer!!.viewTopLeft = renderer!!.viewTopLeft!!.withRelativeRow(-getSize().getRows())
-return Result.HANDLED
-}
-}
-return super.handleKeyStroke(keyStroke)
-}
+            KeyType.BACKSPACE -> {
+                if (caretPosition.column > 0) {
+                    line = line.substring(0, caretPosition.column - 1) + line.substring(caretPosition.column)
+                    if (validated(line)) {
+                        lines[caretPosition.row] = line
+                        lineWasModified = true
+                        caretPosition = caretPosition.withRelativeColumn(-1)!!
+                    }
+                } else if (style == Style.MULTI_LINE && caretPosition.row > 0) {
+                    val concatenatedLines = lines[caretPosition.row - 1] + line
+                    if (validated(concatenatedLines)) {
+                        lines.removeAt(caretPosition.row)
+                        caretPosition = caretPosition.withRelativeRow(-1)!!
+                        caretPosition = caretPosition.withColumn(lines[caretPosition.row].length)!!
+                        lines[caretPosition.row] = concatenatedLines
+                        lineWasModified = true
+                    }
+                }
+                result = Interactable.Result.HANDLED
+            }
 
-private fun fireOnTextChanged(initiatedByUserInteraction:Boolean) {
-val textChangeListener = this.textChangeListener
-if (textChangeListener != null)
-{
-val newText = text
-textChangeListener!!.onTextChanged(newText, initiatedByUserInteraction)
-}
-}
+            KeyType.DELETE -> {
+                if (caretPosition.column < line.length) {
+                    line = line.substring(0, caretPosition.column) + line.substring(caretPosition.column + 1)
+                    if (validated(line)) {
+                        lines[caretPosition.row] = line
+                        lineWasModified = true
+                    }
+                } else if (style == Style.MULTI_LINE && caretPosition.row < lines.size - 1) {
+                    val concatenatedLines = line + lines[caretPosition.row + 1]
+                    if (validated(concatenatedLines)) {
+                        lines[caretPosition.row] = concatenatedLines
+                        lines.removeAt(caretPosition.row + 1)
+                        lineWasModified = true
+                    }
+                }
+                result = Interactable.Result.HANDLED
+            }
 
-/**
- * Helper interface that doesn't add any new methods but makes coding new text box renderers a little bit more clear
- */
-     interface TextBoxRenderer:InteractableRenderer<TextBox?> {
- var viewTopLeft:TerminalPosition?
-}
+            KeyType.ARROW_LEFT -> {
+                if (caretPosition.column > 0) {
+                    caretPosition = caretPosition.withRelativeColumn(-1)!!
+                } else if (style == Style.MULTI_LINE && caretWarp && caretPosition.row > 0) {
+                    caretPosition = caretPosition.withRelativeRow(-1)!!
+                    caretPosition = caretPosition.withColumn(lines[caretPosition.row].length)!!
+                } else if (horizontalFocusSwitching) {
+                    result = Interactable.Result.MOVE_FOCUS_LEFT
+                }
+                result = result ?: Interactable.Result.HANDLED
+            }
 
-/**
- * This is the default text box renderer that is used if you don't override anything. With this renderer, the text
- * box is filled with a solid background color and the text is drawn on top of it. Scrollbars are added for
- * multi-line text whenever the text inside the `TextBox` does not fit in the available area.
- */
-     class DefaultTextBoxRenderer:TextBoxRenderer {
-private var viewTopLeft:TerminalPosition? = null
-private val verticalScrollBar:ScrollBar?
-private val horizontalScrollBar:ScrollBar?
-private var hideScrollBars:Boolean = false
-private var unusedSpaceCharacter:Character? = null
-/**
- * Default constructor
- */
-        init{
-viewTopLeft = TerminalPosition.TOP_LEFT_CORNER
-verticalScrollBar = ScrollBar(Direction.VERTICAL)
-horizontalScrollBar = ScrollBar(Direction.HORIZONTAL)
-hideScrollBars = false
-unusedSpaceCharacter = null
-}
+            KeyType.ARROW_RIGHT -> {
+                if (caretPosition.column < lines[caretPosition.row].length) {
+                    caretPosition = caretPosition.withRelativeColumn(1)!!
+                } else if (style == Style.MULTI_LINE && caretWarp && caretPosition.row < lines.size - 1) {
+                    caretPosition = caretPosition.withRelativeRow(1)!!
+                    caretPosition = caretPosition.withColumn(0)!!
+                } else if (horizontalFocusSwitching) {
+                    result = Interactable.Result.MOVE_FOCUS_RIGHT
+                }
+                result = result ?: Interactable.Result.HANDLED
+            }
 
-/**
- * Sets the character to represent an empty untyped space in the text box. This will be an empty space by
- * default but you can override it to anything that isn't double-width.
- * @param unusedSpaceCharacter Character to draw in unused space of the [TextBox]
- * @throws IllegalArgumentException If unusedSpaceCharacter is a double-width character
- */
-         fun setUnusedSpaceCharacter(unusedSpaceCharacter:Char) {
-if (TerminalTextUtils.isCharDoubleWidth(unusedSpaceCharacter))
-{
-throw IllegalArgumentException("Cannot use a double-width character as the unused space character in a TextBox")
-}
-this.unusedSpaceCharacter = unusedSpaceCharacter
-}
+            KeyType.ARROW_UP -> {
+                if (canMoveCaretUp()) {
+                    performMoveCaretUp()
+                } else if (verticalFocusSwitching) {
+                    result = Interactable.Result.MOVE_FOCUS_UP
+                }
+                result = result ?: Interactable.Result.HANDLED
+            }
 
-@Override
-public override fun getViewTopLeft():TerminalPosition? {
-return viewTopLeft
-}
+            KeyType.ARROW_DOWN -> {
+                if (canMoveCaretDown()) {
+                    performMoveCaretDown()
+                } else if (verticalFocusSwitching) {
+                    result = Interactable.Result.MOVE_FOCUS_DOWN
+                }
+                result = result ?: Interactable.Result.HANDLED
+            }
 
-@Override
-public override fun setViewTopLeft(position:TerminalPosition) {
-var position = position
-if (position.column < 0)
-{
-position = position.withColumn(0)
-}
-if (position.row < 0)
-{
-position = position.withRow(0)
-}
-viewTopLeft = position
-}
+            KeyType.END -> {
+                caretPosition = caretPosition.withColumn(line.length)!!
+                result = Interactable.Result.HANDLED
+            }
 
-@Override
- fun getCursorLocation(component:TextBox):TerminalPosition? {
-if (component.isReadOnly())
-{
-return null
-}
+            KeyType.ENTER -> {
+                if (style == Style.SINGLE_LINE) {
+                    result = Interactable.Result.MOVE_FOCUS_NEXT
+                } else {
+                    val newLine = line.substring(caretPosition.column)
+                    val oldLine = line.substring(0, caretPosition.column)
+                    if (validated(newLine) && validated(oldLine)) {
+                        lines[caretPosition.row] = oldLine
+                        lines.add(caretPosition.row + 1, newLine)
+                        caretPosition = caretPosition.withColumn(0)!!.withRelativeRow(1)!!
+                        lineWasModified = true
+                    }
+                    result = Interactable.Result.HANDLED
+                }
+            }
 
- //Adjust caret position if necessary
-            var caretPosition = component.caretPosition
-val line = component.getLine(caretPosition!!.row)
-caretPosition = caretPosition!!.withColumn(Math.min(caretPosition!!.column, line!!.length()))
+            KeyType.HOME -> {
+                caretPosition = caretPosition.withColumn(0)!!
+                result = Interactable.Result.HANDLED
+            }
 
-return caretPosition!!
-.withColumn(TerminalTextUtils.getColumnIndex(line, caretPosition!!.column))!!
-.withRelativeColumn(-viewTopLeft!!.column)!!
-.withRelativeRow(-viewTopLeft!!.row)
-}
+            KeyType.PAGE_DOWN -> {
+                caretPosition = caretPosition.withRelativeRow(size?.rows ?: 0)!!
+                if (caretPosition.row > lines.size - 1) {
+                    caretPosition = caretPosition.withRow(lines.size - 1)!!
+                }
+                if (lines[caretPosition.row].length < caretPosition.column) {
+                    caretPosition = caretPosition.withColumn(lines[caretPosition.row].length)!!
+                }
+                result = Interactable.Result.HANDLED
+            }
 
-@Override
- fun getPreferredSize(component:TextBox):TerminalSize {
-return TerminalSize(component.longestRow, component.lines!!.size())
-}
+            KeyType.PAGE_UP -> {
+                caretPosition = caretPosition.withRelativeRow(-(size?.rows ?: 0))!!
+                if (caretPosition.row < 0) {
+                    caretPosition = caretPosition.withRow(0)!!
+                }
+                if (lines[caretPosition.row].length < caretPosition.column) {
+                    caretPosition = caretPosition.withColumn(lines[caretPosition.row].length)!!
+                }
+                result = Interactable.Result.HANDLED
+            }
 
-/**
- * Controls whether scrollbars should be visible or not when a multi-line `TextBox` has more content than
- * it can draw in the area it was assigned (default: false)
- * @param hideScrollBars If `true`, don't show scrollbars if the multi-line content is bigger than the
- * area
- */
-         fun setHideScrollBars(hideScrollBars:Boolean) {
-this.hideScrollBars = hideScrollBars
-}
+            KeyType.MOUSE_EVENT -> {
+                if (!isFocused) {
+                    result = null
+                } else if (isMouseMove(keyStroke)) {
+                    result = Interactable.Result.UNHANDLED
+                } else {
+                    val mouseAction = keyStroke as MouseAction
+                    when (mouseAction.actionType) {
+                        MouseActionType.SCROLL_UP -> if (canMoveCaretUp()) performMoveCaretUp()
+                        MouseActionType.SCROLL_DOWN -> if (canMoveCaretDown()) performMoveCaretDown()
+                        else -> {
+                            val offset = renderer?.viewTopLeft ?: TerminalPosition.TOP_LEFT_CORNER
+                            val globalPosition = globalPosition ?: TerminalPosition.TOP_LEFT_CORNER
+                            var newCaretPositionColumn =
+                                (mouseAction.position?.column ?: 0) - globalPosition.column + offset.column
+                            val newCaretPositionRow =
+                                (mouseAction.position?.row ?: 0) - globalPosition.row + offset.row
+                            if (newCaretPositionRow in 0 until lines.size) {
+                                val newActiveLine = lines[newCaretPositionRow]
+                                val minPositionAttempt = 0
+                                val maxPositionAttempt = newActiveLine.length
+                                newCaretPositionColumn =
+                                    kotlin.math.max(
+                                        minPositionAttempt,
+                                        kotlin.math.min(newCaretPositionColumn, maxPositionAttempt),
+                                    )
+                                caretPosition = caretPosition.with(TerminalPosition(newCaretPositionColumn, newCaretPositionRow))!!
+                            }
+                        }
+                    }
+                    result = Interactable.Result.HANDLED
+                }
+            }
 
-@Override
- fun drawComponent(graphics:TextGUIGraphics, component:TextBox?) {
-var realTextArea = graphics.getSize()
-if (realTextArea!!.rows == 0 || realTextArea!!.columns == 0)
-{
-return 
-}
-var drawVerticalScrollBar = false
-var drawHorizontalScrollBar = false
-val textBoxLineCount = component!!.lineCount
-if (!hideScrollBars && textBoxLineCount > realTextArea!!.rows && realTextArea!!.columns > 1)
-{
-realTextArea = realTextArea!!.withRelativeColumns(-1)
-drawVerticalScrollBar = true
-}
-if (!hideScrollBars && component!!.longestRow > realTextArea!!.columns && realTextArea!!.rows > 1)
-{
-realTextArea = realTextArea!!.withRelativeRows(-1)
-drawHorizontalScrollBar = true
-if (textBoxLineCount > realTextArea!!.rows && !drawVerticalScrollBar)
-{
-realTextArea = realTextArea!!.withRelativeColumns(-1)
-drawVerticalScrollBar = true
-}
-}
+            else -> {
+                // fall through
+            }
+        }
 
-drawTextArea(graphics.newTextGraphics(TerminalPosition.TOP_LEFT_CORNER, realTextArea), component!!)
+        if (result == null) {
+            result = super.handleKeyStroke(keyStroke)
+        } else if (lineWasModified) {
+            fireOnTextChanged(true)
+        }
+        return result
+    }
 
- //Draw scrollbars, if any
-            if (drawVerticalScrollBar)
-{
-verticalScrollBar!!.onAdded(component!!.getParent())
-verticalScrollBar!!.setViewSize(realTextArea!!.rows)
-verticalScrollBar!!.setScrollMaximum(textBoxLineCount)
-verticalScrollBar!!.setScrollPosition(viewTopLeft!!.row)
-verticalScrollBar!!.draw(graphics.newTextGraphics(
-TerminalPosition(graphics.getSize().getColumns() - 1, 0), 
-TerminalSize(1, graphics.getSize().getRows() - (if (drawHorizontalScrollBar) 1 else 0))))
-}
-if (drawHorizontalScrollBar)
-{
-horizontalScrollBar!!.onAdded(component!!.getParent())
-horizontalScrollBar!!.setViewSize(realTextArea!!.columns)
-horizontalScrollBar!!.setScrollMaximum(component!!.longestRow - 1)
-horizontalScrollBar!!.setScrollPosition(viewTopLeft!!.column)
-horizontalScrollBar!!.draw(graphics.newTextGraphics(
-TerminalPosition(0, graphics.getSize().getRows() - 1), 
-TerminalSize(graphics.getSize().getColumns() - (if (drawVerticalScrollBar) 1 else 0), 1)))
-}
-}
+    private fun canMoveCaretUp(): Boolean = caretPosition.row > 0
 
-private fun drawTextArea(graphics:TextGUIGraphics, component:TextBox) {
-val textAreaSize = graphics.getSize()
-if (viewTopLeft!!.column + textAreaSize!!.columns > component.longestRow)
-{
-viewTopLeft = viewTopLeft!!.withColumn(component.longestRow - textAreaSize!!.columns)
-if (viewTopLeft!!.column < 0)
-{
-viewTopLeft = viewTopLeft!!.withColumn(0)
-}
-}
-if (viewTopLeft!!.row + textAreaSize!!.rows > component.lineCount)
-{
-viewTopLeft = viewTopLeft!!.withRow(component.lineCount - textAreaSize!!.rows)
-if (viewTopLeft!!.row < 0)
-{
-viewTopLeft = viewTopLeft!!.withRow(0)
-}
-}
-val themeDefinition = component.getThemeDefinition()
-if (component.isFocused())
-{
-if (component.isReadOnly())
-{
-graphics.applyThemeStyle(themeDefinition!!.getSelected())
-}
-else
-{
-graphics.applyThemeStyle(themeDefinition!!.getActive())
-}
-}
-else
-{
-if (component.isReadOnly())
-{
-graphics.applyThemeStyle(themeDefinition!!.getInsensitive())
-}
-else
-{
-graphics.applyThemeStyle(themeDefinition!!.getNormal())
-}
-}
+    private fun canMoveCaretDown(): Boolean = caretPosition.row < lines.size - 1
 
-var fillCharacter = unusedSpaceCharacter
-if (fillCharacter == null)
-{
-fillCharacter = themeDefinition!!.getCharacter("FILL", ' ')
-}
-graphics.fill(fillCharacter)
+    private fun performMoveCaretUp() {
+        val trueColumnPosition = TerminalTextUtils.getColumnIndex(lines[caretPosition.row], caretPosition.column)
+        caretPosition = caretPosition.withRelativeRow(-1)!!
+        val line = lines[caretPosition.row]
+        caretPosition =
+            if (trueColumnPosition > TerminalTextUtils.getColumnWidth(line)) {
+                caretPosition.withColumn(line.length)!!
+            } else {
+                caretPosition.withColumn(TerminalTextUtils.getStringCharacterIndex(line, trueColumnPosition))!!
+            }
+    }
 
-if (!component.isReadOnly())
-{
- //Adjust caret position if necessary
-                var caretPosition = component.caretPosition
-val caretLine = component.getLine(caretPosition!!.row)
-caretPosition = caretPosition!!.withColumn(Math.min(caretPosition!!.column, caretLine!!.length()))
+    private fun performMoveCaretDown() {
+        val trueColumnPosition = TerminalTextUtils.getColumnIndex(lines[caretPosition.row], caretPosition.column)
+        caretPosition = caretPosition.withRelativeRow(1)!!
+        val line = lines[caretPosition.row]
+        caretPosition =
+            if (trueColumnPosition > TerminalTextUtils.getColumnWidth(line)) {
+                caretPosition.withColumn(line.length)!!
+            } else {
+                caretPosition.withColumn(TerminalTextUtils.getStringCharacterIndex(line, trueColumnPosition))!!
+            }
+    }
 
- //Adjust the view if necessary
-                val trueColumnPosition = TerminalTextUtils.getColumnIndex(caretLine, caretPosition!!.column)
-if (trueColumnPosition < viewTopLeft!!.column)
-{
-viewTopLeft = viewTopLeft!!.withColumn(trueColumnPosition)
-}
-else if (trueColumnPosition >= textAreaSize!!.columns + viewTopLeft!!.column)
-{
-viewTopLeft = viewTopLeft!!.withColumn(trueColumnPosition - textAreaSize!!.columns + 1)
-}
-if (caretPosition!!.row < viewTopLeft!!.row)
-{
-viewTopLeft = viewTopLeft!!.withRow(caretPosition!!.row)
-}
-else if (caretPosition!!.row >= textAreaSize!!.rows + viewTopLeft!!.row)
-{
-viewTopLeft = viewTopLeft!!.withRow(caretPosition!!.row - textAreaSize!!.rows + 1)
-}
+    private fun validated(line: String): Boolean {
+        return validationPattern == null || line.isEmpty() || validationPattern!!.matcher(line).matches()
+    }
 
- //Additional corner-case for CJK characters
-                if (trueColumnPosition - viewTopLeft!!.column == graphics.getSize().getColumns() - 1)
-{
-if ((caretLine!!.length() > caretPosition!!.column && TerminalTextUtils.isCharCJK(caretLine!!.charAt(caretPosition!!.column))))
-{
-viewTopLeft = viewTopLeft!!.withRelativeColumn(1)
-}
-}
-}
+    private fun handleKeyStrokeReadOnly(keyStroke: KeyStroke): Interactable.Result? {
+        val activeRenderer = renderer ?: return super.handleKeyStroke(keyStroke)
+        when (keyStroke.keyType) {
+            KeyType.ARROW_LEFT -> {
+                if (activeRenderer.viewTopLeft.column == 0 && horizontalFocusSwitching) {
+                    return Interactable.Result.MOVE_FOCUS_LEFT
+                }
+                activeRenderer.viewTopLeft = activeRenderer.viewTopLeft.withRelativeColumn(-1)!!
+                return Interactable.Result.HANDLED
+            }
 
-for (row in 0 until textAreaSize!!.rows)
-{
-val rowIndex = row + viewTopLeft!!.row
-if (rowIndex >= component.lines!!.size())
-{
-continue
-}
-var line = component.lines!!.get(rowIndex)
-if (component.getMask() != null)
-{
-val builder = StringBuilder()
-for (i in 0 until line!!.length())
-{
-builder.append(component.getMask())
-}
-line = builder.toString()
-}
-graphics.putString(0, row, TerminalTextUtils.fitString(line, viewTopLeft!!.column, textAreaSize!!.columns))
-}
-}
-}
+            KeyType.ARROW_RIGHT -> {
+                if (activeRenderer.viewTopLeft.column + (size?.columns ?: 0) == longestRow && horizontalFocusSwitching) {
+                    return Interactable.Result.MOVE_FOCUS_RIGHT
+                }
+                activeRenderer.viewTopLeft = activeRenderer.viewTopLeft.withRelativeColumn(1)!!
+                return Interactable.Result.HANDLED
+            }
 
-/**
- * Listener interface for when the [TextBox] content has changed. This can be either by user interactions with
- * the component or through programmatically adding and removing lines (there is a flag set on the callback method
- * to make it possible to distinguish between the two).
- */
-     interface TextChangeListener {
-/**
- * Callback method invoked by the [TextBox] when the text content has changed
- * @param newText The new content of the [TextBox]
- * @param changedByUserInteraction If `true`, then the TextBox was modified through user interaction,
- * otherwise the content changed from a programmatical update.
- */
-         fun onTextChanged(newText:String?, changedByUserInteraction:Boolean) 
+            KeyType.ARROW_UP -> {
+                if (activeRenderer.viewTopLeft.row == 0 && verticalFocusSwitching) {
+                    return Interactable.Result.MOVE_FOCUS_UP
+                }
+                activeRenderer.viewTopLeft = activeRenderer.viewTopLeft.withRelativeRow(-1)!!
+                return Interactable.Result.HANDLED
+            }
+
+            KeyType.ARROW_DOWN -> {
+                if (activeRenderer.viewTopLeft.row + (size?.rows ?: 0) == lines.size && verticalFocusSwitching) {
+                    return Interactable.Result.MOVE_FOCUS_DOWN
+                }
+                activeRenderer.viewTopLeft = activeRenderer.viewTopLeft.withRelativeRow(1)!!
+                return Interactable.Result.HANDLED
+            }
+
+            KeyType.HOME -> {
+                activeRenderer.viewTopLeft = TerminalPosition.TOP_LEFT_CORNER
+                return Interactable.Result.HANDLED
+            }
+
+            KeyType.END -> {
+                activeRenderer.viewTopLeft =
+                    TerminalPosition.TOP_LEFT_CORNER.withRow(getLineCount() - (size?.rows ?: 0))!!
+                return Interactable.Result.HANDLED
+            }
+
+            KeyType.PAGE_DOWN -> {
+                activeRenderer.viewTopLeft = activeRenderer.viewTopLeft.withRelativeRow(size?.rows ?: 0)!!
+                return Interactable.Result.HANDLED
+            }
+
+            KeyType.PAGE_UP -> {
+                activeRenderer.viewTopLeft = activeRenderer.viewTopLeft.withRelativeRow(-(size?.rows ?: 0))!!
+                return Interactable.Result.HANDLED
+            }
+
+            else -> {
+                // fall through
+            }
+        }
+        return super.handleKeyStroke(keyStroke)
+    }
+
+    private fun fireOnTextChanged(initiatedByUserInteraction: Boolean) {
+        val listener = textChangeListener ?: return
+        listener.onTextChanged(text, initiatedByUserInteraction)
+    }
+
+    interface TextBoxRenderer : InteractableRenderer<TextBox?> {
+        var viewTopLeft: TerminalPosition
+    }
+
+    class DefaultTextBoxRenderer : TextBoxRenderer {
+        override var viewTopLeft: TerminalPosition = TerminalPosition.TOP_LEFT_CORNER
+            set(position) {
+                var adjusted = position
+                if (adjusted.column < 0) {
+                    adjusted = adjusted.withColumn(0)!!
+                }
+                if (adjusted.row < 0) {
+                    adjusted = adjusted.withRow(0)!!
+                }
+                field = adjusted
+            }
+
+        private val verticalScrollBar = ScrollBar(Direction.VERTICAL)
+        private val horizontalScrollBar = ScrollBar(Direction.HORIZONTAL)
+        private var hideScrollBars: Boolean = false
+        private var unusedSpaceCharacter: Char? = null
+
+        fun setUnusedSpaceCharacter(unusedSpaceCharacter: Char) {
+            if (TerminalTextUtils.isCharDoubleWidth(unusedSpaceCharacter)) {
+                throw IllegalArgumentException(
+                    "Cannot use a double-width character as the unused space character in a TextBox",
+                )
+            }
+            this.unusedSpaceCharacter = unusedSpaceCharacter
+        }
+
+        override fun getCursorLocation(component: TextBox?): TerminalPosition? {
+            val activeComponent = component ?: return null
+            if (activeComponent.isReadOnly()) {
+                return null
+            }
+
+            var caretPosition = activeComponent.getCaretPosition()
+            val line = activeComponent.getLine(caretPosition.row)
+            caretPosition = caretPosition.withColumn(kotlin.math.min(caretPosition.column, line.length))!!
+
+            return caretPosition
+                .withColumn(TerminalTextUtils.getColumnIndex(line, caretPosition.column))!!
+                .withRelativeColumn(-viewTopLeft.column)!!
+                .withRelativeRow(-viewTopLeft.row)
+        }
+
+        override fun getPreferredSize(component: TextBox?): TerminalSize {
+            val activeComponent = component ?: return TerminalSize.ZERO
+            return TerminalSize(activeComponent.longestRow, activeComponent.lines.size)
+        }
+
+        fun setHideScrollBars(hideScrollBars: Boolean) {
+            this.hideScrollBars = hideScrollBars
+        }
+
+        override fun drawComponent(graphics: TextGUIGraphics?, component: TextBox?) {
+            val activeGraphics = graphics ?: return
+            val activeComponent = component ?: return
+
+            var realTextArea = activeGraphics.size ?: TerminalSize.ZERO
+            if (realTextArea.rows == 0 || realTextArea.columns == 0) {
+                return
+            }
+
+            var drawVerticalScrollBar = false
+            var drawHorizontalScrollBar = false
+            val textBoxLineCount = activeComponent.getLineCount()
+            if (!hideScrollBars && textBoxLineCount > realTextArea.rows && realTextArea.columns > 1) {
+                realTextArea = realTextArea.withRelativeColumns(-1)!!
+                drawVerticalScrollBar = true
+            }
+            if (!hideScrollBars && activeComponent.longestRow > realTextArea.columns && realTextArea.rows > 1) {
+                realTextArea = realTextArea.withRelativeRows(-1)!!
+                drawHorizontalScrollBar = true
+                if (textBoxLineCount > realTextArea.rows && !drawVerticalScrollBar) {
+                    realTextArea = realTextArea.withRelativeColumns(-1)!!
+                    drawVerticalScrollBar = true
+                }
+            }
+
+            drawTextArea(
+                activeGraphics.newTextGraphics(TerminalPosition.TOP_LEFT_CORNER, realTextArea),
+                activeComponent,
+            )
+
+            if (drawVerticalScrollBar) {
+                verticalScrollBar.onAdded(activeComponent.parent)
+                verticalScrollBar.setViewSize(realTextArea.rows)
+                verticalScrollBar.setScrollMaximum(textBoxLineCount)
+                verticalScrollBar.setScrollPosition(viewTopLeft.row)
+                verticalScrollBar.draw(
+                    activeGraphics.newTextGraphics(
+                        TerminalPosition((activeGraphics.size ?: TerminalSize.ZERO).columns - 1, 0),
+                        TerminalSize(1, (activeGraphics.size ?: TerminalSize.ZERO).rows - if (drawHorizontalScrollBar) 1 else 0),
+                    ),
+                )
+            }
+            if (drawHorizontalScrollBar) {
+                horizontalScrollBar.onAdded(activeComponent.parent)
+                horizontalScrollBar.setViewSize(realTextArea.columns)
+                horizontalScrollBar.setScrollMaximum(activeComponent.longestRow - 1)
+                horizontalScrollBar.setScrollPosition(viewTopLeft.column)
+                horizontalScrollBar.draw(
+                    activeGraphics.newTextGraphics(
+                        TerminalPosition(0, (activeGraphics.size ?: TerminalSize.ZERO).rows - 1),
+                        TerminalSize((activeGraphics.size ?: TerminalSize.ZERO).columns - if (drawVerticalScrollBar) 1 else 0, 1),
+                    ),
+                )
+            }
+        }
+
+        private fun drawTextArea(graphics: TextGUIGraphics?, component: TextBox) {
+            val activeGraphics = graphics ?: return
+            val textAreaSize = activeGraphics.size ?: TerminalSize.ZERO
+            if (viewTopLeft.column + textAreaSize.columns > component.longestRow) {
+                viewTopLeft = viewTopLeft.withColumn(component.longestRow - textAreaSize.columns)!!
+                if (viewTopLeft.column < 0) {
+                    viewTopLeft = viewTopLeft.withColumn(0)!!
+                }
+            }
+            if (viewTopLeft.row + textAreaSize.rows > component.getLineCount()) {
+                viewTopLeft = viewTopLeft.withRow(component.getLineCount() - textAreaSize.rows)!!
+                if (viewTopLeft.row < 0) {
+                    viewTopLeft = viewTopLeft.withRow(0)!!
+                }
+            }
+
+            val themeDefinition: ThemeDefinition = component.themeDefinition ?: return
+            when {
+                component.isFocused && component.isReadOnly() -> activeGraphics.applyThemeStyle(themeDefinition.selected)
+                component.isFocused -> activeGraphics.applyThemeStyle(themeDefinition.active)
+                component.isReadOnly() -> activeGraphics.applyThemeStyle(themeDefinition.insensitive)
+                else -> activeGraphics.applyThemeStyle(themeDefinition.normal)
+            }
+
+            val fillCharacter = unusedSpaceCharacter ?: themeDefinition.getCharacter("FILL", ' ')
+            activeGraphics.fill(fillCharacter)
+
+            if (!component.isReadOnly()) {
+                var caretPosition = component.getCaretPosition()
+                val caretLine = component.getLine(caretPosition.row)
+                caretPosition = caretPosition.withColumn(kotlin.math.min(caretPosition.column, caretLine.length))!!
+
+                val trueColumnPosition = TerminalTextUtils.getColumnIndex(caretLine, caretPosition.column)
+                if (trueColumnPosition < viewTopLeft.column) {
+                    viewTopLeft = viewTopLeft.withColumn(trueColumnPosition)!!
+                } else if (trueColumnPosition >= textAreaSize.columns + viewTopLeft.column) {
+                    viewTopLeft = viewTopLeft.withColumn(trueColumnPosition - textAreaSize.columns + 1)!!
+                }
+                if (caretPosition.row < viewTopLeft.row) {
+                    viewTopLeft = viewTopLeft.withRow(caretPosition.row)!!
+                } else if (caretPosition.row >= textAreaSize.rows + viewTopLeft.row) {
+                    viewTopLeft = viewTopLeft.withRow(caretPosition.row - textAreaSize.rows + 1)!!
+                }
+
+                if (trueColumnPosition - viewTopLeft.column == (activeGraphics.size ?: TerminalSize.ZERO).columns - 1) {
+                    if (caretLine.length > caretPosition.column &&
+                        TerminalTextUtils.isCharCJK(caretLine[caretPosition.column])
+                    ) {
+                        viewTopLeft = viewTopLeft.withRelativeColumn(1)!!
+                    }
+                }
+            }
+
+            for (row in 0 until textAreaSize.rows) {
+                val rowIndex = row + viewTopLeft.row
+                if (rowIndex >= component.lines.size) {
+                    continue
+                }
+                var line = component.lines[rowIndex]
+                if (component.getMask() != null) {
+                    val builder = StringBuilder()
+                    repeat(line.length) {
+                        builder.append(component.getMask())
+                    }
+                    line = builder.toString()
+                }
+                activeGraphics.putString(0, row, TerminalTextUtils.fitString(line, viewTopLeft.column, textAreaSize.columns))
+            }
+        }
+    }
+
+    interface TextChangeListener {
+        fun onTextChanged(newText: String, changedByUserInteraction: Boolean)
+    }
 }
-}/**
- * Creates a new empty `TextBox` with a specific size
- * @param preferredSize Size of the `TextBox`
- *//**
- * Creates a new empty `TextBox` with a specific size and initial content
- * @param preferredSize Size of the `TextBox`
- * @param initialContent Initial content of the `TextBox`
- */
