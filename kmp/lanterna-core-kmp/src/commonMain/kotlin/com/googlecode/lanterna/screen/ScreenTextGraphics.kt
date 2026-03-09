@@ -17,37 +17,22 @@
  * Copyright (C) 2010-2020 Martin Berglund
  */
 package com.googlecode.lanterna.screen
-import com.googlecode.lanterna.TextCharacter
+
 import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.graphics.AbstractTextGraphics
 import com.googlecode.lanterna.graphics.TextGraphics
 
-/**
- * This is an implementation of TextGraphics that targets the output to a Screen. The ScreenTextGraphics object is valid
- * after screen resizing.
- * @author Martin
- */
-internal class ScreenTextGraphics/**
- * Creates a new `ScreenTextGraphics` targeting the specified screen
- * @param screen Screen we are targeting
- */
-    (private val screen:Screen?):AbstractTextGraphics() {
+internal open class ScreenTextGraphics(private val screen: Screen) : AbstractTextGraphics() {
+    override val size: TerminalSize?
+        get() = screen.terminalSize
 
- val size:TerminalSize?
-@Override
-get() {
-return screen!!.getTerminalSize()
-}
+    override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics? {
+        screen.setCharacter(columnIndex, rowIndex, textCharacter)
+        return this
+    }
 
-@Override
- fun setCharacter(columnIndex:Int, rowIndex:Int, textCharacter:TextCharacter?):TextGraphics? {
- //Let the screen do culling
-        screen!!.setCharacter(columnIndex, rowIndex, textCharacter)
-return this
-}
-
-@Override
- fun getCharacter(column:Int, row:Int):TextCharacter? {
-return screen!!.getBackCharacter(column, row)
-}
+    override fun getCharacter(column: Int, row: Int): TextCharacter? {
+        return screen.getBackCharacter(column, row)
+    }
 }

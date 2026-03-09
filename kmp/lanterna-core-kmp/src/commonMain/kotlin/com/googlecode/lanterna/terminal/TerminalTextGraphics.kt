@@ -21,215 +21,158 @@ package com.googlecode.lanterna.terminal
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.graphics.AbstractTextGraphics
 import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.graphics.AbstractTextGraphics
 import com.googlecode.lanterna.graphics.TextGraphics
-
 import java.io.IOException
 import java.util.HashMap
 import java.util.concurrent.atomic.AtomicInteger
 
-/**
- * This is the terminal's implementation of TextGraphics. Upon creation it takes a snapshot for the terminal's size, so
- * that it won't require to do an expensive lookup on every call to `getSize()`, but this also means that it can
- * go stale quickly if the terminal is resized. You should try to use the object quickly and then let it be GC:ed. It
- * will not pick up on terminal resize! Also, the state of the Terminal after an operation performed by this
- * TextGraphics implementation is undefined and you should probably re-initialize colors and modifiers.
- * 
- * 
- * Any write operation that results in an IOException will be wrapped by a RuntimeException since the TextGraphics
- * interface doesn't allow throwing IOException
- */
-internal class TerminalTextGraphics @Throws(IOException::class)
- constructor(private val terminal:Terminal?):AbstractTextGraphics() {
-@get:Override
- val size:TerminalSize?
+internal class TerminalTextGraphics @Throws(IOException::class) constructor(
+    private val terminal: Terminal,
+) : AbstractTextGraphics() {
+    override val size: TerminalSize = terminal.terminalSize ?: TerminalSize.ZERO
 
-private val writeHistory:Map<TerminalPosition?, TextCharacter?>?
+    private val writeHistory: MutableMap<TerminalPosition, TextCharacter> = HashMap()
+    private val manageCallStackSize = AtomicInteger(0)
+    private var lastCharacter: TextCharacter? = null
+    private var lastPosition: TerminalPosition? = null
 
-private val manageCallStackSize:AtomicInteger?
-private var lastCharacter:TextCharacter? = null
-private var lastPosition:TerminalPosition? = null
+    override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
+        return setCharacter(TerminalPosition(columnIndex, rowIndex), textCharacter)
+    }
 
-init{
-this.size = terminal.getTerminalSize()
-this.manageCallStackSize = AtomicInteger(0)
-this.writeHistory = HashMap()
-this.lastCharacter = null
-this.lastPosition = null
-}
+    @Synchronized
+    override fun setCharacter(position: TerminalPosition?, textCharacter: TextCharacter?): TextGraphics {
+        val safePosition = position ?: return this
+        val safeCharacter = textCharacter ?: return this
+        try {
+            if (manageCallStackSize.get() > 0) {
+                if (lastCharacter == null || lastCharacter != safeCharacter) {
+                    applyGraphicState(safeCharacter)
+                    lastCharacter = safeCharacter
+                }
+                if (lastPosition == null || lastPosition != safePosition) {
+                    terminal.setCursorPosition(safePosition.column, safePosition.row)
+                    lastPosition = safePosition
+                }
+            } else {
+                terminal.setCursorPosition(safePosition.column, safePosition.row)
+                applyGraphicState(safeCharacter)
+            }
+            terminal.putString(safeCharacter.characterString)
+            if (manageCallStackSize.get() > 0) {
+                lastPosition = safePosition.withRelativeColumn(1)
+            }
+            writeHistory[safePosition] = safeCharacter
+        } catch (e: IOException) {
+            throw RuntimeException(e)
+        }
+        return this
+    }
 
-@Override
- fun setCharacter(columnIndex:Int, rowIndex:Int, textCharacter:TextCharacter?):TextGraphics? {
-return setCharacter(TerminalPosition(columnIndex, rowIndex), textCharacter)
-}
+    override fun getCharacter(column: Int, row: Int): TextCharacter? {
+        return getCharacter(TerminalPosition(column, row))
+    }
 
-@Override
-@Synchronized  fun setCharacter(position:TerminalPosition?, textCharacter:TextCharacter?):TextGraphics? {
-try
-{
-if (manageCallStackSize!!.get() > 0)
-{
-if (lastCharacter == null || !lastCharacter!!.equals(textCharacter))
-{
-applyGraphicState(textCharacter!!)
-lastCharacter = textCharacter
-}
-if (lastPosition == null || !lastPosition!!.equals(position))
-{
-terminal!!.setCursorPosition(position!!.column, position!!.row)
-lastPosition = position
-}
-}
-else
-{
-terminal!!.setCursorPosition(position!!.column, position!!.row)
-applyGraphicState(textCharacter!!)
-}
-terminal!!.putString(textCharacter!!.getCharacterString())
-if (manageCallStackSize!!.get() > 0)
-{
-lastPosition = position!!.withRelativeColumn(1)
-}
-writeHistory!!.put(position, textCharacter)
-}
-catch (e:IOException) {
-throw RuntimeException(e)
-}
+    @Synchronized
+    override fun getCharacter(position: TerminalPosition?): TextCharacter? {
+        return if (position == null) null else writeHistory[position]
+    }
 
-return this
-}
+    @Throws(IOException::class)
+    private fun applyGraphicState(textCharacter: TextCharacter) {
+        terminal.resetColorAndSGR()
+        terminal.setForegroundColor(textCharacter.foregroundColor)
+        terminal.setBackgroundColor(textCharacter.backgroundColor)
+        for (sgr in textCharacter.getModifiers()) {
+            terminal.enableSGR(sgr)
+        }
+    }
 
-@Override
- fun getCharacter(column:Int, row:Int):TextCharacter? {
-return getCharacter(TerminalPosition(column, row))
-}
+    @Synchronized
+    override fun drawLine(fromPoint: TerminalPosition?, toPoint: TerminalPosition?, character: Char): TextGraphics {
+        try {
+            enterAtomic()
+            super.drawLine(fromPoint, toPoint, character)
+            return this
+        } finally {
+            leaveAtomic()
+        }
+    }
 
-@Override
-@Synchronized  fun getCharacter(position:TerminalPosition?):TextCharacter? {
-return writeHistory!!.get(position)
-}
+    @Synchronized
+    override fun drawTriangle(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        p3: TerminalPosition?,
+        character: Char,
+    ): TextGraphics {
+        try {
+            enterAtomic()
+            super.drawTriangle(p1, p2, p3, character)
+            return this
+        } finally {
+            leaveAtomic()
+        }
+    }
 
-@Throws(IOException::class)
-private fun applyGraphicState(textCharacter:TextCharacter) {
-terminal!!.resetColorAndSGR()
-terminal!!.setForegroundColor(textCharacter.getForegroundColor())
-terminal!!.setBackgroundColor(textCharacter.getBackgroundColor())
-for (sgr in textCharacter.getModifiers())
-{
-terminal!!.enableSGR(sgr)
-}
-}
+    @Synchronized
+    override fun fillTriangle(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        p3: TerminalPosition?,
+        character: Char,
+    ): TextGraphics {
+        try {
+            enterAtomic()
+            super.fillTriangle(p1, p2, p3, character)
+            return this
+        } finally {
+            leaveAtomic()
+        }
+    }
 
-@Override
-@Synchronized  fun drawLine(fromPoint:TerminalPosition?, toPoint:TerminalPosition?, character:Char):TextGraphics? {
-try
-{
-enterAtomic()
-super.drawLine(fromPoint, toPoint, character)
-return this
-}
+    @Synchronized
+    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGraphics {
+        try {
+            enterAtomic()
+            super.fillRectangle(topLeft, size, character)
+            return this
+        } finally {
+            leaveAtomic()
+        }
+    }
 
-finally
-{
-leaveAtomic()
-}
-}
+    @Synchronized
+    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGraphics {
+        try {
+            enterAtomic()
+            super.drawRectangle(topLeft, size, character)
+            return this
+        } finally {
+            leaveAtomic()
+        }
+    }
 
-@Override
-@Synchronized  fun drawTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:Char):TextGraphics? {
-try
-{
-enterAtomic()
-super.drawTriangle(p1, p2, p3, character)
-return this
-}
+    @Synchronized
+    override fun putString(column: Int, row: Int, string: String?): TextGraphics {
+        try {
+            enterAtomic()
+            return super.putString(column, row, string) ?: this
+        } finally {
+            leaveAtomic()
+        }
+    }
 
-finally
-{
-leaveAtomic()
-}
-}
-
-@Override
-@Synchronized  fun fillTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:Char):TextGraphics? {
-try
-{
-enterAtomic()
-super.fillTriangle(p1, p2, p3, character)
-return this
-}
-
-finally
-{
-leaveAtomic()
-}
-}
-
-@Override
-@Synchronized  fun fillRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:Char):TextGraphics? {
-try
-{
-enterAtomic()
-super.fillRectangle(topLeft, size, character)
-return this
-}
-
-finally
-{
-leaveAtomic()
-}
-}
-
-@Override
-@Synchronized  fun drawRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:Char):TextGraphics? {
-try
-{
-enterAtomic()
-super.drawRectangle(topLeft, size, character)
-return this
-}
-
-finally
-{
-leaveAtomic()
-}
-}
-
-@Override
-@Synchronized  fun putString(column:Int, row:Int, string:String?):TextGraphics? {
-try
-{
-enterAtomic()
-return super.putString(column, row, string)
-}
-
-finally
-{
-leaveAtomic()
-}
-}
-
-/**
- * It's tricky with this implementation because we can't rely on any state in between two calls to setCharacter
- * since the caller might modify the terminal's state outside of this writer. However, many calls inside
- * TextGraphics will indeed make multiple calls in setCharacter where we know that the state won't change (actually,
- * we can't be 100% sure since the caller might create a separate thread and maliciously write directly to the
- * terminal while call one of the draw/fill/put methods in here). We could just set the state before writing every
- * single character but that would be inefficient. Rather, we keep a counter of if we are inside an 'atomic'
- * (meaning we know multiple calls to setCharacter will have the same state). Some drawing methods call other
- * drawing methods internally for their implementation so that's why this is implemented with an integer value
- * instead of a boolean; when the counter reaches zero we remove the memory of what state the terminal is in.
- */
     private fun enterAtomic() {
-manageCallStackSize!!.incrementAndGet()
-}
+        manageCallStackSize.incrementAndGet()
+    }
 
-private fun leaveAtomic() {
-if (manageCallStackSize!!.decrementAndGet() === 0)
-{
-lastPosition = null
-lastCharacter = null
-}
-}
+    private fun leaveAtomic() {
+        if (manageCallStackSize.decrementAndGet() == 0) {
+            lastPosition = null
+            lastCharacter = null
+        }
+    }
 }

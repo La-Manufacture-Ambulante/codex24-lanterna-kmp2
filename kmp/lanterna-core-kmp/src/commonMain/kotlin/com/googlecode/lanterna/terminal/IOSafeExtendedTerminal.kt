@@ -18,41 +18,15 @@
  */
 package com.googlecode.lanterna.terminal
 
-/**
- * Interface extending ExtendedTerminal that removes the IOException throw clause.
- * 
- * @author Martin
- * @author Andreas
- */
- interface IOSafeExtendedTerminal:IOSafeTerminal, ExtendedTerminal {
-
-@Override
- fun setTerminalSize(columns:Int, rows:Int) 
-
-@Override
- fun setTitle(title:String?) 
-
-@Override
-@JvmStatic  fun pushTitle() 
-
-@Override
-@JvmStatic  fun popTitle() 
-
-@Override
-@JvmStatic  fun iconify() 
-
-@Override
-@JvmStatic  fun deiconify() 
-
-@Override
-@JvmStatic  fun maximize() 
-
-@Override
-@JvmStatic  fun unmaximize() 
-
-@Override
- fun setMouseCaptureMode(mouseCaptureMode:MouseCaptureMode?) 
-
-@Override
- fun scrollLines(firstLine:Int, lastLine:Int, distance:Int) 
+interface IOSafeExtendedTerminal : IOSafeTerminal, ExtendedTerminal {
+    override fun setTerminalSize(columns: Int, rows: Int)
+    override fun setTitle(title: String?)
+    override fun pushTitle()
+    override fun popTitle()
+    override fun iconify()
+    override fun deiconify()
+    override fun maximize()
+    override fun unmaximize()
+    override fun setMouseCaptureMode(mouseCaptureMode: MouseCaptureMode?)
+    override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int)
 }

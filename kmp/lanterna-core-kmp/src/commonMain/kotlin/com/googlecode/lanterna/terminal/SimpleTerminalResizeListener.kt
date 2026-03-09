@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,66 +13,31 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.TerminalSize
 
-/**
- * This class is a simple implementation of Terminal.ResizeListener which will keep track of the size of the terminal
- * and let you know if the terminal has been resized since you last checked. This can be useful to avoid threading
- * problems with the resize callback when your application is using a main event loop.
- * 
- * @author martin
- */
-@SuppressWarnings("WeakerAccess")
- class SimpleTerminalResizeListener/**
- * Creates a new SimpleTerminalResizeListener
- * @param initialSize Before any resize event, this listener doesn't know the size of the terminal. By supplying a
- * value here, you control what getLastKnownSize() will return if invoked before any resize events has reached us.
- */
-    (initialSize:TerminalSize?):TerminalResizeListener {
+@Suppress("WeakerAccess")
+class SimpleTerminalResizeListener(initialSize: TerminalSize?) : TerminalResizeListener {
+    internal var wasResized = false
+    var lastKnownSize: TerminalSize? = initialSize
+        internal set
 
-internal var wasResized:Boolean = false
-/**
- * Returns the last known size the Terminal is supposed to have.
- * 
- * @return Size of the terminal, as of the last resize update
- */
-     var lastKnownSize:TerminalSize? = null
-internal set
+    val isTerminalResized: Boolean
+        @Synchronized get() {
+            if (wasResized) {
+                wasResized = false
+                return true
+            }
+            return false
+        }
 
-/**
- * Checks if the terminal was resized since the last time this method was called. If this is the first time calling
- * this method, the result is going to be based on if the terminal has been resized since this listener was attached
- * to the Terminal.
- * 
- * @return true if the terminal was resized, false otherwise
- */
-     val isTerminalResized:Boolean
-@Synchronized get() {
-if (wasResized)
-{
-wasResized = false
-return true
-}
-else
-{
-return false
-}
-}
-
-init{
-this.wasResized = false
-this.lastKnownSize = initialSize
-}
-
-@Override
-@Synchronized  fun onResized(terminal:Terminal?, newSize:TerminalSize?) {
-this.wasResized = true
-this.lastKnownSize = newSize
-}
-
+    @Synchronized
+    override fun onResized(terminal: Terminal?, newSize: TerminalSize?) {
+        wasResized = true
+        lastKnownSize = newSize
+    }
 }
