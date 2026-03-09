@@ -21,7 +21,9 @@ import com.googlecode.lanterna.terminal.Terminal
 
 @Throws(IOException::class)
  fun main(args:Array<String?>?) {
-val terminal = DefaultTerminalFactory().createTerminal()
+val terminal = requireNotNull(DefaultTerminalFactory().createTerminal()) {
+"Failed to create terminal"
+}
 val screen = TerminalScreen(terminal)
 
 val tGraphics = screen.newTextGraphics()
