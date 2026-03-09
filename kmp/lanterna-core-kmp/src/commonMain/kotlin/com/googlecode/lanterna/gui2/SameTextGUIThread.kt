@@ -26,7 +26,7 @@ class SameTextGUIThread private constructor(textGUI: TextGUI) : AbstractTextGUIT
 
     init {
         // Match Java behavior: same-thread mode rethrows loop exceptions by default.
-        exceptionHandler = null
+        exceptionHandlerRef = null
     }
 
     class Factory : TextGUIThreadFactory {

@@ -17,8 +17,8 @@ class ActionListDialogBuilder : AbstractDialogBuilder<ActionListDialogBuilder, A
 
     override fun buildDialog(): ActionListDialog {
         return ActionListDialog(
-            title,
-            description,
+            getTitle(),
+            getDescription(),
             listBoxSize,
             canCancel,
             closeAutomatically,

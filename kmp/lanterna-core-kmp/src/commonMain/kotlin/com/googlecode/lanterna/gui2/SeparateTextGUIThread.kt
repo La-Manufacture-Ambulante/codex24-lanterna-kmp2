@@ -78,9 +78,9 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
             try {
                 textGUI.updateScreen()
             } catch (e: IOException) {
-                exceptionHandler?.onIOException(e)
+                exceptionHandlerRef?.onIOException(e)
             } catch (e: RuntimeException) {
-                exceptionHandler?.onRuntimeException(e)
+                exceptionHandlerRef?.onRuntimeException(e)
             }
 
             while (state == AsynchronousTextGUIThread.State.STARTED) {
@@ -101,12 +101,12 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
                     }
                     break
                 } catch (e: IOException) {
-                    if (exceptionHandler?.onIOException(e) == true) {
+                    if (exceptionHandlerRef?.onIOException(e) == true) {
                         stop()
                         break
                     }
                 } catch (e: RuntimeException) {
-                    if (exceptionHandler?.onRuntimeException(e) == true) {
+                    if (exceptionHandlerRef?.onRuntimeException(e) == true) {
                         stop()
                         break
                     }

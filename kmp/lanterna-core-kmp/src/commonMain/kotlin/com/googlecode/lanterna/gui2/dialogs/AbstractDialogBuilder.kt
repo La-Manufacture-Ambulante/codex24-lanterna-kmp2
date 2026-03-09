@@ -7,30 +7,31 @@ import java.util.HashSet
 /**
  * Abstract class for dialog building, containing much shared code between different kinds of dialogs.
  */
-abstract class AbstractDialogBuilder<B, T : DialogWindow>(protected var title: String?) {
-    protected var description: String? = null
-    protected var extraWindowHints: Set<Window.Hint?> = Collections.singleton(Window.Hint.CENTERED)
+abstract class AbstractDialogBuilder<B, T : DialogWindow>(initialTitle: String?) {
+    private var dialogTitle: String? = initialTitle
+    private var dialogDescription: String? = null
+    private var dialogExtraWindowHints: Set<Window.Hint?> = Collections.singleton(Window.Hint.CENTERED)
 
     fun setTitle(title: String?): B {
-        this.title = title ?: ""
+        this.dialogTitle = title ?: ""
         return self()
     }
 
-    fun getTitle(): String? = title
+    fun getTitle(): String? = dialogTitle
 
     fun setDescription(description: String?): B {
-        this.description = description
+        this.dialogDescription = description
         return self()
     }
 
-    fun getDescription(): String? = description
+    fun getDescription(): String? = dialogDescription
 
     fun setExtraWindowHints(extraWindowHints: Set<Window.Hint?>?): B {
-        this.extraWindowHints = extraWindowHints ?: emptySet()
+        this.dialogExtraWindowHints = extraWindowHints ?: emptySet()
         return self()
     }
 
-    fun getExtraWindowHints(): Set<Window.Hint?> = extraWindowHints
+    fun getExtraWindowHints(): Set<Window.Hint?> = dialogExtraWindowHints
 
     protected abstract fun self(): B
 
@@ -38,9 +39,9 @@ abstract class AbstractDialogBuilder<B, T : DialogWindow>(protected var title: S
 
     fun build(): T {
         val dialog = buildDialog()
-        if (extraWindowHints.isNotEmpty()) {
+        if (dialogExtraWindowHints.isNotEmpty()) {
             val combinedHints = HashSet(dialog.hints.orEmpty())
-            combinedHints.addAll(extraWindowHints)
+            combinedHints.addAll(dialogExtraWindowHints)
             dialog.setHints(combinedHints)
         }
         return dialog

@@ -11,15 +11,15 @@ class FileDialogBuilder : AbstractDialogBuilder<FileDialogBuilder, FileDialog>("
     private var actionLabel: String? = LocalizedString.OK.toString()
     private var suggestedSize: TerminalSize? = TerminalSize(45, 10)
     private var selectedFile: File? = null
-    var isShowHiddenDirectories: Boolean = false
+    private var showHiddenDirectories: Boolean = false
 
     override fun buildDialog(): FileDialog {
         return FileDialog(
-            title,
-            description,
+            getTitle(),
+            getDescription(),
             actionLabel,
             suggestedSize ?: TerminalSize(45, 10),
-            isShowHiddenDirectories,
+            showHiddenDirectories,
             selectedFile,
         )
     }
@@ -46,8 +46,10 @@ class FileDialogBuilder : AbstractDialogBuilder<FileDialogBuilder, FileDialog>("
     fun getSelectedFile(): File? = selectedFile
 
     fun setShowHiddenDirectories(showHiddenDirectories: Boolean) {
-        this.isShowHiddenDirectories = showHiddenDirectories
+        this.showHiddenDirectories = showHiddenDirectories
     }
+
+    fun isShowHiddenDirectories(): Boolean = showHiddenDirectories
 
     override fun self(): FileDialogBuilder = this
 }

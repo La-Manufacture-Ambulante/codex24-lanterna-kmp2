@@ -15,7 +15,7 @@ class ListSelectDialogBuilder<T> : AbstractDialogBuilder<ListSelectDialogBuilder
     override fun self(): ListSelectDialogBuilder<T> = this
 
     override fun buildDialog(): ListSelectDialog<T> {
-        return ListSelectDialog(title, description, listBoxSize, canCancel, content)
+        return ListSelectDialog(getTitle(), getDescription(), listBoxSize, canCancel, content)
     }
 
     fun setListBoxSize(listBoxSize: TerminalSize?): ListSelectDialogBuilder<T> {

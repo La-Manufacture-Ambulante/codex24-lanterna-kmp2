@@ -34,7 +34,7 @@ import java.util.regex.Pattern
 /**
  * Editable text component supporting single-line and multi-line modes.
  */
-class TextBox @JvmOverloads constructor(
+class TextBox constructor(
     preferredSize: TerminalSize?,
     initialContent: String,
     private val style: Style =

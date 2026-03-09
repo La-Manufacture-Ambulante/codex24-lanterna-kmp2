@@ -25,122 +25,90 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 
 /**
- * Abstract implementation of [TextGUIThread] with common logic for both available concrete implementations.
+ * Abstract implementation of [TextGUIThread] with common loop/task logic.
  */
-abstract class AbstractTextGUIThread/**
- * Sets up this [AbstractTextGUIThread] for operations on the supplies [TextGUI]
- * @param textGUI Text GUI this [TextGUIThread] implementations will be operating on
- */
-    (protected val textGUI:TextGUI?):TextGUIThread {
-protected val customTasks:Queue<Runnable?>?
-protected var exceptionHandler:ExceptionHandler? = null
+abstract class AbstractTextGUIThread protected constructor(protected val textGUI: TextGUI) : TextGUIThread {
+    protected val customTasks: Queue<Runnable> = LinkedBlockingQueue()
+    protected var exceptionHandlerRef: TextGUIThread.ExceptionHandler? = object : TextGUIThread.ExceptionHandler {
+        override fun onIOException(e: IOException?): Boolean {
+            e?.printStackTrace()
+            return true
+        }
 
-init{
-this.exceptionHandler = object:ExceptionHandler() {
-@Override
- fun onIOException(e:IOException?):Boolean {
-e!!.printStackTrace()
-return true
-}
+        override fun onRuntimeException(e: RuntimeException?): Boolean {
+            e?.printStackTrace()
+            return true
+        }
+    }
 
-@Override
- fun onRuntimeException(e:RuntimeException?):Boolean {
-e!!.printStackTrace()
-return true
-}
-}
-this.customTasks = LinkedBlockingQueue()
-}
+    override fun invokeLater(runnable: Runnable?) {
+        if (runnable != null) {
+            customTasks.add(runnable)
+        }
+    }
 
-@Override
-@Throws(IllegalStateException::class)
- fun invokeLater(runnable:Runnable?) {
-customTasks!!.add(runnable)
-}
+    override fun setExceptionHandler(exceptionHandler: TextGUIThread.ExceptionHandler?) {
+        if (exceptionHandler == null) {
+            throw IllegalArgumentException("Cannot call setExceptionHandler(null)")
+        }
+        this.exceptionHandlerRef = exceptionHandler
+    }
 
-@Override
- fun setExceptionHandler(exceptionHandler:ExceptionHandler?) {
-if (exceptionHandler == null)
-{
-throw IllegalArgumentException("Cannot call setExceptionHandler(null)")
-}
-this.exceptionHandler = exceptionHandler
-}
-
-@Override
-@Synchronized @Throws(IOException::class)
- fun processEventsAndUpdate():Boolean {
-if (getThread() !== Thread.currentThread())
-{
-throw IllegalStateException("Calling processEventAndUpdate outside of GUI thread")
-}
-try
-{
-textGUI!!.processInput()
-while (!customTasks!!.isEmpty())
-{
-val r = customTasks!!.poll()
-if (r != null)
-{
-r!!.run()
-}
-}
-if (textGUI!!.isPendingUpdate())
-{
-textGUI!!.updateScreen()
-return true
-}
-return false
-}
-catch (e:EOFException) {
- // Always re-throw EOFExceptions so the UI system knows we've closed the terminal
+    @Synchronized
+    @Throws(IOException::class)
+    override fun processEventsAndUpdate(): Boolean {
+        if (thread != Thread.currentThread()) {
+            throw IllegalStateException("Calling processEventAndUpdate outside of GUI thread")
+        }
+        try {
+            textGUI.processInput()
+            while (!customTasks.isEmpty()) {
+                val runnable = customTasks.poll()
+                runnable?.run()
+            }
+            if (textGUI.isPendingUpdate) {
+                textGUI.updateScreen()
+                return true
+            }
+            return false
+        } catch (e: EOFException) {
             throw e
-}
-catch (e:IOException) {
-if (exceptionHandler != null)
-{
-exceptionHandler!!.onIOException(e)
-}
-else
-{
-throw e
-}
-}
-catch (e:RuntimeException) {
-if (exceptionHandler != null)
-{
-exceptionHandler!!.onRuntimeException(e)
-}
-else
-{
-throw e
-}
-}
+        } catch (e: IOException) {
+            val handler = exceptionHandlerRef
+            if (handler != null) {
+                handler.onIOException(e)
+            } else {
+                throw e
+            }
+        } catch (e: RuntimeException) {
+            val handler = exceptionHandlerRef
+            if (handler != null) {
+                handler.onRuntimeException(e)
+            } else {
+                throw e
+            }
+        }
+        return true
+    }
 
-return true
-}
-
-@Override
-@Throws(IllegalStateException::class, InterruptedException::class)
- fun invokeAndWait(runnable:Runnable?) {
-val guiThread = getThread()
-if (guiThread == null || Thread.currentThread() === guiThread)
-{
-runnable!!.run()
-}
-else
-{
-val countDownLatch = CountDownLatch(1)
-invokeLater({ try
-{
-runnable!!.run()
-}
-
-finally
-{
-countDownLatch.countDown()
-} })
-countDownLatch.await()
-}
-}
+    @Throws(IllegalStateException::class, InterruptedException::class)
+    override fun invokeAndWait(runnable: Runnable?) {
+        val guiThread = thread
+        if (runnable == null) {
+            return
+        }
+        if (guiThread == null || Thread.currentThread() == guiThread) {
+            runnable.run()
+        } else {
+            val countDownLatch = CountDownLatch(1)
+            invokeLater(Runnable {
+                try {
+                    runnable.run()
+                } finally {
+                    countDownLatch.countDown()
+                }
+            })
+            countDownLatch.await()
+        }
+    }
 }
