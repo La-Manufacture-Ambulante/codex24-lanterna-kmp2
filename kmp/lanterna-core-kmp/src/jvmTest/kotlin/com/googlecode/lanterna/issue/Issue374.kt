@@ -14,7 +14,7 @@ import java.util.Collections
 
 @Throws(Exception::class)
  fun main(args:Array<String?>?) {
-val terminal = DefaultTerminalFactory().createTerminal()
+val terminal = DefaultTerminalFactory().createTerminal()!!
 val screen = TerminalScreen(terminal)
 screen.startScreen()
 

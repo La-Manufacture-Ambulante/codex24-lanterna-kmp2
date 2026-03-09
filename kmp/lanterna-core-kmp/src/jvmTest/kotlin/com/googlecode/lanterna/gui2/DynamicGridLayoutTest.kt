@@ -34,10 +34,8 @@ import java.util.regex.Pattern
 
  class DynamicGridLayoutTest:TestBase() {
 
-private val randomColor:TextColor?
-get() {
-return GOOD_COLORS[RANDOM.nextInt(GOOD_COLORS.size)]
-}
+private val randomColor:TextColor
+get() = GOOD_COLORS[RANDOM.nextInt(GOOD_COLORS.size)]
 
 @Override
  fun init(textGUI:WindowBasedTextGUI) {
@@ -71,7 +69,7 @@ LinearLayout.createLayoutData(LinearLayout.Alignment.FILL)))
 mainPanel.addComponent(controlPanel)
 
 window.setComponent(mainPanel)
-textGUI!!.addWindow(window)
+textGUI.addWindow(window)
 }
 
 private fun onModifyGrid(textGUI:WindowBasedTextGUI, gridLayout:GridLayout?) {
@@ -84,17 +82,17 @@ val componentType = ListSelectDialog.showDialog(
 textGUI, 
 "Add Component", 
 "Select component to add", 
-SelectableComponentType.values())
+*SelectableComponentType.values())
 if (componentType == null)
 {
 return 
 }
 var component:Component? = null
 when (componentType) {
-DynamicGridLayoutTest.SelectableComponentType.Block, DynamicGridLayoutTest.SelectableComponentType.TextBox -> {
+SelectableComponentType.Block, SelectableComponentType.TextBox -> {
 val sizeString = TextInputDialogBuilder()
 .setInitialContent(if (componentType == SelectableComponentType.Block) "4x1" else "16x1")
-.setTitle("Add " + componentType!!)
+.setTitle("Add $componentType")
 .setDescription("Enter size of " + componentType + " (<columns>x<rows>)")
 .setValidationPattern(Pattern.compile("[0-9]+x[0-9]+"), "Invalid format, please use <columns>x<rows>")
 .build()
@@ -103,28 +101,28 @@ if (sizeString == null)
 {
 return 
 }
-val size = TerminalSize(Integer.parseInt(sizeString!!.split("x")[0]), Integer.parseInt(sizeString!!.split("x")[1]))
+val size = TerminalSize(Integer.parseInt(sizeString.split("x")[0]), Integer.parseInt(sizeString.split("x")[1]))
 component = if (componentType == SelectableComponentType.Block) EmptySpace(randomColor, size) else TextBox(size)
 }
 
-DynamicGridLayoutTest.SelectableComponentType.Label -> {
-val text = TextInputDialog.showDialog(textGUI, "Add " + componentType!!, "Enter the text of the new Label", "Label")
-component = Label(text)
+SelectableComponentType.Label -> {
+val text = TextInputDialog.showDialog(textGUI, "Add $componentType", "Enter the text of the new Label", "Label")
+component = Label(text ?: "")
 }
 }
-gridPanel!!.addComponent(component)
+gridPanel?.addComponent(component)
 }
 
 
 private fun onModifyComponent(textGUI:WindowBasedTextGUI, panel:Panel) {
-val components = panel.getChildren().toArray(arrayOfNulls<Component?>(panel.getChildCount()))
-val component = ListSelectDialog.showDialog(textGUI, "Modify Component", "Select component to modify", 10, components)
+val components = panel.children.toTypedArray()
+val component = ListSelectDialog.showDialog(textGUI, "Modify Component", "Select component to modify", 10, *components)
 if (component == null)
 {
 return 
 }
 
-val gridLayoutDataEditor = GridLayoutDataEditor(component!!)
+val gridLayoutDataEditor = GridLayoutDataEditor(component)
 gridLayoutDataEditor.showDialog(textGUI)
 }
 
@@ -139,12 +137,12 @@ textGUI,
 "Reset Grid", 
 "Pre-populate grid with how many dummy components?", 
 columns!!.toString())
-gridPanel!!.removeAllComponents()
-gridPanel!!.setLayoutManager(newGridLayout(columns!!.intValue()))
+gridPanel?.removeAllComponents()
+gridPanel?.setLayoutManager(newGridLayout(columns.intValue()))
 
-        for (i in 0 until prepopulate!!.intValue())
+for (i in 0 until (prepopulate?.intValue() ?: 0))
 {
-gridPanel!!.addComponent(EmptySpace(randomColor, TerminalSize(4, 1)))
+gridPanel?.addComponent(EmptySpace(randomColor, TerminalSize(4, 1)))
 }
 }
 
@@ -171,37 +169,37 @@ val contentPane = Panel()
 contentPane.setLayoutManager(GridLayout(2))
 contentPane.addComponent(Label("Horizontal spacing:"))
 val textBoxHorizontalSpacing = TextBox()
-textBoxHorizontalSpacing.setText(gridLayout.getHorizontalSpacing() + "")
+textBoxHorizontalSpacing.setText(gridLayout.getHorizontalSpacing().toString())
 textBoxHorizontalSpacing.setValidationPattern(numberPattern)
 contentPane.addComponent(textBoxHorizontalSpacing)
 
 contentPane.addComponent(Label("Vertical spacing:"))
 val textBoxVerticalSpacing = TextBox()
-textBoxVerticalSpacing.setText(gridLayout.getVerticalSpacing() + "")
+textBoxVerticalSpacing.setText(gridLayout.getVerticalSpacing().toString())
 textBoxVerticalSpacing.setValidationPattern(numberPattern)
 contentPane.addComponent(textBoxVerticalSpacing)
 
 contentPane.addComponent(Label("Left margin:"))
 val textBoxLeftMargin = TextBox()
-textBoxLeftMargin.setText(gridLayout.getLeftMarginSize() + "")
+textBoxLeftMargin.setText(gridLayout.getLeftMarginSize().toString())
 textBoxLeftMargin.setValidationPattern(numberPattern)
 contentPane.addComponent(textBoxLeftMargin)
 
 contentPane.addComponent(Label("Right margin:"))
 val textBoxRightMargin = TextBox()
-textBoxRightMargin.setText(gridLayout.getRightMarginSize() + "")
+textBoxRightMargin.setText(gridLayout.getRightMarginSize().toString())
 textBoxRightMargin.setValidationPattern(numberPattern)
 contentPane.addComponent(textBoxRightMargin)
 
 contentPane.addComponent(Label("Top margin:"))
 val textBoxTopMargin = TextBox()
-textBoxTopMargin.setText(gridLayout.getTopMarginSize() + "")
+textBoxTopMargin.setText(gridLayout.getTopMarginSize().toString())
 textBoxTopMargin.setValidationPattern(numberPattern)
 contentPane.addComponent(textBoxTopMargin)
 
 contentPane.addComponent(Label("Bottom margin:"))
 val textBoxBottomMargin = TextBox()
-textBoxBottomMargin.setText(gridLayout.getBottomMarginSize() + "")
+textBoxBottomMargin.setText(gridLayout.getBottomMarginSize().toString())
 textBoxBottomMargin.setValidationPattern(numberPattern)
 contentPane.addComponent(textBoxBottomMargin)
 
@@ -242,7 +240,7 @@ gridLayoutData = GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, Gri
 val contentPane = Panel()
 contentPane.setLayoutManager(GridLayout(2))
 contentPane.addComponent(Label("Horizontal alignment:"))
-val radioBoxesHorizontalAlignment = RadioBoxList()
+val radioBoxesHorizontalAlignment = RadioBoxList<GridLayout.Alignment>()
 radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.BEGINNING)
 radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.CENTER)
 radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.END)
@@ -254,7 +252,7 @@ contentPane.addComponent(
 EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
 
 contentPane.addComponent(Label("Vertical alignment:"))
-val radioBoxesVerticalAlignment = RadioBoxList()
+val radioBoxesVerticalAlignment = RadioBoxList<GridLayout.Alignment>()
 radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.BEGINNING)
 radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.CENTER)
 radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.END)
@@ -281,12 +279,12 @@ EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLa
 val numberPattern = Pattern.compile("[1-9][0-9]*")
 
 contentPane.addComponent(Label("Horizontal span:"))
-val textBoxHorizontalSpan = TextBox(TerminalSize(5, 1), gridLayoutData!!.horizontalSpan + "")
+val textBoxHorizontalSpan = TextBox(TerminalSize(5, 1), gridLayoutData!!.horizontalSpan.toString())
 textBoxHorizontalSpan.setValidationPattern(numberPattern)
 contentPane.addComponent(textBoxHorizontalSpan)
 
 contentPane.addComponent(Label("Vertical span:"))
-val textBoxVerticalSpan = TextBox(TerminalSize(5, 1), gridLayoutData!!.verticalSpan + "")
+val textBoxVerticalSpan = TextBox(TerminalSize(5, 1), gridLayoutData!!.verticalSpan.toString())
 textBoxVerticalSpan.setValidationPattern(numberPattern)
 contentPane.addComponent(textBoxVerticalSpan)
 
@@ -297,10 +295,13 @@ Separator(Direction.HORIZONTAL).setLayoutData(GridLayout.createHorizontallyFille
 contentPane.addComponent(
 EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
 
-val okButton = Button("OK", { component.setLayoutData(
+val okButton = Button("OK", {
+val horizontalAlignment = radioBoxesHorizontalAlignment.getCheckedItem() as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
+val verticalAlignment = radioBoxesVerticalAlignment.getCheckedItem() as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
+component.setLayoutData(
 GridLayout.createLayoutData(
-radioBoxesHorizontalAlignment.getCheckedItem(), 
-radioBoxesVerticalAlignment.getCheckedItem(), 
+horizontalAlignment, 
+verticalAlignment, 
 checkBoxGrabExtraHorizontalSpace.isChecked(), 
 checkBoxGrabExtraVerticalSpace.isChecked(), 
 Integer.parseInt(textBoxHorizontalSpan.getTextOrDefault("1")), 
@@ -321,7 +322,7 @@ companion object {
 DynamicGridLayoutTest().run(args)
 }
 
-private val GOOD_COLORS = arrayOf<TextColor?>(TextColor.ANSI.RED, TextColor.ANSI.BLUE, TextColor.ANSI.CYAN, TextColor.ANSI.GREEN, TextColor.ANSI.MAGENTA, TextColor.ANSI.YELLOW)
+private val GOOD_COLORS = arrayOf(TextColor.ANSI.RED, TextColor.ANSI.BLUE, TextColor.ANSI.CYAN, TextColor.ANSI.GREEN, TextColor.ANSI.MAGENTA, TextColor.ANSI.YELLOW)
 private val RANDOM = Random()
 }
 }

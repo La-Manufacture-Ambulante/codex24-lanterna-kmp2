@@ -36,14 +36,12 @@ abstract class TestBase {
         val screen = TestTerminalFactory(args).createScreen()!!
         screen.startScreen()
         val textGUI = invokeCreateTextGUI(screen)
-        val theme = extractTheme(args.orEmpty())
+        val theme = extractTheme(args ?: emptyArray())
         if (theme != null) {
             textGUI.setTheme(LanternaThemes.getRegisteredTheme(theme))
         }
         textGUI.setBlockingIO(false)
         textGUI.setEOFWhenNoWindows(true)
-
-        textGUI.isEOFWhenNoWindows() // Keep parity with original Java side effect
 
         try {
             invokeInit(textGUI)

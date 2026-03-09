@@ -35,7 +35,7 @@ import java.util.Arrays
 val factory = DefaultTerminalFactory()
 factory.setInitialTerminalSize(TerminalSize(150, 50))
 factory.setTerminalEmulatorTitle("name")
-val terminal = factory.createTerminal()
+val terminal = factory.createTerminal()!!
 val screen = TerminalScreen(terminal)
 screen.startScreen()
 

@@ -24,7 +24,7 @@ import java.io.IOException
 @Throws(IOException::class)
  fun main(args:Array<String?>?) {
 val terminalFactory = DefaultTerminalFactory()
-val terminal = terminalFactory.createTerminal()
+val terminal = terminalFactory.createTerminal()!!
 val screen = TerminalScreen(terminal)
 screen.startScreen()
 val textGUI = MultiWindowTextGUI(screen)

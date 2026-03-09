@@ -38,7 +38,7 @@ import java.util.Random
  fun main(args:Array<String?>?) {
 val string = "Hello!"
 val random = Random()
-val terminal = TestTerminalFactory(args).createTerminal()
+val terminal = TestTerminalFactory(args).createTerminal()!!
 terminal!!.enterPrivateMode()
 terminal!!.clearScreen()
 val size = terminal!!.getTerminalSize()

@@ -36,7 +36,7 @@ import java.io.IOException
  object Issue261 {
 @Throws(IOException::class)
  fun main(args:Array<String?>?) {
-val terminal = DefaultTerminalFactory().createTerminal()
+val terminal = DefaultTerminalFactory().createTerminal()!!
 val screen = TerminalScreen(terminal)
 screen.startScreen()
 

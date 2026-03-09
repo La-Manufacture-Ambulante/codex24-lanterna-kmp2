@@ -36,7 +36,7 @@ import java.io.IOException
  // For IDE users: either set runtime arguments or uncomment this line:
         //args = new String[] { "--mouse-move", "--telnet-port=1024", "--with-timeout=12" };
 
-        val rawTerminal = TestTerminalFactory(args).createTerminal()
+        val rawTerminal = TestTerminalFactory(args).createTerminal()!!
 rawTerminal!!.enterPrivateMode()
 
 var currentRow = 0

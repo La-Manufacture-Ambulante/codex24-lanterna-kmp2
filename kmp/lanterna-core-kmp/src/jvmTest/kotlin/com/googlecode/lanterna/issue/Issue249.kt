@@ -34,7 +34,7 @@ import com.googlecode.lanterna.terminal.*
  fun main(args:Array<String?>?) {
 
  // Setup terminal and screen layers
-        val terminal = DefaultTerminalFactory().createTerminal()
+        val terminal = DefaultTerminalFactory().createTerminal()!!
 val screen = TerminalScreen(terminal)
 screen.startScreen()
 

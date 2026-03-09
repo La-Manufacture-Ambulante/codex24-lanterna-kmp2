@@ -22,23 +22,21 @@ import com.googlecode.lanterna.*
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.screen.Screen
 
 import java.io.IOException
 
  class LineWrappingLabelTest:TestBase() {
 
-private var windowSize:TerminalSize = null
-init{
-windowSize = TerminalSize(70, 15)
-}
+private var windowSize:TerminalSize = TerminalSize(70, 15)
 
 @Override
-protected fun createTextGUI(screen:Screen):MultiWindowTextGUI? {
+protected fun createTextGUI(screen:Screen):MultiWindowTextGUI {
 return MultiWindowTextGUI(
 SeparateTextGUIThread.Factory(), 
 screen, 
-MyWindowManager(), 
+DefaultWindowManager(), 
 WindowShadowRenderer(), 
 EmptySpace(TextColor.ANSI.BLUE))
 }
@@ -49,58 +47,45 @@ val window = BasicWindow("Wrapping label test")
 val contentPane = Panel()
 contentPane.setLayoutManager(BorderLayout())
 contentPane.addComponent(Label("Resize window by holding ctrl and pressing arrow keys").setLayoutData(BorderLayout.Location.TOP))
-contentPane.addComponent(Label(BIG_TEXT).withBorder(Borders.doubleLine()).setLayoutData(BorderLayout.Location.CENTER))
+val bigTextLabel = Label(BIG_TEXT)
+bigTextLabel.withBorder(Borders.doubleLine())
+contentPane.addComponent(bigTextLabel.setLayoutData(BorderLayout.Location.CENTER))
 contentPane.addComponent(Button("Close", Runnable({ window.close() })).setLayoutData(BorderLayout.Location.BOTTOM))
 
 window.setComponent(contentPane)
 
-textGUI.addListener({ textGUI1, keyStroke->
-if (keyStroke!!.isCtrlDown())
-{
-when (keyStroke!!.getKeyType()) {
-ARROW_UP -> {
-if (windowSize!!.getRows() > 1)
-{
-windowSize = windowSize!!.withRelativeRows(-1)
-return@textGUI.addListener true
+textGUI.addListener(object : TextGUI.Listener {
+override fun onUnhandledKeyStroke(textGUI1: TextGUI?, keyStroke: com.googlecode.lanterna.input.KeyStroke?): Boolean {
+if (keyStroke?.isCtrlDown != true) {
+return false
 }
-windowSize = windowSize!!.withRelativeRows(1)
-return@textGUI.addListener true
+when (keyStroke.keyType) {
+KeyType.ARROW_UP -> {
+windowSize = (if (windowSize.rows > 1) windowSize.withRelativeRows(-1) else windowSize.withRelativeRows(1)) ?: windowSize
+return true
 }
-ARROW_DOWN -> {
-windowSize = windowSize!!.withRelativeRows(1)
-return@textGUI.addListener true
+KeyType.ARROW_DOWN -> {
+windowSize = windowSize.withRelativeRows(1) ?: windowSize
+return true
 }
-ARROW_LEFT -> {
-if (windowSize!!.getColumns() > 1)
-{
-windowSize = windowSize!!.withRelativeColumns(-1)
-return@textGUI.addListener true
+KeyType.ARROW_LEFT -> {
+windowSize = (if (windowSize.columns > 1) windowSize.withRelativeColumns(-1) else windowSize.withRelativeColumns(1)) ?: windowSize
+return true
 }
-windowSize = windowSize!!.withRelativeColumns(1)
-return@textGUI.addListener true
+KeyType.ARROW_RIGHT -> {
+windowSize = windowSize.withRelativeColumns(1) ?: windowSize
+return true
 }
-ARROW_RIGHT -> {
-windowSize = windowSize!!.withRelativeColumns(1)
-return@textGUI.addListener true
+else -> return false
 }
 }
-}
-false })
+})
 
 textGUI.addWindow(window)
 }
 
-private inner class MyWindowManager:DefaultWindowManager() {
-@Override
-protected fun prepareWindow(screenSize:TerminalSize, window:Window) {
-super.prepareWindow(screenSize, window)
-window!!.setDecoratedSize(getWindowDecorationRenderer(window).getDecoratedSize(window, windowSize))
-}
-}
-
 companion object {
- val BIG_TEXT:String? = (
+ val BIG_TEXT:String = (
 "                   GNU LESSER GENERAL PUBLIC LICENSE\n" + 
 "                       Version 3, 29 June 2007\n" + 
 "\n" + 

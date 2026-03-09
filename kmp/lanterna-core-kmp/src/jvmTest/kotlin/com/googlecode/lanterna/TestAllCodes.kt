@@ -30,7 +30,7 @@ package com.googlecode.lanterna
 System.out.write(byteArrayOf(0x1B.toByte(), 0x28, 0x30))
 for (i in 0..199)
 {
-System.out.write((i + " = " + (i.toChar()) + "\n").getBytes())
+System.out.write((i.toString() + " = " + (i.toChar()) + "\n").toByteArray())
 }
 System.out.write(byteArrayOf(0x1B.toByte(), 0x28, 0x42))
  //System.out.write(new byte[] { (byte)0x1B, (byte)0x21, (byte)0x40, 15 });

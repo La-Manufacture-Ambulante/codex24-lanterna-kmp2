@@ -16,7 +16,7 @@ import java.io.IOException
  object Issue312 {
 @Throws(IOException::class)
  fun main(args:Array<String?>?) {
-val terminal = DefaultTerminalFactory().createTerminal()
+val terminal = DefaultTerminalFactory().createTerminal()!!
 val textGraphics = terminal!!.newTextGraphics()
 var row = 0
 while (true)

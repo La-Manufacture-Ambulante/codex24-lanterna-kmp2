@@ -74,7 +74,7 @@ init{
 
 val content = Panel()
 content.setLayoutManager(BorderLayout())
-val textBox = TextBox(TestUtils.downloadGPL(), TextBox.Style.MULTI_LINE)
+val textBox = TextBox(TestUtils.downloadGPL() ?: "", TextBox.Style.MULTI_LINE)
 textBox.setLayoutData(BorderLayout.Location.CENTER)
 textBox.setReadOnly(true)
 content.addComponent(textBox)
@@ -91,7 +91,7 @@ init{
 
 val content = Panel()
 content.setLayoutManager(BorderLayout())
-val textBox = TextBox(TestUtils.downloadGPL(), TextBox.Style.MULTI_LINE)
+val textBox = TextBox(TestUtils.downloadGPL() ?: "", TextBox.Style.MULTI_LINE)
 textBox.setLayoutData(BorderLayout.Location.CENTER)
 textBox.setReadOnly(true)
 content.addComponent(textBox)
@@ -102,7 +102,7 @@ setHints(if (decorations) Collections.singletonList(Hint.EXPANDED) else Arrays.a
 }
 }
 
-private class TestWindow internal constructor(title:String?):BasicWindow(title) {
+private open class TestWindow internal constructor(title:String):BasicWindow(title) {
 init{
 setComponent(Button("Close", Runnable({ this.close() })))
 setCloseWindowWithEscape(true)

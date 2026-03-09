@@ -32,7 +32,7 @@ import java.io.IOException
  object Issue78 {
 @Throws(IOException::class)
  fun main(args:Array<String?>?) {
-val t = TestTerminalFactory(args).createTerminal()
+val t = TestTerminalFactory(args).createTerminal()!!
 t!!.enterPrivateMode()
 val s = TerminalScreen(t)
 s.startScreen()

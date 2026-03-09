@@ -33,8 +33,8 @@ import java.io.IOException
  object Issue155 {
 @Throws(IOException::class)
  fun main(vararg args:String?) {
-val term = DefaultTerminalFactory().createTerminal()
-val screen = TerminalScreen(term)
+val term = DefaultTerminalFactory().createTerminal()!!
+val screen = TerminalScreen(term!!)
 val windowManager = DefaultWindowManager()
 val background = EmptySpace(TextColor.ANSI.DEFAULT)
 val gui = MultiWindowTextGUI(screen, windowManager, background)
@@ -47,27 +47,25 @@ setComponent(createUi(gui, this))
 screen.stopScreen()
 }
 
-private fun createUi(gui:WindowBasedTextGUI, window:BasicWindow?, counter:Int = 1):Panel? {
+private fun createUi(gui:WindowBasedTextGUI, window:BasicWindow, counter:Int = 1):Panel {
 val nextCounter = counter + 3
-return Panels.vertical(
-Button("Open Dialog (and crush stuff)", openDialog(gui, window, nextCounter)), 
-object:CheckBoxList<String?>() {
-init{
+val checkBoxList = CheckBoxList<String>()
 for (i in counter until nextCounter)
 {
-addItem(String.valueOf(i))
+checkBoxList.addItem(i.toString())
 }
-}
-}, 
-Button("Quit", Runnable({ window!!.close() }))
+return Panels.vertical(
+Button("Open Dialog (and crush stuff)", openDialog(gui, window, nextCounter)), 
+checkBoxList, 
+Button("Quit", Runnable({ window.close() }))
 )
 }
 
-private fun openDialog(gui:WindowBasedTextGUI, window:BasicWindow?, counter:Int):Runnable {
-return { ActionListDialogBuilder().setCanCancel(true).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui) }
+private fun openDialog(gui:WindowBasedTextGUI, window:BasicWindow, counter:Int):Runnable {
+return Runnable { ActionListDialogBuilder().setCanCancel(true).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui) }
 }
 
-private fun setupUI(gui:WindowBasedTextGUI, window:BasicWindow?, counter:Int):Runnable {
-return { window!!.setComponent(createUi(gui, window, counter)) }
+private fun setupUI(gui:WindowBasedTextGUI, window:BasicWindow, counter:Int):Runnable {
+return Runnable { window.setComponent(createUi(gui, window, counter)) }
 }
 }

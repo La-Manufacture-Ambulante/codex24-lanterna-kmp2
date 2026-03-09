@@ -31,7 +31,7 @@ import java.io.IOException
 
 @Throws(InterruptedException::class, IOException::class)
  fun main(args:Array<String?>?) {
-val terminal = TestTerminalFactory(args).createTerminal()
+val terminal = TestTerminalFactory(args).createTerminal()!!
 terminal!!.enterPrivateMode()
 terminal!!.clearScreen()
 terminal!!.setCursorPosition(10, 5)

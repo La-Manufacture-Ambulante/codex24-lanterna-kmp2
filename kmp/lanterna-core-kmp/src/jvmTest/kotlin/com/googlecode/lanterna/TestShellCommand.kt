@@ -28,15 +28,15 @@ import java.io.*
  object TestShellCommand {
 @Throws(Exception::class)
  fun main(args:Array<String?>?) {
-val pb = ProcessBuilder(args)
+val pb = ProcessBuilder(*(args ?: emptyArray()).filterNotNull().toTypedArray())
 val process = pb.start()
 val baos = ByteArrayOutputStream()
-val stdout = process!!.getInputStream()
-var readByte = stdout!!.read()
+val stdout = process.inputStream
+var readByte = stdout.read()
 while (readByte >= 0)
 {
 baos.write(readByte)
-readByte = stdout!!.read()
+readByte = stdout.read()
 }
 val bais = ByteArrayInputStream(baos.toByteArray())
 val reader = BufferedReader(InputStreamReader(bais))

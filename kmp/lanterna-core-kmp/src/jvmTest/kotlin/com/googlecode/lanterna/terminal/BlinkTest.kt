@@ -34,7 +34,7 @@ import java.io.IOException
  object BlinkTest {
 @Throws(IOException::class)
  fun main(args:Array<String?>?) {
-val rawTerminal = TestTerminalFactory(args).createTerminal()
+val rawTerminal = TestTerminalFactory(args).createTerminal()!!
 rawTerminal!!.enterPrivateMode()
 rawTerminal!!.clearScreen()
 rawTerminal!!.setForegroundColor(TextColor.ANSI.RED)
