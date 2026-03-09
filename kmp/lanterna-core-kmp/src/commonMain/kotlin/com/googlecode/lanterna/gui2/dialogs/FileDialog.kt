@@ -14,6 +14,7 @@ import com.googlecode.lanterna.gui2.Panels
 import com.googlecode.lanterna.gui2.Separator
 import com.googlecode.lanterna.gui2.TextBox
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
+import com.googlecode.lanterna.input.KeyStroke
 import java.io.File
 import java.util.Arrays
 import java.util.Comparator
@@ -119,11 +120,11 @@ class FileDialog(
             )
             .addTo(contentPane)
 
-        okButton = Button(actionLabel, OkHandler())
+        okButton = Button(actionLabel, OkHandler()).setAccelerator(KeyStroke.fromString("<a-o>")) ?: Button(actionLabel, OkHandler())
         Panels.grid(
             2,
             okButton,
-            Button(LocalizedString.Cancel.toString(), CancelHandler()),
+            Button(LocalizedString.Cancel.toString(), CancelHandler()).setAccelerator(KeyStroke.fromString("<a-c>")),
         ).setLayoutData(
             GridLayout.createLayoutData(
                 GridLayout.Alignment.END,

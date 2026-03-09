@@ -11,6 +11,7 @@ import com.googlecode.lanterna.gui2.LocalizedString
 import com.googlecode.lanterna.gui2.Panel
 import com.googlecode.lanterna.gui2.TextBox
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
+import com.googlecode.lanterna.input.KeyStroke
 import java.io.File
 import java.util.Arrays
 import java.util.Comparator
@@ -67,8 +68,12 @@ class DirectoryDialog(
                 1,
             ),
         )
-        panelButtons.addComponent(Button(actionLabel, OkHandler()))
-        panelButtons.addComponent(Button(LocalizedString.Cancel.toString(), CancelHandler()))
+        panelButtons.addComponent(
+            Button(actionLabel, OkHandler()).setAccelerator(KeyStroke.fromString("<a-s>")),
+        )
+        panelButtons.addComponent(
+            Button(LocalizedString.Cancel.toString(), CancelHandler()).setAccelerator(KeyStroke.fromString("<a-c>")),
+        )
         contentPane.addComponent(panelButtons, BorderLayout.Location.BOTTOM)
 
         when {
