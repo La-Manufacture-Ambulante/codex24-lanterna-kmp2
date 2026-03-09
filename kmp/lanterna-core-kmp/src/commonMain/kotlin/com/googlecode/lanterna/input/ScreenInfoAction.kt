@@ -33,8 +33,7 @@ import com.googlecode.lanterna.TerminalPosition
  */
      val position:TerminalPosition?):KeyStroke(KeyType.CURSOR_LOCATION) {
 
-@Override
- fun toString():String? {
+override fun toString():String {
 return "ScreenInfoAction{position=" + position + '}'.toString()
 }
 }

@@ -19,28 +19,22 @@
 package com.googlecode.lanterna.input
 
 /**
- * Character pattern that matches characters pressed while ALT key is held down
- * 
- * @author Martin, Andreas
+ * Character pattern that matches characters pressed while ALT is held down.
  */
- class AltAndCharacterPattern:CharacterPattern {
-
-@Override
- fun match(seq:List<Character?>):Matching? {
-val size = seq.size()
-if (size > 2 || seq.get(0) !== KeyDecodingProfile.ESC_CODE)
-{
-return null // nope
-}
-if (size == 1)
-{
-return Matching.NOT_YET // maybe later
-}
-if (Character.isISOControl(seq.get(1)))
-{
-return null // nope
-}
-val ks = KeyStroke(seq.get(1), false, true)
-return Matching(ks) // yep
-}
+class AltAndCharacterPattern : CharacterPattern {
+    override fun match(seq: List<Char>?): CharacterPattern.Matching? {
+        val sequence = seq ?: return null
+        val size = sequence.size
+        if (size > 2 || sequence[0] != KeyDecodingProfile.ESC_CODE) {
+            return null
+        }
+        if (size == 1) {
+            return CharacterPattern.Matching.NOT_YET
+        }
+        val character = sequence[1]
+        if (Character.isISOControl(character)) {
+            return null
+        }
+        return CharacterPattern.Matching(KeyStroke(character, false, true))
+    }
 }

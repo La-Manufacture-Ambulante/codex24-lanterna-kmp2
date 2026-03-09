@@ -31,7 +31,7 @@ import com.googlecode.lanterna.TerminalPosition
 init{
 useEscEsc = false // stdMap and finMap don't matter here.
 }
-protected fun getKeyStrokeRaw(first:Char, num1:Int, num2:Int, last:Char, bEsc:Boolean):KeyStroke? {
+override fun getKeyStrokeRaw(first:Char, num1:Int, num2:Int, last:Char, bEsc:Boolean):KeyStroke? {
 if (first != '[' || last != 'R' || num1 == 0 || num2 == 0 || bEsc)
 {
 return null // nope
@@ -51,16 +51,16 @@ if (ks == null)
 {
 return null
 }
-when (ks!!.getKeyType()) {
-CURSOR_LOCATION -> return ks as ScreenInfoAction?
-F3 // reconstruct position from F3's modifiers.
+when (ks!!.keyType) {
+KeyType.CURSOR_LOCATION -> return ks as ScreenInfoAction?
+KeyType.F3 // reconstruct position from F3's modifiers.
  -> {
 if (ks is KeyStroke.RealF3) {
 return null
 }
-val col = (1 + (if (ks!!.isAltDown()) ALT else 0) 
-+ (if (ks!!.isCtrlDown()) CTRL else 0) 
-+ (if (ks!!.isShiftDown()) SHIFT else 0))
+val col = (1 + (if (ks.isAltDown) ALT else 0) 
++ (if (ks.isCtrlDown) CTRL else 0) 
++ (if (ks.isShiftDown) SHIFT else 0))
 val pos = TerminalPosition(col, 1)
 return ScreenInfoAction(pos)
 }

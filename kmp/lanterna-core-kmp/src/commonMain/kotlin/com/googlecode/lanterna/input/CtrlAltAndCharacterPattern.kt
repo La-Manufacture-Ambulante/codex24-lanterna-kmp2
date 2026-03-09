@@ -19,48 +19,35 @@
 package com.googlecode.lanterna.input
 
 /**
- * Character pattern that matches characters pressed while ALT and CTRL keys are held down
- * 
- * @author Martin, Andreas
+ * Character pattern that matches characters pressed while ALT and CTRL are held down.
  */
- class CtrlAltAndCharacterPattern:CharacterPattern {
+class CtrlAltAndCharacterPattern : CharacterPattern {
+    override fun match(seq: List<Char>?): CharacterPattern.Matching? {
+        val sequence = seq ?: return null
+        val size = sequence.size
+        if (size > 2 || sequence[0] != KeyDecodingProfile.ESC_CODE) {
+            return null
+        }
+        if (size == 1) {
+            return CharacterPattern.Matching.NOT_YET
+        }
 
-@Override
- fun match(seq:List<Character?>):Matching? {
-val size = seq.size()
-if (size > 2 || seq.get(0) !== KeyDecodingProfile.ESC_CODE)
-{
-return null // nope
-}
-if (size == 1)
-{
-return Matching.NOT_YET // maybe later
-}
-val ch = seq.get(1)
-if (ch.toInt() < 32 && ch.toInt() != 0x08)
-{
- // Control-chars: exclude Esc(^[), but still include ^\, ^], ^^ and ^_
-            val ctrlCode:Char
-when (ch) {
-KeyDecodingProfile.ESC_CODE -> return null // nope
-0  /* ^@ */ -> ctrlCode = ' '
-28 /* ^\ */ -> ctrlCode = '\\'
-29 /* ^] */ -> ctrlCode = ']'
-30 /* ^^ */ -> ctrlCode = '^'
-31 /* ^_ */ -> ctrlCode = '_'
-else -> ctrlCode = ('a'.toInt() - 1 + ch.toInt()).toChar()
-}
-val ks = KeyStroke(ctrlCode, true, true)
-return Matching(ks) // yep
-}
-else if (ch.toInt() == 0x7f || ch.toInt() == 0x08)
-{
-val ks = KeyStroke(KeyType.BACKSPACE, false, true)
-return Matching(ks) // yep
-}
-else
-{
-return null // nope
-}
-}
+        val ch = sequence[1]
+        if (ch.code < 32 && ch != '\b') {
+            val ctrlCode = when (ch) {
+                KeyDecodingProfile.ESC_CODE -> return null
+                '\u0000' -> ' '
+                '\u001c' -> '\\'
+                '\u001d' -> ']'
+                '\u001e' -> '^'
+                '\u001f' -> '_'
+                else -> ('a'.code - 1 + ch.code).toChar()
+            }
+            return CharacterPattern.Matching(KeyStroke(ctrlCode, true, true))
+        }
+        if (ch.code == 0x7f || ch == '\b') {
+            return CharacterPattern.Matching(KeyStroke(KeyType.BACKSPACE, false, true))
+        }
+        return null
+    }
 }

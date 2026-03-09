@@ -20,521 +20,308 @@ package com.googlecode.lanterna.gui2.table
 
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.gui2.AbstractInteractableComponent
+import com.googlecode.lanterna.gui2.Interactable
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
 
 /**
- * The table class is an interactable component that displays a grid of cells containing data along with a header of
- * labels. It supports scrolling when the number of rows and/or columns gets too large to fit and also supports
- * user selection which is either row-based or cell-based. User will move the current selection by using the arrow keys
- * on the keyboard.
- * @param <V> Type of data to store in the table cells, presented through `toString()`
- * @author Martin
-</V> */
- class Table<V>/**
- * Creates a new `Table` with the specified table model
- * @param tableModel Table model
+ * The table class is an interactable component that displays a grid of cells containing data along with a header.
  */
-    (tableModel:TableModel?):AbstractInteractableComponent<Table<V?>?>() {
-private var tableModel:TableModel<V?>? = null
-private val tableModelListener:TableModel.Listener<V?>?  // Used to invalidate the table whenever the model changes
-private var tableHeaderRenderer:TableHeaderRenderer<V?>? = null
-private var tableCellRenderer:TableCellRenderer<V?>? = null
-private var selectAction:Runnable? = null
-private var cellSelection:Boolean = false
-private var visibleRows:Int = 0
-private var visibleColumns:Int = 0
-private var selectedRow:Int = 0
-private var selectedColumn:Int = 0
-private var escapeByArrowKey:Boolean = false
+open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<Table<V?>>() {
+    private var tableModel: TableModel<V?> = tableModel
+    private val tableModelListener: TableModel.Listener<V?>
+    private var tableHeaderRenderer: TableHeaderRenderer<V?> = DefaultTableHeaderRenderer<V>()
+    private var tableCellRenderer: TableCellRenderer<V?> = DefaultTableCellRenderer<V>()
+    private var selectAction: Runnable? = null
+    private var cellSelection: Boolean = false
+    private var visibleRows: Int = 0
+    private var visibleColumns: Int = 0
+    private var selectedRow: Int = 0
+    private var selectedColumn: Int = -1
+    private var escapeByArrowKey: Boolean = true
 
-/**
- * Returns the index of the row that is currently the first row visible. This is always 0 unless scrolling has been
- * enabled and either the user or the software (through `setViewTopRow(..)`) has scrolled down.
- * @return Index of the row that is currently the first row visible
- */
-     val viewTopRow:Int
-@Deprecated("Use the table renderers method instead")
-get() {
-return renderer!!.getViewTopRow()
-}
+    constructor(vararg columnLabels: String?) : this(TableModel<V?>(*columnLabels))
 
-/**
- * Returns the index of the first row that is currently visible.
- * @return the index of the first row that is currently visible
- */
-     val firstViewedRowIndex:Int
-get() {
-return renderer!!.getViewTopRow()
-}
+    init {
+        tableModelListener = object : TableModel.Listener<V?> {
+            override fun onRowAdded(model: TableModel<V?>?, index: Int) {
+                if (index <= selectedRow) {
+                    selectedRow = kotlin.math.min((model?.getRowCount() ?: 1) - 1, selectedRow + 1)
+                }
+                invalidate()
+            }
 
-/**
- * Returns the index of the last row that is currently visible.
- * @return the index of the last row that is currently visible
- */
-     val lastViewedRowIndex:Int
-get() {
-val visibleRows = renderer!!.getVisibleRowsOnLastDraw()
-return Math.min(renderer!!.getViewTopRow() + visibleRows - 1, tableModel!!.getRowCount() - 1)
-}
+            override fun onRowRemoved(model: TableModel<V?>?, index: Int, oldRow: List<V?>) {
+                if (index < selectedRow) {
+                    selectedRow = kotlin.math.max(0, selectedRow - 1)
+                } else {
+                    val rowCount = model?.getRowCount() ?: 0
+                    if (selectedRow > rowCount - 1) {
+                        selectedRow = kotlin.math.max(0, rowCount - 1)
+                    }
+                }
+                invalidate()
+            }
 
-/**
- * Returns the index of the column that is currently the first column visible. This is always 0 unless scrolling has
- * been enabled and either the user or the software (through `setViewLeftColumn(..)`) has scrolled to the
- * right.
- * @return Index of the column that is currently the first column visible
- */
-     val viewLeftColumn:Int
-@Deprecated("Use the table renderers method instead")
-get() {
-return renderer!!.getViewLeftColumn()
-}
+            override fun onColumnAdded(model: TableModel<V?>?, index: Int) {
+                invalidate()
+            }
 
- val renderer:TableRenderer<V?>?
-@Override
-get() {
-return super.getRenderer() as TableRenderer<V?>
-}
+            override fun onColumnRemoved(model: TableModel<V?>?, index: Int, oldHeader: String?, oldColumn: List<V?>) {
+                invalidate()
+            }
 
-/**
- * Creates a new `Table` with the number of columns as specified by the array of labels
- * @param columnLabels Creates one column per label in the array, must be more than one
- */
-     constructor(vararg columnLabels:String?) : this(TableModel(columnLabels)) {}
+            override fun onCellChanged(model: TableModel<V?>?, row: Int, column: Int, oldValue: V?, newValue: V?) {
+                invalidate()
+            }
+        }
+        this.tableModel.addListener(tableModelListener)
+    }
 
-init{
-this.tableHeaderRenderer = DefaultTableHeaderRenderer()
-this.tableCellRenderer = DefaultTableCellRenderer()
-this.tableModel = tableModel
+    fun getTableModel(): TableModel<V?> = tableModel
 
-this.selectAction = null
-this.visibleColumns = 0
-this.visibleRows = 0
-this.cellSelection = false
-this.selectedRow = 0
-this.selectedColumn = -1
-this.escapeByArrowKey = true
+    @Synchronized
+    fun setTableModel(tableModel: TableModel<V?>?): Table<V?> {
+        requireNotNull(tableModel) { "Cannot assign a null TableModel" }
+        this.tableModel.removeListener(tableModelListener)
+        this.tableModel = tableModel
+        this.tableModel.addListener(tableModelListener)
+        invalidate()
+        return self()
+    }
 
-this.tableModelListener = object:TableModel.Listener<V?>() {
-@Override
- fun onRowAdded(model:TableModel<V?>?, index:Int) {
-if (index <= selectedRow)
-{
-selectedRow = Math.min(model!!.getRowCount() - 1, selectedRow + 1)
-}
-invalidate()
-}
+    fun getTableCellRenderer(): TableCellRenderer<V?> = tableCellRenderer
 
-@Override
- fun onRowRemoved(model:TableModel<V?>?, index:Int, oldRow:List<V?>?) {
-if (index < selectedRow)
-{
-selectedRow = Math.max(0, selectedRow - 1)
-}
-else
-{
- // We may have deleted the selected row
-                    val rowCount = model!!.getRowCount()
-if (selectedRow > rowCount - 1)
-{
-selectedRow = Math.max(0, rowCount - 1)
-}
-}
-invalidate()
-}
+    @Synchronized
+    fun setTableCellRenderer(tableCellRenderer: TableCellRenderer<V?>?): Table<V?> {
+        if (tableCellRenderer != null) {
+            this.tableCellRenderer = tableCellRenderer
+            invalidate()
+        }
+        return self()
+    }
 
-@Override
- fun onColumnAdded(model:TableModel<V?>?, index:Int) {
-invalidate()
-}
+    fun getTableHeaderRenderer(): TableHeaderRenderer<V?> = tableHeaderRenderer
 
-@Override
- fun onColumnRemoved(model:TableModel<V?>?, index:Int, oldHeader:String?, oldColumn:List<V?>?) {
-invalidate()
-}
+    @Synchronized
+    fun setTableHeaderRenderer(tableHeaderRenderer: TableHeaderRenderer<V?>?): Table<V?> {
+        if (tableHeaderRenderer != null) {
+            this.tableHeaderRenderer = tableHeaderRenderer
+            invalidate()
+        }
+        return self()
+    }
 
-@Override
- fun onCellChanged(model:TableModel<V?>?, row:Int, column:Int, oldValue:V?, newValue:V?) {
-invalidate()
-}
-}
-this.tableModel!!.addListener(tableModelListener)
-}
+    @Synchronized
+    fun setVisibleColumns(visibleColumns: Int) {
+        this.visibleColumns = visibleColumns
+        invalidate()
+    }
 
-/**
- * Returns the underlying table model
- * @return Underlying table model
- */
-     fun getTableModel():TableModel<V?>? {
-return tableModel
-}
+    fun getVisibleColumns(): Int = visibleColumns
 
-/**
- * Updates the table with a new table model, effectively replacing the content of the table completely
- * @param tableModel New table model
- * @return Itself
- */
-    @Synchronized  fun setTableModel(tableModel:TableModel<V?>?):Table<V?> {
-if (tableModel == null)
-{
-throw IllegalArgumentException("Cannot assign a null TableModel")
-}
-this.tableModel!!.removeListener(tableModelListener)
-this.tableModel = tableModel
-this.tableModel!!.addListener(tableModelListener)
-invalidate()
-return this
-}
+    @Synchronized
+    fun setVisibleRows(visibleRows: Int) {
+        this.visibleRows = visibleRows
+        invalidate()
+    }
 
-/**
- * Returns the `TableCellRenderer` used by this table when drawing cells
- * @return `TableCellRenderer` used by this table when drawing cells
- */
-     fun getTableCellRenderer():TableCellRenderer<V?>? {
-return tableCellRenderer
-}
+    fun getVisibleRows(): Int = visibleRows
 
-/**
- * Replaces the `TableCellRenderer` used by this table when drawing cells
- * @param tableCellRenderer New `TableCellRenderer` to use
- * @return Itself
- */
-    @Synchronized  fun setTableCellRenderer(tableCellRenderer:TableCellRenderer<V?>?):Table<V?> {
-this.tableCellRenderer = tableCellRenderer
-invalidate()
-return this
-}
-
-/**
- * Returns the `TableHeaderRenderer` used by this table when drawing the table's header
- * @return `TableHeaderRenderer` used by this table when drawing the table's header
- */
-     fun getTableHeaderRenderer():TableHeaderRenderer<V?>? {
-return tableHeaderRenderer
-}
-
-/**
- * Replaces the `TableHeaderRenderer` used by this table when drawing the table's header
- * @param tableHeaderRenderer New `TableHeaderRenderer` to use
- * @return Itself
- */
-    @Synchronized  fun setTableHeaderRenderer(tableHeaderRenderer:TableHeaderRenderer<V?>?):Table<V?> {
-this.tableHeaderRenderer = tableHeaderRenderer
-invalidate()
-return this
-}
-
-/**
- * Sets the number of columns this table should show. If there are more columns in the table model, a scrollbar will
- * be used to allow the user to scroll left and right and view all columns.
- * @param visibleColumns Number of columns to display at once
- */
-    @Synchronized  fun setVisibleColumns(visibleColumns:Int) {
-this.visibleColumns = visibleColumns
-invalidate()
-}
-
-/**
- * Returns the number of columns this table will show. If there are more columns in the table model, a scrollbar
- * will be used to allow the user to scroll left and right and view all columns.
- * @return Number of visible columns for this table
- */
-     fun getVisibleColumns():Int {
-return visibleColumns
-}
-
-/**
- * Sets the number of rows this table will show. If there are more rows in the table model, a scrollbar will be used
- * to allow the user to scroll up and down and view all rows.
- * @param visibleRows Number of rows to display at once
- */
-    @Synchronized  fun setVisibleRows(visibleRows:Int) {
-this.visibleRows = visibleRows
-invalidate()
-}
-
-/**
- * Returns the number of rows this table will show. If there are more rows in the table model, a scrollbar will be
- * used to allow the user to scroll up and down and view all rows.
- * @return Number of rows to display at once
- */
-     fun getVisibleRows():Int {
-return visibleRows
-}
-
-/**
- * Sets the view row offset for the first row to display in the table. Calling this with 0 will make the first row
- * in the model be the first visible row in the table.
- * 
- * @param viewTopRow Index of the row that is currently the first row visible
- * @return Itself
- */
     @Deprecated("Use the table renderers method instead")
-@Synchronized  fun setViewTopRow(viewTopRow:Int):Table<V?> {
-renderer!!.setViewTopRow(viewTopRow)
-return this
-}
+    fun getViewTopRow(): Int = renderer?.viewTopRow ?: 0
 
-/**
- * Sets the view column offset for the first column to display in the table. Calling this with 0 will make the first
- * column in the model be the first visible column in the table.
- * 
- * @param viewLeftColumn Index of the column that is currently the first column visible
- * @return Itself
- */
+    fun getFirstViewedRowIndex(): Int = renderer?.viewTopRow ?: 0
+
+    fun getLastViewedRowIndex(): Int {
+        val currentRenderer = renderer ?: return 0
+        val visibleRows = currentRenderer.visibleRowsOnLastDraw
+        return kotlin.math.min(currentRenderer.viewTopRow + visibleRows - 1, tableModel.getRowCount() - 1)
+    }
+
     @Deprecated("Use the table renderers method instead")
-@Synchronized  fun setViewLeftColumn(viewLeftColumn:Int):Table<V?> {
-renderer!!.setViewLeftColumn(viewLeftColumn)
-return this
-}
+    @Synchronized
+    fun setViewTopRow(viewTopRow: Int): Table<V?> {
+        renderer?.viewTopRow = viewTopRow
+        return self()
+    }
 
-/**
- * Returns the currently selection column index, if in cell-selection mode. Otherwise it returns -1.
- * @return In cell-selection mode returns the index of the selected column, otherwise -1
- */
-     fun getSelectedColumn():Int {
-return selectedColumn
-}
+    @Deprecated("Use the table renderers method instead")
+    fun getViewLeftColumn(): Int = renderer?.viewLeftColumn ?: 0
 
-/**
- * If in cell selection mode, updates which column is selected and ensures the selected column is visible in the
- * view. If not in cell selection mode, does nothing.
- * @param selectedColumn Index of the column that should be selected
- * @return Itself
- */
-    @Synchronized  fun setSelectedColumn(selectedColumn:Int):Table<V?> {
-if (cellSelection)
-{
-this.selectedColumn = selectedColumn
-}
-return this
-}
+    @Deprecated("Use the table renderers method instead")
+    @Synchronized
+    fun setViewLeftColumn(viewLeftColumn: Int): Table<V?> {
+        renderer?.viewLeftColumn = viewLeftColumn
+        return self()
+    }
 
-/**
- * Returns the index of the currently selected row
- * @return Index of the currently selected row
- */
-     fun getSelectedRow():Int {
-return selectedRow
-}
+    fun getSelectedColumn(): Int = selectedColumn
 
-/**
- * Sets the index of the selected row and ensures the selected row is visible in the view
- * @param selectedRow Index of the row to select
- * @return Itself
- */
-    @Synchronized  fun setSelectedRow(selectedRow:Int):Table<V?> {
-var selectedRow = selectedRow
-if (selectedRow < 0)
-{
-throw IllegalArgumentException("selectedRow must be >= 0 but was " + selectedRow)
-}
-val rowCount = tableModel!!.getRowCount()
-if (rowCount == 0)
-{
-selectedRow = 0
-}
-else if (selectedRow > rowCount - 1)
-{
-selectedRow = rowCount - 1
-}
-this.selectedRow = selectedRow
-return this
-}
+    @Synchronized
+    fun setSelectedColumn(selectedColumn: Int): Table<V?> {
+        if (cellSelection) {
+            this.selectedColumn = selectedColumn
+        }
+        return self()
+    }
 
-/**
- * If `true`, the user will be able to select and navigate individual cells, otherwise the user can only
- * select full rows.
- * @param cellSelection `true` if cell selection should be enabled, `false` for row selection
- * @return Itself
- */
-    @Synchronized  fun setCellSelection(cellSelection:Boolean):Table<V?> {
-this.cellSelection = cellSelection
-if (cellSelection && selectedColumn == -1)
-{
-selectedColumn = 0
-}
-else if (!cellSelection)
-{
-selectedColumn = -1
-}
-return this
-}
+    fun getSelectedRow(): Int = selectedRow
 
-/**
- * Returns `true` if this table is in cell-selection mode, otherwise `false`
- * @return `true` if this table is in cell-selection mode, otherwise `false`
- */
-     fun isCellSelection():Boolean {
-return cellSelection
-}
+    @Synchronized
+    fun setSelectedRow(selectedRow: Int): Table<V?> {
+        require(selectedRow >= 0) { "selectedRow must be >= 0 but was $selectedRow" }
+        var nextSelectedRow = selectedRow
+        val rowCount = tableModel.getRowCount()
+        nextSelectedRow = if (rowCount == 0) {
+            0
+        } else if (nextSelectedRow > rowCount - 1) {
+            rowCount - 1
+        } else {
+            nextSelectedRow
+        }
+        this.selectedRow = nextSelectedRow
+        return self()
+    }
 
-/**
- * Assigns an action to run whenever the user presses the enter or space key while focused on the table. If called with
- * `null`, no action will be run.
- * @param selectAction Action to perform when user presses the enter or space key
- * @return Itself
- */
-    @Synchronized  fun setSelectAction(selectAction:Runnable?):Table<V?> {
-this.selectAction = selectAction
-return this
-}
+    @Synchronized
+    fun setCellSelection(cellSelection: Boolean): Table<V?> {
+        this.cellSelection = cellSelection
+        selectedColumn = if (cellSelection && selectedColumn == -1) 0 else if (!cellSelection) -1 else selectedColumn
+        return self()
+    }
 
-/**
- * Returns `true` if this table can be navigated away from when the selected row is at one of the extremes and
- * the user presses the array key to continue in that direction. With `escapeByArrowKey` set to `true`,
- * this will move focus away from the table in the direction the user pressed, if `false` then nothing will
- * happen.
- * @return `true` if user can switch focus away from the table using arrow keys, `false` otherwise
- */
-     fun isEscapeByArrowKey():Boolean {
-return escapeByArrowKey
-}
+    fun isCellSelection(): Boolean = cellSelection
 
-/**
- * Sets the flag for if this table can be navigated away from when the selected row is at one of the extremes and
- * the user presses the array key to continue in that direction. With `escapeByArrowKey` set to `true`,
- * this will move focus away from the table in the direction the user pressed, if `false` then nothing will
- * happen.
- * @param escapeByArrowKey `true` if user can switch focus away from the table using arrow keys, `false` otherwise
- * @return Itself
- */
-    @Synchronized  fun setEscapeByArrowKey(escapeByArrowKey:Boolean):Table<V?> {
-this.escapeByArrowKey = escapeByArrowKey
-return this
-}
+    @Synchronized
+    fun setSelectAction(selectAction: Runnable?): Table<V?> {
+        this.selectAction = selectAction
+        return self()
+    }
 
-@Override
-protected fun createDefaultRenderer():TableRenderer<V?>? {
-return DefaultTableRenderer()
-}
+    fun isEscapeByArrowKey(): Boolean = escapeByArrowKey
 
-@Override
- fun handleKeyStroke(keyStroke:KeyStroke):Result? {
-when (keyStroke.getKeyType()) {
-ARROW_UP -> if (selectedRow > 0)
-{
-selectedRow--
-}
-else if (escapeByArrowKey)
-{
-return Result.MOVE_FOCUS_UP
-}
-ARROW_DOWN -> if (selectedRow < tableModel!!.getRowCount() - 1)
-{
-selectedRow++
-}
-else if (escapeByArrowKey)
-{
-return Result.MOVE_FOCUS_DOWN
-}
-PAGE_UP -> if (renderer!!.getVisibleRowsOnLastDraw() > 0 && selectedRow > 0)
-{
-selectedRow -= Math.min(renderer!!.getVisibleRowsOnLastDraw() - 1, selectedRow)
-}
-PAGE_DOWN -> if (renderer!!.getVisibleRowsOnLastDraw() > 0 && selectedRow < tableModel!!.getRowCount() - 1)
-{
-val toEndDistance = tableModel!!.getRowCount() - 1 - selectedRow
-selectedRow += Math.min(renderer!!.getVisibleRowsOnLastDraw() - 1, toEndDistance)
-}
-HOME -> selectedRow = 0
-END -> selectedRow = tableModel!!.getRowCount() - 1
-ARROW_LEFT -> if (cellSelection && selectedColumn > 0)
-{
-selectedColumn--
-}
-else if (escapeByArrowKey)
-{
-return Result.MOVE_FOCUS_LEFT
-}
-ARROW_RIGHT -> if (cellSelection && selectedColumn < tableModel!!.getColumnCount() - 1)
-{
-selectedColumn++
-}
-else if (escapeByArrowKey)
-{
-return Result.MOVE_FOCUS_RIGHT
-}
-CHARACTER, ENTER -> if (isKeyboardActivationStroke(keyStroke))
-{
-val runnable = selectAction   //To avoid synchronizing
-if (runnable != null)
-{
-runnable!!.run()
-}
-else
-{
-return Result.HANDLED
-}
-break
-}
-else
-{
-return super.handleKeyStroke(keyStroke)
-}
-MOUSE_EVENT -> {
-val action = keyStroke as MouseAction
-val actionType = action!!.getActionType()
-if (actionType === MouseActionType.MOVE)
-{
- // do nothing
-                    return Result.UNHANDLED
-}
-if (!isFocused())
-{
-super.handleKeyStroke(keyStroke)
-}
-val mouseRow = getRowByMouseAction(keyStroke as MouseAction)
-val mouseColumn = getColumnByMouseAction(keyStroke as MouseAction)
-val isDifferentCell = mouseRow != selectedRow || mouseColumn != selectedColumn
-selectedRow = mouseRow
-selectedColumn = mouseColumn
-if (isDifferentCell)
-{
-return handleKeyStroke(KeyStroke(KeyType.ENTER))
-}
-}
-else -> return super.handleKeyStroke(keyStroke)
-}
-invalidate()
-return Result.HANDLED
-}
+    @Synchronized
+    fun setEscapeByArrowKey(escapeByArrowKey: Boolean): Table<V?> {
+        this.escapeByArrowKey = escapeByArrowKey
+        return self()
+    }
 
-/**
- * By converting [TerminalPosition]s to
- * [.toGlobal] gets row clicked on by mouse action.
- * 
- * @return row of a table that was clicked on with [MouseAction]
- */
-    protected fun getRowByMouseAction(mouseAction:MouseAction):Int {
-val minPossible = firstViewedRowIndex
-val maxPossible = lastViewedRowIndex
-val mouseSpecified = mouseAction.getPosition().getRow() - getGlobalPosition().getRow() - 1
+    override fun createDefaultRenderer(): TableRenderer<V?>? {
+        return DefaultTableRenderer<V>()
+    }
 
-return Math.max(minPossible, Math.min(mouseSpecified, maxPossible))
-}
+    override val renderer: TableRenderer<V?>?
+        get() = super.renderer as TableRenderer<V?>?
 
-/**
- * By converting [TerminalPosition]s to
- * [.toGlobal] and by comparing widths of column
- * headers, gets column clicked on by mouse action.
- * 
- * @return row of a table that was clicked on with [MouseAction]
- */
-    protected fun getColumnByMouseAction(mouseAction:MouseAction):Int {
-val maxColumnIndex = tableModel!!.getColumnCount() - 1
-var column = 0
-var columnSize = tableHeaderRenderer!!.getPreferredSize(this, tableModel!!.getColumnLabel(column), column).getColumns()
-var globalColumnMoused = mouseAction.getPosition().getColumn() - getGlobalPosition().getColumn()
-while (globalColumnMoused - columnSize - 1 >= 0 && column < maxColumnIndex)
-{
-globalColumnMoused -= columnSize
-column++
-columnSize = tableHeaderRenderer!!.getPreferredSize(this, tableModel!!.getColumnLabel(column), column).getColumns()
-}
-return column
-}
+    override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
+        when (keyStroke.keyType) {
+            KeyType.ARROW_UP -> {
+                if (selectedRow > 0) {
+                    selectedRow--
+                } else if (escapeByArrowKey) {
+                    return Interactable.Result.MOVE_FOCUS_UP
+                }
+            }
 
+            KeyType.ARROW_DOWN -> {
+                if (selectedRow < tableModel.getRowCount() - 1) {
+                    selectedRow++
+                } else if (escapeByArrowKey) {
+                    return Interactable.Result.MOVE_FOCUS_DOWN
+                }
+            }
+
+            KeyType.PAGE_UP -> {
+                val visibleRows = renderer?.visibleRowsOnLastDraw ?: 0
+                if (visibleRows > 0 && selectedRow > 0) {
+                    selectedRow -= kotlin.math.min(visibleRows - 1, selectedRow)
+                }
+            }
+
+            KeyType.PAGE_DOWN -> {
+                val visibleRows = renderer?.visibleRowsOnLastDraw ?: 0
+                if (visibleRows > 0 && selectedRow < tableModel.getRowCount() - 1) {
+                    val toEndDistance = tableModel.getRowCount() - 1 - selectedRow
+                    selectedRow += kotlin.math.min(visibleRows - 1, toEndDistance)
+                }
+            }
+
+            KeyType.HOME -> selectedRow = 0
+            KeyType.END -> selectedRow = tableModel.getRowCount() - 1
+
+            KeyType.ARROW_LEFT -> {
+                if (cellSelection && selectedColumn > 0) {
+                    selectedColumn--
+                } else if (escapeByArrowKey) {
+                    return Interactable.Result.MOVE_FOCUS_LEFT
+                }
+            }
+
+            KeyType.ARROW_RIGHT -> {
+                if (cellSelection && selectedColumn < tableModel.getColumnCount() - 1) {
+                    selectedColumn++
+                } else if (escapeByArrowKey) {
+                    return Interactable.Result.MOVE_FOCUS_RIGHT
+                }
+            }
+
+            KeyType.CHARACTER, KeyType.ENTER -> {
+                if (isKeyboardActivationStroke(keyStroke)) {
+                    val runnable = selectAction
+                    if (runnable != null) {
+                        runnable.run()
+                    } else {
+                        return Interactable.Result.HANDLED
+                    }
+                } else {
+                    return super.handleKeyStroke(keyStroke)
+                }
+            }
+
+            KeyType.MOUSE_EVENT -> {
+                val action = keyStroke as? MouseAction ?: return Interactable.Result.UNHANDLED
+                if (action.actionType == MouseActionType.MOVE) {
+                    return Interactable.Result.UNHANDLED
+                }
+                if (!isFocused) {
+                    super.handleKeyStroke(keyStroke)
+                }
+                val mouseRow = getRowByMouseAction(action)
+                val mouseColumn = getColumnByMouseAction(action)
+                val isDifferentCell = mouseRow != selectedRow || mouseColumn != selectedColumn
+                selectedRow = mouseRow
+                selectedColumn = mouseColumn
+                if (isDifferentCell) {
+                    return handleKeyStroke(KeyStroke(KeyType.ENTER))
+                }
+            }
+
+            else -> return super.handleKeyStroke(keyStroke)
+        }
+        invalidate()
+        return Interactable.Result.HANDLED
+    }
+
+    protected fun getRowByMouseAction(mouseAction: MouseAction): Int {
+        val minPossible = getFirstViewedRowIndex()
+        val maxPossible = getLastViewedRowIndex()
+        val mouseSpecified = (mouseAction.position?.row ?: 0) - (globalPosition?.row ?: 0) - 1
+        return kotlin.math.max(minPossible, kotlin.math.min(mouseSpecified, maxPossible))
+    }
+
+    protected fun getColumnByMouseAction(mouseAction: MouseAction): Int {
+        val maxColumnIndex = tableModel.getColumnCount() - 1
+        var column = 0
+        var columnSize = tableHeaderRenderer.getPreferredSize(self(), tableModel.getColumnLabel(column), column)?.columns ?: 0
+        var globalColumnMoused = (mouseAction.position?.column ?: 0) - (globalPosition?.column ?: 0)
+        while (globalColumnMoused - columnSize - 1 >= 0 && column < maxColumnIndex) {
+            globalColumnMoused -= columnSize
+            column++
+            columnSize = tableHeaderRenderer.getPreferredSize(self(), tableModel.getColumnLabel(column), column)?.columns ?: 0
+        }
+        return column
+    }
 }

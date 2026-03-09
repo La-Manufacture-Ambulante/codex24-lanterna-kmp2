@@ -36,8 +36,8 @@ import java.util.*
  */
     (source:Reader?) {
 private val source:Reader?
-private val bytePatterns:List<CharacterPattern?>?
-private val currentMatching:List<Character?>?
+private val bytePatterns:MutableList<CharacterPattern>
+private val currentMatching:MutableList<Char>
 private var seenEOF:Boolean = false
 private var timeoutUnits:Int = 0
 
@@ -45,7 +45,7 @@ private var timeoutUnits:Int = 0
  * Returns a collection of all patterns registered in this InputDecoder.
  * @return Collection of patterns in the InputDecoder
  */
-     val patterns:Collection<CharacterPattern?>?
+     val patterns:Collection<CharacterPattern>
 @Synchronized get() {
 synchronized (bytePatterns) {
 return ArrayList(bytePatterns)
@@ -66,12 +66,12 @@ this.timeoutUnits = 0 // default is no wait at all
  * @param profile Profile to add
  */
      fun addProfile(profile:KeyDecodingProfile) {
-for (pattern in profile.getPatterns())
+for (pattern in profile.patterns)
 {
 synchronized (bytePatterns) {
  //If an equivalent pattern already exists, remove it first
-                bytePatterns!!.remove(pattern)
-bytePatterns!!.add(pattern)
+                bytePatterns.remove(pattern)
+bytePatterns.add(pattern)
 }
 }
 }
@@ -83,7 +83,7 @@ bytePatterns!!.add(pattern)
  */
      fun removePattern(pattern:CharacterPattern?):Boolean {
 synchronized (bytePatterns) {
-return bytePatterns!!.remove(pattern)
+return bytePatterns.remove(pattern)
 }
 }
 
@@ -127,7 +127,7 @@ var curLen = 0
 while (true)
 {
 
-if (curLen < currentMatching!!.size())
+if (curLen < currentMatching.size)
 {
  // (re-)consume characters previously read:
                 curLen++
@@ -163,13 +163,13 @@ val readChar = source!!.read()
 if (readChar == -1)
 {
 seenEOF = true
-if (currentMatching!!.isEmpty())
+if (currentMatching.isEmpty())
 {
 return KeyStroke(KeyType.EOF)
 }
 break
 }
-currentMatching!!.add(readChar.toChar())
+currentMatching.add(readChar.toChar())
 curLen++
 }
 else
@@ -184,7 +184,7 @@ break // it's something...
 }
 }
 
-val curSub = currentMatching!!.subList(0, curLen)
+val curSub = currentMatching.subList(0, curLen)
 val matching = getBestMatch(curSub)
 
  // fullMatch found...
@@ -221,7 +221,7 @@ if (bestMatch != null)
 else
 { // invalid input!
  // remove the whole fail and re-try finding a KeyStroke...
-                    curSub!!.clear() // or just 1 char?  currentMatching.remove(0);
+                    curSub.clear() // or just 1 char?  currentMatching.remove(0);
 curLen = 0
 
                     continue
@@ -235,24 +235,24 @@ curLen = 0
 {
 if (seenEOF)
 {
-currentMatching!!.clear()
+currentMatching.clear()
 return KeyStroke(KeyType.EOF)
 }
 return null
 }
 
-val bestSub = currentMatching!!.subList(0, bestLen)
-bestSub!!.clear() // remove matched characters from input
+val bestSub = currentMatching.subList(0, bestLen)
+bestSub.clear() // remove matched characters from input
 return bestMatch
 }
 
-private fun getBestMatch(characterSequence:List<Character?>?):Matching {
+private fun getBestMatch(characterSequence:List<Char>?):Matching {
 var partialMatch = false
 var bestMatch:KeyStroke? = null
 synchronized (bytePatterns) {
-for (pattern in bytePatterns!!)
+for (pattern in bytePatterns)
 {
-val res = pattern!!.match(characterSequence)
+val res = pattern.match(characterSequence)
 if (res != null)
 {
 if (res!!.partialMatch) {

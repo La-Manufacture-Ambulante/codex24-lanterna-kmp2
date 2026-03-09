@@ -19,73 +19,22 @@
 package com.googlecode.lanterna.input
 
 /**
- * Used to compare a list of character if they match a particular pattern, and in that case, return the kind of
- * keystroke this pattern represents
- * 
- * @author Martin, Andreas
+ * Used to compare a list of characters against a particular pattern and, on a full match, return the represented
+ * [KeyStroke].
  */
-@SuppressWarnings("WeakerAccess")
- interface CharacterPattern {
+@Suppress("WeakerAccess")
+interface CharacterPattern {
+    fun match(seq: List<Char>?): Matching?
 
-/**
- * Given a list of characters, determine whether it exactly matches
- * any known KeyStroke, and whether a longer sequence can possibly match.
- * @param seq of characters to check
- * @return see `Matching`
- */
-     fun match(seq:List<Character?>?):Matching? 
+    class Matching(val partialMatch: Boolean, val fullMatch: KeyStroke?) {
+        constructor(fullMatch: KeyStroke?) : this(false, fullMatch)
 
-/**
- * This immutable class describes a matching result. It wraps two items,
- * partialMatch and fullMatch.
- * <dl>
- * <dt>fullMatch</dt><dd>
- * The resulting KeyStroke if the pattern matched, otherwise null.<br></br>
- * Example: if the tested sequence is `Esc [ A`, and if the
- * pattern recognized this as `ArrowUp`, then this field has
- * a value like `new KeyStroke(KeyType.ArrowUp)`</dd>
- * <dt>partialMatch</dt><dd>
- * `true`, if appending appropriate characters at the end of the
- * sequence *can* produce a match.<br></br>
- * Example: if the tested sequence is "Esc [", and the Pattern would match
- * "Esc [ A", then this field would be set to `true`.</dd>
-</dl> * 
- * In principle, a sequence can match one KeyStroke, but also say that if
- * another character is available, then a different KeyStroke might result.
- * This can happen, if (e.g.) a single CharacterPattern-instance matches
- * both the Escape key and a longer Escape-sequence.
- */
-     class Matching/**
- * General constructor
- *
- *
- * For mismatches rather use `null` and for "not yet" matches use NOT_YET.
- * Use this constructor, where a sequence may yield both fullMatch and
- * partialMatch or for merging result Matchings of multiple patterns.
- * 
- * @param partialMatch  true if further characters could lead to a match
- * @param fullMatch     The perfectly matching KeyStroke
- */
-        ( val partialMatch:Boolean,  val fullMatch:KeyStroke?) {
+        override fun toString(): String {
+            return "Matching{partialMatch=$partialMatch, fullMatch=$fullMatch}"
+        }
 
-/**
- * Convenience constructor for exact matches
- * 
- * @param fullMatch  the KeyStroke that matched the sequence
- */
-         constructor(fullMatch:KeyStroke?) : this(false, fullMatch) {}
-
-@Override
- fun toString():String? {
-return "Matching{" + "partialMatch=" + partialMatch + ", fullMatch=" + fullMatch + '}'.toString()
-}
-
-companion object {
-
-/**
- * Re-usable result for "not yet" half-matches
- */
-         val NOT_YET = Matching(true, null)
-}
-}
+        companion object {
+            val NOT_YET = Matching(true, null)
+        }
+    }
 }

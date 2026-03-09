@@ -19,38 +19,28 @@
 package com.googlecode.lanterna.input
 
 /**
- * Character pattern that matches characters pressed while CTRL key is held down
- * 
- * @author Martin, Andreas
+ * Character pattern that matches characters pressed while CTRL is held down.
  */
- class CtrlAndCharacterPattern:CharacterPattern {
-@Override
- fun match(seq:List<Character?>):Matching? {
-val size = seq.size()
-val ch = seq.get(0)
-if (size != 1)
-{
-return null // nope
-}
-if (ch.toInt() < 32)
-{
- // Control-chars: exclude lf,cr,Tab,Esc(^[), but still include ^\, ^], ^^ and ^_
-            val ctrlCode:Char
-when (ch) {
-'\n', '\r', '\t', 0x08, KeyDecodingProfile.ESC_CODE -> return null // nope
-0  /* ^@ */ -> ctrlCode = ' '
-28 /* ^\ */ -> ctrlCode = '\\'
-29 /* ^] */ -> ctrlCode = ']'
-30 /* ^^ */ -> ctrlCode = '^'
-31 /* ^_ */ -> ctrlCode = '_'
-else -> ctrlCode = ('a'.toInt() - 1 + ch.toInt()).toChar()
-}
-val ks = KeyStroke(ctrlCode, true, false)
-return Matching(ks) // yep
-}
-else
-{
-return null // nope
-}
-}
+class CtrlAndCharacterPattern : CharacterPattern {
+    override fun match(seq: List<Char>?): CharacterPattern.Matching? {
+        val sequence = seq ?: return null
+        if (sequence.size != 1) {
+            return null
+        }
+        val ch = sequence[0]
+        if (ch.code >= 32) {
+            return null
+        }
+
+        val ctrlCode = when (ch) {
+            '\n', '\r', '\t', '\b', KeyDecodingProfile.ESC_CODE -> return null
+            '\u0000' -> ' '
+            '\u001c' -> '\\'
+            '\u001d' -> ']'
+            '\u001e' -> '^'
+            '\u001f' -> '_'
+            else -> ('a'.code - 1 + ch.code).toChar()
+        }
+        return CharacterPattern.Matching(KeyStroke(ctrlCode, true, false))
+    }
 }

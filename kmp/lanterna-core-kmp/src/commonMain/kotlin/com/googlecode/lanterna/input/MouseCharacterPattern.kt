@@ -39,9 +39,9 @@ import java.util.stream.Collectors
     private var isMouseDown = false
  // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-    @Override
- fun match(seq:List<Character?>):Matching? {
-val size = seq.size()
+    override fun match(seq:List<Char>?):CharacterPattern.Matching? {
+val sequence = seq ?: return null
+val size = sequence.size
 if (size > 15)
 {
 return null // nope
@@ -52,16 +52,16 @@ return null // nope
 {
 if (i >= (size - 1))
 {
-return Matching.NOT_YET // maybe later
+return CharacterPattern.Matching.NOT_YET // maybe later
 }
-if (seq.get(i) !== HEADER!![i])
+if (sequence[i] != HEADER[i])
 {
 return null // nope
 }
 }
 
  // Check if we have a number on the next position
-        if (seq.get(3).hashCode() < 48 || seq.get(3).hashCode() > 57)
+        if (sequence[3].code < 48 || sequence[3].code > 57)
 {
 return null // nope
 }
@@ -69,19 +69,19 @@ return null // nope
  // If the size is lower than 7 then we don't have the pattern yet for sure
         if (size < 7)
 {
-return Matching.NOT_YET // maybe later
+return CharacterPattern.Matching.NOT_YET // maybe later
 }
 
  // converts the list of characters to a string
-        val seqAString = seq.stream().map({ e-> e!!.toString() }).collect(Collectors.joining())
+        val seqAString = sequence.joinToString(separator = "")
 
  // Check if we match the regex
         val matcher = pattern!!.matcher(seqAString)
 if (matcher!!.matches())
 {
-var shiftDown:Boolean? = false
-var altDown:Boolean? = false
-var ctrlDown:Boolean? = false
+var shiftDown = false
+var altDown = false
+var ctrlDown = false
 
  // Get the button
             val item = Integer.valueOf(matcher!!.group(1))
@@ -177,11 +177,11 @@ actionType = MouseActionType.MOVE
             val pos = TerminalPosition(Integer.valueOf(matcher!!.group(2)) - 1, Integer.valueOf(matcher!!.group(3)) - 1)
 
 val ma = MouseAction(actionType, button, pos, ctrlDown, altDown, shiftDown)
-return Matching(ma) // yep
+return CharacterPattern.Matching(ma) // yep
 }
 else
 {
-return Matching.NOT_YET // maybe later
+return CharacterPattern.Matching.NOT_YET // maybe later
 }
 }
 

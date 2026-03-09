@@ -24,17 +24,16 @@ package com.googlecode.lanterna.input
  * @author Martin, Andreas
  */
  class NormalCharacterPattern:CharacterPattern {
-@Override
- fun match(seq:List<Character?>):Matching? {
-if (seq.size() !== 1)
+override fun match(seq:List<Char>?):CharacterPattern.Matching? {
+if (seq == null || seq.size != 1)
 {
 return null // nope
 }
-val ch = seq.get(0)
+val ch = seq[0]
 if (isPrintableChar(ch))
 {
 val ks = KeyStroke(ch, false, false)
-return Matching(ks)
+return CharacterPattern.Matching(ks)
 }
 else
 {

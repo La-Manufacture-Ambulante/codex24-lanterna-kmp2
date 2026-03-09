@@ -98,8 +98,7 @@ this.button = button
 this.position = position
 }
 
-@Override
- fun toString():String? {
+override fun toString():String {
 return "MouseAction{actionType=" + actionType + ", button=" + button + ", position=" + position + '}'.toString()
 }
 }

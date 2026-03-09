@@ -18,27 +18,10 @@
  */
 package com.googlecode.lanterna.input
 
-/**
- * In order to convert a stream of characters into objects representing keystrokes, we need to apply logic on this
- * stream to detect special characters. In lanterna, this is done by using a set of character patterns which are matched
- * against the stream until we've found the best match. This interface represents a set of such patterns, a 'profile'
- * with is used when decoding the input. There is a default profile, DefaultKeyDecodingProfile, which will probably
- * do what you need but you can also extend and define your own patterns.
- * 
- * @author Martin
- */
- interface KeyDecodingProfile {
+interface KeyDecodingProfile {
+    val patterns: Collection<CharacterPattern>
 
-/**
- * Returns a collection of character patterns that makes up this profile
- * @return Collection of patterns in this profile
- */
-     val patterns:Collection<CharacterPattern?>?
-
-companion object {
-/**
- * Static constant for the ESC key
- */
-     val ESC_CODE = 0x1b.toChar()
-}
+    companion object {
+        const val ESC_CODE: Char = 0x1b.toChar()
+    }
 }
