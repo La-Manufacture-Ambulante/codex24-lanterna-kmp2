@@ -49,83 +49,86 @@ class FileDialog(
         contentPane.setLayoutManager(GridLayout(2))
 
         if (description != null) {
-            Label(description)
-                .setLayoutData(
-                    GridLayout.createLayoutData(
-                        GridLayout.Alignment.BEGINNING,
-                        GridLayout.Alignment.CENTER,
-                        false,
-                        false,
-                        2,
-                        1,
-                    ),
-                )
-                .addTo(contentPane)
-        }
-
-        val unitWidth = dialogSize.columns / 3
-        val unitHeight = dialogSize.rows
-
-        FileSystemLocationLabel()
-            .setLayoutData(
-                GridLayout.createLayoutData(
-                    GridLayout.Alignment.FILL,
-                    GridLayout.Alignment.CENTER,
-                    true,
-                    false,
-                    2,
-                    1,
-                ),
-            )
-            .addTo(contentPane)
-
-        fileListBox = ActionListBox(TerminalSize(unitWidth * 2, unitHeight))
-        fileListBox.withBorder(Borders.singleLine())
-            .setLayoutData(
+            val descriptionLabel = Label(description)
+            descriptionLabel.setLayoutData(
                 GridLayout.createLayoutData(
                     GridLayout.Alignment.BEGINNING,
                     GridLayout.Alignment.CENTER,
                     false,
                     false,
+                    2,
+                    1,
                 ),
             )
-            .addTo(contentPane)
+            descriptionLabel.addTo(contentPane)
+        }
+
+        val unitWidth = dialogSize.columns / 3
+        val unitHeight = dialogSize.rows
+
+        val locationLabel = FileSystemLocationLabel()
+        locationLabel.setLayoutData(
+            GridLayout.createLayoutData(
+                GridLayout.Alignment.FILL,
+                GridLayout.Alignment.CENTER,
+                true,
+                false,
+                2,
+                1,
+            ),
+        )
+        locationLabel.addTo(contentPane)
+
+        fileListBox = ActionListBox(TerminalSize(unitWidth * 2, unitHeight))
+        val fileListBorder = fileListBox.withBorder(Borders.singleLine())
+        fileListBorder?.setLayoutData(
+            GridLayout.createLayoutData(
+                GridLayout.Alignment.BEGINNING,
+                GridLayout.Alignment.CENTER,
+                false,
+                false,
+            ),
+        )
+        fileListBorder?.addTo(contentPane)
 
         directoryListBox = ActionListBox(TerminalSize(unitWidth, unitHeight))
-        directoryListBox.withBorder(Borders.singleLine()).addTo(contentPane)
+        val directoryListBorder = directoryListBox.withBorder(Borders.singleLine())
+        directoryListBorder?.addTo(contentPane)
 
-        fileBox = TextBox()
-            .setLayoutData(
-                GridLayout.createLayoutData(
-                    GridLayout.Alignment.FILL,
-                    GridLayout.Alignment.CENTER,
-                    true,
-                    false,
-                    2,
-                    1,
-                ),
-            )
-            .addTo(contentPane) ?: TextBox()
+        val createdFileBox = TextBox()
+        createdFileBox.setLayoutData(
+            GridLayout.createLayoutData(
+                GridLayout.Alignment.FILL,
+                GridLayout.Alignment.CENTER,
+                true,
+                false,
+                2,
+                1,
+            ),
+        )
+        createdFileBox.addTo(contentPane)
+        fileBox = createdFileBox
 
-        Separator(Direction.HORIZONTAL)
-            .setLayoutData(
-                GridLayout.createLayoutData(
-                    GridLayout.Alignment.FILL,
-                    GridLayout.Alignment.CENTER,
-                    true,
-                    false,
-                    2,
-                    1,
-                ),
-            )
-            .addTo(contentPane)
+        val separator = Separator(Direction.HORIZONTAL)
+        separator.setLayoutData(
+            GridLayout.createLayoutData(
+                GridLayout.Alignment.FILL,
+                GridLayout.Alignment.CENTER,
+                true,
+                false,
+                2,
+                1,
+            ),
+        )
+        separator.addTo(contentPane)
 
         okButton = Button(actionLabel, OkHandler()).setAccelerator(KeyStroke.fromString("<a-o>")) ?: Button(actionLabel, OkHandler())
-        Panels.grid(
+        val buttonPanel = Panels.grid(
             2,
             okButton,
             Button(LocalizedString.Cancel.toString(), CancelHandler()).setAccelerator(KeyStroke.fromString("<a-c>")),
-        ).setLayoutData(
+        )
+        buttonPanel?.setLayoutData(
             GridLayout.createLayoutData(
                 GridLayout.Alignment.END,
                 GridLayout.Alignment.CENTER,
@@ -134,7 +137,8 @@ class FileDialog(
                 2,
                 1,
             ),
-        ).addTo(contentPane)
+        )
+        buttonPanel?.addTo(contentPane)
 
         when {
             resolvedSelectedObject.isFile -> {
