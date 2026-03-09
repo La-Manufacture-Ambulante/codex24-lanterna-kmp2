@@ -56,6 +56,7 @@ import com.googlecode.lanterna.*
 
 
  fun getTitleBarRectangle(window:Window):TerminalRectangle {
-return TerminalRectangle(0, 0, window.getDecoratedSize().getColumns(), getOffset(window)!!.row)
+val decoratedSize = window.decoratedSize ?: TerminalSize.ZERO
+return TerminalRectangle(0, 0, decoratedSize.columns, getOffset(window)!!.row)
 }
 }

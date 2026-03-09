@@ -21,23 +21,17 @@ package com.googlecode.lanterna.gui2
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.input.KeyStroke
-
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Adapter class for [WindowListener] to make it easier to create listeners without having to implement every
- * interface method.
+ * Adapter class for [WindowListener].
  */
- class WindowListenerAdapter:WindowListener {
-@Override
- fun onResized(window:Window?, oldSize:TerminalSize?, newSize:TerminalSize?) {}
+class WindowListenerAdapter : WindowListener {
+    override fun onResized(window: Window?, oldSize: TerminalSize?, newSize: TerminalSize?) {}
 
-@Override
- fun onMoved(window:Window?, oldPosition:TerminalPosition?, newPosition:TerminalPosition?) {}
+    override fun onMoved(window: Window?, oldPosition: TerminalPosition?, newPosition: TerminalPosition?) {}
 
-@Override
- fun onInput(basePane:Window?, keyStroke:KeyStroke?, deliverEvent:AtomicBoolean?) {}
+    override fun onInput(basePane: Window?, keyStroke: KeyStroke?, deliverEvent: AtomicBoolean?) {}
 
-@Override
- fun onUnhandledInput(basePane:Window?, keyStroke:KeyStroke?, hasBeenHandled:AtomicBoolean?) {}
+    override fun onUnhandledInput(basePane: Window?, keyStroke: KeyStroke?, hasBeenHandled: AtomicBoolean?) {}
 }
