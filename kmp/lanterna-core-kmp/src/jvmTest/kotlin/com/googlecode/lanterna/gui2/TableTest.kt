@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.dialogs.*
@@ -40,14 +42,14 @@ import java.util.regex.Pattern
 private var columnCounter = 4
 
 @Override
- fun init(textGUI:WindowBasedTextGUI?) {
+ fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("Table container test")
 window.setHints(Collections.singletonList(Window.Hint.FIT_TERMINAL_WINDOW))
 
 val table = Table("Column 1", "Column 2", "Column 3")
 table.setTableCellRenderer(object:DefaultTableCellRenderer<String?>() {
 @Override
-protected fun applyStyle(table:Table<String?>?, cell:String?, columnIndex:Int, rowIndex:Int, isSelected:Boolean, textGUIGraphics:TextGUIGraphics?) {
+protected fun applyStyle(table:Table<String?>?, cell:String?, columnIndex:Int, rowIndex:Int, isSelected:Boolean, textGUIGraphics:TextGUIGraphics) {
 super.applyStyle(table, cell, columnIndex, rowIndex, isSelected, textGUIGraphics)
 if (columnIndex == 1)
 {
@@ -112,7 +114,7 @@ model!!.removeColumn(Integer.parseInt(numberAsText))
 } })
 .build()
 .showDialog(textGUI) }))
-buttonPanel.addComponent(Button("Close", ???({ window.close() })))
+buttonPanel.addComponent(Button("Close", Runnable({ window.close() })))
 
 window.setComponent(Panels.vertical(
 table.withBorder(Borders.singleLineBevel("Table")), 
@@ -120,7 +122,7 @@ buttonPanel))
 textGUI!!.addWindow(window)
 }
 
-private fun onModify(textGUI:WindowBasedTextGUI?, table:Table<String?>?) {
+private fun onModify(textGUI:WindowBasedTextGUI, table:Table<String?>?) {
 val dialogChoices = arrayOf<String?>("Change table content", "Change table style", "Change view size", "Force re-calculate/re-draw")
 val choice = chooseAString(textGUI, "Modify what?", *dialogChoices)
 
@@ -144,7 +146,7 @@ table!!.invalidate()
 }
 }
 
-private fun onModifyContent(textGUI:WindowBasedTextGUI?, table:Table<String?>) {
+private fun onModifyContent(textGUI:WindowBasedTextGUI, table:Table<String?>) {
 val model = table.getTableModel()
 val columnIndexAsText = askForANumber(textGUI, "Enter column # to modify (0-" + (model!!.getColumnCount() - 1) + ")")
 if (columnIndexAsText == null)
@@ -163,7 +165,7 @@ model!!.setCell(Integer.parseInt(columnIndexAsText), Integer.parseInt(rowIndexAs
 }
 }
 
-private fun onModifyStyle(textGUI:WindowBasedTextGUI?, table:Table<String?>) {
+private fun onModifyStyle(textGUI:WindowBasedTextGUI, table:Table<String?>) {
 val dialogChoices = arrayOf<String?>("Header border style (vertical)", "Header border style (horizontal)", "Cell border style (vertical)", "Cell border style (horizontal)", "Toggle cell selection")
 val choice = chooseAString(textGUI, "Which style do you want to change?", *dialogChoices)
 val renderer = table.getRenderer() as DefaultTableRenderer<String?>
@@ -205,7 +207,7 @@ renderer!!.setCellHorizontalBorderStyle(newStyle)
 table.invalidate()
 }
 
-private fun onModifyViewSize(textGUI:WindowBasedTextGUI?, table:Table<String?>?) {
+private fun onModifyViewSize(textGUI:WindowBasedTextGUI, table:Table<String?>?) {
 val verticalViewSize = askForANumber(textGUI, "Enter number of rows to display at once (0 = all)")
 if (verticalViewSize == null)
 {
@@ -220,7 +222,7 @@ return
 table!!.setVisibleColumns(Integer.parseInt(horizontalViewSize))
 }
 
-private fun chooseAString(textGUI:WindowBasedTextGUI?, title:String?, vararg items:String?):String? {
+private fun chooseAString(textGUI:WindowBasedTextGUI, title:String?, vararg items:String?):String? {
 return ListSelectDialogBuilder<String?>()
 .setTitle(title)
 .addListItems(items)
@@ -228,14 +230,14 @@ return ListSelectDialogBuilder<String?>()
 .showDialog(textGUI)
 }
 
-private fun askForAString(textGUI:WindowBasedTextGUI?, title:String?):String? {
+private fun askForAString(textGUI:WindowBasedTextGUI, title:String?):String? {
 return TextInputDialogBuilder()
 .setTitle(title)
 .build()
 .showDialog(textGUI)
 }
 
-private fun askForANumber(textGUI:WindowBasedTextGUI?, title:String?, initialNumber:String? = ""):String? {
+private fun askForANumber(textGUI:WindowBasedTextGUI, title:String?, initialNumber:String? = ""):String? {
 return TextInputDialogBuilder()
 .setTitle(title)
 .setInitialContent(initialNumber)

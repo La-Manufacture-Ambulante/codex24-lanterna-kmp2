@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
@@ -38,7 +40,7 @@ val terminal = TestTerminalFactory(args)
 .createTerminal()
 var normalTerminal = true
 printNormalTerminalText(terminal!!)
-var keyStroke:KeyStroke? = null
+var keyStroke:KeyStroke = null
 while (keyStroke == null || keyStroke!!.getKeyType() !== KeyType.ESCAPE)
 {
 keyStroke = terminal!!.pollInput()
@@ -77,7 +79,7 @@ private fun printNormalTerminalText(terminal:Terminal) {
 terminal.clearScreen()
 terminal.setCursorPosition(5, 3)
 val text = "Normal terminal, press space to switch"
-for (i in 0 until text.length())
+for (i in 0 until text.length)
 {
 terminal.putCharacter(text.charAt(i))
 }
@@ -89,7 +91,7 @@ private fun printPrivateModeTerminalText(terminal:Terminal) {
 terminal.clearScreen()
 terminal.setCursorPosition(5, 3)
 val text = "Private mode terminal, press space to switch"
-for (i in 0 until text.length())
+for (i in 0 until text.length)
 {
 terminal.putCharacter(text.charAt(i))
 }

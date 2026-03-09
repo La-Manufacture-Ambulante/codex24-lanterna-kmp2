@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 
@@ -28,7 +30,7 @@ import org.junit.Assert.*
  class KeyTest {
 
 @Test
-@JvmStatic  fun testFromVim() {
+  fun testFromVim() {
 run({ val k = KeyStroke.fromString("a")
 assertEquals(KeyType.CHARACTER, k!!.getKeyType())
 assertEquals(Character('a'), k!!.getCharacter())

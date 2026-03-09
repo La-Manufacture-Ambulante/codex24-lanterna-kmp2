@@ -1,5 +1,7 @@
 package com.googlecode.lanterna.tutorial
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TextColor
@@ -49,7 +51,7 @@ import java.io.IOException
         The DefaultTerminalFactory can be further tweaked, but we'll leave it with default settings in this tutorial.
          */
 
-        var terminal:Terminal? = null
+        var terminal:Terminal = null
 try
 {
  /*
@@ -92,7 +94,7 @@ terminal!!.flush()
             terminal content so the cursor is at the top again before running this code.
              */
             val startPosition = terminal!!.getCursorPosition()
-terminal!!.setCursorPosition(startPosition!!.withRelativeColumn(3)!!.withRelativeRow(2))
+terminal!!.setCursorPosition(startPosition!!.withRelativeColumn(3).withRelativeRow(2))
 terminal!!.flush()
 Thread.sleep(2000)
 
@@ -133,7 +135,7 @@ Thread.sleep(2000)
             TerminalPosition class is immutable and calling the with* methods will return a copy. So the following
             setCursorPosition(..) call will put us exactly one row below the previous row.
              */
-            terminal!!.setCursorPosition(startPosition!!.withRelativeColumn(3)!!.withRelativeRow(3))
+            terminal!!.setCursorPosition(startPosition!!.withRelativeColumn(3).withRelativeRow(3))
 terminal!!.flush()
 Thread.sleep(2000)
 terminal!!.enableSGR(SGR.BOLD)

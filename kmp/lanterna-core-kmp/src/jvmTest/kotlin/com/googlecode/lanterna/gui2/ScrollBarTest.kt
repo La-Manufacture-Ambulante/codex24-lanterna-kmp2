@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
 
 import java.io.IOException
@@ -50,7 +52,7 @@ verticalScroll.setViewSize(getInteger(textBoxVerticalSize!!.getText(), 1))
 horizontalScroll.setScrollMaximum(getInteger(textBoxHorizontalMax!!.getText(), 0))
 horizontalScroll.setScrollPosition(getInteger(textBoxHorizontalPosition!!.getText(), 0))
 horizontalScroll.setViewSize(getInteger(textBoxHorizontalSize!!.getText(), 1)) })
-val closeButton = Button("Close", ???({ basicWindow.close() }))
+val closeButton = Button("Close", Runnable({ basicWindow.close() }))
 
 verticalScroll.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.FILL, false, true))
 horizontalScroll.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))

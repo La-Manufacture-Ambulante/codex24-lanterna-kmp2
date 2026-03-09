@@ -18,13 +18,15 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import java.io.IOException
 import java.util.Collections
 
  class LinearLayoutTest:TestBase() {
 
 @Override
- fun init(textGUI:WindowBasedTextGUI?) {
+ fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("Linear layout test")
 val mainPanel = Panel()
 val labelPanel = Panel()
@@ -50,7 +52,7 @@ Button("Spacing", { linearLayout.setSpacing(if (linearLayout.getSpacing() === 1)
 Button("Toggle Hide Odd #", { toggleVisibleOnOddNumberLabels(labelPanel) }), 
 Button("Expand", { window.setHints(Collections.singletonList(Window.Hint.EXPANDED)) }), 
 Button("Collapse", { window.setHints(Collections.emptySet()) }), 
-Button("Close", ???({ window.close() }))
+Button("Close", Runnable({ window.close() }))
 ))
 
 window.setComponent(mainPanel)

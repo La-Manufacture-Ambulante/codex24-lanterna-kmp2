@@ -18,11 +18,12 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.gui2.dialogs.*
 import com.googlecode.lanterna.screen.Screen
-import com.googlecode.lanterna.terminal.MouseCaptureMode
 
 import java.io.File
 import java.io.IOException
@@ -35,7 +36,7 @@ import java.util.regex.Pattern
  object DialogsTextGUIBasicTest {
 @Throws(IOException::class)
  fun main(args:Array<String?>?) {
-val screen = TestTerminalFactory(args).setMouseCaptureMode(MouseCaptureMode.CLICK_AUTODETECT).createScreen()
+val screen = TestTerminalFactory(args).createScreen()
 screen!!.startScreen()
 val textGUI = MultiWindowTextGUI(screen)
 try
@@ -86,7 +87,7 @@ dialogsListBox.addItem("Action list dialog", { ActionListDialogBuilder()
 
 mainPanel.addComponent(dialogsListBox)
 mainPanel.addComponent(EmptySpace(TerminalSize.ONE))
-mainPanel.addComponent(Button("Exit", ???({ window.close() })))
+mainPanel.addComponent(Button("Exit", Runnable({ window.close() })))
 window.setComponent(mainPanel)
 
 textGUI.addWindowAndWait(window)

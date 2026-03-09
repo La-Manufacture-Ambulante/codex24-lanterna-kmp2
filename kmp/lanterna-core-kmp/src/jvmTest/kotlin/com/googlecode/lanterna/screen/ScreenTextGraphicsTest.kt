@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.graphics.DoublePrintingTextGraphics
@@ -40,16 +42,16 @@ import org.junit.Test
  * @author sdedic
  */
  class ScreenTextGraphicsTest {
-internal var terminal:Terminal? = null
+internal var terminal:Terminal = null
 internal var screen:TerminalScreen? = null
 internal var textGraphics:TextGraphics? = null
 internal var subGraphics:TextGraphics? = null
 internal var subPosition:TerminalPosition? = TerminalPosition(10, 10)
-internal var subSize:TerminalSize? = TerminalSize(15, 10)
+internal var subSize:TerminalSize = TerminalSize(15, 10)
 
 @Before
 @Throws(IOException::class)
-@JvmStatic  fun setUp() {
+  fun setUp() {
  // pass empty InputStream, so any read completes immediately.
         terminal = DefaultTerminalFactory(System.out, ByteArrayInputStream(ByteArray(0)), 
 Charset.defaultCharset()).setInitialTerminalSize(TerminalSize(120, 50)).createHeadlessTerminal()
@@ -62,7 +64,7 @@ subGraphics = textGraphics!!.newTextGraphics(subPosition, subSize)
 
 @After
 @Throws(Exception::class)
-@JvmStatic  fun tearDown() {
+  fun tearDown() {
 screen!!.stopScreen(false)
 }
 
@@ -71,7 +73,7 @@ screen!!.stopScreen(false)
  * @throws Exception
  */
     @Test @Throws(Exception::class)
-@JvmStatic  fun rootToScreenPosition() {
+  fun rootToScreenPosition() {
 val pos = TerminalPosition(3, 3)
 
 textGraphics!!.putString(pos, "Hello")
@@ -83,7 +85,7 @@ assertEquals("l", screen!!.getBackCharacter(screenPos!!.withRelativeColumn(3)).g
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun rootSubGraphicsOffset() {
+  fun rootSubGraphicsOffset() {
 val pos = TerminalPosition(3, 3)
 
 subGraphics!!.putString(pos, "Hello")
@@ -98,7 +100,7 @@ assertEquals("l", screen!!.getBackCharacter(screenPos!!.withRelativeColumn(3)).g
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testPositionPastSubGraphicsSize() {
+  fun testPositionPastSubGraphicsSize() {
 val outOfRange = TerminalPosition(20, 10)
 
 val toScreen = subGraphics!!.toScreenPosition(outOfRange)
@@ -107,7 +109,7 @@ assertNull(toScreen)
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testPositionPastRootGraphicsSize() {
+  fun testPositionPastRootGraphicsSize() {
 val outOfRange = TerminalPosition(200, 10)
 
 val toScreen = textGraphics!!.toScreenPosition(outOfRange)
@@ -116,22 +118,22 @@ assertNull(toScreen)
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testDoublePrintingGraphics() {
+  fun testDoublePrintingGraphics() {
 val pos = TerminalPosition(1, 2)
 val doubleText = DoublePrintingTextGraphics(subGraphics)
 doubleText.putString(pos, "Ahoj")
 val screenPos = doubleText.toScreenPosition(pos)
-val nextScreenPos = doubleText.toScreenPosition(pos.withRelativeColumn("Ahoj".length()))
+val nextScreenPos = doubleText.toScreenPosition(pos.withRelativeColumn("Ahoj".length))
 
-val diff = nextScreenPos!!.minus(screenPos!!)
-assertEquals("Ahoj".length() * 2, diff!!.column)
+val diff = nextScreenPos!!.minus(screenPos)
+assertEquals("Ahoj".length * 2, diff!!.getColumn())
 assertEquals('A', screen!!.getBackCharacter(screenPos).getCharacter())
 assertEquals('j', screen!!.getBackCharacter(nextScreenPos!!.withRelativeColumn(-1)).getCharacter())
 }
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testTextWriterPositions() {
+  fun testTextWriterPositions() {
 val pos = TerminalPosition(3, 2)
 val writer = TextGraphicsWriter(subGraphics)
 
@@ -141,8 +143,8 @@ writer.putString("Ahoj")
 
 val nextPos = writer.toScreenPosition(null)
 
-val diff = nextPos!!.minus(startPos!!)
-assertEquals("Ahoj".length(), diff!!.column)
+val diff = nextPos!!.minus(startPos)
+assertEquals("Ahoj".length, diff!!.getColumn())
 
 assertEquals('A', screen!!.getBackCharacter(startPos).getCharacter())
 assertEquals('j', screen!!.getBackCharacter(nextPos!!.withRelativeColumn(-1)).getCharacter())

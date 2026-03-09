@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
 
 import java.io.IOException
@@ -54,7 +56,7 @@ mainPanel.addComponent(rightPanel.withBorder(Borders.singleLine("Multiline")))
 window.setComponent(
 Panels.vertical(
 mainPanel.withBorder(Borders.singleLine("Main")), 
-Button("OK", ???({ window.close() }))))
+Button("OK", Runnable({ window.close() }))))
 textGUI.addWindow(window)
 }
 

@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.Terminal

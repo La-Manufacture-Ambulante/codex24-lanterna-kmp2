@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import java.io.IOException
 
  class PanelTest:TestBase() {
@@ -65,7 +67,7 @@ rightPanel.addComponent(panel!!.withBorder(Borders.doubleLine("Title")))
 
 window.setComponent(Panels.vertical(
 mainPanel.withBorder(Borders.singleLine("Main")), 
-Button("OK", ???({ window.close() }))))
+Button("OK", Runnable({ window.close() }))))
 textGUI.addWindow(window)
 }
 

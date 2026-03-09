@@ -30,7 +30,7 @@ import java.io.IOException
  class ScreenTabTest @Throws(InterruptedException::class, IOException::class)
  constructor(args:Array<String?>?) {
 
-private val screen:Screen?
+private val screen:Screen
 
 init{
 screen = TestTerminalFactory(args).createScreen()

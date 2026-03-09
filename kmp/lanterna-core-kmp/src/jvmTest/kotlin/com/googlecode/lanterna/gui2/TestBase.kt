@@ -18,64 +18,81 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.bundle.LanternaThemes
 import com.googlecode.lanterna.screen.Screen
-
 import java.io.IOException
+import java.lang.reflect.Method
 
 /**
  * Some common code for the GUI tests to get a text system up and running on a separate thread
  * @author Martin
  */
 abstract class TestBase {
-@Throws(IOException::class, InterruptedException::class)
-internal fun run(args:Array<String?>?) {
-val screen = TestTerminalFactory(args).createScreen()
-screen!!.startScreen()
-val textGUI = createTextGUI(screen)
-val theme = extractTheme(args!!)
-if (theme != null)
-{
-textGUI!!.setTheme(LanternaThemes.getRegisteredTheme(theme))
-}
-textGUI!!.setBlockingIO(false)
-textGUI!!.setEOFWhenNoWindows(true)
+    @Throws(IOException::class, InterruptedException::class)
+    internal fun run(args: Array<String?>?) {
+        val screen = TestTerminalFactory(args).createScreen()!!
+        screen.startScreen()
+        val textGUI = invokeCreateTextGUI(screen)
+        val theme = extractTheme(args.orEmpty())
+        if (theme != null) {
+            textGUI.setTheme(LanternaThemes.getRegisteredTheme(theme))
+        }
+        textGUI.setBlockingIO(false)
+        textGUI.setEOFWhenNoWindows(true)
 
-        textGUI!!.isEOFWhenNoWindows()   //No meaning, just to silence IntelliJ:s "is never used" alert
+        textGUI.isEOFWhenNoWindows() // Keep parity with original Java side effect
 
-try
-{
-init(textGUI)
-val guiThread = textGUI!!.getGUIThread() as AsynchronousTextGUIThread
-guiThread!!.start()
-afterGUIThreadStarted(textGUI)
-guiThread!!.waitForStop()
-}
+        try {
+            invokeInit(textGUI)
+            val guiThread = textGUI.getGUIThread() as AsynchronousTextGUIThread
+            guiThread.start()
+            invokeAfterGUIThreadStarted(textGUI)
+            guiThread.waitForStop()
+        } finally {
+            screen.stopScreen()
+        }
+    }
 
-finally
-{
-screen!!.stopScreen()
-}
-}
+    private fun extractTheme(args: Array<String?>): String? {
+        for (i in args.indices) {
+            if (args[i] == "--theme" && i + 1 < args.size) {
+                return args[i + 1]
+            }
+        }
+        return null
+    }
 
-private fun extractTheme(args:Array<String?>):String? {
-for (i in args.indices)
-{
-if (args[i].equals("--theme") && i + 1 < args.size)
-{
-return args[i + 1]
-}
-}
-return null
-}
+    private fun findHook(name: String): Method? {
+        var cls: Class<*>? = javaClass
+        while (cls != null && cls != TestBase::class.java) {
+            cls.declaredMethods.firstOrNull { it.name == name && it.parameterCount == 1 }?.let {
+                it.isAccessible = true
+                return it
+            }
+            cls = cls.superclass
+        }
+        return null
+    }
 
-protected fun createTextGUI(screen:Screen?):MultiWindowTextGUI? {
-return MultiWindowTextGUI(SeparateTextGUIThread.Factory(), screen)
-}
+    private fun invokeCreateTextGUI(screen: Screen): MultiWindowTextGUI {
+        val method = findHook("createTextGUI")
+        if (method != null) {
+            val result = method.invoke(this, screen)
+            if (result is MultiWindowTextGUI) {
+                return result
+            }
+        }
+        return MultiWindowTextGUI(SeparateTextGUIThread.Factory(), screen)
+    }
 
-abstract fun init(textGUI:WindowBasedTextGUI?) 
- fun afterGUIThreadStarted(textGUI:WindowBasedTextGUI?) {
- // By default do nothing
+    private fun invokeInit(textGUI: WindowBasedTextGUI) {
+        findHook("init")?.invoke(this, textGUI)
+    }
+
+    private fun invokeAfterGUIThreadStarted(textGUI: WindowBasedTextGUI) {
+        findHook("afterGUIThreadStarted")?.invoke(this, textGUI)
     }
 }

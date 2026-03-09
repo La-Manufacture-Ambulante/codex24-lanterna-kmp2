@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
@@ -80,8 +82,8 @@ else
                 color = TextColor.Indexed(random.nextInt(256))
 }
 
-val topLeft = TerminalPosition(random.nextInt(size!!.columns), random.nextInt(size!!.rows))
-val rectangleSize = TerminalSize(random.nextInt(size!!.columns - topLeft.column), random.nextInt(size!!.rows - topLeft.row))
+val topLeft = TerminalPosition(random.nextInt(size!!.getColumns()), random.nextInt(size!!.getRows()))
+val rectangleSize = TerminalSize(random.nextInt(size!!.getColumns() - topLeft.getColumn()), random.nextInt(size!!.getRows() - topLeft.getRow()))
 
 textGraphics.setBackgroundColor(color)
 if (useFilled)

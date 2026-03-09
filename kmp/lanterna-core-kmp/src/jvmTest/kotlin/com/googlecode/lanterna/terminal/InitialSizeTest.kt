@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestTerminalFactory
@@ -43,7 +45,7 @@ rawTerminal!!.clearScreen()
 rawTerminal!!.setCursorPosition(5, 5)
 printString(rawTerminal, "Initial size: ")
 rawTerminal!!.enableSGR(SGR.BOLD)
-printString(rawTerminal, initialSize!!.toString()!!)
+printString(rawTerminal, initialSize!!.toString())
 rawTerminal!!.resetColorAndSGR()
 rawTerminal!!.flush()
 
@@ -57,8 +59,8 @@ rawTerminal!!.exitPrivateMode()
 }
 
 @Throws(IOException::class)
-private fun printString(rawTerminal:Terminal?, string:String) {
-for (i in 0 until string.length())
+private fun printString(rawTerminal:Terminal, string:String) {
+for (i in 0 until string.length)
 {
 rawTerminal!!.putCharacter(string.charAt(i))
 }

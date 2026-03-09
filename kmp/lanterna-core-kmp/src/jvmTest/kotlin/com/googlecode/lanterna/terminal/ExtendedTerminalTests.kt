@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics

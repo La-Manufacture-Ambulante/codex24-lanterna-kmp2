@@ -1,5 +1,7 @@
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.screen.Screen

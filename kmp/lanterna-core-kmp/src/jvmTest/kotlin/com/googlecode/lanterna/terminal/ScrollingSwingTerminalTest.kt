@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.terminal.swing.ScrollingSwingTerminal
 import com.googlecode.lanterna.terminal.swing.TerminalEmulatorColorConfiguration
@@ -77,19 +79,19 @@ panelTerminalContainer!!.setBorder(javax.swing.BorderFactory.createTitledBorder(
 panelTerminalContainer!!.setLayout(java.awt.BorderLayout())
 
 buttonPrint100Lines!!.setText("Print 100 lines")
-buttonPrint100Lines!!.addActionListener(???({ this.buttonPrint100LinesActionPerformed(it) }))
+buttonPrint100Lines!!.addActionListener(Runnable({ this.buttonPrint100LinesActionPerformed(it) }))
 
 buttonPrint10Lines!!.setText("Print 10 lines")
-buttonPrint10Lines!!.addActionListener(???({ this.buttonPrint10LinesActionPerformed(it) }))
+buttonPrint10Lines!!.addActionListener(Runnable({ this.buttonPrint10LinesActionPerformed(it) }))
 
 buttonPrint1Line!!.setText("Print 1 line")
-buttonPrint1Line!!.addActionListener(???({ this.buttonPrint1LineActionPerformed(it) }))
+buttonPrint1Line!!.addActionListener(Runnable({ this.buttonPrint1LineActionPerformed(it) }))
 
 buttonMoveCursor!!.setText("Move cursor")
-buttonMoveCursor!!.addActionListener(???({ this.buttonMoveCursorActionPerformed(it) }))
+buttonMoveCursor!!.addActionListener(Runnable({ this.buttonMoveCursorActionPerformed(it) }))
 
 jButton1!!.setText("Clear")
-jButton1!!.addActionListener(???({ this.jButton1ActionPerformed(it) }))
+jButton1!!.addActionListener(Runnable({ this.jButton1ActionPerformed(it) }))
 
 val layout = javax.swing.GroupLayout(getContentPane())
 getContentPane().setLayout(layout)
@@ -148,7 +150,7 @@ printLines(1)
 private fun buttonMoveCursorActionPerformed(evt:java.awt.event.ActionEvent?) {//GEN-FIRST:event_buttonMoveCursorActionPerformed
 val terminalSize = scrollingSwingTerminal!!.getTerminalSize()
 val random = Random()
-scrollingSwingTerminal!!.setCursorPosition(random.nextInt(terminalSize!!.columns), random.nextInt(terminalSize!!.rows))
+scrollingSwingTerminal!!.setCursorPosition(random.nextInt(terminalSize!!.getColumns()), random.nextInt(terminalSize!!.getRows()))
 scrollingSwingTerminal!!.flush()
 }//GEN-LAST:event_buttonMoveCursorActionPerformed
 
@@ -167,7 +169,7 @@ for (j in 0 until words)
 val length = random.nextInt(10) + 2
 for (k in 0 until length)
 {
-scrollingSwingTerminal!!.putCharacter(selection.charAt(random.nextInt(selection.length())))
+scrollingSwingTerminal!!.putCharacter(selection.charAt(random.nextInt(selection.length)))
 }
 scrollingSwingTerminal!!.putCharacter(' ')
 }

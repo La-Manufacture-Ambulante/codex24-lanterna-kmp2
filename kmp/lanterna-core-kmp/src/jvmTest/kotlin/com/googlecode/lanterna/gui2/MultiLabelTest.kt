@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestTerminalFactory
@@ -55,7 +57,7 @@ contentArea.addComponent(EmptySpace(TerminalSize(5, 1)))
 contentArea.addComponent(Label("Here is an animated label:"))
 contentArea.addComponent(AnimatedLabel.createClassicSpinningLine())
 contentArea.addComponent(EmptySpace())
-contentArea.addComponent(Button("Close", ???({ window.close() })).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.CENTER)))
+contentArea.addComponent(Button("Close", Runnable({ window.close() })).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.CENTER)))
 
 window.setComponent(contentArea)
 textGUI.addWindow(window)

@@ -30,7 +30,7 @@ import java.util.Random
         apply the changes so that the user can see them in the terminal.
          */
         val defaultTerminalFactory = DefaultTerminalFactory()
-var screen:Screen? = null
+var screen:Screen = null
 try
 {
  /*
@@ -60,9 +60,9 @@ screen = TerminalScreen(terminal)
              */
             val random = Random()
 var terminalSize = screen!!.getTerminalSize()
-for (column in 0 until terminalSize!!.columns)
+for (column in 0 until terminalSize!!.getColumns())
 {
-for (row in 0 until terminalSize!!.rows)
+for (row in 0 until terminalSize!!.getRows())
 {
 screen!!.setCharacter(column, row, TextCharacter(
 ' ', 
@@ -136,8 +136,8 @@ for (i in 0 until charactersToModifyPerLoop)
                     We pick a random location
                      */
                         val cellToModify = TerminalPosition(
-random.nextInt(terminalSize!!.columns), 
-random.nextInt(terminalSize!!.rows))
+random.nextInt(terminalSize!!.getColumns()), 
+random.nextInt(terminalSize!!.getRows()))
 
  /*
                     Pick a random background color again
@@ -161,8 +161,8 @@ screen!!.setCharacter(cellToModify, characterInBackBuffer)
                  */
                 val sizeLabel = "Terminal Size: " + terminalSize!!
 val labelBoxTopLeft = TerminalPosition(1, 1)
-val labelBoxSize = TerminalSize(sizeLabel!!.length() + 2, 3)
-val labelBoxTopRightCorner = labelBoxTopLeft.withRelativeColumn(labelBoxSize.columns - 1)
+val labelBoxSize = TerminalSize(sizeLabel!!.length + 2, 3)
+val labelBoxTopRightCorner = labelBoxTopLeft.withRelativeColumn(labelBoxSize.getColumns() - 1)
 val textGraphics = screen!!.newTextGraphics()
  //This isn't really needed as we are overwriting everything below anyway, but just for demonstrative purpose
                 textGraphics!!.fillRectangle(labelBoxTopLeft, labelBoxSize, ' ')
@@ -172,11 +172,11 @@ val textGraphics = screen!!.newTextGraphics()
                  */
                 textGraphics!!.drawLine(
 labelBoxTopLeft.withRelativeColumn(1), 
-labelBoxTopLeft.withRelativeColumn(labelBoxSize.columns - 2), 
+labelBoxTopLeft.withRelativeColumn(labelBoxSize.getColumns() - 2), 
 Symbols.DOUBLE_LINE_HORIZONTAL)
 textGraphics!!.drawLine(
-labelBoxTopLeft.withRelativeRow(2)!!.withRelativeColumn(1), 
-labelBoxTopLeft.withRelativeRow(2)!!.withRelativeColumn(labelBoxSize.columns - 2), 
+labelBoxTopLeft.withRelativeRow(2).withRelativeColumn(1), 
+labelBoxTopLeft.withRelativeRow(2).withRelativeColumn(labelBoxSize.getColumns() - 2), 
 Symbols.DOUBLE_LINE_HORIZONTAL)
 
  /*

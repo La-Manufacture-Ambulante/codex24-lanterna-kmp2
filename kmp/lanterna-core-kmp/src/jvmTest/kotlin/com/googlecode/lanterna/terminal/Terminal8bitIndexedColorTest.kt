@@ -19,6 +19,8 @@
 
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextColor
@@ -53,7 +55,7 @@ val backgroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.next
 
 terminal!!.setForegroundColor(foregroundIndex)
 terminal!!.setBackgroundColor(backgroundIndex)
-terminal!!.setCursorPosition(random.nextInt(size!!.columns - string.length()), random.nextInt(size!!.rows))
+terminal!!.setCursorPosition(random.nextInt(size!!.getColumns() - string.length), random.nextInt(size!!.getRows()))
 printString(terminal, string)
 
 try
@@ -66,8 +68,8 @@ catch (e:InterruptedException) {}
 }
 
 @Throws(IOException::class)
-private fun printString(terminal:Terminal?, string:String) {
-for (i in 0 until string.length())
+private fun printString(terminal:Terminal, string:String) {
+for (i in 0 until string.length)
 terminal!!.putCharacter(string.charAt(i))
 terminal!!.flush()
 }

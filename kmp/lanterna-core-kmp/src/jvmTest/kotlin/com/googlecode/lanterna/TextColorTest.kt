@@ -8,7 +8,7 @@ import org.junit.Assert.*
 
  class TextColorTest {
 @Test
-@JvmStatic  fun testFromAWTColor() {
+  fun testFromAWTColor() {
 var rgb = TextColor.RGB.fromAWTColor(Color.BLUE)
 assertEquals(0, rgb!!.getRed())
 assertEquals(0, rgb!!.getGreen())

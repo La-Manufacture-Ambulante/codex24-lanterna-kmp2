@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder
@@ -45,7 +47,7 @@ setComponent(createUi(gui, this))
 screen.stopScreen()
 }
 
-private fun createUi(gui:WindowBasedTextGUI?, window:BasicWindow?, counter:Int = 1):Panel? {
+private fun createUi(gui:WindowBasedTextGUI, window:BasicWindow?, counter:Int = 1):Panel? {
 val nextCounter = counter + 3
 return Panels.vertical(
 Button("Open Dialog (and crush stuff)", openDialog(gui, window, nextCounter)), 
@@ -57,15 +59,15 @@ addItem(String.valueOf(i))
 }
 }
 }, 
-Button("Quit", ???({ window!!.close() }))
+Button("Quit", Runnable({ window!!.close() }))
 )
 }
 
-private fun openDialog(gui:WindowBasedTextGUI?, window:BasicWindow?, counter:Int):Runnable {
+private fun openDialog(gui:WindowBasedTextGUI, window:BasicWindow?, counter:Int):Runnable {
 return { ActionListDialogBuilder().setCanCancel(true).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui) }
 }
 
-private fun setupUI(gui:WindowBasedTextGUI?, window:BasicWindow?, counter:Int):Runnable {
+private fun setupUI(gui:WindowBasedTextGUI, window:BasicWindow?, counter:Int):Runnable {
 return { window!!.setComponent(createUi(gui, window, counter)) }
 }
 }

@@ -1,5 +1,7 @@
 package com.googlecode.lanterna.tutorial
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog
@@ -31,7 +33,7 @@ import java.util.TimeZone
         determines the position of each component.
          */
         val terminalFactory = DefaultTerminalFactory()
-var screen:Screen? = null
+var screen:Screen = null
 
 try
 {
@@ -148,7 +150,7 @@ Separator(Direction.HORIZONTAL)
 .setLayoutData(
 GridLayout.createHorizontallyFilledLayoutData(2)))
 contentPanel.addComponent(
-Button("Close", ???({ window.close() })).setLayoutData(
+Button("Close", Runnable({ window.close() })).setLayoutData(
 GridLayout.createHorizontallyEndAlignedLayoutData(2)))
 
  /*

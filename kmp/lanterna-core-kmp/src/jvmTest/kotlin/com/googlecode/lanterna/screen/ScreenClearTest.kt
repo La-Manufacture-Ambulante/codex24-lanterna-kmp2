@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.TextColor
@@ -45,7 +47,7 @@ sleep(300)
 screen!!.stopScreen()
 }
 
-private fun drawText(screen:Screen?) {
+private fun drawText(screen:Screen) {
 val writer = ScreenTextGraphics(screen)
 writer.setForegroundColor(TextColor.ANSI.DEFAULT)
 writer.setBackgroundColor(TextColor.ANSI.DEFAULT)

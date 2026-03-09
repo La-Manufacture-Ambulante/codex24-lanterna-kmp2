@@ -1,5 +1,7 @@
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
@@ -70,7 +72,7 @@ return panel
 }
 
 private fun buildButtonBar():Component {
-return Button("Close", ???({ this.close() }))
+return Button("Close", Runnable({ this.close() }))
 }
 }
 }

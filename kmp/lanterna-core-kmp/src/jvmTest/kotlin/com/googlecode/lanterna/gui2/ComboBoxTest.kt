@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
@@ -30,7 +32,7 @@ import java.util.regex.Pattern
  class ComboBoxTest:TestBase() {
 
 @Override
- fun init(textGUI:WindowBasedTextGUI?) {
+ fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("ComboBoxTest")
 val mainPanel = Panel()
 
@@ -97,7 +99,7 @@ mainPanel.addComponent(EmptySpace(TerminalSize.ONE))
 mainPanel.addComponent(comboBoxTimeZones!!.withBorder(Borders.singleLine("Large ComboBox")))
 mainPanel.addComponent(EmptySpace(TerminalSize.ONE))
 mainPanel.addComponent(Separator(Direction.HORIZONTAL).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL)))
-mainPanel.addComponent(Button("OK", ???({ window.close() })))
+mainPanel.addComponent(Button("OK", Runnable({ window.close() })))
 window.setComponent(mainPanel)
 textGUI!!.addWindow(window)
 }

@@ -41,16 +41,16 @@ textGraphics = DoublePrintingTextGraphics(textGraphics)
 textGraphics!!.setForegroundColor(TextColor.ANSI.BLUE)
 textGraphics!!.putString(3, 3, "Hello World!")
 textGraphics!!.setForegroundColor(TextColor.ANSI.CYAN)
-val lineStart = TerminalPosition(3 + "Hello World!".length(), 3)
-textGraphics!!.drawLine(lineStart, lineStart.withRelativeColumn(2)!!.withRelativeRow(6), Symbols.BLOCK_SOLID)
+val lineStart = TerminalPosition(3 + "Hello World!".length, 3)
+textGraphics!!.drawLine(lineStart, lineStart.withRelativeColumn(2).withRelativeRow(6), Symbols.BLOCK_SOLID)
 textGraphics!!.setForegroundColor(TextColor.ANSI.RED)
-textGraphics!!.drawRectangle(lineStart.withRelativeColumn(2)!!.withRelativeRow(6), TerminalSize(5, 3), Symbols.BULLET)
+textGraphics!!.drawRectangle(lineStart.withRelativeColumn(2).withRelativeRow(6), TerminalSize(5, 3), Symbols.BULLET)
 textGraphics!!.setForegroundColor(TextColor.ANSI.MAGENTA)
-var triangleStart = lineStart.withRelativeColumn(7)!!.withRelativeRow(9)
+var triangleStart = lineStart.withRelativeColumn(7).withRelativeRow(9)
 textGraphics!!.drawTriangle(
 triangleStart, 
-triangleStart!!.withColumn(0)!!.withRelativeRow(-1), 
-triangleStart!!.withColumn(5)!!.withRelativeRow(3), 
+triangleStart!!.withColumn(0).withRelativeRow(-1), 
+triangleStart!!.withColumn(5).withRelativeRow(3), 
 Symbols.SPADES)
 textGraphics!!.setForegroundColor(TextColor.ANSI.YELLOW)
 textGraphics!!.fillRectangle(TerminalPosition(30, 1), TerminalSize(8, 5), Symbols.DIAMOND)
@@ -58,8 +58,8 @@ textGraphics!!.setForegroundColor(TextColor.ANSI.GREEN)
 triangleStart = TerminalPosition(30, 6)
 textGraphics!!.fillTriangle(
 triangleStart, 
-triangleStart!!.withRelativeRow(5)!!.withRelativeColumn(-2), 
-triangleStart!!.withRelativeRow(5)!!.withRelativeColumn(4), 
+triangleStart!!.withRelativeRow(5).withRelativeColumn(-2), 
+triangleStart!!.withRelativeRow(5).withRelativeColumn(4), 
 Symbols.CLUB)
 
 terminal!!.resetColorAndSGR()

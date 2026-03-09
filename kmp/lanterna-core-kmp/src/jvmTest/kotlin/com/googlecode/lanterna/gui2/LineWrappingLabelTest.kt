@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.screen.Screen
@@ -26,13 +28,13 @@ import java.io.IOException
 
  class LineWrappingLabelTest:TestBase() {
 
-private var windowSize:TerminalSize? = null
+private var windowSize:TerminalSize = null
 init{
 windowSize = TerminalSize(70, 15)
 }
 
 @Override
-protected fun createTextGUI(screen:Screen?):MultiWindowTextGUI? {
+protected fun createTextGUI(screen:Screen):MultiWindowTextGUI? {
 return MultiWindowTextGUI(
 SeparateTextGUIThread.Factory(), 
 screen, 
@@ -48,7 +50,7 @@ val contentPane = Panel()
 contentPane.setLayoutManager(BorderLayout())
 contentPane.addComponent(Label("Resize window by holding ctrl and pressing arrow keys").setLayoutData(BorderLayout.Location.TOP))
 contentPane.addComponent(Label(BIG_TEXT).withBorder(Borders.doubleLine()).setLayoutData(BorderLayout.Location.CENTER))
-contentPane.addComponent(Button("Close", ???({ window.close() })).setLayoutData(BorderLayout.Location.BOTTOM))
+contentPane.addComponent(Button("Close", Runnable({ window.close() })).setLayoutData(BorderLayout.Location.BOTTOM))
 
 window.setComponent(contentPane)
 
@@ -57,7 +59,7 @@ if (keyStroke!!.isCtrlDown())
 {
 when (keyStroke!!.getKeyType()) {
 ARROW_UP -> {
-if (windowSize!!.rows > 1)
+if (windowSize!!.getRows() > 1)
 {
 windowSize = windowSize!!.withRelativeRows(-1)
 return@textGUI.addListener true
@@ -70,7 +72,7 @@ windowSize = windowSize!!.withRelativeRows(1)
 return@textGUI.addListener true
 }
 ARROW_LEFT -> {
-if (windowSize!!.columns > 1)
+if (windowSize!!.getColumns() > 1)
 {
 windowSize = windowSize!!.withRelativeColumns(-1)
 return@textGUI.addListener true
@@ -91,7 +93,7 @@ textGUI.addWindow(window)
 
 private inner class MyWindowManager:DefaultWindowManager() {
 @Override
-protected fun prepareWindow(screenSize:TerminalSize?, window:Window?) {
+protected fun prepareWindow(screenSize:TerminalSize, window:Window) {
 super.prepareWindow(screenSize, window)
 window!!.setDecoratedSize(getWindowDecorationRenderer(window).getDecoratedSize(window, windowSize))
 }

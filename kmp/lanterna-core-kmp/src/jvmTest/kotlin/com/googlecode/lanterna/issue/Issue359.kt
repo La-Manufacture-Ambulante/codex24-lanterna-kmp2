@@ -3,6 +3,8 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.screen.*
 import com.googlecode.lanterna.terminal.*

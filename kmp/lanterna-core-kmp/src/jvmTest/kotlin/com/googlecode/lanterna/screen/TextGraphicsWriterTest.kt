@@ -1,5 +1,7 @@
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
+
 import java.io.IOException
 
 import com.googlecode.lanterna.TestTerminalFactory

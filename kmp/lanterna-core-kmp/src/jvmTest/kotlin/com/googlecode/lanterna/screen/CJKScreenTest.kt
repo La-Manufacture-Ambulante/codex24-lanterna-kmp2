@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.TestTerminalFactory

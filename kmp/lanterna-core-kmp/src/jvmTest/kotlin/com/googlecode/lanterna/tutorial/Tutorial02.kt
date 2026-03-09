@@ -1,5 +1,7 @@
 package com.googlecode.lanterna.tutorial
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
@@ -21,7 +23,7 @@ import java.io.IOException
         functionality.
         */
         val defaultTerminalFactory = DefaultTerminalFactory()
-var terminal:Terminal? = null
+var terminal:Terminal = null
 try
 {
 terminal = defaultTerminalFactory.createTerminal()
@@ -76,7 +78,7 @@ textGraphics!!.setBackgroundColor(TextColor.ANSI.BLACK)
 textGraphics!!.setForegroundColor(TextColor.ANSI.DEFAULT)
 textGraphics!!.setBackgroundColor(TextColor.ANSI.DEFAULT)
 textGraphics!!.putString(5, 3, "Terminal Size: ", SGR.BOLD)
-textGraphics!!.putString(5 + "Terminal Size: ".length(), 3, terminal!!.getTerminalSize().toString())
+textGraphics!!.putString(5 + "Terminal Size: ".length, 3, terminal!!.getTerminalSize().toString())
 
  /*
             You still need to flush for changes to become visible
@@ -95,7 +97,7 @@ textGraphics!!.putString(5 + "Terminal Size: ".length(), 3, terminal!!.getTermin
                 // it might have unexpected behavior if you don't do any external synchronization
                 textGraphics!!.drawLine(5, 3, newSize!!.getColumns() - 1, 3, ' ')
 textGraphics!!.putString(5, 3, "Terminal Size: ", SGR.BOLD)
-textGraphics!!.putString(5 + "Terminal Size: ".length(), 3, newSize!!.toString())
+textGraphics!!.putString(5 + "Terminal Size: ".length, 3, newSize!!.toString())
 try
 {
 terminal1!!.flush()
@@ -107,7 +109,7 @@ catch (e:IOException) {
  })
 
 textGraphics!!.putString(5, 4, "Last Keystroke: ", SGR.BOLD)
-textGraphics!!.putString(5 + "Last Keystroke: ".length(), 4, "<Pending>")
+textGraphics!!.putString(5 + "Last Keystroke: ".length, 4, "<Pending>")
 terminal!!.flush()
 
  /*
@@ -126,7 +128,7 @@ terminal!!.flush()
 {
 textGraphics!!.drawLine(5, 4, terminal!!.getTerminalSize().getColumns() - 1, 4, ' ')
 textGraphics!!.putString(5, 4, "Last Keystroke: ", SGR.BOLD)
-textGraphics!!.putString(5 + "Last Keystroke: ".length(), 4, keyStroke!!.toString())
+textGraphics!!.putString(5 + "Last Keystroke: ".length, 4, keyStroke!!.toString())
 terminal!!.flush()
 keyStroke = terminal!!.readInput()
 }

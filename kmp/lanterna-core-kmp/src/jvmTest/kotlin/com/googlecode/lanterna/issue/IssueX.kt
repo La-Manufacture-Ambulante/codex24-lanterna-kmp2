@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.TestTerminalFactory
@@ -40,7 +42,7 @@ writer.close()
  class LanternaTerminalWriter @Throws(IOException::class)
  constructor(args:Array<String?>?) {
 
-private val screen:Screen?
+private val screen:Screen
 private val screenWriter:TextGraphics?
 
 init{

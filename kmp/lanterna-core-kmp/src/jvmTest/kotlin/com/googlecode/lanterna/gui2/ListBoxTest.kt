@@ -18,8 +18,9 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.input.KeyStroke
 
 import java.io.IOException
 
@@ -30,7 +31,7 @@ import java.io.IOException
  class ListBoxTest:TestBase() {
 
 @Override
- fun init(textGUI:WindowBasedTextGUI?) {
+ fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("ListBox test")
 
 val horizontalPanel = Panel()
@@ -54,7 +55,7 @@ horizontalPanel.addComponent(actionListBox.withBorder(Borders.singleLine("Action
 window.setComponent(
 Panels.vertical(
 horizontalPanel, 
-Button("OK", ???({ window.close() })).setAccelerator(KeyStroke('o', false, true))))
+Button("OK", Runnable({ window.close() }))))
 textGUI!!.addWindow(window)
 }
 

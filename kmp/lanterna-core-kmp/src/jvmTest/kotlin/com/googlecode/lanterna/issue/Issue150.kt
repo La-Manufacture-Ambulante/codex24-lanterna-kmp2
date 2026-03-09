@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.screen.Screen
@@ -46,7 +48,7 @@ screen.stopScreen()
 
 private fun createUi():Component {
 val actions = ActionListBox()
-actions.addItem("Enter terminal in a strange state", ???({ stub() }))
+actions.addItem("Enter terminal in a strange state", Runnable({ stub() }))
 return actions
 }
 

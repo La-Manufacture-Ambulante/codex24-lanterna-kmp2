@@ -1,5 +1,7 @@
 package com.googlecode.lanterna.bundle
 
+import com.googlecode.lanterna.*
+
 import org.junit.Assert
 import org.junit.Test
 
@@ -53,7 +55,7 @@ resourceAsStream!!.close()
 }
 @Test
 @Throws(NoSuchFieldException::class, IllegalAccessException::class, IOException::class)
-@JvmStatic  fun ensureResourceFileDefaultTestIsTheSameAsTheEmbeddedTest() {
+  fun ensureResourceFileDefaultTestIsTheSameAsTheEmbeddedTest() {
 val embeddedDefinition = embeddedDefinition
 val resourceDefinition = resourceDefinition
 Assert.assertEquals(resourceDefinition, embeddedDefinition)

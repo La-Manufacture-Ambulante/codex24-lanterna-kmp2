@@ -28,17 +28,18 @@ import java.util.Properties
  * @author martin
  */
  object Environment {
- fun main(args:Array<String?>?) {
-val properties = System.getProperties()
-@SuppressWarnings("unchecked", "rawtypes")
-var keys:ArrayList<String?>? = ArrayList(properties!!.keySet())
-Collections.sort(keys)
-for (key in keys!!)
-System.out.println(key + " = " + properties!!.getProperty(key))
+    fun main(args: Array<String?>?) {
+        val properties: Properties = System.getProperties()
+        val propertyKeys = ArrayList(properties.stringPropertyNames())
+        Collections.sort(propertyKeys)
+        for (key in propertyKeys) {
+            println("$key = ${properties.getProperty(key)}")
+        }
 
-keys = ArrayList(System.getenv().keySet())
-Collections.sort(keys)
-for (key in keys!!)
-System.out.println(key + " = " + System.getenv(key))
-}
+        val envKeys = ArrayList(System.getenv().keys)
+        Collections.sort(envKeys)
+        for (key in envKeys) {
+            println("$key = ${System.getenv(key)}")
+        }
+    }
 }

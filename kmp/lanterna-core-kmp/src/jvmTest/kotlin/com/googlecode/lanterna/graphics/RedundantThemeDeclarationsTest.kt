@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.graphics
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.bundle.LanternaThemes
 import org.junit.Assert
 import org.junit.Test
@@ -26,7 +28,7 @@ import java.util.Collections
 
  class RedundantThemeDeclarationsTest {
 @Test
-@JvmStatic  fun noThemeDeclarationsAreRedundant() {
+  fun noThemeDeclarationsAreRedundant() {
 for (theme in LanternaThemes.getRegisteredThemes())
 {
 val registeredTheme = LanternaThemes.getRegisteredTheme(theme)

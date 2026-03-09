@@ -19,6 +19,8 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
+
 import java.io.IOException
 
 import com.googlecode.lanterna.TerminalSize

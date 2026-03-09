@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.TerminalPosition
@@ -32,7 +34,7 @@ import java.io.IOException
  class ScreenResizeTest @Throws(InterruptedException::class, IOException::class)
  constructor(args:Array<String?>?) {
 
-private val screen:Screen?
+private val screen:Screen
 
 init{
 screen = TestTerminalFactory(args).createScreen()

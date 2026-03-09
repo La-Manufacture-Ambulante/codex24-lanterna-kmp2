@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TestUtils
 
 import java.io.*
@@ -42,7 +44,7 @@ contentArea.addComponent(Button("Full-screen window", { textGUI.addWindow(FullSc
 contentArea.addComponent(Button("Undecorated + Full-screen window", { textGUI.addWindow(FullScreenWindow(false)) }))
 contentArea.addComponent(Button("Expanded window", { textGUI.addWindow(ExpandedWindow(true)) }))
 contentArea.addComponent(Button("Undecorated + Expanded window", { textGUI.addWindow(ExpandedWindow(false)) }))
-contentArea.addComponent(Button("Close", ???({ mainWindow.close() })))
+contentArea.addComponent(Button("Close", Runnable({ mainWindow.close() })))
 mainWindow.setComponent(contentArea)
 textGUI.addWindow(mainWindow)
 }
@@ -102,7 +104,7 @@ setHints(if (decorations) Collections.singletonList(Hint.EXPANDED) else Arrays.a
 
 private class TestWindow internal constructor(title:String?):BasicWindow(title) {
 init{
-setComponent(Button("Close", ???({ this.close() })))
+setComponent(Button("Close", Runnable({ this.close() })))
 setCloseWindowWithEscape(true)
 }
 }

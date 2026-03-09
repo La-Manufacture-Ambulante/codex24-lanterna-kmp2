@@ -1,5 +1,7 @@
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.Window.Hint
 import com.googlecode.lanterna.gui2.table.Table
@@ -24,7 +26,7 @@ private var model:TableModel<String?>? = null
 
 @Before
 @Throws(IOException::class)
-@JvmStatic  fun setUp() {
+  fun setUp() {
 val size = TerminalSize(30, 24)
 terminal = DefaultVirtualTerminal(size)
 val screen = TerminalScreen(terminal)
@@ -41,7 +43,7 @@ model = table!!.getTableModel()
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testSimpleTable() {
+  fun testSimpleTable() {
 model!!.addRow("A1", "B1")
 assertScreenEquals(("" + 
 "a  b\n" + 
@@ -50,7 +52,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRowsAndColumns() {
+  fun testRendersVisibleRowsAndColumns() {
 addRowsWithLongSecondColumn(4)
 assertScreenEquals(("" + 
 "a  b\n" + 
@@ -62,7 +64,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRowsAndColumnsPartially() {
+  fun testRendersVisibleRowsAndColumnsPartially() {
 table!!.getRenderer().setAllowPartialColumn(true)
 addRowsWithLongSecondColumn(4)
 assertScreenEquals(("" + 
@@ -75,7 +77,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRowsAndColumnsPartiallyWhenHorizontallyScrolled() {
+  fun testRendersVisibleRowsAndColumnsPartiallyWhenHorizontallyScrolled() {
 model = TableModel("x", "a", "b")
 table!!.setTableModel(this.model)
 table!!.getRenderer().setAllowPartialColumn(true)
@@ -91,7 +93,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRows() {
+  fun testRendersVisibleRows() {
 table!!.setVisibleRows(2)
 addFourRows()
 assertScreenEquals(("" + 
@@ -102,7 +104,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRowsAndColumnsWithRestrictedVerticalSpace() {
+  fun testRendersVisibleRowsAndColumnsWithRestrictedVerticalSpace() {
 table!!.setVisibleRows(3)
 addRowsWithLongSecondColumn(4)
 assertScreenEquals(("" + 
@@ -114,7 +116,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRowsWithoutVerticalScrollBar() {
+  fun testRendersVisibleRowsWithoutVerticalScrollBar() {
 table!!.setVisibleRows(2)
 table!!.getRenderer().setScrollBarsHidden(true)
 addFourRows()
@@ -126,7 +128,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleColumnsWithoutHorizontalScrollBar() {
+  fun testRendersVisibleColumnsWithoutHorizontalScrollBar() {
 table!!.setVisibleRows(2)
 table!!.getRenderer().setScrollBarsHidden(true)
 addRowsWithLongSecondColumn(2)
@@ -138,7 +140,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRowsAndColumnsWithoutHorizontalScrollBar() {
+  fun testRendersVisibleRowsAndColumnsWithoutHorizontalScrollBar() {
 table!!.setVisibleRows(2)
 table!!.getRenderer().setScrollBarsHidden(true)
 addRowsWithLongSecondColumn(4)
@@ -150,7 +152,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRowsWithSelection() {
+  fun testRendersVisibleRowsWithSelection() {
 table!!.setVisibleRows(2)
 addFourRows()
 table!!.setSelectedRow(1)
@@ -172,7 +174,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRowsWithSelectionOffScreen() {
+  fun testRendersVisibleRowsWithSelectionOffScreen() {
 table!!.setVisibleRows(2)
 addFourRows()
 table!!.setSelectedRow(3)
@@ -184,7 +186,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRowsWithSelectionBeyondRowCount() {
+  fun testRendersVisibleRowsWithSelectionBeyondRowCount() {
 table!!.setVisibleRows(2)
 addFourRows()
 table!!.setSelectedRow(300)
@@ -196,7 +198,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRowsAfterRemovingSelectedRow() {
+  fun testRendersVisibleRowsAfterRemovingSelectedRow() {
 table!!.setVisibleRows(2)
 addFourRows()
 table!!.setSelectedRow(3)
@@ -209,7 +211,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRowsAfterInsertingBeforeSelectedRow() {
+  fun testRendersVisibleRowsAfterInsertingBeforeSelectedRow() {
 table!!.setVisibleRows(2)
 addFourRows()
 table!!.setSelectedRow(2)
@@ -226,7 +228,7 @@ assertScreenEquals(("" +
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testRendersVisibleRowsAfterRemovingRowBeforeSelectedRow() {
+  fun testRendersVisibleRowsAfterRemovingRowBeforeSelectedRow() {
 table!!.setVisibleRows(2)
 addFourRows()
 table!!.setSelectedRow(3)

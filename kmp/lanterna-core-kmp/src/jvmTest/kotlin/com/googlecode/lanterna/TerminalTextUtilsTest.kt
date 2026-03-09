@@ -26,11 +26,11 @@ import java.util.Collections
 
  class TerminalTextUtilsTest {
 @Test
-@JvmStatic  fun japaneseCharactersAreDetectedAsCJK() {
+  fun japaneseCharactersAreDetectedAsCJK() {
 val charactersToTest = arrayOf<String?>(HIRAGANA, KATAKANA, JOUYOU_KANJI)
 for (characters in charactersToTest)
 {
-for (i in 0 until characters!!.length())
+for (i in 0 until characters!!.length)
 {
 val c = characters!!.charAt(i)
 val expected = true
@@ -41,10 +41,10 @@ assertEquals("Japanese character '" + c + "' was not marked as a CJK character",
 }
 
 @Test
-@JvmStatic  fun halfWidthKatakanaAreNotMarkedAsCJK() {
+  fun halfWidthKatakanaAreNotMarkedAsCJK() {
  // So here's a funny thing, these characters _ARE_ technically CJK (they are absolutely Japanese) but since they
         // are 'normal-width' we want to classify them as 'normal' character and not 2-columns wide.
-        for (i in 0 until HALF_WIDTH_KATAKANA!!.length())
+        for (i in 0 until HALF_WIDTH_KATAKANA!!.length)
 {
 val c = HALF_WIDTH_KATAKANA!!.charAt(i)
 val expected = false
@@ -54,10 +54,10 @@ assertEquals("Half-width katakana character '" + c + "' was marked as a CJK char
 }
 
 @Test
-@JvmStatic  fun fullWidthRomanjiIsReportedAsCJK() {
+  fun fullWidthRomanjiIsReportedAsCJK() {
  // These are the complete inverse of the above; here are definitely non-Asian characters that we want to be
         // considered as CJK since they are double-width
-        for (i in 0 until FULL_WIDTH_ROMANJI!!.length())
+        for (i in 0 until FULL_WIDTH_ROMANJI!!.length)
 {
 val c = FULL_WIDTH_ROMANJI!!.charAt(i)
 val expected = true
@@ -67,8 +67,8 @@ assertEquals("Full-width romanji character '" + c + "' was marked not as a CJK c
 }
 
 @Test
-@JvmStatic  fun koreanCharactersAreDetectedAsCJK() {
-for (i in 0 until HANGUL!!.length())
+  fun koreanCharactersAreDetectedAsCJK() {
+for (i in 0 until HANGUL!!.length)
 {
 val c = HANGUL!!.charAt(i)
 val expected = true
@@ -78,8 +78,8 @@ assertEquals("Korean character '" + c + "' was not marked as a CJK character", e
 }
 
 @Test
-@JvmStatic  fun simplifiedChineseCharactersAreDetectedAsCJK() {
-for (i in 0 until SIMPLIFIED_CHINESE_2500_MOST_COMMON!!.length())
+  fun simplifiedChineseCharactersAreDetectedAsCJK() {
+for (i in 0 until SIMPLIFIED_CHINESE_2500_MOST_COMMON!!.length)
 {
 val c = SIMPLIFIED_CHINESE_2500_MOST_COMMON!!.charAt(i)
 val expected = true
@@ -89,25 +89,25 @@ assertEquals("Simplified chinese character '" + c + "' was not marked as a CJK c
 }
 
 @Test
-@JvmStatic  fun getTrueWidthReturnsDoubleSizeForCJKCharacters() {
+  fun getTrueWidthReturnsDoubleSizeForCJKCharacters() {
 val cjkCharacters = arrayOf<String?>(HIRAGANA, KATAKANA, FULL_WIDTH_ROMANJI, JOUYOU_KANJI, HANGUL, SIMPLIFIED_CHINESE_2500_MOST_COMMON)
 for (characters in cjkCharacters)
 {
-for (i in 0 until characters!!.length())
+for (i in 0 until characters!!.length)
 {
 val expected = 2
 val actual = TerminalTextUtils.getColumnWidth(characters!!.substring(i, i + 1))
-assertEquals("CJK character '" + characters!!.charAt(i) + "' didn't return 2", expected.toLong(), actual.toLong())
+assertEquals("CJK character '" + characters!!.charAt(i) + "' didn't return 2", expected, actual)
 }
 }
 val nonCJKCharacters = arrayOf<String?>(LATIN1, HALF_WIDTH_KATAKANA)
 for (characters in nonCJKCharacters)
 {
-for (i in 0 until characters!!.length())
+for (i in 0 until characters!!.length)
 {
 val expected = 1
 val actual = TerminalTextUtils.getColumnWidth(characters!!.substring(i, i + 1))
-assertEquals("Non-CJK character '" + characters!!.charAt(i) + "' didn't return 1", expected.toLong(), actual.toLong())
+assertEquals("Non-CJK character '" + characters!!.charAt(i) + "' didn't return 1", expected, actual)
 }
 }
 
@@ -118,7 +118,7 @@ assertEquals(29, TerminalTextUtils.getColumnWidth("端末（英: computer termin
 }
 
 @Test
-@JvmStatic  fun getColumnIndexGeneralTest() {
+  fun getColumnIndexGeneralTest() {
 val testString = "端末（英: computer terminal）"
 assertEquals(0, TerminalTextUtils.getColumnIndex(testString, 0))
 assertEquals(2, TerminalTextUtils.getColumnIndex(testString, 1))
@@ -136,7 +136,7 @@ assertEquals(29, TerminalTextUtils.getColumnIndex(testString, 24))
 }
 
 @Test
-@JvmStatic  fun getStringCharacterIndex() {
+  fun getStringCharacterIndex() {
 val testString = "端末（英: computer terminal）"
 assertEquals(0, TerminalTextUtils.getStringCharacterIndex(testString, 0))
 assertEquals(0, TerminalTextUtils.getStringCharacterIndex(testString, 1))
@@ -155,7 +155,7 @@ assertEquals(24, TerminalTextUtils.getStringCharacterIndex(testString, 29))
 }
 
 @Test
-@JvmStatic  fun fitStringGeneralTest() {
+  fun fitStringGeneralTest() {
 var testString:String? = "端末（英: computer terminal）"
 assertEquals("", TerminalTextUtils.fitString(testString, 0))
 assertEquals(" ", TerminalTextUtils.fitString(testString, 1))
@@ -178,7 +178,7 @@ assertEquals("", TerminalTextUtils.fitString(testString, 6, 20))
 }
 
 @Test
-@JvmStatic  fun testWordWrapping() {
+  fun testWordWrapping() {
 assertEquals("Incorrect word wrapping", 
 Collections.singletonList("abc abc"), 
 TerminalTextUtils.getWordWrappedText(80, "abc abc"))
@@ -252,7 +252,7 @@ TerminalTextUtils.getWordWrappedText(3, "  abc abc"))
 }
 
 @Test
-@JvmStatic  fun testWordWrappingWithCJK() {
+  fun testWordWrappingWithCJK() {
 assertEquals("Incorrect word wrapping", 
 Collections.singletonList("あいうえお"), 
 TerminalTextUtils.getWordWrappedText(80, "あいうえお"))

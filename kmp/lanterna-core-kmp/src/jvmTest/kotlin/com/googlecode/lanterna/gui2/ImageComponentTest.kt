@@ -60,7 +60,7 @@ textGUI.addWindow(window)
 
 
 internal fun makeImageComponent(controller:ExampleController?, image:Array<String?>):ImageComponent? {
-val imageSize = TerminalSize(image[0].length(), image.size)
+val imageSize = TerminalSize(image[0].length, image.size)
 val textImage = BasicTextImage(imageSize)
 for (row in image.indices)
 {
@@ -69,7 +69,7 @@ fillImageLine(textImage, row, image[row])
 
 val imageComponent = object:ImageComponent() {
 @Override
- fun handleKeyStroke(keyStroke:KeyStroke?):Result? {
+ fun handleKeyStroke(keyStroke:KeyStroke):Result? {
 if (isMouseDown(keyStroke))
 {
 controller!!.setSelectedImage(textImage)
@@ -84,7 +84,7 @@ return imageComponent
 }
 
 internal fun fillImageLine(textImage:TextImage?, row:Int, line:String) {
-for (x in 0 until line.length())
+for (x in 0 until line.length)
 {
 val c = line.charAt(x)
 val textCharacter = TextCharacter(c)

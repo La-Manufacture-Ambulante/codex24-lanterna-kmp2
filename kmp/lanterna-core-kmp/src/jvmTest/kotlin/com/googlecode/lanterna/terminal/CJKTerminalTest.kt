@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextColor
 
@@ -75,8 +77,8 @@ terminal!!.exitPrivateMode()
 }
 
 @Throws(IOException::class)
-private fun printString(rawTerminal:Terminal?, string:String) {
-for (i in 0 until string.length())
+private fun printString(rawTerminal:Terminal, string:String) {
+for (i in 0 until string.length)
 {
 rawTerminal!!.putCharacter(string.charAt(i))
 }

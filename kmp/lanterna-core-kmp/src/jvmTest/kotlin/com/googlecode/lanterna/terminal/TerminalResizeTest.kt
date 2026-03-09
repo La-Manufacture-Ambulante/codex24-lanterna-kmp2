@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.TestTerminalFactory
@@ -34,7 +36,7 @@ import java.io.IOException
 try
 {
 terminal.setCursorPosition(0, 0)
-val string = newSize.columns + "x" + newSize.rows + "                     "
+val string = newSize.getColumns() + "x" + newSize.getRows() + "                     "
 val chars = string!!.toCharArray()
 for (c in chars!!)
 {

@@ -3,6 +3,8 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
+
 import java.io.IOException
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.BasicWindow
@@ -42,7 +44,7 @@ menubar.addComponent(text)
 
 menubar.addComponent(Button("Open", { val op = BasicWindow("Select file")
 gui.addWindow(op)
-op.setComponent(Button("Close", ???({ op.close() }))) }))
+op.setComponent(Button("Close", Runnable({ op.close() }))) }))
 
 menubar.addComponent(Button("Save"))
 

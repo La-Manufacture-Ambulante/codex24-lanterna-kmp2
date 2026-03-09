@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
@@ -37,18 +39,13 @@ val interactable = object:AbstractInteractableComponent() {
 private var lastKey:String? = null
 
 @Override
-protected fun handleKeyStroke(keyStroke:KeyStroke?):Result? {
+protected fun handleKeyStroke(keyStroke:KeyStroke):Result? {
 if (keyStroke!!.getKeyType() === KeyType.TAB)
 {
 return super.handleKeyStroke(keyStroke)
 }
 if (keyStroke!!.getKeyType() === KeyType.CHARACTER)
 {
-if (keyStroke!!.getCharacter().equals(' '))
-{
-lastKey = "SPACE"
-}
-else
 lastKey = keyStroke!!.getCharacter() + ""
 }
 else
@@ -74,9 +71,9 @@ return Result.HANDLED
 protected fun createDefaultRenderer():InteractableRenderer? {
 return object:InteractableRenderer() {
 @Override
- fun getCursorLocation(component:Component?):TerminalPosition {
+ fun getCursorLocation(component:Component?):TerminalPosition? {
 val adjustedSize = component!!.getSize().withRelative(-1, -1)
-return TerminalPosition(adjustedSize!!.columns, adjustedSize!!.rows)
+return TerminalPosition(adjustedSize!!.getColumns(), adjustedSize!!.getRows())
 }
 
 @Override
@@ -85,13 +82,13 @@ return TerminalSize(70, 5)
 }
 
 @Override
- fun drawComponent(graphics:TextGUIGraphics?, component:Component?) {
+ fun drawComponent(graphics:TextGUIGraphics, component:Component?) {
 graphics!!.setBackgroundColor(TextColor.ANSI.BLACK)
 graphics!!.setForegroundColor(TextColor.ANSI.WHITE)
 graphics!!.fill(' ')
 if (lastKey != null)
 {
-val leftPosition = 35 - (lastKey!!.length() / 2)
+val leftPosition = 35 - (lastKey!!.length / 2)
 graphics!!.putString(leftPosition, 2, lastKey)
 }
 }
@@ -103,7 +100,7 @@ window.setComponent(
 Panels.vertical(
 interactable.withBorder(Borders.doubleLineBevel("Press any key to test capturing the KeyStroke")), 
 Label("Use the TAB key to shift focus"), 
-Button("Close", ???({ window.close() }))))
+Button("Close", Runnable({ window.close() }))))
 textGUI.addWindow(window)
 }
 

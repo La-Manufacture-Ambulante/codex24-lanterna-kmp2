@@ -1,5 +1,7 @@
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow
@@ -42,7 +44,7 @@ model!!.addRow(cellLabel, cellLabel, cellLabel)
 val buttonPanel = Panel()
 buttonPanel.setLayoutManager(LinearLayout(Direction.HORIZONTAL))
 buttonPanel.addComponent(Button("Change Expandable Columns", { showExpandableColumnsEditor(textGUI, tableRenderer) }))
-buttonPanel.addComponent(Button("Close", ???({ window.close() })))
+buttonPanel.addComponent(Button("Close", Runnable({ window.close() })))
 
 window.setComponent(Panels.vertical(
 table.withBorder(Borders.singleLineBevel("Table")), 

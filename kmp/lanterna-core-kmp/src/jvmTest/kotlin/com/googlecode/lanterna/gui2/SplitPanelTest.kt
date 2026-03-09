@@ -58,7 +58,7 @@ textGUI.addWindow(window)
 
 internal fun makeImageComponent(image:Array<String?>):ImageComponent? {
 val imageComponent = ImageComponent()
-val imageSize = TerminalSize(image[0].length(), image.size)
+val imageSize = TerminalSize(image[0].length, image.size)
 val textImage = BasicTextImage(imageSize)
 
 for (row in image.indices)
@@ -71,7 +71,7 @@ return imageComponent
 }
 
 internal fun fillImageLine(textImage:TextImage?, row:Int, line:String) {
-for (x in 0 until line.length())
+for (x in 0 until line.length)
 {
 val c = line.charAt(x)
 val textCharacter = TextCharacter(c)

@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.input.KeyStroke
@@ -77,13 +79,13 @@ contentArea.setLayoutManager(LinearLayout(Direction.VERTICAL))
 contentArea.addComponent(Button("Button", { val messageBox = BasicWindow("Response")
 messageBox.setComponent(Panels.vertical(
 Label("Hello!"), 
-Button("Close", ???({ messageBox.close() }))))
+Button("Close", Runnable({ messageBox.close() }))))
 textGUI.addWindow(messageBox) }).withBorder(Borders.singleLine("This is a button")))
 
 
 val textBox = object:TextBox(TerminalSize(20, 4)) {
 @Override
- fun handleKeyStroke(keyStroke:KeyStroke?):Result? {
+ fun handleKeyStroke(keyStroke:KeyStroke):Result? {
 try
 {
 return super.handleKeyStroke(keyStroke)
@@ -114,19 +116,19 @@ return TerminalSize(30, 1)
 }
 
 @Override
- fun drawComponent(graphics:TextGUIGraphics?, component:Component?) {
+ fun drawComponent(graphics:TextGUIGraphics, component:Component?) {
 graphics!!.putString(0, 0, text)
 }
 
 @Override
- fun getCursorLocation(component:Component?):TerminalPosition {
+ fun getCursorLocation(component:Component?):TerminalPosition? {
 return TerminalPosition.TOP_LEFT_CORNER
 }
 }
 }
 
 @Override
- fun handleKeyStroke(keyStroke:KeyStroke?):Result? {
+ fun handleKeyStroke(keyStroke:KeyStroke):Result? {
 if ((keyStroke!!.getKeyType() === KeyType.TAB || keyStroke!!.getKeyType() === KeyType.REVERSE_TAB))
 {
 return super.handleKeyStroke(keyStroke)
@@ -145,7 +147,7 @@ return Result.HANDLED
 }
 }.withBorder(Borders.singleLine("Custom component")))
 
-contentArea.addComponent(Button("Close", ???({ window.close() })))
+contentArea.addComponent(Button("Close", Runnable({ window.close() })))
 window.setComponent(contentArea)
 
 textGUI.addWindowAndWait(window)

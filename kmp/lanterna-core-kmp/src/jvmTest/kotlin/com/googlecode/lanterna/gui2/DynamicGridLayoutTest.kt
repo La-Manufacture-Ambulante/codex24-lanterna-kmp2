@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
+
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow
@@ -38,7 +40,7 @@ return GOOD_COLORS[RANDOM.nextInt(GOOD_COLORS.size)]
 }
 
 @Override
- fun init(textGUI:WindowBasedTextGUI?) {
+ fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("Grid layout test")
 
 val mainPanel = Panel()
@@ -59,7 +61,7 @@ controlPanel.addComponent(Button("Add Component", { onAddComponent(textGUI, grid
 controlPanel.addComponent(Button("Modify Component", { onModifyComponent(textGUI, gridPanel) }))
 controlPanel.addComponent(Button("Modify Grid", { onModifyGrid(textGUI, gridPanel.getLayoutManager() as GridLayout) }))
 controlPanel.addComponent(Button("Reset Grid", { onResetGrid(textGUI, gridPanel) }))
-controlPanel.addComponent(Button("Exit", ???({ window.close() })))
+controlPanel.addComponent(Button("Exit", Runnable({ window.close() })))
 
 mainPanel.addComponent(gridPanel)
 mainPanel.addComponent(
@@ -72,12 +74,12 @@ window.setComponent(mainPanel)
 textGUI!!.addWindow(window)
 }
 
-private fun onModifyGrid(textGUI:WindowBasedTextGUI?, gridLayout:GridLayout?) {
+private fun onModifyGrid(textGUI:WindowBasedTextGUI, gridLayout:GridLayout?) {
 val gridLayoutEditor = GridLayoutEditor(gridLayout!!)
 gridLayoutEditor.showDialog(textGUI)
 }
 
-private fun onAddComponent(textGUI:WindowBasedTextGUI?, gridPanel:Panel?) {
+private fun onAddComponent(textGUI:WindowBasedTextGUI, gridPanel:Panel?) {
 val componentType = ListSelectDialog.showDialog(
 textGUI, 
 "Add Component", 
@@ -114,7 +116,7 @@ gridPanel!!.addComponent(component)
 }
 
 
-private fun onModifyComponent(textGUI:WindowBasedTextGUI?, panel:Panel) {
+private fun onModifyComponent(textGUI:WindowBasedTextGUI, panel:Panel) {
 val components = panel.getChildren().toArray(arrayOfNulls<Component?>(panel.getChildCount()))
 val component = ListSelectDialog.showDialog(textGUI, "Modify Component", "Select component to modify", 10, components)
 if (component == null)
@@ -126,7 +128,7 @@ val gridLayoutDataEditor = GridLayoutDataEditor(component!!)
 gridLayoutDataEditor.showDialog(textGUI)
 }
 
-private fun onResetGrid(textGUI:WindowBasedTextGUI?, gridPanel:Panel?) {
+private fun onResetGrid(textGUI:WindowBasedTextGUI, gridPanel:Panel?) {
 val columns = TextInputDialog.showNumberDialog(textGUI, "Reset Grid", "Reset grid to how many columns?", "4")
 if (columns == null)
 {
@@ -217,7 +219,7 @@ gridLayout.setRightMarginSize(Integer.parseInt(textBoxRightMargin.getTextOrDefau
 gridLayout.setTopMarginSize(Integer.parseInt(textBoxTopMargin.getTextOrDefault("0")))
 gridLayout.setBottomMarginSize(Integer.parseInt(textBoxBottomMargin.getTextOrDefault("0")))
 close() })
-val cancelButton = Button("Cancel", ???({ this.close() }))
+val cancelButton = Button("Cancel", Runnable({ this.close() }))
 
 contentPane.addComponent(
 Panels.horizontal(okButton, cancelButton)
@@ -304,7 +306,7 @@ checkBoxGrabExtraVerticalSpace.isChecked(),
 Integer.parseInt(textBoxHorizontalSpan.getTextOrDefault("1")), 
 Integer.parseInt(textBoxVerticalSpan.getTextOrDefault("1"))))
 close() })
-val cancelButton = Button("Cancel", ???({ this.close() }))
+val cancelButton = Button("Cancel", Runnable({ this.close() }))
 
 contentPane.addComponent(
 Panels.horizontal(okButton, cancelButton)
