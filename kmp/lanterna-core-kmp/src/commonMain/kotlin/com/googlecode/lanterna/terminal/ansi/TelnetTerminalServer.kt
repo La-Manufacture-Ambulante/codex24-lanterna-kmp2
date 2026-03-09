@@ -20,87 +20,39 @@ package com.googlecode.lanterna.terminal.ansi
 
 import java.io.IOException
 import java.net.ServerSocket
-import java.net.Socket
 import java.nio.charset.Charset
 import javax.net.ServerSocketFactory
 
-/**
- * This class implements a Telnet server, capable of accepting multiple clients and presenting each one as their own
- * Terminal. You need to tell it at least what port to listen on and then it create a Server socket listening for
- * incoming connections. Use `acceptConnection()` to wait for the next incoming connection, it will be returned as
- * a `TelnetTerminal` object that represents the client and which will be the way for the server to send content
- * to this client. Next connecting client (through `acceptConnection()` will get a different
- * `TelnetTerminal`, i.e. their content will not be in sync automatically but considered as two different
- * terminals.
- * @author martin
- * @see TelnetTerminal
- * 
- * @see [Wikipedia](http://en.wikipedia.org/wiki/Telnet)
- */
-@SuppressWarnings("WeakerAccess")
- class TelnetTerminalServer {
-private val charset:Charset?
-/**
- * Returns the actual server socket used by this object. Can be used to tweak settings but be careful!
- * @return Underlying ServerSocket
- */
-     val serverSocket:ServerSocket?
+@Suppress("WeakerAccess")
+class TelnetTerminalServer @Throws(IOException::class) constructor(
+    serverSocketFactory: ServerSocketFactory,
+    port: Int,
+    private val charset: Charset,
+) {
+    val serverSocket: ServerSocket = serverSocketFactory.createServerSocket(port)
 
-/**
- * Creates a new TelnetTerminalServer on a specific port
- * @param port Port to listen for incoming telnet connections
- * @throws IOException If there was an underlying I/O exception
- */
     @Throws(IOException::class)
- constructor(port:Int) : this(ServerSocketFactory.getDefault(), port) {}
+    constructor(port: Int) : this(ServerSocketFactory.getDefault(), port)
 
-/**
- * Creates a new TelnetTerminalServer on a specific port, using a certain character set
- * @param port Port to listen for incoming telnet connections
- * @param charset Character set to use
- * @throws IOException If there was an underlying I/O exception
- */
     @Throws(IOException::class)
- constructor(port:Int, charset:Charset?) : this(ServerSocketFactory.getDefault(), port, charset) {}
+    constructor(port: Int, charset: Charset) : this(ServerSocketFactory.getDefault(), port, charset)
 
-/**
- * Creates a new TelnetTerminalServer on a specific port through a ServerSocketFactory with a certain Charset
- * @param serverSocketFactory ServerSocketFactory to use when creating the ServerSocket
- * @param port Port to listen for incoming telnet connections
- * @param charset Character set to use
- * @throws IOException If there was an underlying I/O exception
- */
     @Throws(IOException::class)
-@JvmOverloads  constructor(serverSocketFactory:ServerSocketFactory, port:Int, charset:Charset? = Charset.defaultCharset()) {
-this.serverSocket = serverSocketFactory.createServerSocket(port)
-this.charset = charset
+    constructor(serverSocketFactory: ServerSocketFactory, port: Int) : this(
+        serverSocketFactory,
+        port,
+        Charset.defaultCharset(),
+    )
+
+    @Throws(IOException::class)
+    fun acceptConnection(): TelnetTerminal {
+        val clientSocket = serverSocket.accept()
+        clientSocket.tcpNoDelay = true
+        return TelnetTerminal(clientSocket, charset)
+    }
+
+    @Throws(IOException::class)
+    fun close() {
+        serverSocket.close()
+    }
 }
-
-/**
- * Waits for the next client to connect in to our server and returns a Terminal implementation, TelnetTerminal, that
- * represents the remote terminal this client is running. The terminal can be used just like any other Terminal, but
- * keep in mind that all operations are sent over the network.
- * @return TelnetTerminal for the remote client's terminal
- * @throws IOException If there was an underlying I/O exception
- */
-    @Throws(IOException::class)
- fun acceptConnection():TelnetTerminal? {
-val clientSocket = serverSocket!!.accept()
-clientSocket!!.setTcpNoDelay(true)
-return TelnetTerminal(clientSocket, charset)
-}
-
-/**
- * Closes the server socket, accepting no new connection. Any call to acceptConnection() after this will fail.
- * @throws IOException If there was an underlying I/O exception
- */
-    @Throws(IOException::class)
- fun close() {
-serverSocket!!.close()
-}
-}/**
- * Creates a new TelnetTerminalServer on a specific port through a ServerSocketFactory
- * @param port Port to listen for incoming telnet connections
- * @param serverSocketFactory ServerSocketFactory to use when creating the ServerSocket
- * @throws IOException If there was an underlying I/O exception
- */
