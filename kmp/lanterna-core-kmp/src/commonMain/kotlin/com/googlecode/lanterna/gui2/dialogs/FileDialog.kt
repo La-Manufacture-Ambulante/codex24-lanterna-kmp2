@@ -165,8 +165,9 @@ class FileDialog(
                 selectedFile = if (file.isAbsolute) file else File(directory, fileBox.text)
                 close()
             } else {
+                val activeTextGUI = textGUI ?: return
                 MessageDialog.showMessageDialog(
-                    textGUI,
+                    activeTextGUI,
                     "Error",
                     "Please select a valid file name",
                     MessageDialogButton.OK,

@@ -20,119 +20,121 @@
  */
 package com.googlecode.lanterna.gui2.menu
 
-import java.util.ArrayList
-import java.util.concurrent.atomic.AtomicBoolean
-
 import com.googlecode.lanterna.gui2.MenuPopupWindow
+import com.googlecode.lanterna.gui2.WindowListener
 import com.googlecode.lanterna.gui2.Window
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
-import com.googlecode.lanterna.gui2.WindowListenerAdapter
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import java.util.ArrayList
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Implementation of a drop-down menu contained in a [MenuBar] and also a sub-menu inside another [Menu].
  */
- class Menu/**
- * Creates a menu with the specified label
- * @param label Label to use for the menu item that will trigger this menu to pop up
- */
-    (label:String?):MenuItem(label) {
-private val subItems:List<MenuItem?>?
+class Menu(label: String?) : MenuItem(label) {
+    private val subItems: MutableList<MenuItem> = ArrayList()
 
- val subMenus:List<MenuItem?>?
-get() {
-return ArrayList(subItems)
-}
+    val subMenus: List<MenuItem>
+        get() = ArrayList(subItems)
 
-init{
-this.subItems = ArrayList()
-}
+    fun add(menuItem: MenuItem): Menu {
+        synchronized(subItems) {
+            subItems.add(menuItem)
+        }
+        return this
+    }
 
-/**
- * Adds a new menu item to this menu, this can be either a regular [MenuItem] or another [Menu]
- * @param menuItem The item to add to this menu
- * @return Itself
- */
-     fun add(menuItem:MenuItem?):Menu {
-synchronized (subItems) {
-subItems!!.add(menuItem)
-}
-return this
-}
+    public override fun setAccelerator(keyStroke: KeyStroke?): Menu {
+        super.setAccelerator(keyStroke)
+        return this
+    }
 
- fun setAccelerator(keyStroke:KeyStroke?):Menu {
-super.setAccelerator(keyStroke)
-return this
-}
+    override fun onActivated(): Boolean {
+        var result = true
+        if (subItems.isEmpty()) {
+            return result
+        }
 
-@Override
-protected fun onActivated():Boolean {
-var result = true
-if (subItems!!.isEmpty())
-{
-return result
-}
-val popupMenu = MenuPopupWindow(this)
-val popupCancelled = AtomicBoolean(false)
-for (menuItem in subItems!!)
-{
-popupMenu.addMenuItem(menuItem)
-}
-if (getParent() is MenuBar)
-{
-val menuBar = getParent() as MenuBar
-popupMenu.addWindowListener(object:WindowListenerAdapter() {
-@Override
- fun onUnhandledInput(basePane:Window?, keyStroke:KeyStroke?, hasBeenHandled:AtomicBoolean?) {
-if (keyStroke!!.getKeyType() === KeyType.ARROW_LEFT)
-{
-val thisMenuIndex = menuBar!!.getChildrenList().indexOf(this@Menu)
-if (thisMenuIndex > 0)
-{
-popupMenu.close()
-val nextSelectedMenu = menuBar!!.getMenu(thisMenuIndex - 1)
-nextSelectedMenu!!.takeFocus()
-nextSelectedMenu!!.onActivated()
-}
-}
-else if (keyStroke!!.getKeyType() === KeyType.ARROW_RIGHT)
-{
-val thisMenuIndex = menuBar!!.getChildrenList().indexOf(this@Menu)
-if (thisMenuIndex >= 0 && thisMenuIndex < menuBar!!.getMenuCount() - 1)
-{
-popupMenu.close()
-val nextSelectedMenu = menuBar!!.getMenu(thisMenuIndex + 1)
-nextSelectedMenu!!.takeFocus()
-nextSelectedMenu!!.onActivated()
-}
-}
+        val popupMenu = MenuPopupWindow(this)
+        val popupCancelled = AtomicBoolean(false)
+        for (menuItem in subItems) {
+            popupMenu.addMenuItem(menuItem)
+        }
 
- // Check if accelerator for c
-                    for (menuItem in subItems!!)
-{
-if (menuItem!!.isEnabled() && menuItem!!.isKeyboardAcceleratorStroke(keyStroke))
-{
-val result = menuItem!!.handleKeyStroke(keyStroke)
-if (result === Result.HANDLED) break
-}
-}
-}
-})
-}
-popupMenu.addWindowListener(object:WindowListenerAdapter() {
-@Override
- fun onUnhandledInput(basePane:Window?, keyStroke:KeyStroke?, hasBeenHandled:AtomicBoolean?) {
-if (keyStroke!!.getKeyType() === KeyType.ESCAPE)
-{
-popupCancelled.set(true)
-popupMenu.close()
-}
-}
-})
-(getTextGUI() as WindowBasedTextGUI).addWindowAndWait(popupMenu)
-result = !popupCancelled.get()
+        val parentMenuBar = parent as? MenuBar
+        if (parentMenuBar != null) {
+            popupMenu.addWindowListener(object : WindowListener {
+                override fun onResized(window: Window?, oldSize: TerminalSize?, newSize: TerminalSize?) {}
 
-return result
-}
+                override fun onMoved(window: Window?, oldPosition: TerminalPosition?, newPosition: TerminalPosition?) {}
+
+                override fun onInput(basePane: Window?, keyStroke: KeyStroke?, deliverEvent: AtomicBoolean?) {}
+
+                override fun onUnhandledInput(
+                    basePane: Window?,
+                    keyStroke: KeyStroke?,
+                    hasBeenHandled: AtomicBoolean?,
+                ) {
+                    when (keyStroke?.keyType) {
+                        KeyType.ARROW_LEFT -> {
+                            val thisMenuIndex = parentMenuBar.childrenList?.indexOf(this@Menu) ?: -1
+                            if (thisMenuIndex > 0) {
+                                popupMenu.close()
+                                val nextSelectedMenu = parentMenuBar.getMenu(thisMenuIndex - 1)
+                                nextSelectedMenu?.takeFocus()
+                                nextSelectedMenu?.onActivated()
+                            }
+                        }
+
+                        KeyType.ARROW_RIGHT -> {
+                            val thisMenuIndex = parentMenuBar.childrenList?.indexOf(this@Menu) ?: -1
+                            if (thisMenuIndex >= 0 && thisMenuIndex < parentMenuBar.menuCount - 1) {
+                                popupMenu.close()
+                                val nextSelectedMenu = parentMenuBar.getMenu(thisMenuIndex + 1)
+                                nextSelectedMenu?.takeFocus()
+                                nextSelectedMenu?.onActivated()
+                            }
+                        }
+
+                        else -> {
+                            for (menuItem in subItems) {
+                                if (menuItem.isEnabled && menuItem.isKeyboardAcceleratorStroke(keyStroke)) {
+                                    val handled = menuItem.handleInput(keyStroke)
+                                    if (handled == com.googlecode.lanterna.gui2.Interactable.Result.HANDLED) {
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            })
+        }
+
+        popupMenu.addWindowListener(object : WindowListener {
+            override fun onResized(window: Window?, oldSize: TerminalSize?, newSize: TerminalSize?) {}
+
+            override fun onMoved(window: Window?, oldPosition: TerminalPosition?, newPosition: TerminalPosition?) {}
+
+            override fun onInput(basePane: Window?, keyStroke: KeyStroke?, deliverEvent: AtomicBoolean?) {}
+
+            override fun onUnhandledInput(
+                basePane: Window?,
+                keyStroke: KeyStroke?,
+                hasBeenHandled: AtomicBoolean?,
+            ) {
+                if (keyStroke?.keyType == KeyType.ESCAPE) {
+                    popupCancelled.set(true)
+                    popupMenu.close()
+                }
+            }
+        })
+
+        (textGUI as? WindowBasedTextGUI)?.addWindowAndWait(popupMenu)
+        result = !popupCancelled.get()
+        return result
+    }
 }

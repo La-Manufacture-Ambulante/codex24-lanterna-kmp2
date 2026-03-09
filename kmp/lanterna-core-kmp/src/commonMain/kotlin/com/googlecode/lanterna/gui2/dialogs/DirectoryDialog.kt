@@ -98,8 +98,9 @@ class DirectoryDialog(
                 selectedDir = dir
                 close()
             } else {
+                val activeTextGUI = textGUI ?: return
                 MessageDialog.showMessageDialog(
-                    textGUI,
+                    activeTextGUI,
                     "Error",
                     "Please select a valid directory name",
                     MessageDialogButton.OK,

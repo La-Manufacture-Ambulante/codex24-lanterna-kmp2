@@ -20,9 +20,6 @@
  */
 package com.googlecode.lanterna.gui2.menu
 
-import java.util.ArrayList
-import java.util.concurrent.CopyOnWriteArrayList
-
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.AbstractComponent
@@ -32,219 +29,153 @@ import com.googlecode.lanterna.gui2.Container
 import com.googlecode.lanterna.gui2.Interactable
 import com.googlecode.lanterna.gui2.InteractableLookupMap
 import com.googlecode.lanterna.gui2.TextGUIGraphics
-import com.googlecode.lanterna.gui2.Window
 import com.googlecode.lanterna.input.KeyStroke
+import java.util.ArrayList
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * A menu bar offering drop-down menus. You can attach a menu bar to a [Window] by using the
- * [Window.setMenuBar] method, then use [MenuBar.add] to add sub-menus to the menu bar.
- * 
- * @author FracPete (fracpete at waikato dot ac dot nz)
- * @author Bruno Eberhard
- * @author Martin Berglund
+ * A menu bar offering drop-down menus.
  */
-@SuppressWarnings("SuspiciousMethodCalls")
- class MenuBar:AbstractComponent<MenuBar?>(), Container {
-private val menus:List<Menu?>?
+@Suppress("SuspiciousMethodCalls")
+open class MenuBar : AbstractComponent<MenuBar?>(), Container {
+    companion object {
+        private const val EXTRA_PADDING = 0
+    }
 
- val childCount:Int
-@Override
-get() {
-return menuCount
-}
+    private val menus: MutableList<Menu> = CopyOnWriteArrayList()
 
- val childrenList:List<Component?>?
-@Override
-get() {
-return ArrayList(menus)
-}
+    fun add(menu: Menu): MenuBar {
+        menus.add(menu)
+        menu.onAdded(this)
+        return this
+    }
 
- val children:Collection<Component?>?
-@Override
-get() {
-return childrenList
-}
+    override val childCount: Int
+        get() = menuCount
 
-/**
- * Returns the number of menus this menu bar currently has
- * @return The number of menus this menu bar currently has
- */
-     val menuCount:Int
-get() {
-return menus!!.size()
-}
+    override val childrenList: List<Component?>
+        get() = ArrayList(menus)
 
- val isEmptyMenuBar:Boolean
-get() {
-return false
-}
-/**
- * Creates a new menu bar
- */
-    init{
-this.menus = CopyOnWriteArrayList()
-}
+    override val children: Collection<Component?>
+        get() = childrenList
 
-/**
- * Adds a new drop-down menu to the menu bar, at the end
- * @param menu Menu to add to the menu bar
- * @return Itself
- */
-     fun add(menu:Menu?):MenuBar {
-menus!!.add(menu)
-menu!!.onAdded(this)
-return this
-}
+    override fun containsComponent(component: Component?): Boolean {
+        return menus.contains(component)
+    }
 
-@Override
- fun containsComponent(component:Component?):Boolean {
-return menus!!.contains(component)
-}
+    @Synchronized
+    override fun removeComponent(component: Component?): Boolean {
+        val hadMenu = menus.remove(component)
+        if (hadMenu) {
+            component?.onRemoved(this)
+        }
+        return hadMenu
+    }
 
-@Override
-@Synchronized  fun removeComponent(component:Component?):Boolean {
-val hadMenu = menus!!.remove(component)
-if (hadMenu)
-{
-component!!.onRemoved(this)
-}
-return hadMenu
-}
+    @Synchronized
+    override fun nextFocus(fromThis: Interactable?): Interactable? {
+        if (menus.isEmpty()) {
+            return null
+        } else if (fromThis == null) {
+            return menus[0]
+        } else if (!menus.contains(fromThis) || menus.indexOf(fromThis) == menus.size - 1) {
+            return null
+        }
+        return menus[menus.indexOf(fromThis) + 1]
+    }
 
-@Override
-@Synchronized  fun nextFocus(fromThis:Interactable?):Interactable? {
-if (menus!!.isEmpty())
-{
-return null
-}
-else if (fromThis == null)
-{
-return menus!!.get(0)
-}
-else if (!menus!!.contains(fromThis) || menus!!.indexOf(fromThis) === menus!!.size() - 1)
-{
-return null
-}
-else
-{
-return menus!!.get(menus!!.indexOf(fromThis) + 1)
-}
-}
+    override fun previousFocus(fromThis: Interactable?): Interactable? {
+        if (menus.isEmpty()) {
+            return null
+        } else if (fromThis == null) {
+            return menus[menus.size - 1]
+        } else if (!menus.contains(fromThis) || menus.indexOf(fromThis) == 0) {
+            return null
+        }
+        return menus[menus.indexOf(fromThis) - 1]
+    }
 
-@Override
- fun previousFocus(fromThis:Interactable?):Interactable? {
-if (menus!!.isEmpty())
-{
-return null
-}
-else if (fromThis == null)
-{
-return menus!!.get(menus!!.size() - 1)
-}
-else if (!menus!!.contains(fromThis) || menus!!.indexOf(fromThis) === 0)
-{
-return null
-}
-else
-{
-return menus!!.get(menus!!.indexOf(fromThis) - 1)
-}
-}
+    override fun handleInput(key: KeyStroke?): Boolean {
+        for (menu in menus) {
+            if (menu.isKeyboardAcceleratorStroke(key)) {
+                menu.handleInput(key)
+                return true
+            }
+        }
+        return false
+    }
 
-@Override
- fun handleInput(key:KeyStroke?):Boolean {
- // Process top level menus
-    	for (mnu in menus!!)
-{
- // Check to see if handled by accelerator 
-    		if (mnu!!.isKeyboardAcceleratorStroke(key))
-{
-mnu!!.handleKeyStroke(key)
-return true
-}
-}
-return false
-}
+    fun getMenu(index: Int): Menu? {
+        return menus[index]
+    }
 
-/**
- * Returns the drop-down menu at the specified index. This method will throw an Array
- * @param index Index of the menu to return
- * @return The drop-down menu at the specified index
- * @throws IndexOutOfBoundsException if the index is out of range
- */
-     fun getMenu(index:Int):Menu? {
-return menus!!.get(index)
-}
+    val menuCount: Int
+        get() = menus.size
 
-@Override
-protected fun createDefaultRenderer():ComponentRenderer<MenuBar?>? {
-return DefaultMenuBarRenderer()
-}
+    override fun createDefaultRenderer(): ComponentRenderer<MenuBar?> {
+        return DefaultMenuBarRenderer()
+    }
 
-@Override
-@Synchronized  fun updateLookupMap(interactableLookupMap:InteractableLookupMap?) {
-for (menu in menus!!)
-{
-interactableLookupMap!!.add(menu)
-}
-}
+    @Synchronized
+    override fun updateLookupMap(interactableLookupMap: InteractableLookupMap?) {
+        for (menu in menus) {
+            interactableLookupMap?.add(menu)
+        }
+    }
 
-@Override
- fun toBasePane(position:TerminalPosition?):TerminalPosition? {
- // Assume the menu is always at the top of the content panel
+    override fun toBasePane(position: TerminalPosition?): TerminalPosition? {
         return position
-}
+    }
 
-/**
- * The default implementation for rendering a [MenuBar]
- */
-    inner class DefaultMenuBarRenderer:ComponentRenderer<MenuBar?> {
-@Override
- fun getPreferredSize(menuBar:MenuBar):TerminalSize {
-var maxHeight = 1
-var totalWidth = EXTRA_PADDING
-for (i in 0 until menuBar.menuCount)
-{
-val menu = menuBar.getMenu(i)
-val preferredSize = menu!!.getPreferredSize()
-maxHeight = Math.max(maxHeight, preferredSize!!.rows)
-totalWidth += preferredSize!!.columns
-}
-totalWidth += EXTRA_PADDING
-return TerminalSize(totalWidth, maxHeight)
-}
+    open val isEmptyMenuBar: Boolean
+        get() = false
 
-@Override
- fun drawComponent(graphics:TextGUIGraphics, menuBar:MenuBar) {
- // Reset the area
-            graphics.applyThemeStyle(getThemeDefinition().getNormal())
-graphics.fill(' ')
+    inner class DefaultMenuBarRenderer : ComponentRenderer<MenuBar?> {
+        override fun getPreferredSize(menuBar: MenuBar?): TerminalSize {
+            var maxHeight = 1
+            var totalWidth = EXTRA_PADDING
+            if (menuBar != null) {
+                for (i in 0 until menuBar.menuCount) {
+                    val menu = menuBar.getMenu(i) ?: continue
+                    val preferredSize = menu.preferredSize ?: continue
+                    maxHeight = kotlin.math.max(maxHeight, preferredSize.rows)
+                    totalWidth += preferredSize.columns
+                }
+            }
+            totalWidth += EXTRA_PADDING
+            return TerminalSize(totalWidth, maxHeight)
+        }
 
-var leftPosition = EXTRA_PADDING
-val size = graphics.getSize()
-var remainingSpace = size!!.columns - EXTRA_PADDING
-var i = 0
-while (i < menuBar.menuCount && remainingSpace > 0)
-{
-val menu = menuBar.getMenu(i)
-val preferredSize = menu!!.getPreferredSize()
-menu!!.setPosition(menu!!.getPosition()
-.withColumn(leftPosition)
-.withRow(0))
-val finalWidth = Math.min(preferredSize!!.columns, remainingSpace)
-menu!!.setSize(menu!!.getSize()
-.withColumns(finalWidth)
-.withRows(size!!.rows))
-remainingSpace -= finalWidth + EXTRA_PADDING
-leftPosition += finalWidth + EXTRA_PADDING
-val componentGraphics = graphics.newTextGraphics(menu!!.getPosition(), menu!!.getSize())
-menu!!.draw(componentGraphics)
-i++
-}
-}
-}
+        override fun drawComponent(graphics: TextGUIGraphics?, menuBar: MenuBar?) {
+            val activeGraphics = graphics ?: return
+            val activeMenuBar = menuBar ?: return
 
-companion object {
-private val EXTRA_PADDING = 0
-}
+            activeGraphics.applyThemeStyle(themeDefinition?.normal)
+            activeGraphics.fill(' ')
+
+            var leftPosition = EXTRA_PADDING
+            val size = activeGraphics.size ?: TerminalSize.ZERO
+            var remainingSpace = size.columns - EXTRA_PADDING
+            for (i in 0 until activeMenuBar.menuCount) {
+                if (remainingSpace <= 0) {
+                    break
+                }
+                val menu = activeMenuBar.getMenu(i) ?: continue
+                val preferredSize = menu.preferredSize ?: continue
+                val menuPosition = menu.position ?: TerminalPosition.TOP_LEFT_CORNER
+                val finalPosition =
+                    menuPosition.withColumn(leftPosition)?.withRow(0) ?: TerminalPosition(leftPosition, 0)
+                menu.setPosition(finalPosition)
+                val finalWidth = kotlin.math.min(preferredSize.columns, remainingSpace)
+                val menuSize = menu.size ?: TerminalSize.ZERO
+                val finalSize =
+                    menuSize.withColumns(finalWidth)?.withRows(size.rows) ?: TerminalSize(finalWidth, size.rows)
+                menu.setSize(finalSize)
+                remainingSpace -= finalWidth + EXTRA_PADDING
+                leftPosition += finalWidth + EXTRA_PADDING
+                val componentGraphics = activeGraphics.newTextGraphics(finalPosition, finalSize)
+                menu.draw(componentGraphics)
+            }
+        }
+    }
 }

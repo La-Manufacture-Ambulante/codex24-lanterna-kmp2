@@ -22,7 +22,6 @@ import com.googlecode.lanterna.Symbols
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
-import com.googlecode.lanterna.graphics.ThemeDefinition
 import com.googlecode.lanterna.gui2.AbstractInteractableComponent
 import com.googlecode.lanterna.gui2.BasePane
 import com.googlecode.lanterna.gui2.InteractableRenderer
@@ -31,138 +30,100 @@ import com.googlecode.lanterna.gui2.Window
 import com.googlecode.lanterna.input.KeyStroke
 
 /**
- * This class is a single item that appears in a [Menu] with an optional action attached to it
+ * This class is a single item that appears in a [Menu] with an optional action attached to it.
  */
- class MenuItem/**
- * Creates a new [MenuItem] with a label and an action that will run on the GUI thread when activated. When
- * the action has finished, the [Menu] containing this item will close.
- * @param label Label of the new [MenuItem]
- * @param action Action to invoke on the GUI thread when the menu item is activated
- */
-     @JvmOverloads  constructor(label:String?, private val action:Runnable? = {  }):AbstractInteractableComponent<MenuItem?>() {
-/**
- * Returns the label of this menu item
- * @return Label of this menu item
- */
-     val label:String?
+open class MenuItem @JvmOverloads constructor(
+    label: String?,
+    private val action: Runnable = Runnable {},
+) : AbstractInteractableComponent<MenuItem?>() {
+    val label: String
 
- val accelerator:KeyStroke?
-get() {
-return super.getAccelerator()
-}
+    init {
+        require(!label.isNullOrBlank()) { "Menu label is not allowed to be null or empty" }
+        this.label = label.trim()
+    }
 
-init{
-if (label == null || label!!.trim().isEmpty())
-{
-throw IllegalArgumentException("Menu label is not allowed to be null or empty")
-}
-this.label = label!!.trim()
-}
+    public override fun setAccelerator(keyStroke: KeyStroke?): MenuItem? {
+        return super.setAccelerator(keyStroke)
+    }
 
- fun setAccelerator(keyStroke:KeyStroke?):MenuItem? {
-return super.setAccelerator(keyStroke)
-}
+    public override fun getAccelerator(): KeyStroke? {
+        return super.getAccelerator()
+    }
 
-@Override
-protected fun createDefaultRenderer():InteractableRenderer<MenuItem?>? {
-return DefaultMenuItemRenderer()
-}
+    override fun createDefaultRenderer(): InteractableRenderer<MenuItem?> {
+        return DefaultMenuItemRenderer()
+    }
 
-/**
- * Method to invoke when a menu item is "activated" by pressing the Enter key.
- * @return Returns `true` if the action was performed successfully, otherwise `false`, which will not
- * automatically close the popup window itself.
- */
-    protected fun onActivated():Boolean {
-action!!.run()
-return true
-}
+    protected open fun onActivated(): Boolean {
+        action.run()
+        return true
+    }
 
-@Override
-protected fun handleKeyStroke(keyStroke:KeyStroke?):Result? {
-if (isActivationStroke(keyStroke) || isKeyboardAcceleratorStroke(keyStroke))
-{
-takeFocus()
+    override fun handleKeyStroke(keyStroke: KeyStroke): com.googlecode.lanterna.gui2.Interactable.Result? {
+        if (isActivationStroke(keyStroke) || isKeyboardAcceleratorStroke(keyStroke)) {
+            takeFocus()
+            if (onActivated()) {
+                val activeBasePane: BasePane? = basePane
+                if (activeBasePane is Window && activeBasePane.hints.orEmpty().contains(Window.Hint.MENU_POPUP)) {
+                    activeBasePane.close()
+                }
+            }
+            return com.googlecode.lanterna.gui2.Interactable.Result.HANDLED
+        } else if (isMouseMove(keyStroke)) {
+            takeFocus()
+            return com.googlecode.lanterna.gui2.Interactable.Result.HANDLED
+        }
+        return super.handleKeyStroke(keyStroke)
+    }
 
-if (onActivated())
-{
-val basePane = getBasePane()
-if (basePane is Window && (basePane as Window).getHints().contains(Window.Hint.MENU_POPUP))
-{
-(basePane as Window).close()
-}
-}
-return Result.HANDLED
-}
-else if (isMouseMove(keyStroke))
-{
-takeFocus()
-return Result.HANDLED
-}
+    abstract class MenuItemRenderer : InteractableRenderer<MenuItem?>
 
-return super.handleKeyStroke(keyStroke)
-}
+    class DefaultMenuItemRenderer : MenuItemRenderer() {
+        override fun getCursorLocation(component: MenuItem?): TerminalPosition? {
+            return null
+        }
 
-/**
- * Helper interface that doesn't add any new methods but makes coding new menu renderers a little bit more clear
- */
-    abstract class MenuItemRenderer:InteractableRenderer<MenuItem?>
+        override fun getPreferredSize(component: MenuItem?): TerminalSize {
+            val activeComponent = component ?: return TerminalSize.ONE
+            var preferredWidth = TerminalTextUtils.getColumnWidth(activeComponent.label) + 2
+            if (activeComponent is Menu && activeComponent.parent !is MenuBar) {
+                preferredWidth += 2
+            }
+            return TerminalSize(preferredWidth, 1)
+        }
 
-/**
- * Default renderer for menu items (both sub-menus and regular items)
- */
-     class DefaultMenuItemRenderer:MenuItemRenderer() {
-@Override
- fun getCursorLocation(component:MenuItem?):TerminalPosition? {
-return null
-}
+        override fun drawComponent(graphics: TextGUIGraphics?, menuItem: MenuItem?) {
+            val activeGraphics = graphics ?: return
+            val activeMenuItem = menuItem ?: return
+            val themeDefinition = activeMenuItem.themeDefinition ?: return
 
-@Override
- fun getPreferredSize(component:MenuItem):TerminalSize? {
-var preferredWidth = TerminalTextUtils.getColumnWidth(component.label) + 2
-if (component is Menu && !(component.getParent() is MenuBar))
-{
-preferredWidth += 2
-}
-return TerminalSize.ONE.withColumns(preferredWidth)
-}
+            if (activeMenuItem.isFocused) {
+                activeGraphics.applyThemeStyle(themeDefinition.selected)
+            } else {
+                activeGraphics.applyThemeStyle(themeDefinition.normal)
+            }
 
-@Override
- fun drawComponent(graphics:TextGUIGraphics?, menuItem:MenuItem) {
-val themeDefinition = menuItem.getThemeDefinition()
-if (menuItem.isFocused())
-{
-graphics!!.applyThemeStyle(themeDefinition!!.getSelected())
-}
-else
-{
-graphics!!.applyThemeStyle(themeDefinition!!.getNormal())
-}
+            val activeLabel = activeMenuItem.label ?: return
+            val leadingCharacter = activeLabel.substring(0, 1)
 
-val label = menuItem.label
-val leadingCharacter = label!!.substring(0, 1)
-
-graphics!!.fill(' ')
-graphics!!.putString(1, 0, label)
-if (menuItem is Menu && !(menuItem.getParent() is MenuBar))
-{
-graphics!!.putString(graphics!!.getSize().getColumns() - 2, 0, String.valueOf(Symbols.TRIANGLE_RIGHT_POINTING_BLACK))
+            activeGraphics.fill(' ')
+            activeGraphics.putString(1, 0, activeLabel)
+            if (activeMenuItem is Menu && activeMenuItem.parent !is MenuBar) {
+                activeGraphics.putString(
+                    (activeGraphics.size ?: TerminalSize.ZERO).columns - 2,
+                    0,
+                    Symbols.TRIANGLE_RIGHT_POINTING_BLACK.toString(),
+                )
+            }
+            if (activeLabel.isNotEmpty()) {
+                if (activeMenuItem.isFocused) {
+                    activeGraphics.applyThemeStyle(themeDefinition.active)
+                } else {
+                    activeGraphics.applyThemeStyle(themeDefinition.preLight)
+                }
+                activeGraphics.putString(1, 0, leadingCharacter)
+            }
+        }
+    }
 }
-if (!label!!.isEmpty())
-{
-if (menuItem.isFocused())
-{
-graphics!!.applyThemeStyle(themeDefinition!!.getActive())
-}
-else
-{
-graphics!!.applyThemeStyle(themeDefinition!!.getPreLight())
-}
-graphics!!.putString(1, 0, leadingCharacter)
-}
-}
-}
-}/**
- * Creates a [MenuItem] with a label that does nothing when activated
- * @param label Label of the new [MenuItem]
- */
