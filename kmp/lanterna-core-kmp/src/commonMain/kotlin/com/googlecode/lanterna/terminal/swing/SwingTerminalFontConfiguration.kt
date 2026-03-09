@@ -18,51 +18,24 @@
  */
 package com.googlecode.lanterna.terminal.swing
 
-import java.awt.*
+import java.awt.Font
 
-/**
- * Font configuration class for [SwingTerminal] that is extending from [AWTTerminalFontConfiguration]
- */
- class SwingTerminalFontConfiguration/**
- * Creates a new font configuration from a list of fonts in order of priority. This works by having the terminal
- * attempt to draw each character with the fonts in the order they are specified in and stop once we find a font
- * that can actually draw the character. For ASCII characters, it's very likely that the first font will always be
- * used.
- * @param useAntiAliasing If `true` then anti-aliasing should be enabled when drawing text
- * @param boldMode Option to control what to do when drawing text with the bold SGR enabled
- * @param fontsInOrderOfPriority Fonts to use when drawing text, in order of priority
- */
-    (useAntiAliasing:Boolean, boldMode:BoldMode?, vararg fontsInOrderOfPriority:Font?):AWTTerminalFontConfiguration(useAntiAliasing, boldMode, fontsInOrderOfPriority) {
-companion object {
-/**
- * This is the default font settings that will be used if you don't specify anything
- * @return A [SwingTerminal] font configuration object with default values set up
- */
-     val default:SwingTerminalFontConfiguration?
-get() {
-return newInstance(filterMonospaced(selectDefaultFont(DEFAULT_FONT_SIZE)))
-}
+class SwingTerminalFontConfiguration(
+    useAntiAliasing: Boolean,
+    boldMode: BoldMode,
+    vararg fontsInOrderOfPriority: Font,
+) : AWTTerminalFontConfiguration(useAntiAliasing, boldMode, *fontsInOrderOfPriority) {
+    companion object {
+        val default: SwingTerminalFontConfiguration
+            get() = newInstance(*filterMonospaced(*selectDefaultFont(DEFAULT_FONT_SIZE)))
 
-/**
- * Returns the default font settings except for a custom font size to use.
- * @param fontSize Size of the font
- * @return An [SwingTerminal] font configuration object with default values set up
- */
-     fun getDefaultOfSize(fontSize:Int):SwingTerminalFontConfiguration? {
-return newInstance(filterMonospaced(selectDefaultFont(fontSize)))
-}
+        fun getDefaultOfSize(fontSize: Int): SwingTerminalFontConfiguration {
+            return newInstance(*filterMonospaced(*selectDefaultFont(fontSize)))
+        }
 
-/**
- * Creates a new font configuration from a list of fonts in order of priority. This works by having the terminal
- * attempt to draw each character with the fonts in the order they are specified in and stop once we find a font
- * that can actually draw the character. For ASCII characters, it's very likely that the first font will always be
- * used.
- * @param fontsInOrderOfPriority Fonts to use when drawing text, in order of priority
- * @return Font configuration built from the font list
- */
-    @SuppressWarnings("WeakerAccess")
- fun newInstance(vararg fontsInOrderOfPriority:Font?):SwingTerminalFontConfiguration {
-return SwingTerminalFontConfiguration(true, BoldMode.EVERYTHING_BUT_SYMBOLS, fontsInOrderOfPriority)
-}
-}
+        @Suppress("WeakerAccess")
+        fun newInstance(vararg fontsInOrderOfPriority: Font): SwingTerminalFontConfiguration {
+            return SwingTerminalFontConfiguration(true, BoldMode.EVERYTHING_BUT_SYMBOLS, *fontsInOrderOfPriority)
+        }
+    }
 }

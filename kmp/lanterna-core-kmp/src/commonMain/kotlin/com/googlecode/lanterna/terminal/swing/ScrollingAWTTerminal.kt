@@ -20,285 +20,203 @@ package com.googlecode.lanterna.terminal.swing
 
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.terminal.IOSafeTerminal
-import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.terminal.TerminalResizeListener
-
-import java.awt.*
+import java.awt.BorderLayout
+import java.awt.Container
+import java.awt.EventQueue
+import java.awt.Scrollbar
 import java.awt.event.AdjustmentEvent
 import java.awt.event.AdjustmentListener
 import java.util.concurrent.TimeUnit
 
-/**
- * This is a AWT Container that carries an [AWTTerminal] with a scrollbar, effectively implementing a
- * pseudo-terminal with scrollback history. You can choose the same parameters are for [AWTTerminal], they are
- * forwarded, this class mostly deals with linking the [AWTTerminal] with the scrollbar and having them update
- * each other.
- * @author Martin
- */
-@SuppressWarnings("serial")
- class ScrollingAWTTerminal/**
- * Creates a new `ScrollingAWTTerminal` with customizable settings.
- * @param deviceConfiguration How to configure the terminal virtual device
- * @param fontConfiguration What kind of fonts to use
- * @param colorConfiguration Which color schema to use for ANSI colors
- */
-     @SuppressWarnings("SameParameterValue", "WeakerAccess")
- constructor(
-deviceConfiguration:TerminalEmulatorDeviceConfiguration?, 
-fontConfiguration:SwingTerminalFontConfiguration?, 
-colorConfiguration:TerminalEmulatorColorConfiguration?):Container(), IOSafeTerminal {
+@Suppress("serial")
+class ScrollingAWTTerminal(
+    deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+    fontConfiguration: SwingTerminalFontConfiguration?,
+    colorConfiguration: TerminalEmulatorColorConfiguration?,
+) : Container(), IOSafeTerminal {
+    private val awtTerminal: AWTTerminal
+    private val scrollBar: Scrollbar
 
-private val awtTerminal:AWTTerminal?
-private val scrollBar:Scrollbar?
+    @Volatile
+    private var scrollModelUpdateBySystem: Boolean = false
 
- // Used to prevent unnecessary repaints (the component is re-adjusting the scrollbar as part of the repaint
-    // operation, we don't need the scrollbar listener to trigger another repaint of the terminal when that happens
-    @Volatile private var scrollModelUpdateBySystem:Boolean = false
+    constructor() : this(
+        TerminalEmulatorDeviceConfiguration.default,
+        SwingTerminalFontConfiguration.default,
+        TerminalEmulatorColorConfiguration.default,
+    )
 
- var cursorPosition:TerminalPosition?
-@Override
-get() {
-return awtTerminal!!.getCursorPosition()
-}
-@Override
-set(position) {
-awtTerminal!!.setCursorPosition(position)
-}
+    init {
+        scrollBar = Scrollbar(Scrollbar.VERTICAL)
+        awtTerminal = AWTTerminal(deviceConfiguration, fontConfiguration, colorConfiguration, ScrollController())
+        layout = BorderLayout()
+        add(awtTerminal, BorderLayout.CENTER)
+        add(scrollBar, BorderLayout.EAST)
+        scrollBar.minimum = 0
+        scrollBar.maximum = 20
+        scrollBar.value = 0
+        scrollBar.visibleAmount = 20
+        scrollBar.addAdjustmentListener(ScrollbarListener())
+    }
 
- val terminalSize:TerminalSize?
-@Override
-get() {
-return awtTerminal!!.getTerminalSize()
-}
+    override var cursorPosition: TerminalPosition?
+        get() = awtTerminal.cursorPosition
+        set(position) {
+            awtTerminal.cursorPosition = position
+        }
 
-/**
- * Creates a new `ScrollingAWTTerminal` with all default options
- */
-     constructor() : this(TerminalEmulatorDeviceConfiguration.getDefault(), 
-SwingTerminalFontConfiguration.getDefault(), 
-TerminalEmulatorColorConfiguration.getDefault()) {}
+    override val terminalSize: TerminalSize?
+        get() = awtTerminal.terminalSize
 
-init{
+    private inner class ScrollController : TerminalScrollController {
+        override var scrollingOffset: Int = 0
+            private set
 
-this.scrollBar = Scrollbar(Scrollbar.VERTICAL)
-this.awtTerminal = AWTTerminal(
-deviceConfiguration, 
-fontConfiguration, 
-colorConfiguration, 
-ScrollController())
+        override fun updateModel(totalSize: Int, screenSize: Int) {
+            if (!EventQueue.isDispatchThread()) {
+                EventQueue.invokeLater { updateModel(totalSize, screenSize) }
+                return
+            }
+            try {
+                scrollModelUpdateBySystem = true
+                var value = scrollBar.value
+                var maximum = scrollBar.maximum
+                var visibleAmount = scrollBar.visibleAmount
 
-setLayout(BorderLayout())
-add(awtTerminal, BorderLayout.CENTER)
-add(scrollBar, BorderLayout.EAST)
-this.scrollBar!!.setMinimum(0)
-this.scrollBar!!.setMaximum(20)
-this.scrollBar!!.setValue(0)
-this.scrollBar!!.setVisibleAmount(20)
-this.scrollBar!!.addAdjustmentListener(ScrollbarListener())
-this.scrollModelUpdateBySystem = false
-}
+                if (maximum != totalSize) {
+                    val lastMaximum = maximum
+                    maximum = if (totalSize > screenSize) totalSize else screenSize
+                    if (lastMaximum < maximum && lastMaximum - visibleAmount - value == 0) {
+                        value = scrollBar.value + (maximum - lastMaximum)
+                    }
+                }
+                if (value + screenSize > maximum) {
+                    value = maximum - screenSize
+                }
+                if (visibleAmount != screenSize) {
+                    if (visibleAmount > screenSize) {
+                        value += visibleAmount - screenSize
+                    }
+                    visibleAmount = screenSize
+                }
+                if (value > maximum - visibleAmount) {
+                    value = maximum - visibleAmount
+                }
+                if (value < 0) {
+                    value = 0
+                }
 
-private inner class ScrollController:TerminalScrollController {
-@get:Override
- var scrollingOffset:Int = 0
-private set
+                scrollingOffset = value
 
-@Override
- fun updateModel(totalSize:Int, screenHeight:Int) {
-if (!EventQueue.isDispatchThread())
-{
-EventQueue.invokeLater({ updateModel(totalSize, screenHeight) })
-return 
-}
-try
-{
-scrollModelUpdateBySystem = true
-var value = scrollBar!!.getValue()
-var maximum = scrollBar!!.getMaximum()
-var visibleAmount = scrollBar!!.getVisibleAmount()
+                if (scrollBar.maximum != maximum) {
+                    scrollBar.maximum = maximum
+                }
+                if (scrollBar.visibleAmount != visibleAmount) {
+                    scrollBar.visibleAmount = visibleAmount
+                }
+                if (scrollBar.value != value) {
+                    scrollBar.value = value
+                }
+            } finally {
+                scrollModelUpdateBySystem = false
+            }
+        }
+    }
 
-if (maximum != totalSize)
-{
-val lastMaximum = maximum
-maximum = if (totalSize > screenHeight) totalSize else screenHeight
-if ((lastMaximum < maximum && lastMaximum - visibleAmount - value == 0))
-{
-value = scrollBar!!.getValue() + (maximum - lastMaximum)
-}
-}
-if (value + screenHeight > maximum)
-{
-value = maximum - screenHeight
-}
-if (visibleAmount != screenHeight)
-{
-if (visibleAmount > screenHeight)
-{
-value += visibleAmount - screenHeight
-}
-visibleAmount = screenHeight
-}
-if (value > maximum - visibleAmount)
-{
-value = maximum - visibleAmount
-}
-if (value < 0)
-{
-value = 0
-}
+    private inner class ScrollbarListener : AdjustmentListener {
+        @Synchronized
+        override fun adjustmentValueChanged(e: AdjustmentEvent) {
+            if (!scrollModelUpdateBySystem) {
+                awtTerminal.repaint()
+            }
+        }
+    }
 
-this.scrollingOffset = value
+    fun addInput(keyStroke: KeyStroke?) {
+        awtTerminal.addInput(keyStroke)
+    }
 
-if (scrollBar!!.getMaximum() !== maximum)
-{
-scrollBar!!.setMaximum(maximum)
-}
-if (scrollBar!!.getVisibleAmount() !== visibleAmount)
-{
-scrollBar!!.setVisibleAmount(visibleAmount)
-}
-if (scrollBar!!.getValue() !== value)
-{
-scrollBar!!.setValue(value)
-}
-}
+    override fun pollInput(): KeyStroke? = awtTerminal.pollInput()
 
-finally
-{
-scrollModelUpdateBySystem = false
-}
-}
-}
+    override fun readInput(): KeyStroke? = awtTerminal.readInput()
 
-private inner class ScrollbarListener:AdjustmentListener {
-@Override
-@Synchronized  fun adjustmentValueChanged(e:AdjustmentEvent?) {
-if (!scrollModelUpdateBySystem)
-{
- // Only repaint if this was the user adjusting the scrollbar
-                awtTerminal!!.repaint()
-}
-}
-}
+    override fun enterPrivateMode() {
+        awtTerminal.enterPrivateMode()
+    }
 
-/**
- * Takes a KeyStroke and puts it on the input queue of the terminal emulator. This way you can insert synthetic
- * input events to be processed as if they came from the user typing on the keyboard.
- * @param keyStroke Key stroke input event to put on the queue
- */
-     fun addInput(keyStroke:KeyStroke?) {
-awtTerminal!!.addInput(keyStroke)
-}
+    override fun exitPrivateMode() {
+        awtTerminal.exitPrivateMode()
+    }
 
-/**//////// */
-    // Delegate all Terminal interface implementations to SwingTerminal
-    /**//////// */
-    @Override
- fun pollInput():KeyStroke? {
-return awtTerminal!!.pollInput()
-}
+    override fun clearScreen() {
+        awtTerminal.clearScreen()
+    }
 
-@Override
- fun readInput():KeyStroke? {
-return awtTerminal!!.readInput()
-}
+    override fun setCursorPosition(x: Int, y: Int) {
+        awtTerminal.setCursorPosition(x, y)
+    }
 
-@Override
-@JvmStatic  fun enterPrivateMode() {
-awtTerminal!!.enterPrivateMode()
-}
+    override fun setCursorVisible(visible: Boolean) {
+        awtTerminal.setCursorVisible(visible)
+    }
 
-@Override
-@JvmStatic  fun exitPrivateMode() {
-awtTerminal!!.exitPrivateMode()
-}
+    override fun putCharacter(c: Char) {
+        awtTerminal.putCharacter(c)
+    }
 
-@Override
-@JvmStatic  fun clearScreen() {
-awtTerminal!!.clearScreen()
-}
+    override fun putString(string: String?) {
+        awtTerminal.putString(string)
+    }
 
-@Override
- fun setCursorPosition(x:Int, y:Int) {
-awtTerminal!!.setCursorPosition(x, y)
-}
+    override fun newTextGraphics(): TextGraphics? = awtTerminal.newTextGraphics()
 
-@Override
- fun setCursorVisible(visible:Boolean) {
-awtTerminal!!.setCursorVisible(visible)
-}
+    override fun enableSGR(sgr: SGR?) {
+        awtTerminal.enableSGR(sgr)
+    }
 
-@Override
- fun putCharacter(c:Char) {
-awtTerminal!!.putCharacter(c)
-}
+    override fun disableSGR(sgr: SGR?) {
+        awtTerminal.disableSGR(sgr)
+    }
 
-@Override
- fun putString(string:String?) {
-awtTerminal!!.putString(string)
-}
+    override fun resetColorAndSGR() {
+        awtTerminal.resetColorAndSGR()
+    }
 
-@Override
- fun newTextGraphics():TextGraphics? {
-return awtTerminal!!.newTextGraphics()
-}
+    override fun setForegroundColor(color: TextColor?) {
+        awtTerminal.setForegroundColor(color)
+    }
 
-@Override
- fun enableSGR(sgr:SGR?) {
-awtTerminal!!.enableSGR(sgr)
-}
+    override fun setBackgroundColor(color: TextColor?) {
+        awtTerminal.setBackgroundColor(color)
+    }
 
-@Override
- fun disableSGR(sgr:SGR?) {
-awtTerminal!!.disableSGR(sgr)
-}
+    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+        return awtTerminal.enquireTerminal(timeout, timeoutUnit)
+    }
 
-@Override
-@JvmStatic  fun resetColorAndSGR() {
-awtTerminal!!.resetColorAndSGR()
-}
+    override fun bell() {
+        awtTerminal.bell()
+    }
 
-@Override
- fun setForegroundColor(color:TextColor?) {
-awtTerminal!!.setForegroundColor(color)
-}
+    override fun flush() {
+        awtTerminal.flush()
+    }
 
-@Override
- fun setBackgroundColor(color:TextColor?) {
-awtTerminal!!.setBackgroundColor(color)
-}
+    override fun close() {
+        awtTerminal.close()
+    }
 
-@Override
- fun enquireTerminal(timeout:Int, timeoutUnit:TimeUnit?):ByteArray? {
-return awtTerminal!!.enquireTerminal(timeout, timeoutUnit)
-}
+    override fun addResizeListener(listener: TerminalResizeListener?) {
+        awtTerminal.addResizeListener(listener)
+    }
 
-@Override
-@JvmStatic  fun bell() {
-awtTerminal!!.bell()
-}
-
-@Override
-@JvmStatic  fun flush() {
-awtTerminal!!.flush()
-}
-
-@Override
-@JvmStatic  fun close() {
-awtTerminal!!.close()
-}
-
-@Override
- fun addResizeListener(listener:TerminalResizeListener?) {
-awtTerminal!!.addResizeListener(listener)
-}
-
-@Override
- fun removeResizeListener(listener:TerminalResizeListener?) {
-awtTerminal!!.removeResizeListener(listener)
-}
+    override fun removeResizeListener(listener: TerminalResizeListener?) {
+        awtTerminal.removeResizeListener(listener)
+    }
 }

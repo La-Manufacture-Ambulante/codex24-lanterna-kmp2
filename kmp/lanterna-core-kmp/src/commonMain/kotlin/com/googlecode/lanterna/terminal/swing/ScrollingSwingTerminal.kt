@@ -20,286 +20,203 @@ package com.googlecode.lanterna.terminal.swing
 
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.terminal.IOSafeTerminal
-import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.terminal.TerminalResizeListener
-
-import java.awt.*
+import java.awt.BorderLayout
 import java.awt.event.AdjustmentEvent
 import java.awt.event.AdjustmentListener
 import java.util.concurrent.TimeUnit
-import javax.swing.*
+import javax.swing.JComponent
+import javax.swing.JScrollBar
+import javax.swing.SwingUtilities
 
-/**
- * This is a Swing JComponent that carries a [SwingTerminal] with a scrollbar, effectively implementing a
- * pseudo-terminal with scrollback history. You can choose the same parameters are for [SwingTerminal], they are
- * forwarded, this class mostly deals with linking the [SwingTerminal] with the scrollbar and having them update
- * each other.
- * @author Martin
- */
-@SuppressWarnings("serial")
- class ScrollingSwingTerminal/**
- * Creates a new `ScrollingSwingTerminal` with customizable settings.
- * @param deviceConfiguration How to configure the terminal virtual device
- * @param fontConfiguration What kind of fonts to use
- * @param colorConfiguration Which color schema to use for ANSI colors
- */
-     @SuppressWarnings("SameParameterValue", "WeakerAccess")
- constructor(
-deviceConfiguration:TerminalEmulatorDeviceConfiguration?, 
-fontConfiguration:SwingTerminalFontConfiguration?, 
-colorConfiguration:TerminalEmulatorColorConfiguration?):JComponent(), IOSafeTerminal {
+@Suppress("serial")
+class ScrollingSwingTerminal(
+    deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+    fontConfiguration: SwingTerminalFontConfiguration?,
+    colorConfiguration: TerminalEmulatorColorConfiguration?,
+) : JComponent(), IOSafeTerminal {
+    private val swingTerminal: SwingTerminal
+    private val scrollBar: JScrollBar
 
-private val swingTerminal:SwingTerminal?
-private val scrollBar:JScrollBar?
+    @Volatile
+    private var scrollModelUpdateBySystem: Boolean = false
 
- // Used to prevent unnecessary repaints (the component is re-adjusting the scrollbar as part of the repaint
-    // operation, we don't need the scrollbar listener to trigger another repaint of the terminal when that happens
-    @Volatile private var scrollModelUpdateBySystem:Boolean = false
+    constructor() : this(
+        TerminalEmulatorDeviceConfiguration.default,
+        SwingTerminalFontConfiguration.default,
+        TerminalEmulatorColorConfiguration.default,
+    )
 
- var cursorPosition:TerminalPosition?
-@Override
-get() {
-return swingTerminal!!.getCursorPosition()
-}
-@Override
-set(position) {
-swingTerminal!!.setCursorPosition(position)
-}
+    init {
+        scrollBar = JScrollBar(JScrollBar.VERTICAL)
+        swingTerminal = SwingTerminal(deviceConfiguration, fontConfiguration, colorConfiguration, ScrollController())
+        layout = BorderLayout()
+        add(swingTerminal, BorderLayout.CENTER)
+        add(scrollBar, BorderLayout.EAST)
+        scrollBar.minimum = 0
+        scrollBar.maximum = 20
+        scrollBar.value = 0
+        scrollBar.visibleAmount = 20
+        scrollBar.addAdjustmentListener(ScrollbarListener())
+    }
 
- val terminalSize:TerminalSize?
-@Override
-get() {
-return swingTerminal!!.getTerminalSize()
-}
+    override var cursorPosition: TerminalPosition?
+        get() = swingTerminal.cursorPosition
+        set(position) {
+            swingTerminal.cursorPosition = position
+        }
 
-/**
- * Creates a new `ScrollingSwingTerminal` with all default options
- */
-     constructor() : this(TerminalEmulatorDeviceConfiguration.getDefault(), 
-SwingTerminalFontConfiguration.getDefault(), 
-TerminalEmulatorColorConfiguration.getDefault()) {}
+    override val terminalSize: TerminalSize?
+        get() = swingTerminal.terminalSize
 
-init{
+    private inner class ScrollController : TerminalScrollController {
+        override var scrollingOffset: Int = 0
+            private set
 
-this.scrollBar = JScrollBar(JScrollBar.VERTICAL)
-this.swingTerminal = SwingTerminal(
-deviceConfiguration, 
-fontConfiguration, 
-colorConfiguration, 
-ScrollController())
+        override fun updateModel(totalSize: Int, screenSize: Int) {
+            if (!SwingUtilities.isEventDispatchThread()) {
+                SwingUtilities.invokeLater { updateModel(totalSize, screenSize) }
+                return
+            }
+            try {
+                scrollModelUpdateBySystem = true
+                var value = scrollBar.value
+                var maximum = scrollBar.maximum
+                var visibleAmount = scrollBar.visibleAmount
 
-setLayout(BorderLayout())
-add(swingTerminal, BorderLayout.CENTER)
-add(scrollBar, BorderLayout.EAST)
-this.scrollBar!!.setMinimum(0)
-this.scrollBar!!.setMaximum(20)
-this.scrollBar!!.setValue(0)
-this.scrollBar!!.setVisibleAmount(20)
-this.scrollBar!!.addAdjustmentListener(ScrollbarListener())
-this.scrollModelUpdateBySystem = false
-}
+                if (maximum != totalSize) {
+                    val lastMaximum = maximum
+                    maximum = if (totalSize > screenSize) totalSize else screenSize
+                    if (lastMaximum < maximum && lastMaximum - visibleAmount - value == 0) {
+                        value = scrollBar.value + (maximum - lastMaximum)
+                    }
+                }
+                if (value + screenSize > maximum) {
+                    value = maximum - screenSize
+                }
+                if (visibleAmount != screenSize) {
+                    if (visibleAmount > screenSize) {
+                        value += visibleAmount - screenSize
+                    }
+                    visibleAmount = screenSize
+                }
+                if (value > maximum - visibleAmount) {
+                    value = maximum - visibleAmount
+                }
+                if (value < 0) {
+                    value = 0
+                }
 
-private inner class ScrollController:TerminalScrollController {
-@get:Override
- var scrollingOffset:Int = 0
-private set
+                scrollingOffset = value
 
-@Override
- fun updateModel(totalSize:Int, screenHeight:Int) {
-if (!SwingUtilities.isEventDispatchThread())
-{
-SwingUtilities.invokeLater({ updateModel(totalSize, screenHeight) })
-return 
-}
-try
-{
-scrollModelUpdateBySystem = true
-var value = scrollBar!!.getValue()
-var maximum = scrollBar!!.getMaximum()
-var visibleAmount = scrollBar!!.getVisibleAmount()
+                if (scrollBar.maximum != maximum) {
+                    scrollBar.maximum = maximum
+                }
+                if (scrollBar.visibleAmount != visibleAmount) {
+                    scrollBar.visibleAmount = visibleAmount
+                }
+                if (scrollBar.value != value) {
+                    scrollBar.value = value
+                }
+            } finally {
+                scrollModelUpdateBySystem = false
+            }
+        }
+    }
 
-if (maximum != totalSize)
-{
-val lastMaximum = maximum
-maximum = if (totalSize > screenHeight) totalSize else screenHeight
-if ((lastMaximum < maximum && lastMaximum - visibleAmount - value == 0))
-{
-value = scrollBar!!.getValue() + (maximum - lastMaximum)
-}
-}
-if (value + screenHeight > maximum)
-{
-value = maximum - screenHeight
-}
-if (visibleAmount != screenHeight)
-{
-if (visibleAmount > screenHeight)
-{
-value += visibleAmount - screenHeight
-}
-visibleAmount = screenHeight
-}
-if (value > maximum - visibleAmount)
-{
-value = maximum - visibleAmount
-}
-if (value < 0)
-{
-value = 0
-}
+    private inner class ScrollbarListener : AdjustmentListener {
+        @Synchronized
+        override fun adjustmentValueChanged(e: AdjustmentEvent) {
+            if (!scrollModelUpdateBySystem) {
+                swingTerminal.repaint()
+            }
+        }
+    }
 
-this.scrollingOffset = value
+    fun addInput(keyStroke: KeyStroke?) {
+        swingTerminal.addInput(keyStroke)
+    }
 
-if (scrollBar!!.getMaximum() !== maximum)
-{
-scrollBar!!.setMaximum(maximum)
-}
-if (scrollBar!!.getVisibleAmount() !== visibleAmount)
-{
-scrollBar!!.setVisibleAmount(visibleAmount)
-}
-if (scrollBar!!.getValue() !== value)
-{
-scrollBar!!.setValue(value)
-}
-}
+    override fun pollInput(): KeyStroke? = swingTerminal.pollInput()
 
-finally
-{
-scrollModelUpdateBySystem = false
-}
-}
-}
+    override fun readInput(): KeyStroke? = swingTerminal.readInput()
 
-private inner class ScrollbarListener:AdjustmentListener {
-@Override
-@Synchronized  fun adjustmentValueChanged(e:AdjustmentEvent?) {
-if (!scrollModelUpdateBySystem)
-{
- // Only repaint if this was the user adjusting the scrollbar
-                swingTerminal!!.repaint()
-}
-}
-}
+    override fun enterPrivateMode() {
+        swingTerminal.enterPrivateMode()
+    }
 
-/**
- * Takes a KeyStroke and puts it on the input queue of the terminal emulator. This way you can insert synthetic
- * input events to be processed as if they came from the user typing on the keyboard.
- * @param keyStroke Key stroke input event to put on the queue
- */
-     fun addInput(keyStroke:KeyStroke?) {
-swingTerminal!!.addInput(keyStroke)
-}
+    override fun exitPrivateMode() {
+        swingTerminal.exitPrivateMode()
+    }
 
-/**//////// */
-    // Delegate all Terminal interface implementations to SwingTerminal
-    /**//////// */
-    @Override
- fun pollInput():KeyStroke? {
-return swingTerminal!!.pollInput()
-}
+    override fun clearScreen() {
+        swingTerminal.clearScreen()
+    }
 
-@Override
- fun readInput():KeyStroke? {
-return swingTerminal!!.readInput()
-}
+    override fun setCursorPosition(x: Int, y: Int) {
+        swingTerminal.setCursorPosition(x, y)
+    }
 
-@Override
-@JvmStatic  fun enterPrivateMode() {
-swingTerminal!!.enterPrivateMode()
-}
+    override fun setCursorVisible(visible: Boolean) {
+        swingTerminal.setCursorVisible(visible)
+    }
 
-@Override
-@JvmStatic  fun exitPrivateMode() {
-swingTerminal!!.exitPrivateMode()
-}
+    override fun putCharacter(c: Char) {
+        swingTerminal.putCharacter(c)
+    }
 
-@Override
-@JvmStatic  fun clearScreen() {
-swingTerminal!!.clearScreen()
-}
+    override fun putString(string: String?) {
+        swingTerminal.putString(string)
+    }
 
-@Override
- fun setCursorPosition(x:Int, y:Int) {
-swingTerminal!!.setCursorPosition(x, y)
-}
+    override fun newTextGraphics(): TextGraphics? = swingTerminal.newTextGraphics()
 
-@Override
- fun setCursorVisible(visible:Boolean) {
-swingTerminal!!.setCursorVisible(visible)
-}
+    override fun enableSGR(sgr: SGR?) {
+        swingTerminal.enableSGR(sgr)
+    }
 
-@Override
- fun putCharacter(c:Char) {
-swingTerminal!!.putCharacter(c)
-}
+    override fun disableSGR(sgr: SGR?) {
+        swingTerminal.disableSGR(sgr)
+    }
 
-@Override
- fun putString(string:String?) {
-swingTerminal!!.putString(string)
-}
+    override fun resetColorAndSGR() {
+        swingTerminal.resetColorAndSGR()
+    }
 
-@Override
- fun newTextGraphics():TextGraphics? {
-return swingTerminal!!.newTextGraphics()
-}
+    override fun setForegroundColor(color: TextColor?) {
+        swingTerminal.setForegroundColor(color)
+    }
 
-@Override
- fun enableSGR(sgr:SGR?) {
-swingTerminal!!.enableSGR(sgr)
-}
+    override fun setBackgroundColor(color: TextColor?) {
+        swingTerminal.setBackgroundColor(color)
+    }
 
-@Override
- fun disableSGR(sgr:SGR?) {
-swingTerminal!!.disableSGR(sgr)
-}
+    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+        return swingTerminal.enquireTerminal(timeout, timeoutUnit)
+    }
 
-@Override
-@JvmStatic  fun resetColorAndSGR() {
-swingTerminal!!.resetColorAndSGR()
-}
+    override fun bell() {
+        swingTerminal.bell()
+    }
 
-@Override
- fun setForegroundColor(color:TextColor?) {
-swingTerminal!!.setForegroundColor(color)
-}
+    override fun flush() {
+        swingTerminal.flush()
+    }
 
-@Override
- fun setBackgroundColor(color:TextColor?) {
-swingTerminal!!.setBackgroundColor(color)
-}
+    override fun close() {
+        swingTerminal.close()
+    }
 
-@Override
- fun enquireTerminal(timeout:Int, timeoutUnit:TimeUnit?):ByteArray? {
-return swingTerminal!!.enquireTerminal(timeout, timeoutUnit)
-}
+    override fun addResizeListener(listener: TerminalResizeListener?) {
+        swingTerminal.addResizeListener(listener)
+    }
 
-@Override
-@JvmStatic  fun bell() {
-swingTerminal!!.bell()
-}
-
-@Override
-@JvmStatic  fun flush() {
-swingTerminal!!.flush()
-}
-
-@Override
-@JvmStatic  fun close() {
-swingTerminal!!.close()
-}
-
-@Override
- fun addResizeListener(listener:TerminalResizeListener?) {
-swingTerminal!!.addResizeListener(listener)
-}
-
-@Override
- fun removeResizeListener(listener:TerminalResizeListener?) {
-swingTerminal!!.removeResizeListener(listener)
-}
+    override fun removeResizeListener(listener: TerminalResizeListener?) {
+        swingTerminal.removeResizeListener(listener)
+    }
 }

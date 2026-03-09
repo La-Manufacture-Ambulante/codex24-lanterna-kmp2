@@ -20,140 +20,103 @@ package com.googlecode.lanterna.terminal.swing
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.terminal.MouseCaptureMode
-
-import javax.swing.*
-import java.awt.*
-import java.awt.event.*
+import java.awt.AWTKeyStroke
+import java.awt.Dimension
+import java.awt.Font
+import java.awt.KeyboardFocusManager
+import java.awt.event.HierarchyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.util.Collections
+import javax.swing.JComponent
+import javax.swing.SwingUtilities
 
-/**
- * Concrete implementation of [GraphicalTerminalImplementation] that adapts it to Swing
- */
-internal class SwingTerminalImplementation/**
- * Creates a new `SwingTerminalImplementation`
- * @param component JComponent that is the Swing terminal surface
- * @param fontConfiguration Font configuration to use
- * @param initialTerminalSize Initial size of the terminal
- * @param deviceConfiguration Device configuration
- * @param colorConfiguration Color configuration
- * @param scrollController Controller to be used when inspecting scroll status
- */
-    (
-private val component:JComponent?, 
-/**
- * Returns the current font configuration. Note that it is immutable and cannot be changed.
- * @return This SwingTerminal's current font configuration
- */
-     val fontConfiguration:SwingTerminalFontConfiguration?, 
-initialTerminalSize:TerminalSize?, 
-deviceConfiguration:TerminalEmulatorDeviceConfiguration?, 
-colorConfiguration:TerminalEmulatorColorConfiguration?, 
-scrollController:TerminalScrollController?):GraphicalTerminalImplementation(initialTerminalSize, deviceConfiguration, colorConfiguration, scrollController) {
-private var mouseListener:MouseAdapter? = null
+internal class SwingTerminalImplementation(
+    private val component: JComponent,
+    val fontConfiguration: SwingTerminalFontConfiguration,
+    initialTerminalSize: TerminalSize?,
+    deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+    colorConfiguration: TerminalEmulatorColorConfiguration?,
+    scrollController: TerminalScrollController?,
+) : GraphicalTerminalImplementation(initialTerminalSize, deviceConfiguration, colorConfiguration, scrollController) {
+    private var mouseListener: MouseAdapter? = null
 
-protected val fontHeight:Int
-@Override
-get() {
-return fontConfiguration!!.getFontHeight()
-}
+    init {
+        component.minimumSize = Dimension(fontConfiguration.fontWidth, fontConfiguration.fontHeight)
+        component.setFocusTraversalKeys(
+            KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+            Collections.emptySet<AWTKeyStroke>(),
+        )
+        component.setFocusTraversalKeys(
+            KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
+            Collections.emptySet<AWTKeyStroke>(),
+        )
+        component.isDoubleBuffered = true
+        component.addKeyListener(TerminalInputListener())
+        updateMouseCaptureMode(mouseCaptureMode)
+        component.addHierarchyListener { event ->
+            if (event.changeFlags == HierarchyEvent.DISPLAYABILITY_CHANGED.toLong()) {
+                if (event.changed.isDisplayable) {
+                    onCreated()
+                } else {
+                    onDestroyed()
+                }
+            }
+        }
+    }
 
-protected val fontWidth:Int
-@Override
-get() {
-return fontConfiguration!!.getFontWidth()
-}
+    fun getFontConfiguration(): SwingTerminalFontConfiguration = fontConfiguration
 
-protected val height:Int
-@Override
-get() {
-return component!!.getHeight()
-}
+    override val fontHeight: Int
+        get() = fontConfiguration.fontHeight
 
-protected val width:Int
-@Override
-get() {
-return component!!.getWidth()
-}
+    override val fontWidth: Int
+        get() = fontConfiguration.fontWidth
 
-protected val isTextAntiAliased:Boolean
-@Override
-get() {
-return fontConfiguration!!.isAntiAliased()
-}
+    override val height: Int
+        get() = component.height
 
-init{
+    override val width: Int
+        get() = component.width
 
- //Prevent us from shrinking beyond one character
-        component.setMinimumSize(Dimension(fontConfiguration.getFontWidth(), fontConfiguration.getFontHeight()))
+    override val isTextAntiAliased: Boolean
+        get() = fontConfiguration.isAntiAliased()
 
-component.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.emptySet<AWTKeyStroke?>())
-component.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, Collections.emptySet<AWTKeyStroke?>())
+    override fun updateMouseCaptureMode(mouseCaptureMode: MouseCaptureMode?) {
+        mouseListener?.let {
+            component.removeMouseListener(it)
+            component.removeMouseWheelListener(it)
+            component.removeMouseMotionListener(it)
+        }
+        mouseListener = object : TerminalMouseListener(this.mouseCaptureMode) {
+            override fun mouseClicked(e: MouseEvent) {
+                super.mouseClicked(e)
+                component.requestFocusInWindow()
+            }
+        }
+        component.addMouseListener(mouseListener)
+        component.addMouseWheelListener(mouseListener)
+        component.addMouseMotionListener(mouseListener)
+    }
 
- //Make sure the component is double-buffered to prevent flickering
-        component.setDoubleBuffered(true)
+    override fun getFontForCharacter(character: TextCharacter): Font {
+        return fontConfiguration.getFontForCharacter(character)
+    }
 
-component.addKeyListener(TerminalInputListener())
+    override fun repaint() {
+        if (SwingUtilities.isEventDispatchThread()) {
+            component.repaint()
+        } else {
+            SwingUtilities.invokeLater(component::repaint)
+        }
+    }
 
- //Mouse support
-        updateMouseCaptureMode(this.mouseCaptureMode)
-
-component.addHierarchyListener({ e-> if (e!!.getChangeFlags() === HierarchyEvent.DISPLAYABILITY_CHANGED)
-{
-if (e!!.getChanged().isDisplayable())
-{
-onCreated()
-}
-else
-{
-onDestroyed()
-}
-} })
-}
-
-@Override
-protected fun updateMouseCaptureMode(mouseCaptureMode:MouseCaptureMode?) {
-if (this.mouseListener != null)
-{
-component!!.removeMouseListener(this.mouseListener)
-component!!.removeMouseWheelListener(this.mouseListener)
-component!!.removeMouseMotionListener(this.mouseListener)
-}
-this.mouseListener = object:TerminalMouseListener(this.mouseCaptureMode) {
-@Override
- fun mouseClicked(e:MouseEvent?) {
-super.mouseClicked(e)
-this@SwingTerminalImplementation.component!!.requestFocusInWindow()
-}
-}
-component!!.addMouseListener(this.mouseListener)
-component!!.addMouseWheelListener(this.mouseListener)
-component!!.addMouseMotionListener(this.mouseListener)
-}
-
-@Override
-protected fun getFontForCharacter(character:TextCharacter?):Font? {
-return fontConfiguration!!.getFontForCharacter(character)
-}
-
-@Override
-protected fun repaint() {
-if (SwingUtilities.isEventDispatchThread())
-{
-component!!.repaint()
-}
-else
-{
-SwingUtilities.invokeLater(???({ component!!.repaint() }))
-}
-}
-
-@Override
- fun readInput():com.googlecode.lanterna.input.KeyStroke? {
-if (SwingUtilities.isEventDispatchThread())
-{
-throw UnsupportedOperationException("Cannot call SwingTerminal.readInput() on the AWT thread")
-}
-return super.readInput()
-}
+    override fun readInput(): KeyStroke {
+        if (SwingUtilities.isEventDispatchThread()) {
+            throw UnsupportedOperationException("Cannot call SwingTerminal.readInput() on the AWT thread")
+        }
+        return super.readInput()
+    }
 }
