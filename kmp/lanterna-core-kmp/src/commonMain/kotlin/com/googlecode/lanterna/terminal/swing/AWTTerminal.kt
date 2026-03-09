@@ -27,349 +27,229 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.terminal.IOSafeTerminal
 import com.googlecode.lanterna.terminal.MouseCaptureMode
 import com.googlecode.lanterna.terminal.TerminalResizeListener
-
-import java.awt.*
+import java.awt.Dimension
+import java.awt.Graphics
+import java.awt.Panel
 import java.awt.event.InputMethodEvent
 import java.awt.event.InputMethodListener
 import java.awt.im.InputMethodRequests
 import java.text.AttributedCharacterIterator
 import java.util.concurrent.TimeUnit
 
+@Suppress("serial")
+class AWTTerminal : Panel, IOSafeTerminal {
+    private val terminalImplementation: AWTTerminalImplementation
+    private val inputMethodRequests: TerminalInputMethodRequests
 
-/**
- * This class provides an AWT implementation of the Terminal interface that is an embeddable component you can put into
- * an AWT container. The class has static helper methods for opening a new frame with an AWTTerminal as its content,
- * similar to how the SwingTerminal used to work in earlier versions of lanterna. This version supports private mode and
- * non-private mode with a scrollback history. You can customize many of the properties by supplying device
- * configuration, font configuration and color configuration when you construct the object.
- * @author martin
- */
-@SuppressWarnings("serial")
- class AWTTerminal:Panel, IOSafeTerminal {
+    constructor() : this(TerminalScrollController.Null())
 
-private val terminalImplementation:AWTTerminalImplementation?
-private val inputMethodRequests:TerminalInputMethodRequests?
+    @Suppress("WeakerAccess")
+    constructor(scrollController: TerminalScrollController) : this(
+        TerminalEmulatorDeviceConfiguration.default,
+        AWTTerminalFontConfiguration.default,
+        TerminalEmulatorColorConfiguration.default,
+        scrollController,
+    )
 
-/**
- * Returns the current font configuration. Note that it is immutable and cannot be changed.
- * @return This AWTTerminal's current font configuration
- */
-     val fontConfiguration:AWTTerminalFontConfiguration?
-get() {
-return terminalImplementation!!.getFontConfiguration()
-}
+    constructor(
+        deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+        fontConfiguration: AWTTerminalFontConfiguration?,
+        colorConfiguration: TerminalEmulatorColorConfiguration?,
+    ) : this(null, deviceConfiguration, fontConfiguration, colorConfiguration)
 
-/**
- * Returns this terminal emulator's color configuration. Note that it is immutable and cannot be changed.
- * @return This [AWTTerminal]'s color configuration
- */
-     val colorConfiguration:TerminalEmulatorColorConfiguration?
-get() {
-return terminalImplementation!!.getColorConfiguration()
-}
+    constructor(
+        initialTerminalSize: TerminalSize?,
+        deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+        fontConfiguration: AWTTerminalFontConfiguration?,
+        colorConfiguration: TerminalEmulatorColorConfiguration?,
+    ) : this(
+        initialTerminalSize,
+        deviceConfiguration,
+        fontConfiguration,
+        colorConfiguration,
+        TerminalScrollController.Null(),
+    )
 
-/**
- * Returns this terminal emulator's device configuration. Note that it is immutable and cannot be changed.
- * @return This [AWTTerminal]'s device configuration
- */
-     val deviceConfiguration:TerminalEmulatorDeviceConfiguration?
-get() {
-return terminalImplementation!!.getDeviceConfiguration()
-}
+    constructor(
+        deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+        fontConfiguration: AWTTerminalFontConfiguration?,
+        colorConfiguration: TerminalEmulatorColorConfiguration?,
+        scrollController: TerminalScrollController,
+    ) : this(null, deviceConfiguration, fontConfiguration, colorConfiguration, scrollController)
 
-/**
- * Overridden method from AWT's `Component` class that returns the preferred size of the terminal (in pixels)
- * @return The terminal's preferred size in pixels
- */
-     val preferredSize:Dimension?
-@Override
-@Synchronized get() {
-return terminalImplementation!!.getPreferredSize()
-}
+    constructor(
+        initialTerminalSize: TerminalSize?,
+        deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+        fontConfiguration: AWTTerminalFontConfiguration?,
+        colorConfiguration: TerminalEmulatorColorConfiguration?,
+        scrollController: TerminalScrollController,
+    ) {
+        var resolvedDeviceConfiguration = deviceConfiguration
+        var resolvedFontConfiguration = fontConfiguration
+        var resolvedColorConfiguration = colorConfiguration
 
- var cursorPosition:TerminalPosition?
-@Override
-get() {
-return terminalImplementation!!.getCursorPosition()
-}
-@Override
-set(position) {
-terminalImplementation!!.setCursorPosition(position)
-}
+        if (resolvedDeviceConfiguration == null) {
+            resolvedDeviceConfiguration = TerminalEmulatorDeviceConfiguration.default
+        }
+        if (resolvedFontConfiguration == null) {
+            resolvedFontConfiguration = AWTTerminalFontConfiguration.default
+        }
+        if (resolvedColorConfiguration == null) {
+            resolvedColorConfiguration = TerminalEmulatorColorConfiguration.default
+        }
 
- val terminalSize:TerminalSize?
-@Override
-get() {
-return terminalImplementation!!.getTerminalSize()
-}
-
-/**
- * Creates a new AWTTerminal with all the defaults set and no scroll controller connected.
- */
-     constructor() : this(TerminalScrollController.Null()) {}
-
-
-/**
- * Creates a new AWTTerminal with a particular scrolling controller that will be notified when the terminals
- * history size grows and will be called when this class needs to figure out the current scrolling position.
- * @param scrollController Controller for scrolling the terminal history
- */
-    @SuppressWarnings("WeakerAccess")
- constructor(scrollController:TerminalScrollController?) : this(TerminalEmulatorDeviceConfiguration.getDefault(), 
-AWTTerminalFontConfiguration.getDefault(), 
-TerminalEmulatorColorConfiguration.getDefault(), 
-scrollController) {}
-
-/**
- * Creates a new AWTTerminal component using custom settings and no scroll controller.
- * @param deviceConfiguration Device configuration to use for this AWTTerminal
- * @param fontConfiguration Font configuration to use for this AWTTerminal
- * @param colorConfiguration Color configuration to use for this AWTTerminal
- */
-     constructor(
-deviceConfiguration:TerminalEmulatorDeviceConfiguration?, 
-fontConfiguration:AWTTerminalFontConfiguration?, 
-colorConfiguration:TerminalEmulatorColorConfiguration?) : this(null, deviceConfiguration, fontConfiguration, colorConfiguration) {}
-
-/**
- * Creates a new AWTTerminal component using custom settings and a custom scroll controller. The scrolling
- * controller will be notified when the terminal's history size grows and will be called when this class needs to
- * figure out the current scrolling position.
- * @param deviceConfiguration Device configuration to use for this AWTTerminal
- * @param fontConfiguration Font configuration to use for this AWTTerminal
- * @param colorConfiguration Color configuration to use for this AWTTerminal
- * @param scrollController Controller to use for scrolling, the object passed in will be notified whenever the
- * scrollable area has changed
- */
-     constructor(
-deviceConfiguration:TerminalEmulatorDeviceConfiguration?, 
-fontConfiguration:AWTTerminalFontConfiguration?, 
-colorConfiguration:TerminalEmulatorColorConfiguration?, 
-scrollController:TerminalScrollController?) : this(null, deviceConfiguration, fontConfiguration, colorConfiguration, scrollController) {}
-
-
-
-/**
- * Creates a new AWTTerminal component using custom settings and a custom scroll controller. The scrolling
- * controller will be notified when the terminal's history size grows and will be called when this class needs to
- * figure out the current scrolling position.
- * @param initialTerminalSize Initial size of the terminal, which will be used when calculating the preferred size
- * of the component. If null, it will default to 80x25. If the AWT layout manager forces
- * the component to a different size, the value of this parameter won't have any meaning
- * @param deviceConfiguration Device configuration to use for this AWTTerminal
- * @param fontConfiguration Font configuration to use for this AWTTerminal
- * @param colorConfiguration Color configuration to use for this AWTTerminal
- * @param scrollController Controller to use for scrolling, the object passed in will be notified whenever the
- * scrollable area has changed
- */
-    @JvmOverloads  constructor(
-initialTerminalSize:TerminalSize?, 
-deviceConfiguration:TerminalEmulatorDeviceConfiguration?, 
-fontConfiguration:AWTTerminalFontConfiguration?, 
-colorConfiguration:TerminalEmulatorColorConfiguration?, 
-scrollController:TerminalScrollController? = TerminalScrollController.Null()) {
-var deviceConfiguration = deviceConfiguration
-var fontConfiguration = fontConfiguration
-var colorConfiguration = colorConfiguration
-
- //Enforce valid values on the input parameters
-        if (deviceConfiguration == null)
-{
-deviceConfiguration = TerminalEmulatorDeviceConfiguration.getDefault()
-}
-if (fontConfiguration == null)
-{
-fontConfiguration = SwingTerminalFontConfiguration.getDefault()
-}
-if (colorConfiguration == null)
-{
-colorConfiguration = TerminalEmulatorColorConfiguration.getDefault()
-}
-
- // This will enable CJK and complex input systems
         enableInputMethods(true)
+        addInputMethodListener(object : InputMethodListener {
+            override fun inputMethodTextChanged(event: InputMethodEvent) = Unit
 
- // For some reason an InputMethodListener needs to be attached in order to start receiving IME events.
-        addInputMethodListener(object:InputMethodListener() {
-@Override
- fun inputMethodTextChanged(event:InputMethodEvent?) {}
+            override fun caretPositionChanged(event: InputMethodEvent) = Unit
+        })
 
-@Override
- fun caretPositionChanged(event:InputMethodEvent?) {}
-})
+        terminalImplementation = AWTTerminalImplementation(
+            this,
+            resolvedFontConfiguration,
+            initialTerminalSize,
+            resolvedDeviceConfiguration,
+            resolvedColorConfiguration,
+            scrollController,
+        )
+        inputMethodRequests = TerminalInputMethodRequests(this, terminalImplementation)
+    }
 
-terminalImplementation = AWTTerminalImplementation(
-this, 
-fontConfiguration, 
-initialTerminalSize, 
-deviceConfiguration, 
-colorConfiguration, 
-scrollController)
+    val fontConfiguration: AWTTerminalFontConfiguration
+        get() = terminalImplementation.fontConfiguration ?: AWTTerminalFontConfiguration.default
 
-inputMethodRequests = TerminalInputMethodRequests(this, terminalImplementation)
+    val colorConfiguration: TerminalEmulatorColorConfiguration
+        get() = terminalImplementation.colorConfiguration ?: TerminalEmulatorColorConfiguration.default
+
+    val deviceConfiguration: TerminalEmulatorDeviceConfiguration
+        get() = terminalImplementation.deviceConfiguration ?: TerminalEmulatorDeviceConfiguration.default
+
+    @Synchronized
+    override fun getPreferredSize(): Dimension {
+        return requireNotNull(terminalImplementation.preferredSize)
+    }
+
+    @Synchronized
+    override fun paint(componentGraphics: Graphics) {
+        terminalImplementation.paintComponent(componentGraphics)
+    }
+
+    @Synchronized
+    override fun update(componentGraphics: Graphics) {
+        terminalImplementation.paintComponent(componentGraphics)
+    }
+
+    fun addInput(keyStroke: KeyStroke?) {
+        terminalImplementation.addInput(keyStroke)
+    }
+
+    fun setMouseCaptureMode(mouseCaptureMode: MouseCaptureMode?) {
+        terminalImplementation.setMouseCaptureMode(mouseCaptureMode)
+    }
+
+    override fun getInputMethodRequests(): InputMethodRequests {
+        return inputMethodRequests
+    }
+
+    override fun processInputMethodEvent(e: InputMethodEvent) {
+        val iterator: AttributedCharacterIterator = e.text ?: return
+        repeat(e.committedCharacterCount) {
+            terminalImplementation.addInput(KeyStroke(iterator.current(), false, false))
+            iterator.next()
+        }
+    }
+
+    override fun enterPrivateMode() {
+        terminalImplementation.enterPrivateMode()
+    }
+
+    override fun exitPrivateMode() {
+        terminalImplementation.exitPrivateMode()
+    }
+
+    override fun clearScreen() {
+        terminalImplementation.clearScreen()
+    }
+
+    override fun setCursorPosition(x: Int, y: Int) {
+        terminalImplementation.setCursorPosition(x, y)
+    }
+
+    override var cursorPosition: TerminalPosition?
+        get() = terminalImplementation.cursorPosition
+        set(position) {
+            terminalImplementation.cursorPosition = position
+        }
+
+    override fun setCursorVisible(visible: Boolean) {
+        terminalImplementation.setCursorVisible(visible)
+    }
+
+    override fun putCharacter(c: Char) {
+        terminalImplementation.putCharacter(c)
+    }
+
+    override fun putString(string: String?) {
+        terminalImplementation.putString(string)
+    }
+
+    override fun enableSGR(sgr: SGR?) {
+        terminalImplementation.enableSGR(sgr)
+    }
+
+    override fun disableSGR(sgr: SGR?) {
+        terminalImplementation.disableSGR(sgr)
+    }
+
+    override fun resetColorAndSGR() {
+        terminalImplementation.resetColorAndSGR()
+    }
+
+    override fun setForegroundColor(color: TextColor?) {
+        terminalImplementation.setForegroundColor(color)
+    }
+
+    override fun setBackgroundColor(color: TextColor?) {
+        terminalImplementation.setBackgroundColor(color)
+    }
+
+    override val terminalSize: TerminalSize?
+        get() = terminalImplementation.terminalSize
+
+    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+        return terminalImplementation.enquireTerminal(timeout, timeoutUnit)
+    }
+
+    override fun bell() {
+        terminalImplementation.bell()
+    }
+
+    override fun flush() {
+        terminalImplementation.flush()
+    }
+
+    override fun close() {
+        terminalImplementation.close()
+    }
+
+    override fun pollInput(): KeyStroke? {
+        return terminalImplementation.pollInput()
+    }
+
+    override fun readInput(): KeyStroke? {
+        return terminalImplementation.readInput()
+    }
+
+    override fun newTextGraphics(): TextGraphics? {
+        return terminalImplementation.newTextGraphics()
+    }
+
+    override fun addResizeListener(listener: TerminalResizeListener?) {
+        terminalImplementation.addResizeListener(listener)
+    }
+
+    override fun removeResizeListener(listener: TerminalResizeListener?) {
+        terminalImplementation.removeResizeListener(listener)
+    }
 }
-
-/**
- * Overridden method from AWT's `Component` class that is called by OS window system when the component needs
- * to be redrawn
- * @param componentGraphics `Graphics` object to use when drawing the component
- */
-    @Override
-@Synchronized  fun paint(componentGraphics:Graphics?) {
-terminalImplementation!!.paintComponent(componentGraphics)
-}
-
-/**
- * Overridden method from AWT's `Component` class that is called by OS window system when the component needs
- * to be updated (the size has changed) and redrawn
- * @param componentGraphics `Graphics` object to use when drawing the component
- */
-    @Override
-@Synchronized  fun update(componentGraphics:Graphics?) {
- // This is supposed to solve AWT flickering, but in my testing this method isn't called at all!
-        terminalImplementation!!.paintComponent(componentGraphics)
-}
-
-/**
- * Takes a KeyStroke and puts it on the input queue of the terminal emulator. This way you can insert synthetic
- * input events to be processed as if they came from the user typing on the keyboard.
- * @param keyStroke Key stroke input event to put on the queue
- */
-     fun addInput(keyStroke:KeyStroke?) {
-terminalImplementation!!.addInput(keyStroke)
-}
-
- fun setMouseCaptureMode(mouseCaptureMode:MouseCaptureMode?) {
-terminalImplementation!!.setMouseCaptureMode(mouseCaptureMode)
-}
-
-@Override
- fun getInputMethodRequests():InputMethodRequests? {
-return inputMethodRequests
-}
-
-@Override
-protected fun processInputMethodEvent(e:InputMethodEvent) {
-val iterator = e.getText()
-for (i in 0 until e.getCommittedCharacterCount())
-{
-terminalImplementation!!.addInput(KeyStroke(iterator!!.current(), false, false))
-iterator!!.next()
-}
-}
-
- // Terminal methods below here, just forward to the implementation
-
-    @Override
-@JvmStatic  fun enterPrivateMode() {
-terminalImplementation!!.enterPrivateMode()
-}
-
-@Override
-@JvmStatic  fun exitPrivateMode() {
-terminalImplementation!!.exitPrivateMode()
-}
-
-@Override
-@JvmStatic  fun clearScreen() {
-terminalImplementation!!.clearScreen()
-}
-
-@Override
- fun setCursorPosition(x:Int, y:Int) {
-terminalImplementation!!.setCursorPosition(x, y)
-}
-
-@Override
- fun setCursorVisible(visible:Boolean) {
-terminalImplementation!!.setCursorVisible(visible)
-}
-
-@Override
- fun putCharacter(c:Char) {
-terminalImplementation!!.putCharacter(c)
-}
-
-@Override
- fun putString(string:String?) {
-terminalImplementation!!.putString(string)
-}
-
-@Override
- fun enableSGR(sgr:SGR?) {
-terminalImplementation!!.enableSGR(sgr)
-}
-
-@Override
- fun disableSGR(sgr:SGR?) {
-terminalImplementation!!.disableSGR(sgr)
-}
-
-@Override
-@JvmStatic  fun resetColorAndSGR() {
-terminalImplementation!!.resetColorAndSGR()
-}
-
-@Override
- fun setForegroundColor(color:TextColor?) {
-terminalImplementation!!.setForegroundColor(color)
-}
-
-@Override
- fun setBackgroundColor(color:TextColor?) {
-terminalImplementation!!.setBackgroundColor(color)
-}
-
-@Override
- fun enquireTerminal(timeout:Int, timeoutUnit:TimeUnit?):ByteArray? {
-return terminalImplementation!!.enquireTerminal(timeout, timeoutUnit)
-}
-
-@Override
-@JvmStatic  fun bell() {
-terminalImplementation!!.bell()
-}
-
-@Override
-@JvmStatic  fun flush() {
-terminalImplementation!!.flush()
-}
-
-@Override
-@JvmStatic  fun close() {
-terminalImplementation!!.close()
-}
-
-@Override
- fun pollInput():KeyStroke? {
-return terminalImplementation!!.pollInput()
-}
-
-@Override
- fun readInput():KeyStroke? {
-return terminalImplementation!!.readInput()
-}
-
-@Override
- fun newTextGraphics():TextGraphics? {
-return terminalImplementation!!.newTextGraphics()
-}
-
-@Override
- fun addResizeListener(listener:TerminalResizeListener?) {
-terminalImplementation!!.addResizeListener(listener)
-}
-
-@Override
- fun removeResizeListener(listener:TerminalResizeListener?) {
-terminalImplementation!!.removeResizeListener(listener)
-}
-}/**
- * Creates a new AWTTerminal component using custom settings and no scroll controller.
- * @param initialTerminalSize Initial size of the terminal, which will be used when calculating the preferred size
- * of the component. If null, it will default to 80x25. If the AWT layout manager forces
- * the component to a different size, the value of this parameter won't have any meaning
- * @param deviceConfiguration Device configuration to use for this AWTTerminal
- * @param fontConfiguration Font configuration to use for this AWTTerminal
- * @param colorConfiguration Color configuration to use for this AWTTerminal
- */
