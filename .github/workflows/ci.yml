@@ -77,7 +77,7 @@ jobs:
             runner: ubuntu-latest
             link_task: :lanterna-demo-kmp:linkDebugExecutableLinuxX64
           - target: macosX64
-            runner: macos-13
+            runner: macos-latest
             link_task: :lanterna-demo-kmp:linkDebugExecutableMacosX64
           - target: macosArm64
             runner: macos-14
