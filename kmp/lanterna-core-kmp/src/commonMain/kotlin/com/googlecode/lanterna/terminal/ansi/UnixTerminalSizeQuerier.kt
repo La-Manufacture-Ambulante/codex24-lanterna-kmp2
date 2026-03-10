@@ -26,7 +26,7 @@ import com.googlecode.lanterna.TerminalSize
  * UnixTerminal constructor in order to use it.
  * @author martin
  */
-@SuppressWarnings("WeakerAccess")
+@Suppress("WeakerAccess")
  interface UnixTerminalSizeQuerier {
 /**
  * Checks what the size of the terminal is, measured in number of rows and columns. The implementer of this
