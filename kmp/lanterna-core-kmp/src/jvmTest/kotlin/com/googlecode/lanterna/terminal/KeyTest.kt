@@ -16,52 +16,46 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
+import com.googlecode.lanterna.*
 
-import org.junit.Test;
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
 
-import static org.junit.Assert.*;
+import org.junit.Test
 
-public class KeyTest {
+import org.junit.Assert.*
 
-    @Test
-    public void testFromVim() {
-        {
-            KeyStroke k = KeyStroke.fromString("a");
-            assertEquals(KeyType.CHARACTER, k.getKeyType());
-            assertEquals(new Character('a'), k.getCharacter());
-            assertFalse(k.isCtrlDown());
-            assertFalse(k.isAltDown());
-        }
-        {
-            KeyStroke k = KeyStroke.fromString("<c-a>");
-            assertEquals(KeyType.CHARACTER, k.getKeyType());
-            assertEquals(new Character('a'), k.getCharacter());
-            assertTrue(k.isCtrlDown());
-            assertFalse(k.isAltDown());
-        }
-        {
-            KeyStroke k = KeyStroke.fromString("<a-a>");
-            assertEquals(KeyType.CHARACTER, k.getKeyType());
-            assertEquals(new Character('a'), k.getCharacter());
-            assertFalse(k.isCtrlDown());
-            assertTrue(k.isAltDown());
-        }
-        {
-            KeyStroke k = KeyStroke.fromString("<c-a-a>");
-            assertEquals(k.getKeyType(), KeyType.CHARACTER);
-            assertEquals(new Character('a'), k.getCharacter());
-            assertTrue(k.isCtrlDown());
-            assertTrue(k.isAltDown());
-        }
-        assertEquals(KeyType.REVERSE_TAB, KeyStroke.fromString("<s-tab>").getKeyType());
-        assertEquals(KeyType.REVERSE_TAB, KeyStroke.fromString("<S-tab>").getKeyType());
-        assertEquals(KeyType.REVERSE_TAB, KeyStroke.fromString("<S-Tab>").getKeyType());
-        assertEquals(KeyType.ENTER, KeyStroke.fromString("<cr>").getKeyType());
-        assertEquals(KeyType.PAGE_UP, KeyStroke.fromString("<PageUp>").getKeyType());
-    }
+ class KeyTest {
+
+@Test
+  fun testFromVim() {
+run({ val k = KeyStroke.fromString("a")
+assertEquals(KeyType.CHARACTER, k!!.getKeyType())
+assertEquals(Character('a'), k!!.getCharacter())
+assertFalse(k!!.isCtrlDown())
+assertFalse(k!!.isAltDown()) })
+run({ val k = KeyStroke.fromString("<c-a>")
+assertEquals(KeyType.CHARACTER, k!!.getKeyType())
+assertEquals(Character('a'), k!!.getCharacter())
+assertTrue(k!!.isCtrlDown())
+assertFalse(k!!.isAltDown()) })
+run({ val k = KeyStroke.fromString("<a-a>")
+assertEquals(KeyType.CHARACTER, k!!.getKeyType())
+assertEquals(Character('a'), k!!.getCharacter())
+assertFalse(k!!.isCtrlDown())
+assertTrue(k!!.isAltDown()) })
+run({ val k = KeyStroke.fromString("<c-a-a>")
+assertEquals(k!!.getKeyType(), KeyType.CHARACTER)
+assertEquals(Character('a'), k!!.getCharacter())
+assertTrue(k!!.isCtrlDown())
+assertTrue(k!!.isAltDown()) })
+assertEquals(KeyType.REVERSE_TAB, KeyStroke.fromString("<s-tab>").getKeyType())
+assertEquals(KeyType.REVERSE_TAB, KeyStroke.fromString("<S-tab>").getKeyType())
+assertEquals(KeyType.REVERSE_TAB, KeyStroke.fromString("<S-Tab>").getKeyType())
+assertEquals(KeyType.ENTER, KeyStroke.fromString("<cr>").getKeyType())
+assertEquals(KeyType.PAGE_UP, KeyStroke.fromString("<PageUp>").getKeyType())
+}
 
 }

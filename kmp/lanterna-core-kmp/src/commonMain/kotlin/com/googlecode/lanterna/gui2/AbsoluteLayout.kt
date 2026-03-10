@@ -16,40 +16,45 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalSize;
-import java.util.List;
+import com.googlecode.lanterna.TerminalSize
 
 /**
- * Layout manager that places components where they are manually specified to be and sizes them to the size they are 
+ * Layout manager that places components where they are manually specified to be and sizes them to the size they are
  * manually assigned to. When using the AbsoluteLayout, please use setPosition(..) and setSize(..) manually on each
  * component to choose where to place them. Components that have not had their position and size explicitly set will
  * not be visible.
  *
  * @author martin
  */
-public class AbsoluteLayout implements LayoutManager {
-    @Override
-    public TerminalSize getPreferredSize(List<Component> components) {
-        TerminalSize size = TerminalSize.ZERO;
-        for(Component component: components) {
-            size = size.max(
-                    new TerminalSize(
-                            component.getPosition().getColumn() + component.getSize().getColumns(),
-                            component.getPosition().getRow() + component.getSize().getRows()));
-                    
+class AbsoluteLayout : LayoutManager {
+    override fun getPreferredSize(components: List<Component?>?): TerminalSize? {
+        var size: TerminalSize? = TerminalSize.ZERO
+        for (component in components.orEmpty()) {
+            if (component == null) {
+                continue
+            }
+            val position = component.position ?: continue
+            val componentSize = component.size ?: continue
+            size = size?.max(
+                TerminalSize(
+                    position.column + componentSize.columns,
+                    position.row + componentSize.rows,
+                ),
+            ) ?: TerminalSize(
+                position.column + componentSize.columns,
+                position.row + componentSize.rows,
+            )
         }
-        return size;
+        return size ?: TerminalSize.ZERO
     }
 
-    @Override
-    public void doLayout(TerminalSize area, List<Component> components) {
-        //Do nothing
+    override fun doLayout(area: TerminalSize?, components: List<Component?>?) {
+        // Do nothing
     }
 
-    @Override
-    public boolean hasChanged() {
-        return false;
+    override fun hasChanged(): Boolean {
+        return false
     }
 }

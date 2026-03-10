@@ -16,45 +16,45 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.gui2.WindowDecorationRenderer;
-import com.googlecode.lanterna.gui2.WindowPostRenderer;
+import com.googlecode.lanterna.gui2.WindowDecorationRenderer
+import com.googlecode.lanterna.gui2.WindowPostRenderer
 
 /**
  * The main theme interface, from which you can retrieve theme definitions
  * @author Martin
  */
-public interface Theme {
-    /**
-     * Returns what this theme considers to be the default definition
-     * @return The default theme definition
-     */
-    ThemeDefinition getDefaultDefinition();
+ interface Theme {
+/**
+ * Returns what this theme considers to be the default definition
+ * @return The default theme definition
+ */
+     val defaultDefinition:ThemeDefinition?
 
-    /**
-     * Returns the theme definition associated with this class. The implementation of Theme should ensure that this
-     * call never returns {@code null}, it should always give back a valid value (falling back to the default is nothing
-     * else can be used).
-     * @param clazz Class to get the theme definition for
-     * @return The ThemeDefinition for the class passed in
-     */
-    ThemeDefinition getDefinition(Class<?> clazz);
+/**
+ * Returns a post-renderer to invoke after drawing each window, unless the GUI system or individual windows has
+ * their own renderers set. If `null`, no post-renderer will be done (unless the GUI system or the windows
+ * has a post-renderer).
+ * @return A [com.googlecode.lanterna.gui2.WindowPostRenderer] to invoke after drawing each window unless
+ * overridden, or `null` if none
+ */
+     val windowPostRenderer:WindowPostRenderer?
 
-    /**
-     * Returns a post-renderer to invoke after drawing each window, unless the GUI system or individual windows has
-     * their own renderers set. If {@code null}, no post-renderer will be done (unless the GUI system or the windows
-     * has a post-renderer).
-     * @return A {@link com.googlecode.lanterna.gui2.WindowPostRenderer} to invoke after drawing each window unless
-     * overridden, or {@code null} if none
-     */
-    WindowPostRenderer getWindowPostRenderer();
+/**
+ * Returns the [WindowDecorationRenderer] to use for windows drawn in this theme. If `null` then
+ * lanterna will fall back to use [com.googlecode.lanterna.gui2.DefaultWindowDecorationRenderer].
+ * 
+ * @return The decoration renderer to use for this theme, or `null` to use system default
+ */
+     val windowDecorationRenderer:WindowDecorationRenderer?
 
-    /**
-     * Returns the {@link WindowDecorationRenderer} to use for windows drawn in this theme. If {@code null} then
-     * lanterna will fall back to use {@link com.googlecode.lanterna.gui2.DefaultWindowDecorationRenderer}.
-     *
-     * @return The decoration renderer to use for this theme, or {@code null} to use system default
-     */
-    WindowDecorationRenderer getWindowDecorationRenderer();
+/**
+ * Returns the theme definition associated with this class. The implementation of Theme should ensure that this
+ * call never returns `null`, it should always give back a valid value (falling back to the default is nothing
+ * else can be used).
+ * @param clazz Class to get the theme definition for
+ * @return The ThemeDefinition for the class passed in
+ */
+     fun getDefinition(clazz:Class<*>?):ThemeDefinition? 
 }

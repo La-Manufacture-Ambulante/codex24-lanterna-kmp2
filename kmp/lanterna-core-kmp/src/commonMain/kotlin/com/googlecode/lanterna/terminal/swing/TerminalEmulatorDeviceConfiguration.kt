@@ -16,9 +16,9 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.terminal.swing;
+package com.googlecode.lanterna.terminal.swing
 
-import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.TextColor
 
 /**
  * Object that encapsulates the configuration parameters for the terminal 'device' that a SwingTerminal is emulating.
@@ -26,264 +26,225 @@ import com.googlecode.lanterna.TextColor;
  * and if the cursor should blink or not.
  * @author martin
  */
-public class TerminalEmulatorDeviceConfiguration {
+ class TerminalEmulatorDeviceConfiguration/**
+ * Creates a new terminal device configuration object with all configurable values specified.
+ * @param lineBufferScrollbackSize How many lines of scrollback buffer should the terminal save?
+ * @param blinkLengthInMilliSeconds How many milliseconds does a 'blink' last
+ * @param cursorStyle Style of the terminal text cursor
+ * @param cursorColor Color of the terminal text cursor
+ * @param cursorBlinking Should the terminal text cursor blink?
+ * @param clipboardAvailable Should the terminal support pasting text from the clipboard?
+ */
+     @SuppressWarnings("WeakerAccess")
+@JvmOverloads  constructor(
+/**
+ * How many lines of history should be saved so the user can scroll back to them?
+ * @return Number of lines in the scrollback buffer
+ */
+     val lineBufferScrollbackSize:Int = 2000, 
+/**
+ * Returns the length of a 'blink', which is the interval time a character with the blink SGR enabled with be drawn
+ * with foreground color and background color set to the same.
+ * @return Milliseconds of a blink interval
+ */
+     val blinkLengthInMilliSeconds:Int = 500, 
+/**
+ * Style the text cursor should take
+ * @return Text cursor style
+ * @see TerminalEmulatorDeviceConfiguration.CursorStyle
+ */
+     val cursorStyle:CursorStyle? = CursorStyle.REVERSED, 
+/**
+ * What color to draw the text cursor color in
+ * @return Color of the text cursor
+ */
+     val cursorColor:TextColor? = TextColor.RGB(255, 255, 255), 
+/**
+ * Should the text cursor be blinking
+ * @return `true` if the text cursor should be blinking
+ */
+    @get:SuppressWarnings("BooleanMethodIsAlwaysInverted")
+ val isCursorBlinking:Boolean = false, 
+ val isClipboardAvailable:Boolean = true) {
 
-    /**
-     * This is a static reference to the default terminal device configuration. Use this one if you are unsure.
-     * @return A terminal device configuration object with all settings set to default
-     */
-    public static TerminalEmulatorDeviceConfiguration getDefault() {
-        return new TerminalEmulatorDeviceConfiguration();
-    }
+/**
+ * Copies the current configuration. The new object has the given value.
+ * @param blinkLengthInMilliSeconds How many milliseconds does a 'blink' last
+ * @return A copy of the current configuration with the changed value.
+ */
+     fun withBlinkLengthInMilliSeconds(blinkLengthInMilliSeconds:Int):TerminalEmulatorDeviceConfiguration {
+if (this.blinkLengthInMilliSeconds == blinkLengthInMilliSeconds)
+{
+return this
+}
+else
+{
+return TerminalEmulatorDeviceConfiguration(
+this.lineBufferScrollbackSize, 
+blinkLengthInMilliSeconds, 
+this.cursorStyle, 
+this.cursorColor, 
+this.isCursorBlinking, 
+this.isClipboardAvailable)
+}
+}
 
-    private final int lineBufferScrollbackSize;
-    private final int blinkLengthInMilliSeconds;
-    private final CursorStyle cursorStyle;
-    private final TextColor cursorColor;
-    private final boolean cursorBlinking;
-    private final boolean clipboardAvailable;
+/**
+ * Copies the current configuration. The new object has the given value.
+ * @param lineBufferScrollbackSize How many lines of scrollback buffer should the terminal save?
+ * @return  A copy of the current configuration with the changed value.
+ */
+     fun withLineBufferScrollbackSize(lineBufferScrollbackSize:Int):TerminalEmulatorDeviceConfiguration {
+if (this.lineBufferScrollbackSize == lineBufferScrollbackSize)
+{
+return this
+}
+else
+{
+return TerminalEmulatorDeviceConfiguration(
+lineBufferScrollbackSize, 
+this.blinkLengthInMilliSeconds, 
+this.cursorStyle, 
+this.cursorColor, 
+this.isCursorBlinking, 
+this.isClipboardAvailable)
+}
+}
 
-    /**
-     * Creates a new terminal device configuration object with all the defaults set
-     */
-    @SuppressWarnings("WeakerAccess")
-    public TerminalEmulatorDeviceConfiguration() {
-        this(2000, 500, CursorStyle.REVERSED, new TextColor.RGB(255, 255, 255), false, true);
-    }
+/**
+ * Copies the current configuration. The new object has the given value.
+ * @param cursorStyle Style of the terminal text cursor
+ * @return A copy of the current configuration with the changed value.
+ */
+     fun withCursorStyle(cursorStyle:CursorStyle?):TerminalEmulatorDeviceConfiguration {
+if (this.cursorStyle == cursorStyle)
+{
+return this
+}
+else
+{
+return TerminalEmulatorDeviceConfiguration(
+this.lineBufferScrollbackSize, 
+this.blinkLengthInMilliSeconds, 
+cursorStyle, 
+this.cursorColor, 
+this.isCursorBlinking, 
+this.isClipboardAvailable)
+}
+}
 
-    /**
-     * Creates a new terminal device configuration object with all configurable values specified.
-     * @param lineBufferScrollbackSize How many lines of scrollback buffer should the terminal save?
-     * @param blinkLengthInMilliSeconds How many milliseconds does a 'blink' last
-     * @param cursorStyle Style of the terminal text cursor
-     * @param cursorColor Color of the terminal text cursor
-     * @param cursorBlinking Should the terminal text cursor blink?
-     */
-    @SuppressWarnings("WeakerAccess")
-    public TerminalEmulatorDeviceConfiguration(
-            int lineBufferScrollbackSize,
-            int blinkLengthInMilliSeconds,
-            CursorStyle cursorStyle,
-            TextColor cursorColor,
-            boolean cursorBlinking) {
+/**
+ * Copies the current configuration. The new object has the given value.
+ * @param cursorColor Color of the terminal text cursor
+ * @return A copy of the current configuration with the changed value.
+ */
+     fun withCursorColor(cursorColor:TextColor?):TerminalEmulatorDeviceConfiguration {
+if (this.cursorColor === cursorColor)
+{
+return this
+}
+else
+{
+return TerminalEmulatorDeviceConfiguration(
+this.lineBufferScrollbackSize, 
+this.blinkLengthInMilliSeconds, 
+this.cursorStyle, 
+cursorColor, 
+this.isCursorBlinking, 
+this.isClipboardAvailable)
+}
+}
 
-        this(lineBufferScrollbackSize, blinkLengthInMilliSeconds, cursorStyle, cursorColor, cursorBlinking, true);
-    }
+/**
+ * Copies the current configuration. The new object has the given value.
+ * @param cursorBlinking Should the terminal text cursor blink?
+ * @return A copy of the current configuration with the changed value.
+ */
+     fun withCursorBlinking(cursorBlinking:Boolean):TerminalEmulatorDeviceConfiguration {
+if (this.isCursorBlinking == cursorBlinking)
+{
+return this
+}
+else
+{
+return TerminalEmulatorDeviceConfiguration(
+this.lineBufferScrollbackSize, 
+this.blinkLengthInMilliSeconds, 
+this.cursorStyle, 
+this.cursorColor, 
+cursorBlinking, 
+this.isClipboardAvailable)
+}
+}
 
-    /**
-     * Creates a new terminal device configuration object with all configurable values specified.
-     * @param lineBufferScrollbackSize How many lines of scrollback buffer should the terminal save?
-     * @param blinkLengthInMilliSeconds How many milliseconds does a 'blink' last
-     * @param cursorStyle Style of the terminal text cursor
-     * @param cursorColor Color of the terminal text cursor
-     * @param cursorBlinking Should the terminal text cursor blink?
-     * @param clipboardAvailable Should the terminal support pasting text from the clipboard?
-     */
-    @SuppressWarnings("WeakerAccess")
-    public TerminalEmulatorDeviceConfiguration(
-            int lineBufferScrollbackSize,
-            int blinkLengthInMilliSeconds,
-            CursorStyle cursorStyle,
-            TextColor cursorColor,
-            boolean cursorBlinking,
-            boolean clipboardAvailable) {
+/**
+ * Copies the current configuration. The new object has the given value.
+ * @param clipboardAvailable Should the terminal support pasting text from the clipboard?
+ * @return A copy of the current configuration with the changed value.
+ */
+     fun withClipboardAvailable(clipboardAvailable:Boolean):TerminalEmulatorDeviceConfiguration {
+if (this.isClipboardAvailable == clipboardAvailable)
+{
+return this
+}
+else
+{
+return TerminalEmulatorDeviceConfiguration(
+this.lineBufferScrollbackSize, 
+this.blinkLengthInMilliSeconds, 
+this.cursorStyle, 
+this.cursorColor, 
+this.isCursorBlinking, 
+clipboardAvailable)
+}
+}
 
-        this.lineBufferScrollbackSize = lineBufferScrollbackSize;
-        this.blinkLengthInMilliSeconds = blinkLengthInMilliSeconds;
-        this.cursorStyle = cursorStyle;
-        this.cursorColor = cursorColor;
-        this.cursorBlinking = cursorBlinking;
-        this.clipboardAvailable = clipboardAvailable;
-    }
+/**
+ * Different cursor styles supported by SwingTerminal
+ */
+     enum class CursorStyle {
 
-    /**
-     * Returns the length of a 'blink', which is the interval time a character with the blink SGR enabled with be drawn
-     * with foreground color and background color set to the same.
-     * @return Milliseconds of a blink interval
-     */
-    public int getBlinkLengthInMilliSeconds() {
-        return blinkLengthInMilliSeconds;
-    }
+/**
+ * The cursor is drawn by inverting the front- and background colors of the cursor position
+ */
+        REVERSED, 
 
-    /**
-     * How many lines of history should be saved so the user can scroll back to them?
-     * @return Number of lines in the scrollback buffer
-     */
-    public int getLineBufferScrollbackSize() {
-        return lineBufferScrollbackSize;
-    }
+/**
+ * The cursor is drawn by using the cursor color as the background color for the character at the cursor position
+ */
+        FIXED_BACKGROUND, 
 
-    /**
-     * Style the text cursor should take
-     * @return Text cursor style
-     * @see TerminalEmulatorDeviceConfiguration.CursorStyle
-     */
-    public CursorStyle getCursorStyle() {
-        return cursorStyle;
-    }
+/**
+ * The cursor is rendered as a thick horizontal line at the bottom of the character
+ */
+        UNDER_BAR, 
 
-    /**
-     * What color to draw the text cursor color in
-     * @return Color of the text cursor
-     */
-    public TextColor getCursorColor() {
-        return cursorColor;
-    }
-
-    /**
-     * Should the text cursor be blinking
-     * @return {@code true} if the text cursor should be blinking
-     */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean isCursorBlinking() {
-        return cursorBlinking;
-    }
-
-    public boolean isClipboardAvailable() {
-        return clipboardAvailable;
-    }
-
-    /**
-     * Copies the current configuration. The new object has the given value.
-     * @param blinkLengthInMilliSeconds How many milliseconds does a 'blink' last
-     * @return A copy of the current configuration with the changed value.
-     */
-    public TerminalEmulatorDeviceConfiguration withBlinkLengthInMilliSeconds(int blinkLengthInMilliSeconds) {
-        if (this.blinkLengthInMilliSeconds == blinkLengthInMilliSeconds) {
-            return this;
-        } else {
-            return new TerminalEmulatorDeviceConfiguration(
-                    this.lineBufferScrollbackSize,
-                    blinkLengthInMilliSeconds,
-                    this.cursorStyle,
-                    this.cursorColor,
-                    this.cursorBlinking,
-                    this.clipboardAvailable);
-        }
-    }
-
-    /**
-     * Copies the current configuration. The new object has the given value.
-     * @param lineBufferScrollbackSize How many lines of scrollback buffer should the terminal save?
-     * @return  A copy of the current configuration with the changed value.
-     */
-    public TerminalEmulatorDeviceConfiguration withLineBufferScrollbackSize(int lineBufferScrollbackSize) {
-        if(this.lineBufferScrollbackSize == lineBufferScrollbackSize) {
-            return this;
-        } else {
-            return new TerminalEmulatorDeviceConfiguration(
-                    lineBufferScrollbackSize,
-                    this.blinkLengthInMilliSeconds,
-                    this.cursorStyle,
-                    this.cursorColor,
-                    this.cursorBlinking,
-                    this.clipboardAvailable);
-        }
-    }
-
-    /**
-     * Copies the current configuration. The new object has the given value.
-     * @param cursorStyle Style of the terminal text cursor
-     * @return A copy of the current configuration with the changed value.
-     */
-    public TerminalEmulatorDeviceConfiguration withCursorStyle(CursorStyle cursorStyle) {
-        if(this.cursorStyle == cursorStyle) {
-            return this;
-        } else {
-            return new TerminalEmulatorDeviceConfiguration(
-                    this.lineBufferScrollbackSize,
-                    this.blinkLengthInMilliSeconds,
-                    cursorStyle,
-                    this.cursorColor,
-                    this.cursorBlinking,
-                    this.clipboardAvailable);
-        }
-    }
-
-    /**
-     * Copies the current configuration. The new object has the given value.
-     * @param cursorColor Color of the terminal text cursor
-     * @return A copy of the current configuration with the changed value.
-     */
-    public TerminalEmulatorDeviceConfiguration withCursorColor(TextColor cursorColor) {
-        if(this.cursorColor == cursorColor) {
-            return this;
-        } else {
-            return new TerminalEmulatorDeviceConfiguration(
-                    this.lineBufferScrollbackSize,
-                    this.blinkLengthInMilliSeconds,
-                    this.cursorStyle,
-                    cursorColor,
-                    this.cursorBlinking,
-                    this.clipboardAvailable);
-        }
-    }
-
-    /**
-     * Copies the current configuration. The new object has the given value.
-     * @param cursorBlinking Should the terminal text cursor blink?
-     * @return A copy of the current configuration with the changed value.
-     */
-    public TerminalEmulatorDeviceConfiguration withCursorBlinking(boolean cursorBlinking) {
-        if(this.cursorBlinking == cursorBlinking) {
-            return this;
-        } else {
-            return new TerminalEmulatorDeviceConfiguration(
-                    this.lineBufferScrollbackSize,
-                    this.blinkLengthInMilliSeconds,
-                    this.cursorStyle,
-                    this.cursorColor,
-                    cursorBlinking,
-                    this.clipboardAvailable);
-        }
-    }
-
-    /**
-     * Copies the current configuration. The new object has the given value.
-     * @param clipboardAvailable Should the terminal support pasting text from the clipboard?
-     * @return A copy of the current configuration with the changed value.
-     */
-    public TerminalEmulatorDeviceConfiguration withClipboardAvailable(boolean clipboardAvailable) {
-        if(this.clipboardAvailable == clipboardAvailable) {
-            return this;
-        } else {
-            return new TerminalEmulatorDeviceConfiguration(
-                    this.lineBufferScrollbackSize,
-                    this.blinkLengthInMilliSeconds,
-                    this.cursorStyle,
-                    this.cursorColor,
-                    this.cursorBlinking,
-                    clipboardAvailable);
-        }
-    }
-
-    /**
-     * Different cursor styles supported by SwingTerminal
-     */
-    public enum CursorStyle {
-
-        /**
-         * The cursor is drawn by inverting the front- and background colors of the cursor position
-         */
-        REVERSED,
-
-        /**
-         * The cursor is drawn by using the cursor color as the background color for the character at the cursor position
-         */
-        FIXED_BACKGROUND,
-
-        /**
-         * The cursor is rendered as a thick horizontal line at the bottom of the character
-         */
-        UNDER_BAR,
-
-        /**
-         * The cursor is rendered as a left-side aligned vertical line
-         */
-        VERTICAL_BAR,
-
-        ;
-
-    }
+/**
+ * The cursor is rendered as a left-side aligned vertical line
+ */
+        VERTICAL_BAR
 
 }
+
+companion object {
+
+/**
+ * This is a static reference to the default terminal device configuration. Use this one if you are unsure.
+ * @return A terminal device configuration object with all settings set to default
+ */
+     val default:TerminalEmulatorDeviceConfiguration
+get() {
+return TerminalEmulatorDeviceConfiguration()
+}
+}
+
+}/**
+ * Creates a new terminal device configuration object with all the defaults set
+ *//**
+ * Creates a new terminal device configuration object with all configurable values specified.
+ * @param lineBufferScrollbackSize How many lines of scrollback buffer should the terminal save?
+ * @param blinkLengthInMilliSeconds How many milliseconds does a 'blink' last
+ * @param cursorStyle Style of the terminal text cursor
+ * @param cursorColor Color of the terminal text cursor
+ * @param cursorBlinking Should the terminal text cursor blink?
+ */

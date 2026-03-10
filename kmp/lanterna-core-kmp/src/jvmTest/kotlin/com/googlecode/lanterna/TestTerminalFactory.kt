@@ -17,67 +17,70 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 
-package com.googlecode.lanterna;
+package com.googlecode.lanterna
 
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.MouseCaptureMode;
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.terminal.MouseCaptureMode
+import com.googlecode.lanterna.terminal.Terminal
+import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame
 
 /**
- * This class provides a unified way for the test program to get their terminal
- * objects
- * @author Martin
+ * This class provides a unified way for test programs to obtain terminal objects.
  */
-public class TestTerminalFactory extends DefaultTerminalFactory {
+class TestTerminalFactory {
+    private val delegate = DefaultTerminalFactory()
 
-    public TestTerminalFactory() {
+    constructor()
+
+    constructor(args: Array<String?>?) {
+        parseArgs(args)
     }
 
-    public TestTerminalFactory(String[] args) {
-        parseArgs(args);
-    }
+    fun parseArgs(args: Array<String?>?) {
+        for (rawArg in args.orEmpty()) {
+            val arg = rawArg ?: continue
+            val tok = arg.split("=", limit = 2)
+            val argName = tok[0]
+            val par = if (tok.size > 1) tok[1] else ""
+            when (argName) {
+                "--text-terminal", "--no-swing" -> {
+                    delegate.setPreferTerminalEmulator(false)
+                    delegate.setForceTextTerminal(true)
+                }
 
-    public void parseArgs(String[] args) {
-        if (args == null) { return; }
-        for(String arg: args) {
-            if (arg == null) { continue; }
-            String[] tok = arg.split("=", 2);
-            arg = tok[0]; // only the part before "="
-            String par = tok.length > 1 ? tok[1] : "";
-            if("--text-terminal".equals(arg) || "--no-swing".equals(arg)) {
-                setPreferTerminalEmulator(false);
-                setForceTextTerminal(true);
-            }
-            else if("--awt".equals(arg)) {
-                setForceTextTerminal(false);
-                setPreferTerminalEmulator(true);
-                setForceAWTOverSwing(true);
-            }
-            else if("--swing".equals(arg)) {
-                setForceTextTerminal(false);
-                setPreferTerminalEmulator(true);
-                setForceAWTOverSwing(false);
-            }
-            else if("--mouse-click".equals(arg)) {
-                setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE);
-            }
-            else if("--mouse-drag".equals(arg)) {
-                setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE_DRAG);
-            }
-            else if("--mouse-move".equals(arg)) {
-                setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE_DRAG_MOVE);
-            }
-            else if("--telnet-port".equals(arg)) {
-                int port = 1024; // default for option w/o param
-                try { port = Integer.parseInt(par); }
-                catch (NumberFormatException e) {}
-                setTelnetPort(port);
-            }
-            else if("--with-timeout".equals(arg)) {
-                int inputTimeout = 40; // default for option w/o param
-                try { inputTimeout = Integer.parseInt(par); }
-                catch (NumberFormatException e) {}
-                setInputTimeout(inputTimeout);
+                "--awt" -> {
+                    delegate.setForceTextTerminal(false)
+                    delegate.setPreferTerminalEmulator(true)
+                    delegate.setForceAWTOverSwing(true)
+                }
+
+                "--swing" -> {
+                    delegate.setForceTextTerminal(false)
+                    delegate.setPreferTerminalEmulator(true)
+                    delegate.setForceAWTOverSwing(false)
+                }
+
+                "--mouse-click" -> delegate.setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE)
+                "--mouse-drag" -> delegate.setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE_DRAG)
+                "--mouse-move" -> delegate.setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE_DRAG_MOVE)
+
+                "--telnet-port" -> {
+                    val port = par.toIntOrNull() ?: 1024
+                    delegate.setTelnetPort(port)
+                }
+
+                "--with-timeout" -> {
+                    val inputTimeout = par.toIntOrNull() ?: 40
+                    delegate.setInputTimeout(inputTimeout)
+                }
             }
         }
     }
+
+    fun createTerminal(): Terminal? = delegate.createTerminal()
+
+    fun createScreen(): TerminalScreen = delegate.createScreen()
+
+    fun createSwingTerminal(): SwingTerminalFrame = delegate.createSwingTerminal()
 }

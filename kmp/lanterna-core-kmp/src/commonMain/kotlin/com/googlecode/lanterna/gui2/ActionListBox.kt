@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,123 +13,77 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.input.MouseAction;
-import com.googlecode.lanterna.input.MouseActionType;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.input.MouseAction
+import com.googlecode.lanterna.input.MouseActionType
 
 /**
- * This class is a list box implementation that displays a number of items that has actions associated with them. You
- * can activate this action by pressing the Enter or Space keys on the keyboard and the action associated with the
- * currently selected item will fire.
- * @author Martin
+ * List box where each item is a runnable action.
  */
-public class ActionListBox extends AbstractListBox<Runnable, ActionListBox> {
+class ActionListBox @JvmOverloads constructor(preferredSize: TerminalSize? = null) :
+    AbstractListBox<Runnable, ActionListBox>(preferredSize) {
 
-    /**
-     * Default constructor, creates an {@code ActionListBox} with no pre-defined size that will request to be big enough
-     * to display all items
-     */
-    public ActionListBox() {
-        this(null);
+    override fun addItem(item: Runnable?): ActionListBox? {
+        return super.addItem(item)
     }
 
-    /**
-     * Creates a new {@code ActionListBox} with a pre-set size. If the items don't fit in within this size, scrollbars
-     * will be used to accommodate. Calling {@code new ActionListBox(null)} has the same effect as calling
-     * {@code new ActionListBox()}.
-     * @param preferredSize Preferred size of this {@link ActionListBox}
-     */
-    public ActionListBox(TerminalSize preferredSize) {
-        super(preferredSize);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * The label of the item in the list box will be the result of calling {@code .toString()} on the runnable, which
-     * might not be what you want to have unless you explicitly declare it. Consider using
-     * {@code addItem(String label, Runnable action} instead, if you want to just set the label easily without having
-     * to override {@code .toString()}.
-     *
-     * @param object Runnable to execute when the action was selected and fired in the list
-     * @return Itself
-     */
-    @Override
-    public ActionListBox addItem(Runnable object) {
-        return super.addItem(object);
-    }
-
-    /**
-     * Adds a new item to the list, which is displayed in the list using a supplied label.
-     * @param label Label to use in the list for the new item
-     * @param action Runnable to invoke when this action is selected and then triggered
-     * @return Itself
-     */
-    public ActionListBox addItem(final String label, final Runnable action) {
-        return addItem(new Runnable() {
-            @Override
-            public void run() {
-                action.run();
+    fun addItem(label: String?, action: Runnable?): ActionListBox {
+        return addItem(object : Runnable {
+            override fun run() {
+                action?.run()
             }
 
-            @Override
-            public String toString() {
-                return label;
+            override fun toString(): String {
+                return label ?: ""
             }
-        });
+        }) ?: this
     }
 
-    @Override
-    public TerminalPosition getCursorLocation() {
-        return null;
-    }
+    override val cursorLocation: TerminalPosition?
+        get() = null
 
-    @Override
-    public Result handleKeyStroke(KeyStroke keyStroke) {
+    override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
         if (isKeyboardActivationStroke(keyStroke)) {
-            runSelectedItem();
-            return Result.HANDLED;
-        } else if (keyStroke.getKeyType() == KeyType.MOUSE_EVENT) {
-            MouseAction mouseAction = (MouseAction) keyStroke;
-            MouseActionType actionType = mouseAction.getActionType();
-            
-            if (isMouseMove(keyStroke)
-                    || actionType == MouseActionType.CLICK_RELEASE
-                    || actionType == MouseActionType.SCROLL_UP
-                    || actionType == MouseActionType.SCROLL_DOWN) {
-                return super.handleKeyStroke(keyStroke);
-            }
-            
-            // includes mouse drag
-            int existingIndex = getSelectedIndex();
-            int newIndex = getIndexByMouseAction(mouseAction);
-            if (existingIndex != newIndex || !isFocused() || actionType == MouseActionType.CLICK_DOWN) {
-                // the index has changed, or the focus needs to be obtained, or the user is clicking on the current selection to perform the action again
-                Result result = super.handleKeyStroke(keyStroke);
-                runSelectedItem();
-                return result;
-            }
-            return Result.HANDLED;
-        } else {
-            Result result = super.handleKeyStroke(keyStroke);
-            //runSelectedItem();
-            return result;
+            runSelectedItem()
+            return Interactable.Result.HANDLED
         }
+        if (keyStroke.keyType == KeyType.MOUSE_EVENT) {
+            val mouseAction = keyStroke as MouseAction
+            val actionType = mouseAction.actionType
+
+            if (isMouseMove(keyStroke) ||
+                actionType == MouseActionType.CLICK_RELEASE ||
+                actionType == MouseActionType.SCROLL_UP ||
+                actionType == MouseActionType.SCROLL_DOWN
+            ) {
+                return super.handleKeyStroke(keyStroke)
+            }
+
+            val existingIndex = getSelectedIndex()
+            val newIndex = getIndexByMouseAction(mouseAction)
+            if (existingIndex != newIndex || !isFocused || actionType == MouseActionType.CLICK_DOWN) {
+                val result = super.handleKeyStroke(keyStroke)
+                runSelectedItem()
+                return result
+            }
+            return Interactable.Result.HANDLED
+        }
+
+        return super.handleKeyStroke(keyStroke)
     }
-    
-    public void runSelectedItem() {
-        Object selectedItem = getSelectedItem();
+
+    fun runSelectedItem() {
+        val selectedItem = selectedItem
         if (selectedItem != null) {
-            ((Runnable) selectedItem).run();
+            selectedItem.run()
         }
     }
-	
 }

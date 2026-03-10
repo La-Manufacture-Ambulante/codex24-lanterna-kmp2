@@ -16,164 +16,122 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.graphics.BasicTextImage;
-import com.googlecode.lanterna.graphics.TextImage;
-import com.googlecode.lanterna.input.*;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.screen.VirtualScreen;
-import com.googlecode.lanterna.gui2.Window.Hint;
+import java.util.Collections
+import java.util.LinkedList
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean
-;
+class WindowList {
+    private val windows = LinkedList<Window>()
+    private val stableOrderingOfWindows = mutableListOf<Window>()
 
-/**
- * 
- * @author ginkoblongata
- */
-public class WindowList {
-    
-    private final List<Window> windows = new LinkedList<>();
-    private final List<Window> stableOrderingOfWindows = new ArrayList<>();
-    
-    private Window activeWindow = null;
-    private boolean hadWindowAtSomePoint = false;
-
-    public List<Window> getWindowsInZOrder() {
-        return Collections.unmodifiableList(windows);
-    }
-    
-    public List<Window> getWindowsInStableOrder() {
-        return Collections.unmodifiableList(stableOrderingOfWindows);
-    }
-    
-    public void setActiveWindow(Window activeWindow) {
-        this.activeWindow = activeWindow;
-        if (activeWindow != null) {
-            moveToTop(activeWindow);
+    var activeWindow: Window? = null
+        set(activeWindow) {
+            field = activeWindow
+            if (activeWindow != null) {
+                moveToTop(activeWindow)
+            }
         }
+
+    var isHadWindowAtSomePoint: Boolean = false
+        private set
+
+    val windowsInZOrder: List<Window>
+        get() = Collections.unmodifiableList(windows)
+
+    val windowsInStableOrder: List<Window>
+        get() = Collections.unmodifiableList(stableOrderingOfWindows)
+
+    fun addWindow(window: Window?) {
+        val activeWindow = window ?: return
+        if (!stableOrderingOfWindows.contains(activeWindow)) {
+            stableOrderingOfWindows.add(activeWindow)
+        }
+        if (!windows.contains(activeWindow)) {
+            windows.add(activeWindow)
+        }
+        if (activeWindow.hints?.contains(Window.Hint.NO_FOCUS) != true) {
+            this.activeWindow = activeWindow
+        }
+        isHadWindowAtSomePoint = true
     }
 
-    public Window getActiveWindow() {
-        return activeWindow;
-    }
-    
-    public void addWindow(Window window) {
-        if (!stableOrderingOfWindows.contains(window)) {
-            stableOrderingOfWindows.add(window);
-        }
-        if(!windows.contains(window)) {
-            windows.add(window);
-        }
-        if(!window.getHints().contains(Window.Hint.NO_FOCUS)) {
-            setActiveWindow(window);
-        }
-        hadWindowAtSomePoint = true;
-    }
-    
-    /**
-     * Removes the window from this WindowList.
-     * @return true if this WindowList contained the specified Window
-     */
-    public boolean removeWindow(Window window) {
-        boolean contained = windows.remove(window);
-        stableOrderingOfWindows.remove(window);
-        
-        if(activeWindow == window) {
-            // in case no suitable window is found, so pass control back to the background pane
-            setActiveWindow(null);
-            
-            //Go backward in reverse and find the first suitable window
-            for(int index = windows.size() - 1; index >= 0; index--) {
-                Window candidate = windows.get(index);
-                if(!candidate.getHints().contains(Window.Hint.NO_FOCUS)) {
-                    setActiveWindow(candidate);
-                    break;
+    fun removeWindow(window: Window?): Boolean {
+        val contained = windows.remove(window)
+        stableOrderingOfWindows.remove(window)
+
+        if (activeWindow === window) {
+            activeWindow = null
+            for (index in windows.size - 1 downTo 0) {
+                val candidate = windows[index]
+                if (candidate.hints?.contains(Window.Hint.NO_FOCUS) != true) {
+                    activeWindow = candidate
+                    break
                 }
             }
         }
-        
-        return contained;
-    }
-    
-    public boolean isHadWindowAtSomePoint() {
-        return hadWindowAtSomePoint;
+
+        return contained
     }
 
-    public void moveToTop(Window window) {
-        if(!windows.contains(window)) {
-            throw new IllegalArgumentException("Window " + window + " isn't in MultiWindowTextGUI " + this);
-        }
-        windows.remove(window);
-        windows.add(window);
+    fun moveToTop(window: Window?) {
+        require(windows.contains(window)) { "Window $window isn't in MultiWindowTextGUI $this" }
+        windows.remove(window)
+        windows.add(window!!)
     }
-    
-    public void moveToBottom(Window window) {
-        if(!windows.contains(window)) {
-            throw new IllegalArgumentException("Window " + window + " isn't in MultiWindowTextGUI " + this);
-        }
-        windows.remove(window);
-        windows.add(0, window);
+
+    fun moveToBottom(window: Window?) {
+        require(windows.contains(window)) { "Window $window isn't in MultiWindowTextGUI $this" }
+        windows.remove(window)
+        windows.add(0, window!!)
     }
-    /**
-     * Switches the active window by cyclically shuffling the window list. If {@code reverse} parameter is {@code false}
-     * then the current top window is placed at the bottom of the stack and the window immediately behind it is the new
-     * top. If {@code reverse} is set to {@code true} then the window at the bottom of the stack is moved up to the
-     * front and the previous top window will be immediately below it
-     * @param reverse Direction to cycle through the windows
-     */
-    public WindowList cycleActiveWindow(boolean reverse) {
-        if(windows.isEmpty() || windows.size() == 1 || (activeWindow != null && activeWindow.getHints().contains(Window.Hint.MODAL))) {
-            return this;
+
+    fun cycleActiveWindow(reverse: Boolean): WindowList {
+        if (windows.isEmpty() || windows.size == 1 || activeWindow?.hints?.contains(Window.Hint.MODAL) == true) {
+            return this
         }
-        Window originalActiveWindow = activeWindow;
-        Window nextWindow;
-        if(activeWindow == null) {
-            // Cycling out of active background pane
-            nextWindow = reverse ? windows.get(windows.size() - 1) : windows.get(0);
+
+        val originalActiveWindow = activeWindow
+        var nextWindow = if (originalActiveWindow == null) {
+            if (reverse) windows.last else windows.first
         } else {
-            // Switch to the next window
-            nextWindow = getNextWindow(reverse, activeWindow);
+            getNextWindow(reverse, originalActiveWindow)
         }
 
-        int noFocusWindows = 0;
-        while(nextWindow.getHints().contains(Window.Hint.NO_FOCUS)) {
-            ++noFocusWindows;
-            if(noFocusWindows == windows.size()) {
-                // All windows are NO_FOCUS, so give up
-                return this;
+        var noFocusWindows = 0
+        while (nextWindow.hints?.contains(Window.Hint.NO_FOCUS) == true) {
+            noFocusWindows++
+            if (noFocusWindows == windows.size) {
+                return this
             }
-            nextWindow = getNextWindow(reverse, nextWindow);
-            if(nextWindow == originalActiveWindow) {
-                return this;
+            nextWindow = getNextWindow(reverse, nextWindow)
+            if (nextWindow === originalActiveWindow) {
+                return this
             }
         }
 
-        if(reverse) {
-            moveToTop(nextWindow);
+        if (reverse) {
+            moveToTop(nextWindow)
         } else if (originalActiveWindow != null) {
-            moveToBottom(originalActiveWindow);
+            moveToBottom(originalActiveWindow)
         }
-        setActiveWindow(nextWindow);
-        return this;
+        activeWindow = nextWindow
+        return this
     }
 
-    private Window getNextWindow(boolean reverse, Window window) {
-        int index = windows.indexOf(window);
-        if(reverse) {
-            if(++index >= windows.size()) {
-                index = 0;
+    private fun getNextWindow(reverse: Boolean, window: Window): Window {
+        var index = windows.indexOf(window)
+        if (reverse) {
+            index++
+            if (index >= windows.size) {
+                index = 0
             }
         } else {
-            if(--index < 0) {
-                index = windows.size() - 1;
+            index--
+            if (index < 0) {
+                index = windows.size - 1
             }
         }
-        return windows.get(index);
+        return windows[index]
     }
 }

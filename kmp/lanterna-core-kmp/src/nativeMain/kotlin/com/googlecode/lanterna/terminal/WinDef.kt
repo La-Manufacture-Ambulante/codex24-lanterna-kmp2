@@ -16,127 +16,121 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.sun.jna.*;
+import com.sun.jna.*
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Arrays
 
 /**
  * Class containing common Win32 structures involved when operating on the terminal
  */
-public class WinDef {
+ object WinDef {
 
-    public static final HANDLE INVALID_HANDLE_VALUE = new HANDLE(Pointer.createConstant(Pointer.SIZE == 8?-1L:4294967295L));
+ val INVALID_HANDLE_VALUE = HANDLE(Pointer.createConstant(if (Pointer.SIZE === 8) -1L else 4294967295L))
 
-    public static class HANDLE extends PointerType {
-        private boolean immutable;
+ class HANDLE:PointerType {
+private val immutable:Boolean
 
-        public HANDLE() {
-        }
+ constructor() {}
 
-        public HANDLE(Pointer p) {
-            this.setPointer(p);
-            this.immutable = true;
-        }
+ constructor(p:Pointer?) {
+this.setPointer(p)
+this.immutable = true
+}
 
-        public Object fromNative(Object nativeValue, FromNativeContext context) {
-            Object o = super.fromNative(nativeValue, context);
-            return INVALID_HANDLE_VALUE.equals(o) ? INVALID_HANDLE_VALUE : o;
-        }
+public override fun fromNative(nativeValue:Object?, context:FromNativeContext?):Object? {
+val o = super.fromNative(nativeValue, context)
+return if (INVALID_HANDLE_VALUE == o) INVALID_HANDLE_VALUE else o
+}
 
-        public void setPointer(Pointer p) {
-            if(this.immutable) {
-                throw new UnsupportedOperationException("immutable reference");
-            } else {
-                super.setPointer(p);
-            }
-        }
+public override fun setPointer(p:Pointer?) {
+if (this.immutable)
+{
+throw UnsupportedOperationException("immutable reference")
+}
+else
+{
+super.setPointer(p)
+}
+}
 
-        public String toString() {
-            return String.valueOf(this.getPointer());
-        }
-    }
+public override fun toString():String? {
+return String.valueOf(this.getPointer())
+}
+}
 
-    public static class WORD extends IntegerType implements Comparable<WORD> {
-        public static final int SIZE = 2;
+ class WORD @JvmOverloads  constructor(value:Long = 0L):IntegerType(2, value, true), Comparable<WORD?> {
 
-        public WORD() {
-            this(0L);
-        }
+ fun compareTo(other:WORD?):Int {
+return IntegerType.compare<WORD?>(this, other)
+}
 
-        public WORD(long value) {
-            super(2, value, true);
-        }
+companion object {
+ val SIZE = 2
+}
+}
 
-        public int compareTo(WORD other) {
-            return compare(this, other);
-        }
-    }
+ class COORD:Structure() {
+ var X:Short = 0
+ var Y:Short = 0
 
-    public static class COORD extends Structure {
-        public short X;
-        public short Y;
+@Override
+protected override fun getFieldOrder():List? {
+return Arrays.asList("X", "Y")
+}
 
-        @Override
-        protected List getFieldOrder() {
-            return Arrays.asList("X", "Y");
-        }
+@Override
+public override fun toString():String? {
+return ("COORD{" + 
+"X=" + X + 
+", Y=" + Y + 
+'}'.toString())
+}
+}
 
-        @Override
-        public String toString() {
-            return "COORD{" +
-                    "X=" + X +
-                    ", Y=" + Y +
-                    '}';
-        }
-    }
+ class SMALL_RECT:Structure() {
+ var Left:Short = 0
+ var Top:Short = 0
+ var Right:Short = 0
+ var Bottom:Short = 0
 
-    public static class SMALL_RECT extends Structure {
-        public short Left;
-        public short Top;
-        public short Right;
-        public short Bottom;
+@Override
+protected override fun getFieldOrder():List? {
+return Arrays.asList("Left", "Top", "Right", "Bottom")
+}
 
-        @Override
-        protected List getFieldOrder() {
-            return Arrays.asList("Left", "Top", "Right", "Bottom");
-        }
+@Override
+public override fun toString():String? {
+return ("SMALL_RECT{" + 
+"Left=" + Left + 
+", Top=" + Top + 
+", Right=" + Right + 
+", Bottom=" + Bottom + 
+'}'.toString())
+}
+}
 
-        @Override
-        public String toString() {
-            return "SMALL_RECT{" +
-                    "Left=" + Left +
-                    ", Top=" + Top +
-                    ", Right=" + Right +
-                    ", Bottom=" + Bottom +
-                    '}';
-        }
-    }
+ class CONSOLE_SCREEN_BUFFER_INFO:Structure() {
+ var dwSize:COORD? = null
+ var dwCursorPosition:COORD? = null
+ var wAttributes:WORD? = null
+ var srWindow:SMALL_RECT? = null
+ var dwMaximumWindowSize:COORD? = null
 
-    public static class CONSOLE_SCREEN_BUFFER_INFO extends Structure {
-        public COORD      dwSize;
-        public COORD      dwCursorPosition;
-        public WORD       wAttributes;
-        public SMALL_RECT srWindow;
-        public COORD      dwMaximumWindowSize;
+protected override fun getFieldOrder():List? {
+return Arrays.asList("dwSize", "dwCursorPosition", "wAttributes", "srWindow", "dwMaximumWindowSize")
+}
 
-        protected List getFieldOrder() {
-            return Arrays.asList("dwSize", "dwCursorPosition", "wAttributes", "srWindow", "dwMaximumWindowSize");
-        }
-
-        @Override
-        public String toString() {
-            return "CONSOLE_SCREEN_BUFFER_INFO{" +
-                    "dwSize=" + dwSize +
-                    ", dwCursorPosition=" + dwCursorPosition +
-                    ", wAttributes=" + wAttributes +
-                    ", srWindow=" + srWindow +
-                    ", dwMaximumWindowSize=" + dwMaximumWindowSize +
-                    '}';
-        }
-    }
-
-    private WinDef() {}
+@Override
+public override fun toString():String? {
+return ("CONSOLE_SCREEN_BUFFER_INFO{" + 
+"dwSize=" + dwSize + 
+", dwCursorPosition=" + dwCursorPosition + 
+", wAttributes=" + wAttributes + 
+", srWindow=" + srWindow + 
+", dwMaximumWindowSize=" + dwMaximumWindowSize + 
+'}'.toString())
+}
+}
 }

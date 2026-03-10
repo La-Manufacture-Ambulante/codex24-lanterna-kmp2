@@ -16,151 +16,113 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.menu;
+package com.googlecode.lanterna.gui2.menu
 
-import com.googlecode.lanterna.Symbols;
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TerminalTextUtils;
-import com.googlecode.lanterna.graphics.ThemeDefinition;
-import com.googlecode.lanterna.gui2.AbstractInteractableComponent;
-import com.googlecode.lanterna.gui2.BasePane;
-import com.googlecode.lanterna.gui2.InteractableRenderer;
-import com.googlecode.lanterna.gui2.TextGUIGraphics;
-import com.googlecode.lanterna.gui2.Window;
-import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.Symbols
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TerminalTextUtils
+import com.googlecode.lanterna.gui2.AbstractInteractableComponent
+import com.googlecode.lanterna.gui2.BasePane
+import com.googlecode.lanterna.gui2.InteractableRenderer
+import com.googlecode.lanterna.gui2.TextGUIGraphics
+import com.googlecode.lanterna.gui2.Window
+import com.googlecode.lanterna.input.KeyStroke
 
 /**
- * This class is a single item that appears in a {@link Menu} with an optional action attached to it
+ * This class is a single item that appears in a [Menu] with an optional action attached to it.
  */
-public class MenuItem extends AbstractInteractableComponent<MenuItem> {
-    private String label;
-    private final Runnable action;
+open class MenuItem @JvmOverloads constructor(
+    label: String?,
+    private val action: Runnable = Runnable {},
+) : AbstractInteractableComponent<MenuItem?>() {
+    val label: String
 
-    /**
-     * Creates a {@link MenuItem} with a label that does nothing when activated
-     * @param label Label of the new {@link MenuItem}
-     */
-    public MenuItem(String label) {
-        this(label, () -> {
-        });
+    init {
+        require(!label.isNullOrBlank()) { "Menu label is not allowed to be null or empty" }
+        this.label = label.trim()
     }
 
-    /**
-     * Creates a new {@link MenuItem} with a label and an action that will run on the GUI thread when activated. When
-     * the action has finished, the {@link Menu} containing this item will close.
-     * @param label Label of the new {@link MenuItem}
-     * @param action Action to invoke on the GUI thread when the menu item is activated
-     */
-    public MenuItem(String label, Runnable action) {
-        this.action = action;
-        if (label == null || label.trim().isEmpty()) {
-            throw new IllegalArgumentException("Menu label is not allowed to be null or empty");
-        }
-        this.label = label.trim();
+    public override fun setAccelerator(keyStroke: KeyStroke?): MenuItem? {
+        return super.setAccelerator(keyStroke)
     }
 
-    /**
-     * Returns the label of this menu item
-     * @return Label of this menu item
-     */
-    public String getLabel() {
-        return label;
+    public override fun getAccelerator(): KeyStroke? {
+        return super.getAccelerator()
     }
 
-    public MenuItem setAccelerator(KeyStroke keyStroke)
-    {
-    	return super.setAccelerator(keyStroke);
-    }
-    
-    public KeyStroke getAccelerator() { return super.getAccelerator(); };
-    
-    @Override
-    protected InteractableRenderer<MenuItem> createDefaultRenderer() {
-        return new DefaultMenuItemRenderer();
+    override fun createDefaultRenderer(): InteractableRenderer<MenuItem?> {
+        return DefaultMenuItemRenderer()
     }
 
-    /**
-     * Method to invoke when a menu item is "activated" by pressing the Enter key.
-     * @return Returns {@code true} if the action was performed successfully, otherwise {@code false}, which will not
-     * automatically close the popup window itself.
-     */
-    protected boolean onActivated() {
-        action.run();
-        return true;
+    protected open fun onActivated(): Boolean {
+        action.run()
+        return true
     }
 
-    @Override
-    protected Result handleKeyStroke(KeyStroke keyStroke) {
-    	if (isActivationStroke(keyStroke) || isKeyboardAcceleratorStroke(keyStroke)) {
-    		takeFocus();
-    		
+    override fun handleKeyStroke(keyStroke: KeyStroke): com.googlecode.lanterna.gui2.Interactable.Result? {
+        if (isActivationStroke(keyStroke) || isKeyboardAcceleratorStroke(keyStroke)) {
+            takeFocus()
             if (onActivated()) {
-                BasePane basePane = getBasePane();
-                if (basePane instanceof Window && ((Window) basePane).getHints().contains(Window.Hint.MENU_POPUP)) {
-                    ((Window) basePane).close();
+                val activeBasePane: BasePane? = basePane
+                if (activeBasePane is Window && activeBasePane.hints.orEmpty().contains(Window.Hint.MENU_POPUP)) {
+                    activeBasePane.close()
                 }
             }
-            return Result.HANDLED;
+            return com.googlecode.lanterna.gui2.Interactable.Result.HANDLED
+        } else if (isMouseMove(keyStroke)) {
+            takeFocus()
+            return com.googlecode.lanterna.gui2.Interactable.Result.HANDLED
         }
-        else if (isMouseMove(keyStroke)) {
-            takeFocus();
-            return Result.HANDLED;
-        } 
-    	
-        return super.handleKeyStroke(keyStroke);
+        return super.handleKeyStroke(keyStroke)
     }
 
-    /**
-     * Helper interface that doesn't add any new methods but makes coding new menu renderers a little bit more clear
-     */
-    public static abstract class MenuItemRenderer implements InteractableRenderer<MenuItem> {
-    }
+    abstract class MenuItemRenderer : InteractableRenderer<MenuItem?>
 
-    /**
-     * Default renderer for menu items (both sub-menus and regular items)
-     */
-    public static class DefaultMenuItemRenderer extends MenuItemRenderer {
-        @Override
-        public TerminalPosition getCursorLocation(MenuItem component) {
-            return null;
+    class DefaultMenuItemRenderer : MenuItemRenderer() {
+        override fun getCursorLocation(component: MenuItem?): TerminalPosition? {
+            return null
         }
 
-        @Override
-        public TerminalSize getPreferredSize(MenuItem component) {
-            int preferredWidth = TerminalTextUtils.getColumnWidth(component.getLabel()) + 2;
-            if (component instanceof Menu && !(component.getParent() instanceof MenuBar)) {
-                preferredWidth += 2;
+        override fun getPreferredSize(component: MenuItem?): TerminalSize {
+            val activeComponent = component ?: return TerminalSize.ONE
+            var preferredWidth = TerminalTextUtils.getColumnWidth(activeComponent.label) + 2
+            if (activeComponent is Menu && activeComponent.parent !is MenuBar) {
+                preferredWidth += 2
             }
-            return TerminalSize.ONE.withColumns(preferredWidth);
+            return TerminalSize(preferredWidth, 1)
         }
 
-        @Override
-        public void drawComponent(TextGUIGraphics graphics, MenuItem menuItem) {
-            ThemeDefinition themeDefinition = menuItem.getThemeDefinition();
-            if (menuItem.isFocused()) {
-                graphics.applyThemeStyle(themeDefinition.getSelected());
-            }
-            else {
-                graphics.applyThemeStyle(themeDefinition.getNormal());
+        override fun drawComponent(graphics: TextGUIGraphics?, menuItem: MenuItem?) {
+            val activeGraphics = graphics ?: return
+            val activeMenuItem = menuItem ?: return
+            val themeDefinition = activeMenuItem.themeDefinition ?: return
+
+            if (activeMenuItem.isFocused) {
+                activeGraphics.applyThemeStyle(themeDefinition.selected)
+            } else {
+                activeGraphics.applyThemeStyle(themeDefinition.normal)
             }
 
-            final String label = menuItem.getLabel();
-            final String leadingCharacter = label.substring(0, 1);
+            val activeLabel = activeMenuItem.label ?: return
+            val leadingCharacter = activeLabel.substring(0, 1)
 
-            graphics.fill(' ');
-            graphics.putString(1, 0, label);
-            if (menuItem instanceof Menu && !(menuItem.getParent() instanceof MenuBar)) {
-                graphics.putString(graphics.getSize().getColumns() - 2, 0, String.valueOf(Symbols.TRIANGLE_RIGHT_POINTING_BLACK));
+            activeGraphics.fill(' ')
+            activeGraphics.putString(1, 0, activeLabel)
+            if (activeMenuItem is Menu && activeMenuItem.parent !is MenuBar) {
+                activeGraphics.putString(
+                    (activeGraphics.size ?: TerminalSize.ZERO).columns - 2,
+                    0,
+                    Symbols.TRIANGLE_RIGHT_POINTING_BLACK.toString(),
+                )
             }
-            if (!label.isEmpty()) {
-                if (menuItem.isFocused()) {
-                    graphics.applyThemeStyle(themeDefinition.getActive());
+            if (activeLabel.isNotEmpty()) {
+                if (activeMenuItem.isFocused) {
+                    activeGraphics.applyThemeStyle(themeDefinition.active)
+                } else {
+                    activeGraphics.applyThemeStyle(themeDefinition.preLight)
                 }
-                else {
-                    graphics.applyThemeStyle(themeDefinition.getPreLight());
-                }
-                graphics.putString(1, 0, leadingCharacter);
+                activeGraphics.putString(1, 0, leadingCharacter)
             }
         }
     }

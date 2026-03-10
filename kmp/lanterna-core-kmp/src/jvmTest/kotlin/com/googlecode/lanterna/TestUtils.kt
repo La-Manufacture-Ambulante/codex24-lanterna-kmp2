@@ -16,38 +16,40 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna;
+package com.googlecode.lanterna
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.URL;
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.io.PrintWriter
+import java.io.StringWriter
+import java.net.URL
 
-public class TestUtils {
-    private TestUtils() {}
+ object TestUtils {
 
-    public static String downloadGPL() {
-        try {
-            URL url = new URL("http://www.gnu.org/licenses/gpl.txt");
-            try (InputStream inputStream = url.openStream()) {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                byte[] buffer = new byte[32 * 1024];
-                int readBytes = 0;
-                while (readBytes != -1) {
-                    readBytes = inputStream.read(buffer);
-                    if (readBytes > 0) {
-                        byteArrayOutputStream.write(buffer, 0, readBytes);
-                    }
-                }
-                return new String(byteArrayOutputStream.toByteArray());
-            }
-        }
-        catch(Exception e) {
-            StringWriter stringWriter = new StringWriter();
-            PrintWriter printWriter = new PrintWriter(stringWriter);
-            e.printStackTrace(printWriter);
-            return stringWriter.toString();
-        }
-    }
+ fun downloadGPL():String? {
+try
+{
+val url = URL("http://www.gnu.org/licenses/gpl.txt")
+url.openStream().use({ inputStream->
+val byteArrayOutputStream = ByteArrayOutputStream()
+val buffer = ByteArray(32 * 1024)
+var readBytes = 0
+while (readBytes != -1)
+{
+readBytes = inputStream!!.read(buffer)
+if (readBytes > 0)
+{
+byteArrayOutputStream.write(buffer, 0, readBytes)
+}
+}
+return String(byteArrayOutputStream.toByteArray()) })
+}
+catch (e:Exception) {
+val stringWriter = StringWriter()
+val printWriter = PrintWriter(stringWriter)
+e!!.printStackTrace(printWriter)
+return stringWriter.toString()
+}
+
+}
 }

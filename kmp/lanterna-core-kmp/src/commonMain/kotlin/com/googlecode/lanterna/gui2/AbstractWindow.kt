@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,314 +13,206 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.gui2.menu.MenuBar;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.input.KeyType;
-
-import java.util.*;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.gui2.Window.Hint
+import com.googlecode.lanterna.gui2.menu.MenuBar
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import java.util.Collections
+import java.util.HashSet
 
 /**
- * Abstract Window has most of the code requiring for a window to function, all concrete window implementations extends
- * from this in one way or another. You can define your own window by extending from this, as an alternative to building
- * up the GUI externally by constructing a {@code BasicWindow} and adding components to it.
- * @author Martin
+ * Abstract [Window] implementation with shared behavior.
  */
-public abstract class AbstractWindow extends AbstractBasePane<Window> implements Window {
-    private String title;
-    private WindowBasedTextGUI textGUI;
-    private boolean visible;
-    private TerminalSize lastKnownSize;
-    private TerminalSize lastKnownDecoratedSize;
-    private TerminalPosition lastKnownPosition;
-    private TerminalPosition contentOffset;
-    private Set<Hint> hints;
-    private WindowPostRenderer windowPostRenderer;
-    private boolean closeWindowWithEscape;
-
-    /**
-     * Default constructor, this creates a window with no title
-     */
-    public AbstractWindow() {
-        this("");
-    }
-
-    /**
-     * Creates a window with a specific title that will (probably) be drawn in the window decorations
-     * @param title Title of this window
-     */
-    public AbstractWindow(String title) {
-        super();
-        this.title = title;
-        this.textGUI = null;
-        this.visible = true;
-        this.contentOffset = TerminalPosition.TOP_LEFT_CORNER;
-        this.lastKnownPosition = null;
-        this.lastKnownSize = null;
-        this.lastKnownDecoratedSize = null;
-        this.closeWindowWithEscape = false;
-
-        this.hints = new HashSet<>();
-    }
-
-    /**
-     * Setting this property to {@code true} will cause pressing the ESC key to close the window. This used to be the
-     * default behaviour of lanterna 3 during the development cycle but is not longer the case. You are encouraged to
-     * put proper buttons or other kind of components to clearly mark to the user how to close the window instead of
-     * magically taking ESC, but sometimes it can be useful (when doing testing, for example) to enable this mode.
-     * @param closeWindowWithEscape If {@code true}, this window will self-close if you press ESC key
-     */
-    public void setCloseWindowWithEscape(boolean closeWindowWithEscape) {
-        this.closeWindowWithEscape = closeWindowWithEscape;
-    }
-
-    @Override
-    public void setTextGUI(WindowBasedTextGUI textGUI) {
-        //This is kind of stupid check, but might cause it to blow up on people using the library incorrectly instead of
-        //just causing weird behaviour
-        if(this.textGUI != null && textGUI != null) {
-            throw new UnsupportedOperationException("Are you calling setTextGUI yourself? Please read the documentation"
-                    + " in that case (this could also be a bug in Lanterna, please report it if you are sure you are "
-                    + "not calling Window.setTextGUI(..) from your code)");
+abstract class AbstractWindow @JvmOverloads protected constructor(initialTitle: String? = "") : AbstractBasePane<Window?>(), Window {
+    override var textGUI: WindowBasedTextGUI? = null
+    override var isVisible: Boolean = true
+    override var title: String? = initialTitle
+        set(value) {
+            field = value
+            invalidate()
         }
-        this.textGUI = textGUI;
+
+    private var lastKnownSize: TerminalSize? = null
+    private var lastKnownDecoratedSize: TerminalSize? = null
+    private var lastKnownPosition: TerminalPosition? = null
+    private var contentOffset: TerminalPosition = TerminalPosition.TOP_LEFT_CORNER ?: TerminalPosition(0, 0)
+
+    private var hintsBacking: MutableSet<Hint?> = HashSet()
+    private var windowPostRenderer: WindowPostRenderer? = null
+    private var closeWindowWithEscape: Boolean = false
+
+    fun setCloseWindowWithEscape(closeWindowWithEscape: Boolean) {
+        this.closeWindowWithEscape = closeWindowWithEscape
     }
 
-    @Override
-    public WindowBasedTextGUI getTextGUI() {
-        return textGUI;
-    }
-
-    /**
-     * Alters the title of the window to the supplied string
-     * @param title New title of the window
-     */
-    public void setTitle(String title) {
-        this.title = title;
-        invalidate();
-    }
-
-    @Override
-    public String getTitle() {
-        return title;
-    }
-
-    @Override
-    public boolean isVisible() {
-        return visible;
-    }
-
-    @Override
-    public void setVisible(boolean visible) {
-        this.visible = visible;
-    }
-
-    @Override
-    public void draw(TextGUIGraphics graphics) {
-        if(!graphics.getSize().equals(lastKnownSize)) {
-            getComponent().invalidate();
+    override fun draw(graphics: TextGUIGraphics?) {
+        val activeGraphics = graphics ?: return
+        if (activeGraphics.size != lastKnownSize) {
+            component?.invalidate()
         }
-        setSize(graphics.getSize(), false);
-        super.draw(graphics);
+        setSizeInternal(activeGraphics.size, false)
+        super.draw(activeGraphics)
     }
 
-    @Override
-    public boolean handleInput(KeyStroke key) {
-        boolean handled = super.handleInput(key);
-        if(!handled && closeWindowWithEscape && key.getKeyType() == KeyType.ESCAPE) {
-            close();
-            return true;
+    override fun handleInput(key: KeyStroke?): Boolean {
+        val handled = super.handleInput(key)
+        if (!handled && closeWindowWithEscape && key?.keyType == KeyType.ESCAPE) {
+            close()
+            return true
         }
-        return handled;
+        return handled
     }
 
-    /**
-     * @see Window#toGlobalFromContentRelative(TerminalPosition)
-     */
-    @Override
-    @Deprecated
-    public TerminalPosition toGlobal(TerminalPosition localPosition) {
-        return toGlobalFromContentRelative(localPosition);
+    @Deprecated("Use toGlobalFromContentRelative")
+    override fun toGlobal(localPosition: TerminalPosition?): TerminalPosition? {
+        return toGlobalFromContentRelative(localPosition)
     }
-    
-    @Override
-    public TerminalPosition toGlobalFromContentRelative(TerminalPosition contentLocalPosition) {
-        if(contentLocalPosition == null) {
-            return null;
+
+    override fun toGlobalFromContentRelative(contentLocalPosition: TerminalPosition?): TerminalPosition? {
+        if (contentLocalPosition == null) {
+            return null
         }
-        return lastKnownPosition.withRelative(contentOffset.withRelative(contentLocalPosition));
+        val position = lastKnownPosition ?: return null
+        val withOffset = contentOffset.withRelative(contentLocalPosition) ?: contentLocalPosition
+        return position.withRelative(withOffset)
     }
-    
-    @Override
-    @Deprecated
-    public TerminalPosition toGlobalFromDecoratedRelative(TerminalPosition localPosition) {
-        if(localPosition == null) {
-            return null;
+
+    @Deprecated("Use toGlobalFromDecoratedRelative")
+    override fun toGlobalFromDecoratedRelative(localPosition: TerminalPosition?): TerminalPosition? {
+        if (localPosition == null) {
+            return null
         }
-        return lastKnownPosition.withRelative(localPosition);
+        val position = lastKnownPosition ?: return null
+        return position.withRelative(localPosition)
     }
 
-    /**
-     * @see Window#fromGlobalToContentRelative(TerminalPosition)
-     */
-    @Override
-    @Deprecated
-    public TerminalPosition fromGlobal(TerminalPosition globalPosition) {
-        return fromGlobalToContentRelative(globalPosition);
+    @Deprecated("Use fromGlobalToContentRelative")
+    override fun fromGlobal(globalPosition: TerminalPosition?): TerminalPosition? {
+        return fromGlobalToContentRelative(globalPosition)
     }
-    
-    @Override
-    public TerminalPosition fromGlobalToContentRelative(TerminalPosition globalPosition) {
-        if(globalPosition == null || lastKnownPosition == null) {
-            return null;
+
+    override fun fromGlobalToContentRelative(globalPosition: TerminalPosition?): TerminalPosition? {
+        val position = lastKnownPosition
+        if (globalPosition == null || position == null) {
+            return null
         }
-        return globalPosition.withRelative(
-                -lastKnownPosition.getColumn() - contentOffset.getColumn(),
-                -lastKnownPosition.getRow() - contentOffset.getRow());
+        return globalPosition.withRelative(-position.column - contentOffset.column, -position.row - contentOffset.row)
     }
-    
-    @Override
-    public TerminalPosition fromGlobalToDecoratedRelative(TerminalPosition globalPosition) {
-        if(globalPosition == null || lastKnownPosition == null) {
-            return null;
+
+    override fun fromGlobalToDecoratedRelative(globalPosition: TerminalPosition?): TerminalPosition? {
+        val position = lastKnownPosition
+        if (globalPosition == null || position == null) {
+            return null
         }
-        return globalPosition.withRelative(
-                -lastKnownPosition.getColumn(),
-                -lastKnownPosition.getRow());
+        return globalPosition.withRelative(-position.column, -position.row)
     }
 
-    @Override
-    public TerminalSize getPreferredSize() {
-        TerminalSize preferredSize = contentHolder.getPreferredSize();
-        MenuBar menuBar = getMenuBar();
-        if (menuBar.getMenuCount() > 0) {
-            TerminalSize menuPreferredSize = menuBar.getPreferredSize();
-            preferredSize = preferredSize.withRelativeRows(menuPreferredSize.getRows())
-                    .withColumns(Math.max(menuPreferredSize.getColumns(), preferredSize.getColumns()));
+    override val preferredSize: TerminalSize?
+        get() {
+            var preferredSize: TerminalSize? = contentHolder.preferredSize ?: TerminalSize.ZERO
+            val menuBar: MenuBar? = menuBar
+            if (menuBar != null && menuBar.menuCount > 0) {
+                val menuPreferredSize = menuBar.preferredSize ?: TerminalSize.ZERO
+                preferredSize = preferredSize?.withRelativeRows(menuPreferredSize.rows)
+                    ?.withColumns(kotlin.math.max(menuPreferredSize.columns, preferredSize?.columns ?: 0))
+            }
+            return preferredSize ?: TerminalSize.ZERO
         }
-        return preferredSize;
+
+    override fun setHints(hints: Collection<Hint?>?) {
+        hintsBacking = HashSet(hints.orEmpty())
+        invalidate()
     }
 
-    @Override
-    public void setHints(Collection<Hint> hints) {
-        this.hints = new HashSet<>(hints);
-        invalidate();
+    override val hints: Set<Hint?>
+        get() = Collections.unmodifiableSet(hintsBacking)
+
+    override val postRenderer: WindowPostRenderer?
+        get() = windowPostRenderer
+
+    override fun addWindowListener(windowListener: WindowListener?) {
+        if (windowListener != null) {
+            addBasePaneListener(windowListener)
+        }
     }
 
-    @Override
-    public Set<Hint> getHints() {
-        return Collections.unmodifiableSet(hints);
+    override fun removeWindowListener(windowListener: WindowListener?) {
+        if (windowListener != null) {
+            removeBasePaneListener(windowListener)
+        }
     }
 
-    @Override
-    public WindowPostRenderer getPostRenderer() {
-        return  windowPostRenderer;
+    fun setWindowPostRenderer(windowPostRenderer: WindowPostRenderer?) {
+        this.windowPostRenderer = windowPostRenderer
     }
 
-    @Override
-    public void addWindowListener(WindowListener windowListener) {
-        addBasePaneListener(windowListener);
+    override var position: TerminalPosition?
+        get() = lastKnownPosition
+        set(value) {
+            val oldPosition = lastKnownPosition
+            lastKnownPosition = value
+
+            for (listener in basePaneListeners) {
+                if (listener is WindowListener) {
+                    listener.onMoved(this, oldPosition, value)
+                }
+            }
+        }
+
+    @Deprecated("Use setFixedSize or setDecoratedSize")
+    override var size: TerminalSize?
+        get() = lastKnownSize
+        set(value) {
+            setSizeInternal(value, true)
+        }
+
+    override fun setFixedSize(size: TerminalSize?) {
+        hintsBacking.add(Hint.FIXED_SIZE)
+        this.size = size
     }
 
-    @Override
-    public void removeWindowListener(WindowListener windowListener) {
-        removeBasePaneListener(windowListener);
-    }
+    private fun setSizeInternal(size: TerminalSize?, invalidate: Boolean) {
+        val oldSize = lastKnownSize
+        lastKnownSize = size
+        if (invalidate) {
+            invalidate()
+        }
 
-    /**
-     * Sets the post-renderer to use for this window. This will override the default from the GUI system (if there is
-     * one set, otherwise from the theme).
-     * @param windowPostRenderer Window post-renderer to assign to this window
-     */
-    public void setWindowPostRenderer(WindowPostRenderer windowPostRenderer) {
-        this.windowPostRenderer = windowPostRenderer;
-    }
-
-    @Override
-    public final TerminalPosition getPosition() {
-        return lastKnownPosition;
-    }
-
-    @Override
-    public final void setPosition(TerminalPosition topLeft) {
-        TerminalPosition oldPosition = this.lastKnownPosition;
-        this.lastKnownPosition = topLeft;
-
-        // Fire listeners
-        for(BasePaneListener<?> listener: getBasePaneListeners()) {
-            if(listener instanceof WindowListener) {
-                ((WindowListener)listener).onMoved(this, oldPosition, topLeft);
+        for (listener in basePaneListeners) {
+            if (listener is WindowListener) {
+                listener.onResized(this, oldSize, size)
             }
         }
     }
 
-    @Override
-    public final TerminalSize getSize() {
-        return lastKnownSize;
-    }
-
-    @Override
-    @Deprecated
-    public void setSize(TerminalSize size) {
-        setSize(size, true);
-    }
-
-    @Override
-    public void setFixedSize(TerminalSize size) {
-        hints.add(Hint.FIXED_SIZE);
-        setSize(size);
-    }
-
-    private void setSize(TerminalSize size, boolean invalidate) {
-        TerminalSize oldSize = this.lastKnownSize;
-        this.lastKnownSize = size;
-        if(invalidate) {
-            invalidate();
+    override var decoratedSize: TerminalSize?
+        get() = lastKnownDecoratedSize
+        set(value) {
+            lastKnownDecoratedSize = value
         }
 
-        // Fire listeners
-        for(BasePaneListener<?> listener: getBasePaneListeners()) {
-            if(listener instanceof WindowListener) {
-                ((WindowListener)listener).onResized(this, oldSize, size);
-            }
+    override fun setContentOffset(offset: TerminalPosition?) {
+        if (offset != null) {
+            contentOffset = offset
         }
     }
 
-    @Override
-    public final TerminalSize getDecoratedSize() {
-        return lastKnownDecoratedSize;
+    override fun close() {
+        textGUI?.removeWindow(this)
     }
 
-    @Override
-    public final void setDecoratedSize(TerminalSize decoratedSize) {
-        this.lastKnownDecoratedSize = decoratedSize;
+    override fun waitUntilClosed() {
+        textGUI?.waitForWindowToClose(this)
     }
 
-    @Override
-    public void setContentOffset(TerminalPosition offset) {
-        this.contentOffset = offset;
+    override fun self(): Window {
+        return this
     }
-
-    @Override
-    public void close() {
-        if(textGUI != null) {
-            textGUI.removeWindow(this);
-        }
-    }
-
-    @Override
-    public void waitUntilClosed() {
-        WindowBasedTextGUI textGUI = getTextGUI();
-        if(textGUI != null) {
-            textGUI.waitForWindowToClose(this);
-        }
-    }
-
-    Window self() { return this; }
 }

@@ -16,266 +16,143 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.graphics;
+package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.screen.TabBehaviour;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EnumSet;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.screen.TabBehaviour
+import java.util.Arrays
+import java.util.EnumSet
 
 /**
- * TextGraphics implementation that does nothing, but has a pre-defined size
- * @author martin
+ * TextGraphics implementation that does nothing, but has a pre-defined size.
  */
-class NullTextGraphics implements TextGraphics {
-    private final TerminalSize size;
-    private TextColor foregroundColor;
-    private TextColor backgroundColor;
-    private TabBehaviour tabBehaviour;
-    private final EnumSet<SGR> activeModifiers;
+internal class NullTextGraphics(override val size: TerminalSize?) : TextGraphics {
+    override var foregroundColor: TextColor? = TextColor.ANSI.DEFAULT
+    override var backgroundColor: TextColor? = TextColor.ANSI.DEFAULT
+    override var tabBehaviour: TabBehaviour? = TabBehaviour.ALIGN_TO_COLUMN_4
 
-    /**
-     * Creates a new {@code NullTextGraphics} that will return the specified size value if asked how big it is but other
-     * than that ignore all other calls.
-     * @param size The size to report
-     */
-    public NullTextGraphics(TerminalSize size) {
-        this.size = size;
-        this.foregroundColor = TextColor.ANSI.DEFAULT;
-        this.backgroundColor = TextColor.ANSI.DEFAULT;
-        this.tabBehaviour = TabBehaviour.ALIGN_TO_COLUMN_4;
-        this.activeModifiers = EnumSet.noneOf(SGR.class);
-    }
-    
-    /**
-     * The default implementation just returns null, as this Graphics never writes anywhere.
-     * @param pos position to translate
-     * @return null
-     */
-    public TerminalPosition toScreenPosition(TerminalPosition pos) {
-        return null;
-    }
-    
-    @Override
-    public TerminalSize getSize() {
-        return size;
+    private val styleSet: EnumSet<SGR> = EnumSet.noneOf(SGR::class.java)
+
+    override val activeModifiers: EnumSet<SGR>
+        get() = EnumSet.copyOf(styleSet)
+
+    override fun toScreenPosition(pos: TerminalPosition?): TerminalPosition? {
+        return null
     }
 
-    @Override
-    public TextGraphics newTextGraphics(TerminalPosition topLeftCorner, TerminalSize size) throws IllegalArgumentException {
-        return this;
+    override fun newTextGraphics(topLeftCorner: TerminalPosition?, size: TerminalSize?): TextGraphics {
+        return this
     }
 
-    @Override
-    public TextColor getBackgroundColor() {
-        return backgroundColor;
+    override fun setBackgroundColor(backgroundColor: TextColor?): TextGraphics {
+        this.backgroundColor = backgroundColor
+        return this
     }
 
-    @Override
-    public TextGraphics setBackgroundColor(TextColor backgroundColor) {
-        this.backgroundColor = backgroundColor;
-        return this;
+    override fun setForegroundColor(foregroundColor: TextColor?): TextGraphics {
+        this.foregroundColor = foregroundColor
+        return this
     }
 
-    @Override
-    public TextColor getForegroundColor() {
-        return foregroundColor;
+    override fun enableModifiers(vararg modifiers: SGR?): TextGraphics {
+        styleSet.addAll(Arrays.asList(*modifiers).filterNotNull())
+        return this
     }
 
-    @Override
-    public TextGraphics setForegroundColor(TextColor foregroundColor) {
-        this.foregroundColor = foregroundColor;
-        return this;
+    override fun disableModifiers(vararg modifiers: SGR?): TextGraphics {
+        styleSet.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
+        return this
     }
 
-    @Override
-    public TextGraphics enableModifiers(SGR... modifiers) {
-        activeModifiers.addAll(Arrays.asList(modifiers));
-        return this;
+    override fun setModifiers(modifiers: EnumSet<SGR>?): TextGraphics {
+        clearModifiers()
+        if (modifiers != null) {
+            styleSet.addAll(modifiers)
+        }
+        return this
     }
 
-    @Override
-    public TextGraphics disableModifiers(SGR... modifiers) {
-        activeModifiers.removeAll(Arrays.asList(modifiers));
-        return this;
+    override fun clearModifiers(): TextGraphics {
+        styleSet.clear()
+        return this
     }
 
-    @Override
-    public TextGraphics setModifiers(EnumSet<SGR> modifiers) {
-        clearModifiers();
-        activeModifiers.addAll(modifiers);
-        return this;
+    override fun setTabBehaviour(tabBehaviour: TabBehaviour?): TextGraphics {
+        this.tabBehaviour = tabBehaviour
+        return this
     }
 
-    @Override
-    public TextGraphics clearModifiers() {
-        activeModifiers.clear();
-        return this;
-    }
+    override fun fill(c: Char): TextGraphics = this
 
-    @Override
-    public EnumSet<SGR> getActiveModifiers() {
-        return EnumSet.copyOf(activeModifiers);
-    }
+    override fun setCharacter(column: Int, row: Int, character: Char): TextGraphics = this
 
-    @Override
-    public TabBehaviour getTabBehaviour() {
-        return tabBehaviour;
-    }
+    override fun setCharacter(column: Int, row: Int, character: TextCharacter?): TextGraphics = this
 
-    @Override
-    public TextGraphics setTabBehaviour(TabBehaviour tabBehaviour) {
-        this.tabBehaviour = tabBehaviour;
-        return this;
-    }
+    override fun setCharacter(position: TerminalPosition?, character: Char): TextGraphics = this
 
-    @Override
-    public TextGraphics fill(char c) {
-        return this;
-    }
+    override fun setCharacter(position: TerminalPosition?, character: TextCharacter?): TextGraphics = this
 
-    @Override
-    public TextGraphics setCharacter(int column, int row, char character) {
-        return this;
-    }
+    override fun drawLine(fromPoint: TerminalPosition?, toPoint: TerminalPosition?, character: Char): TextGraphics = this
 
-    @Override
-    public TextGraphics setCharacter(int column, int row, TextCharacter character) {
-        return this;
-    }
+    override fun drawLine(fromPoint: TerminalPosition?, toPoint: TerminalPosition?, character: TextCharacter?): TextGraphics = this
 
-    @Override
-    public TextGraphics setCharacter(TerminalPosition position, char character) {
-        return this;
-    }
+    override fun drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, character: Char): TextGraphics = this
 
-    @Override
-    public TextGraphics setCharacter(TerminalPosition position, TextCharacter character) {
-        return this;
-    }
+    override fun drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, character: TextCharacter?): TextGraphics = this
 
-    @Override
-    public TextGraphics drawLine(TerminalPosition fromPoint, TerminalPosition toPoint, char character) {
-        return this;
-    }
+    override fun drawTriangle(p1: TerminalPosition?, p2: TerminalPosition?, p3: TerminalPosition?, character: Char): TextGraphics = this
 
-    @Override
-    public TextGraphics drawLine(TerminalPosition fromPoint, TerminalPosition toPoint, TextCharacter character) {
-        return this;
-    }
+    override fun drawTriangle(p1: TerminalPosition?, p2: TerminalPosition?, p3: TerminalPosition?, character: TextCharacter?): TextGraphics = this
 
-    @Override
-    public TextGraphics drawLine(int fromX, int fromY, int toX, int toY, char character) {
-        return this;
-    }
+    override fun fillTriangle(p1: TerminalPosition?, p2: TerminalPosition?, p3: TerminalPosition?, character: Char): TextGraphics = this
 
-    @Override
-    public TextGraphics drawLine(int fromX, int fromY, int toX, int toY, TextCharacter character) {
-        return this;
-    }
+    override fun fillTriangle(p1: TerminalPosition?, p2: TerminalPosition?, p3: TerminalPosition?, character: TextCharacter?): TextGraphics = this
 
-    @Override
-    public TextGraphics drawTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, char character) {
-        return this;
-    }
+    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGraphics = this
 
-    @Override
-    public TextGraphics drawTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, TextCharacter character) {
-        return this;
-    }
+    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: TextCharacter?): TextGraphics = this
 
-    @Override
-    public TextGraphics fillTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, char character) {
-        return this;
-    }
+    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGraphics = this
 
-    @Override
-    public TextGraphics fillTriangle(TerminalPosition p1, TerminalPosition p2, TerminalPosition p3, TextCharacter character) {
-        return this;
-    }
+    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: TextCharacter?): TextGraphics = this
 
-    @Override
-    public TextGraphics drawRectangle(TerminalPosition topLeft, TerminalSize size, char character) {
-        return this;
-    }
+    override fun drawImage(topLeft: TerminalPosition?, image: TextImage?): TextGraphics = this
 
-    @Override
-    public TextGraphics drawRectangle(TerminalPosition topLeft, TerminalSize size, TextCharacter character) {
-        return this;
-    }
+    override fun drawImage(
+        topLeft: TerminalPosition?,
+        image: TextImage?,
+        sourceImageTopLeft: TerminalPosition?,
+        sourceImageSize: TerminalSize?,
+    ): TextGraphics = this
 
-    @Override
-    public TextGraphics fillRectangle(TerminalPosition topLeft, TerminalSize size, char character) {
-        return this;
-    }
+    override fun putString(column: Int, row: Int, string: String?): TextGraphics = this
 
-    @Override
-    public TextGraphics fillRectangle(TerminalPosition topLeft, TerminalSize size, TextCharacter character) {
-        return this;
-    }
+    override fun putString(position: TerminalPosition?, string: String?): TextGraphics = this
 
-    @Override
-    public TextGraphics drawImage(TerminalPosition topLeft, TextImage image) {
-        return this;
-    }
+    override fun putString(column: Int, row: Int, string: String?, extraModifier: SGR?, vararg optionalExtraModifiers: SGR?): TextGraphics = this
 
-    @Override
-    public TextGraphics drawImage(TerminalPosition topLeft, TextImage image, TerminalPosition sourceImageTopLeft, TerminalSize sourceImageSize) {
-        return this;
-    }
+    override fun putString(position: TerminalPosition?, string: String?, extraModifier: SGR?, vararg optionalExtraModifiers: SGR?): TextGraphics = this
 
-    @Override
-    public TextGraphics putString(int column, int row, String string) {
-        return this;
-    }
+    override fun putString(column: Int, row: Int, string: String?, extraModifiers: kotlin.collections.Collection<SGR?>?): TextGraphics = this
 
-    @Override
-    public TextGraphics putString(TerminalPosition position, String string) {
-        return this;
-    }
+    override fun putCSIStyledString(column: Int, row: Int, string: String?): TextGraphics = this
 
-    @Override
-    public TextGraphics putString(int column, int row, String string, SGR extraModifier, SGR... optionalExtraModifiers) {
-        return this;
-    }
+    override fun putCSIStyledString(position: TerminalPosition?, string: String?): TextGraphics = this
 
-    @Override
-    public TextGraphics putString(TerminalPosition position, String string, SGR extraModifier, SGR... optionalExtraModifiers) {
-        return this;
-    }
+    override fun getCharacter(column: Int, row: Int): TextCharacter? = null
 
-    @Override
-    public TextGraphics putString(int column, int row, String string, Collection<SGR> extraModifiers) {
-        return this;
-    }
+    override fun getCharacter(position: TerminalPosition?): TextCharacter? = null
 
-    @Override
-    public TextGraphics putCSIStyledString(int column, int row, String string) {
-        return this;
+    override fun setStyleFrom(source: StyleSet<*>?): TextGraphics {
+        if (source != null) {
+            setBackgroundColor(source.backgroundColor)
+            setForegroundColor(source.foregroundColor)
+            setModifiers(source.activeModifiers)
+        }
+        return this
     }
-
-    @Override
-    public TextGraphics putCSIStyledString(TerminalPosition position, String string) {
-        return this;
-    }
-
-    @Override
-    public TextCharacter getCharacter(int column, int row) {
-        return null;
-    }
-
-    @Override
-    public TextCharacter getCharacter(TerminalPosition position) {
-        return null;
-    }
-
-    @Override
-    public TextGraphics setStyleFrom(StyleSet<?> source) {
-        setBackgroundColor(source.getBackgroundColor());
-        setForegroundColor(source.getForegroundColor());
-        setModifiers(source.getActiveModifiers());
-        return this;
-    }
-
 }

@@ -16,243 +16,163 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.screen;
+package com.googlecode.lanterna.screen
 
-import com.googlecode.lanterna.TerminalTextUtils;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextCharacter;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.graphics.TextImage;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.graphics.TextImage
+import java.io.IOException
 
-import java.io.IOException;
-
-/**
- * This class implements some of the Screen logic that is not directly tied to the actual implementation of how the
- * Screen translate to the terminal. It keeps data structures for the front- and back buffers, the cursor location and
- * some other simpler states.
- * @author martin
- */
-public abstract class AbstractScreen implements Screen {
-    private TerminalPosition cursorPosition;
-    private ScreenBuffer backBuffer;
-    private ScreenBuffer frontBuffer;
-    private final TextCharacter defaultCharacter;
-
-    //How to deal with \t characters
-    private TabBehaviour tabBehaviour;
-
-    //Current size of the screen
-    private TerminalSize terminalSize;
-
-    //Pending resize of the screen
-    private TerminalSize latestResizeRequest;
-
-    public AbstractScreen(TerminalSize initialSize) {
-        this(initialSize, DEFAULT_CHARACTER);
-    }
-
-    /**
-     * Creates a new Screen on top of a supplied terminal, will query the terminal for its size. The screen is initially
-     * blank. You can specify which character you wish to be used to fill the screen initially; this will also be the
-     * character used if the terminal is enlarged and you don't set anything on the new areas.
-     *
-     * @param initialSize Size to initially create the Screen with (can be resized later)
-     * @param defaultCharacter What character to use for the initial state of the screen and expanded areas
-     */
-    @SuppressWarnings({"SameParameterValue", "WeakerAccess"})
-    public AbstractScreen(TerminalSize initialSize, TextCharacter defaultCharacter) {
-        this.frontBuffer = new ScreenBuffer(initialSize, defaultCharacter);
-        this.backBuffer = new ScreenBuffer(initialSize, defaultCharacter);
-        this.defaultCharacter = defaultCharacter;
-        this.cursorPosition = new TerminalPosition(0, 0);
-        this.tabBehaviour = TabBehaviour.ALIGN_TO_COLUMN_4;
-        this.terminalSize = initialSize;
-        this.latestResizeRequest = null;
-    }
-
-    /**
-     * @return Position where the cursor will be located after the screen has been refreshed or {@code null} if the
-     * cursor is not visible
-     */
-    @Override
-    public TerminalPosition getCursorPosition() {
-        return cursorPosition;
-    }
-
-    /**
-     * Moves the current cursor position or hides it. If the cursor is hidden and given a new position, it will be
-     * visible after this method call.
-     *
-     * @param position 0-indexed column and row numbers of the new position, or if {@code null}, hides the cursor
-     */
-    @Override
-    public void setCursorPosition(TerminalPosition position) {
-        if(position == null) {
-            //Skip any validation checks if we just want to hide the cursor
-            this.cursorPosition = null;
-            return;
-        }
-        if(position.getColumn() < 0) {
-            position = position.withColumn(0);
-        }
-        if(position.getRow() < 0) {
-            position = position.withRow(0);
-        }
-        if(position.getColumn() >= terminalSize.getColumns()) {
-            position = position.withColumn(terminalSize.getColumns() - 1);
-        }
-        if(position.getRow() >= terminalSize.getRows()) {
-            position = position.withRow(terminalSize.getRows() - 1);
-        }
-        this.cursorPosition = position;
-    }
-
-    @Override
-    public void setTabBehaviour(TabBehaviour tabBehaviour) {
-        if(tabBehaviour != null) {
-            this.tabBehaviour = tabBehaviour;
-        }
-    }
-
-    @Override
-    public TabBehaviour getTabBehaviour() {
-        return tabBehaviour;
-    }
-
-    @Override
-    public void setCharacter(TerminalPosition position, TextCharacter screenCharacter) {
-        setCharacter(position.getColumn(), position.getRow(), screenCharacter);
-    }
-
-    @Override
-    public TextGraphics newTextGraphics() {
-        return new ScreenTextGraphics(this) {
-            @Override
-            public TextGraphics drawImage(TerminalPosition topLeft, TextImage image, TerminalPosition sourceImageTopLeft, TerminalSize sourceImageSize) {
-                backBuffer.copyFrom(image, sourceImageTopLeft.getRow(), sourceImageSize.getRows(), sourceImageTopLeft.getColumn(), sourceImageSize.getColumns(), topLeft.getRow(), topLeft.getColumn());
-                return this;
+abstract class AbstractScreen(
+    initialSize: TerminalSize?,
+    private val defaultCharacter: TextCharacter? = Screen.DEFAULT_CHARACTER,
+) : Screen {
+    override var cursorPosition: TerminalPosition? = TerminalPosition(0, 0)
+        set(value) {
+            if (value == null) {
+                field = null
+                return
             }
-        };
-    }
 
-    @Override
-    public synchronized void setCharacter(int column, int row, TextCharacter screenCharacter) {
-        //It would be nice if we didn't have to care about tabs at this level, but we have no such luxury
-        if(screenCharacter.is('\t')) {
-            //Swap out the tab for a space
-            screenCharacter = screenCharacter.withCharacter(' ');
+            var position = value
+            if (position.column < 0) {
+                position = position.withColumn(0) ?: position
+            }
+            if (position.row < 0) {
+                position = position.withRow(0) ?: position
+            }
+            val currentSize = terminalSize
+            if (currentSize != null) {
+                if (position.column >= currentSize.columns) {
+                    position = position.withColumn(currentSize.columns - 1) ?: position
+                }
+                if (position.row >= currentSize.rows) {
+                    position = position.withRow(currentSize.rows - 1) ?: position
+                }
+            }
+            field = position
+        }
 
-            //Now see how many times we have to put spaces...
-            for(int i = 0; i < tabBehaviour.replaceTabs("\t", column).length(); i++) {
-                backBuffer.setCharacterAt(column + i, row, screenCharacter);
+    protected var backBuffer: ScreenBuffer = ScreenBuffer(initialSize, defaultCharacter)
+        protected set
+    protected var frontBuffer: ScreenBuffer = ScreenBuffer(initialSize, defaultCharacter)
+        protected set
+
+    override var tabBehaviour: TabBehaviour? = TabBehaviour.ALIGN_TO_COLUMN_4
+        set(value) {
+            if (value != null) {
+                field = value
             }
         }
-        else {
-            //This is the normal case, no special character
-            backBuffer.setCharacterAt(column, row, screenCharacter);
+
+    private var terminalSizeBacking: TerminalSize? = initialSize
+    override val terminalSize: TerminalSize?
+        get() = terminalSizeBacking
+
+    private var latestResizeRequest: TerminalSize? = null
+
+    override fun setCharacter(position: TerminalPosition?, screenCharacter: TextCharacter?) {
+        if (position != null) {
+            setCharacter(position.column, position.row, screenCharacter)
         }
     }
 
-    @Override
-    public synchronized TextCharacter getFrontCharacter(TerminalPosition position) {
-        return getFrontCharacter(position.getColumn(), position.getRow());
-    }
-
-    @Override
-    public TextCharacter getFrontCharacter(int column, int row) {
-        return getCharacterFromBuffer(frontBuffer, column, row);
-    }
-
-    @Override
-    public synchronized TextCharacter getBackCharacter(TerminalPosition position) {
-        return getBackCharacter(position.getColumn(), position.getRow());
-    }
-
-    @Override
-    public TextCharacter getBackCharacter(int column, int row) {
-        return getCharacterFromBuffer(backBuffer, column, row);
-    }
-
-    @Override
-    public void refresh() throws IOException {
-        refresh(RefreshType.AUTOMATIC);
-    }
-
-    @Override
-    public void close() throws IOException {
-        stopScreen();
-    }
-
-    @Override
-    public synchronized void clear() {
-        backBuffer.setAll(defaultCharacter);
-    }
-
-    @Override
-    public synchronized TerminalSize doResizeIfNecessary() {
-        TerminalSize pendingResize = getAndClearPendingResize();
-        if(pendingResize == null) {
-            return null;
+    override fun newTextGraphics(): TextGraphics {
+        return object : ScreenTextGraphics(this) {
+            override fun drawImage(
+                topLeft: TerminalPosition?,
+                image: TextImage?,
+                sourceImageTopLeft: TerminalPosition?,
+                sourceImageSize: TerminalSize?,
+            ): TextGraphics? {
+                if (topLeft != null && image != null && sourceImageTopLeft != null && sourceImageSize != null) {
+                    backBuffer.copyFrom(
+                        image,
+                        sourceImageTopLeft.row,
+                        sourceImageSize.rows,
+                        sourceImageTopLeft.column,
+                        sourceImageSize.columns,
+                        topLeft.row,
+                        topLeft.column,
+                    )
+                }
+                return this
+            }
         }
-
-        backBuffer = backBuffer.resize(pendingResize, defaultCharacter);
-        frontBuffer = frontBuffer.resize(pendingResize, defaultCharacter);
-        return pendingResize;
     }
 
-    @Override
-    public TerminalSize getTerminalSize() {
-        return terminalSize;
-    }
-
-    /**
-     * Returns the front buffer connected to this screen, don't use this unless you know what you are doing!
-     * @return This Screen's front buffer
-     */
-    protected ScreenBuffer getFrontBuffer() {
-        return frontBuffer;
-    }
-
-    /**
-     * Returns the back buffer connected to this screen, don't use this unless you know what you are doing!
-     * @return This Screen's back buffer
-     */
-    protected ScreenBuffer getBackBuffer() {
-        return backBuffer;
-    }
-
-    private synchronized TerminalSize getAndClearPendingResize() {
-        if(latestResizeRequest != null) {
-            terminalSize = latestResizeRequest;
-            latestResizeRequest = null;
-            return terminalSize;
+    @Synchronized
+    override fun setCharacter(column: Int, row: Int, screenCharacter: TextCharacter?) {
+        var character = screenCharacter ?: return
+        if (character.`is`('\t')) {
+            character = character.withCharacter(' ')
+            val replacementLength = tabBehaviour?.replaceTabs("\t", column)?.length ?: 1
+            for (i in 0 until replacementLength) {
+                backBuffer.setCharacterAt(column + i, row, character)
+            }
+        } else {
+            backBuffer.setCharacterAt(column, row, character)
         }
-        return null;
     }
 
-    /**
-     * Tells this screen that the size has changed and it should, at next opportunity, resize itself and its buffers
-     * @param newSize New size the 'real' terminal now has
-     */
-    protected void addResizeRequest(TerminalSize newSize) {
-        latestResizeRequest = newSize;
+    override fun getFrontCharacter(column: Int, row: Int): TextCharacter? =
+        getCharacterFromBuffer(frontBuffer, column, row)
+
+    override fun getFrontCharacter(position: TerminalPosition?): TextCharacter? =
+        if (position == null) null else getFrontCharacter(position.column, position.row)
+
+    override fun getBackCharacter(column: Int, row: Int): TextCharacter? =
+        getCharacterFromBuffer(backBuffer, column, row)
+
+    override fun getBackCharacter(position: TerminalPosition?): TextCharacter? =
+        if (position == null) null else getBackCharacter(position.column, position.row)
+
+    @Throws(IOException::class)
+    override fun refresh() {
+        refresh(Screen.RefreshType.AUTOMATIC)
     }
 
-    private TextCharacter getCharacterFromBuffer(ScreenBuffer buffer, int column, int row) {
-        return buffer.getCharacterAt(column, row);
-    }
-    
-    @Override
-    public String toString() {
-        return getBackBuffer().toString();
+    @Throws(IOException::class)
+    override fun close() {
+        stopScreen()
     }
 
-    /**
-     * Performs the scrolling on its back-buffer.
-     */
-    @Override
-    public void scrollLines(int firstLine, int lastLine, int distance) {
-        getBackBuffer().scrollLines(firstLine, lastLine, distance);
+    @Synchronized
+    override fun clear() {
+        backBuffer.setAll(defaultCharacter)
+    }
+
+    @Synchronized
+    override fun doResizeIfNecessary(): TerminalSize? {
+        val pendingResize = getAndClearPendingResize() ?: return null
+        backBuffer = backBuffer.resize(pendingResize, defaultCharacter)
+        frontBuffer = frontBuffer.resize(pendingResize, defaultCharacter)
+        return pendingResize
+    }
+
+    protected fun addResizeRequest(newSize: TerminalSize?) {
+        latestResizeRequest = newSize
+    }
+
+    @Synchronized
+    private fun getAndClearPendingResize(): TerminalSize? {
+        if (latestResizeRequest != null) {
+            terminalSizeBacking = latestResizeRequest
+            latestResizeRequest = null
+            return terminalSizeBacking
+        }
+        return null
+    }
+
+    private fun getCharacterFromBuffer(buffer: ScreenBuffer, column: Int, row: Int): TextCharacter? {
+        return buffer.getCharacterAt(column, row)
+    }
+
+    override fun toString(): String = backBuffer.toString()
+
+    override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int) {
+        backBuffer.scrollLines(firstLine, lastLine, distance)
     }
 }

@@ -16,15 +16,17 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
+
+import com.googlecode.lanterna.*
 
 /**
- *
+ * 
  * @author martin
  */
-public class EnqTest {
-    public static void main(String[] args) {
-        System.out.write(5);
-        System.out.flush();
-    }
+ object EnqTest {
+ fun main(args:Array<String?>?) {
+System.out.write(5)
+System.out.flush()
+}
 }

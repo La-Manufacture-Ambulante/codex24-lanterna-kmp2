@@ -1,60 +1,40 @@
-package com.googlecode.lanterna.terminal.swing;
+package com.googlecode.lanterna.terminal.swing
 
-import com.googlecode.lanterna.TerminalPosition;
+import java.awt.Component
+import java.awt.Rectangle
+import java.awt.font.TextHitInfo
+import java.awt.im.InputMethodRequests
+import java.text.AttributedCharacterIterator
 
-import java.awt.*;
-import java.awt.font.TextHitInfo;
-import java.awt.im.InputMethodRequests;
-import java.text.AttributedCharacterIterator;
-
-class TerminalInputMethodRequests implements InputMethodRequests {
-
-    private Component owner;
-    private GraphicalTerminalImplementation terminalImplementation;
-    
-    public TerminalInputMethodRequests(Component owner, GraphicalTerminalImplementation terminalImplementation) {
-        this.owner = owner;
-        this.terminalImplementation = terminalImplementation;
-    }
-    
-    @Override
-    public Rectangle getTextLocation(TextHitInfo offset) {
-        Point location = owner.getLocationOnScreen();
-        TerminalPosition cursorPosition = terminalImplementation.getCursorPosition();
-
-        int offsetX = cursorPosition.getColumn() * terminalImplementation.getFontWidth();
-        int offsetY = cursorPosition.getRow() * terminalImplementation.getFontHeight() + terminalImplementation.getFontHeight();
-
-        return new Rectangle(location.x + offsetX, location.y + offsetY, 0, 0);
+internal class TerminalInputMethodRequests(
+    private val owner: Component,
+    private val terminalImplementation: GraphicalTerminalImplementation,
+) : InputMethodRequests {
+    override fun getTextLocation(offset: TextHitInfo?): Rectangle {
+        val location = owner.locationOnScreen
+        val cursorPosition = terminalImplementation.cursorPosition
+        val offsetX = requireNotNull(cursorPosition).column * terminalImplementation.fontWidth
+        val offsetY = cursorPosition.row * terminalImplementation.fontHeight + terminalImplementation.fontHeight
+        return Rectangle(location.x + offsetX, location.y + offsetY, 0, 0)
     }
 
-    @Override
-    public TextHitInfo getLocationOffset(int x, int y) {
-        return null;
-    }
+    override fun getLocationOffset(x: Int, y: Int): TextHitInfo? = null
 
-    @Override
-    public int getInsertPositionOffset() {
-        return 0;
-    }
+    override fun getInsertPositionOffset(): Int = 0
 
-    @Override
-    public AttributedCharacterIterator getCommittedText(int beginIndex, int endIndex, AttributedCharacterIterator.Attribute[] attributes) {
-        return null;
-    }
+    override fun getCommittedText(
+        beginIndex: Int,
+        endIndex: Int,
+        attributes: Array<AttributedCharacterIterator.Attribute>?,
+    ): AttributedCharacterIterator? = null
 
-    @Override
-    public int getCommittedTextLength() {
-        return 0;
-    }
+    override fun getCommittedTextLength(): Int = 0
 
-    @Override
-    public AttributedCharacterIterator cancelLatestCommittedText(AttributedCharacterIterator.Attribute[] attributes) {
-        return null;
-    }
+    override fun cancelLatestCommittedText(
+        attributes: Array<AttributedCharacterIterator.Attribute>?,
+    ): AttributedCharacterIterator? = null
 
-    @Override
-    public AttributedCharacterIterator getSelectedText(AttributedCharacterIterator.Attribute[] attributes) {
-        return null;
-    }
+    override fun getSelectedText(
+        attributes: Array<AttributedCharacterIterator.Attribute>?,
+    ): AttributedCharacterIterator? = null
 }

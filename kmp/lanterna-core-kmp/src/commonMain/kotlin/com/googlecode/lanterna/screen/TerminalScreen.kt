@@ -16,419 +16,337 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.screen;
+package com.googlecode.lanterna.screen
 
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.graphics.Scrollable;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.terminal.Terminal;
-import com.googlecode.lanterna.terminal.TerminalResizeListener;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.graphics.Scrollable
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.terminal.Terminal
+import com.googlecode.lanterna.terminal.TerminalResizeListener
+import java.io.IOException
+import java.util.Comparator
+import java.util.EnumSet
+import java.util.TreeMap
 
-import java.io.IOException;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.TreeMap;
+class TerminalScreen @JvmOverloads constructor(
+    val terminal: Terminal,
+    defaultCharacter: TextCharacter? = Screen.DEFAULT_CHARACTER,
+) : AbstractScreen(terminal.terminalSize, defaultCharacter) {
+    private var isStarted = false
+    private var fullRedrawHint = true
+    private var scrollHint: ScrollHint? = null
 
-/**
- * This is the default concrete implementation of the Screen interface, a buffered layer sitting on top of a Terminal.
- * If you want to get started with the Screen layer, this is probably the class you want to use. Remember to start the
- * screen before you can use it and stop it when you are done with it. This will place the terminal in private mode
- * during the screen operations and leave private mode afterwards.
- * @author martin
- */
-public class TerminalScreen extends AbstractScreen {
-    private final Terminal terminal;
-    private boolean isStarted;
-    private boolean fullRedrawHint;
-    private ScrollHint scrollHint;
-
-    /**
-     * Creates a new Screen on top of a supplied terminal, will query the terminal for its size. The screen is initially
-     * blank. The default character used for unused space (the newly initialized state of the screen and new areas after
-     * expanding the terminal size) will be a blank space in 'default' ANSI front- and background color.
-     * <p>
-     * Before you can display the content of this buffered screen to the real underlying terminal, you must call the
-     * {@code startScreen()} method. This will ask the terminal to enter private mode (which is required for Screens to
-     * work properly). Similarly, when you are done, you should call {@code stopScreen()} which will exit private mode.
-     *
-     * @param terminal Terminal object to create the DefaultScreen on top of
-     * @throws java.io.IOException If there was an underlying I/O error when querying the size of the terminal
-     */
-    public TerminalScreen(Terminal terminal) throws IOException {
-        this(terminal, DEFAULT_CHARACTER);
+    init {
+        terminal.addResizeListener(TerminalScreenResizeListener())
     }
 
-    /**
-     * Creates a new Screen on top of a supplied terminal, will query the terminal for its size. The screen is initially
-     * blank. The default character used for unused space (the newly initialized state of the screen and new areas after
-     * expanding the terminal size) will be a blank space in 'default' ANSI front- and background color.
-     * <p>
-     * Before you can display the content of this buffered screen to the real underlying terminal, you must call the
-     * {@code startScreen()} method. This will ask the terminal to enter private mode (which is required for Screens to
-     * work properly). Similarly, when you are done, you should call {@code stopScreen()} which will exit private mode.
-     *
-     * @param terminal Terminal object to create the DefaultScreen on top of.
-     * @param defaultCharacter What character to use for the initial state of the screen and expanded areas
-     * @throws java.io.IOException If there was an underlying I/O error when querying the size of the terminal
-     */
-    public TerminalScreen(Terminal terminal, TextCharacter defaultCharacter) throws IOException {
-        super(terminal.getTerminalSize(), defaultCharacter);
-        this.terminal = terminal;
-        this.terminal.addResizeListener(new TerminalScreenResizeListener());
-        this.isStarted = false;
-        this.fullRedrawHint = true;
+    @Throws(IOException::class)
+    override fun close() {
+        super.close()
+        terminal.close()
     }
 
-    @Override
-    public void close() throws IOException {
-        super.close();
-        terminal.close();
-    }
-
-    @Override
-    public synchronized void startScreen() throws IOException {
-        if(isStarted) {
-            return;
+    @Synchronized
+    @Throws(IOException::class)
+    override fun startScreen() {
+        if (isStarted) {
+            return
         }
-
-        isStarted = true;
-        getTerminal().enterPrivateMode();
-        getTerminal().getTerminalSize();
-        getTerminal().clearScreen();
-        this.fullRedrawHint = true;
-        TerminalPosition cursorPosition = getCursorPosition();
-        if(cursorPosition != null) {
-            getTerminal().setCursorVisible(true);
-            getTerminal().setCursorPosition(cursorPosition.getColumn(), cursorPosition.getRow());
+        isStarted = true
+        terminal.enterPrivateMode()
+        terminal.terminalSize
+        terminal.clearScreen()
+        fullRedrawHint = true
+        val currentCursorPosition = cursorPosition
+        if (currentCursorPosition != null) {
+            terminal.setCursorVisible(true)
+            terminal.setCursorPosition(currentCursorPosition.column, currentCursorPosition.row)
         } else {
-            getTerminal().setCursorVisible(false);
+            terminal.setCursorVisible(false)
         }
     }
 
-    @Override
-    public void stopScreen() throws IOException {
-        stopScreen(true);
+    @Throws(IOException::class)
+    override fun stopScreen() {
+        stopScreen(true)
     }
-    
-    public synchronized void stopScreen(boolean flushInput) throws IOException {
-        if(!isStarted) {
-            return;
-        }
 
+    @Synchronized
+    @Throws(IOException::class)
+    fun stopScreen(flushInput: Boolean) {
+        if (!isStarted) {
+            return
+        }
         if (flushInput) {
-            //Drain the input queue
-            KeyStroke keyStroke;
+            var keyStroke: KeyStroke?
             do {
-                keyStroke = pollInput();
-            }
-            while(keyStroke != null && keyStroke.getKeyType() != KeyType.EOF);
+                keyStroke = pollInput()
+            } while (keyStroke != null && keyStroke.keyType != KeyType.EOF)
         }
-
-        getTerminal().exitPrivateMode();
-        isStarted = false;
+        terminal.exitPrivateMode()
+        isStarted = false
     }
 
-    @Override
-    public synchronized void refresh(RefreshType refreshType) throws IOException {
-        if(!isStarted) {
-            return;
+    @Synchronized
+    @Throws(IOException::class)
+    override fun refresh(refreshType: Screen.RefreshType?) {
+        if (!isStarted) {
+            return
         }
-        if((refreshType == RefreshType.AUTOMATIC && fullRedrawHint) || refreshType == RefreshType.COMPLETE) {
-            refreshFull();
-            fullRedrawHint = false;
-        }
-        else if(refreshType == RefreshType.AUTOMATIC &&
-                (scrollHint == null || scrollHint == ScrollHint.INVALID)) {
-            double threshold = getTerminalSize().getRows() * getTerminalSize().getColumns() * 0.75;
-            if(getBackBuffer().isVeryDifferent(getFrontBuffer(), (int) threshold)) {
-                refreshFull();
-            }
-            else {
-                refreshByDelta();
-            }
-        }
-        else {
-            refreshByDelta();
-        }
-        getBackBuffer().copyTo(getFrontBuffer());
-        TerminalPosition cursorPosition = getCursorPosition();
-        if(cursorPosition != null) {
-            getTerminal().setCursorVisible(true);
-            //If we are trying to move the cursor to the padding of a double-width character, put it on the actual character instead
-            if(cursorPosition.getColumn() > 0 &&
-                            getFrontBuffer().getCharacterAt(cursorPosition.withRelativeColumn(-1)).isDoubleWidth()) {
-                getTerminal().setCursorPosition(cursorPosition.getColumn() - 1, cursorPosition.getRow());
-            }
-            else {
-                getTerminal().setCursorPosition(cursorPosition.getColumn(), cursorPosition.getRow());
-            }
-        } else {
-            getTerminal().setCursorVisible(false);
-        }
-        getTerminal().flush();
-    }
-
-    private void useScrollHint() throws IOException {
-        if (scrollHint == null) { return; }
-
-        try {
-            if (scrollHint == ScrollHint.INVALID) { return; }
-            Terminal term = getTerminal();
-            if (term instanceof Scrollable) {
-                // just try and see if it cares:
-                scrollHint.applyTo( (Scrollable)term );
-                // if that didn't throw, then update front buffer:
-                scrollHint.applyTo( getFrontBuffer() );
-            }
-        }
-        catch (UnsupportedOperationException uoe) { /* ignore */ }
-        finally { scrollHint = null; }
-    }
-
-    private void refreshByDelta() throws IOException {
-        Map<TerminalPosition, TextCharacter> updateMap = new TreeMap<>(new ScreenPointComparator());
-        TerminalSize terminalSize = getTerminalSize();
-
-        useScrollHint();
-
-        for(int y = 0; y < terminalSize.getRows(); y++) {
-            for(int x = 0; x < terminalSize.getColumns(); x++) {
-                TextCharacter backBufferCharacter = getBackBuffer().getCharacterAt(x, y);
-                TextCharacter frontBufferCharacter = getFrontBuffer().getCharacterAt(x, y);
-                if(!backBufferCharacter.equals(frontBufferCharacter)) {
-                    updateMap.put(new TerminalPosition(x, y), backBufferCharacter);
-                }
-                if(backBufferCharacter.isDoubleWidth()) {
-                    x++;    //Skip the trailing padding
-                } else if (frontBufferCharacter.isDoubleWidth()) {
-                    if (x+1 < terminalSize.getColumns()) {
-                        updateMap.put(new TerminalPosition(x+1, y), frontBufferCharacter.withCharacter(' '));
-                    }
-                }
-            }
-        }
-
-        if(updateMap.isEmpty()) {
-            return;
-        }
-        TerminalPosition currentPosition = updateMap.keySet().iterator().next();
-        getTerminal().setCursorPosition(currentPosition.getColumn(), currentPosition.getRow());
-
-        TextCharacter firstScreenCharacterToUpdate = updateMap.values().iterator().next();
-        EnumSet<SGR> currentSGR = firstScreenCharacterToUpdate.getModifiers();
-        getTerminal().resetColorAndSGR();
-        for(SGR sgr: currentSGR) {
-            getTerminal().enableSGR(sgr);
-        }
-        TextColor currentForegroundColor = firstScreenCharacterToUpdate.getForegroundColor();
-        TextColor currentBackgroundColor = firstScreenCharacterToUpdate.getBackgroundColor();
-        getTerminal().setForegroundColor(currentForegroundColor);
-        getTerminal().setBackgroundColor(currentBackgroundColor);
-        for(TerminalPosition position: updateMap.keySet()) {
-            if(!position.equals(currentPosition)) {
-                getTerminal().setCursorPosition(position.getColumn(), position.getRow());
-                currentPosition = position;
-            }
-            TextCharacter newCharacter = updateMap.get(position);
-            if(!currentForegroundColor.equals(newCharacter.getForegroundColor())) {
-                getTerminal().setForegroundColor(newCharacter.getForegroundColor());
-                currentForegroundColor = newCharacter.getForegroundColor();
-            }
-            if(!currentBackgroundColor.equals(newCharacter.getBackgroundColor())) {
-                getTerminal().setBackgroundColor(newCharacter.getBackgroundColor());
-                currentBackgroundColor = newCharacter.getBackgroundColor();
-            }
-            for(SGR sgr: SGR.values()) {
-                if(currentSGR.contains(sgr) && !newCharacter.getModifiers().contains(sgr)) {
-                    getTerminal().disableSGR(sgr);
-                    currentSGR.remove(sgr);
-                }
-                else if(!currentSGR.contains(sgr) && newCharacter.getModifiers().contains(sgr)) {
-                    getTerminal().enableSGR(sgr);
-                    currentSGR.add(sgr);
-                }
-            }
-            getTerminal().putString(newCharacter.getCharacterString());
-            if(newCharacter.isDoubleWidth()) {
-                // Double-width characters advances two columns
-                currentPosition = currentPosition.withRelativeColumn(2);
-            }
-            else {
-                // Normal characters advances one column
-                currentPosition = currentPosition.withRelativeColumn(1);
-            }
-        }
-    }
-
-    private void refreshFull() throws IOException {
-        getTerminal().setForegroundColor(TextColor.ANSI.DEFAULT);
-        getTerminal().setBackgroundColor(TextColor.ANSI.DEFAULT);
-        getTerminal().clearScreen();
-        getTerminal().resetColorAndSGR();
-        scrollHint = null; // discard any scroll hint for full refresh
-
-        EnumSet<SGR> currentSGR = EnumSet.noneOf(SGR.class);
-        TextColor currentForegroundColor = TextColor.ANSI.DEFAULT;
-        TextColor currentBackgroundColor = TextColor.ANSI.DEFAULT;
-        for(int y = 0; y < getTerminalSize().getRows(); y++) {
-            getTerminal().setCursorPosition(0, y);
-            int currentColumn = 0;
-            for(int x = 0; x < getTerminalSize().getColumns(); x++) {
-                TextCharacter newCharacter = getBackBuffer().getCharacterAt(x, y);
-                if(newCharacter.equals(DEFAULT_CHARACTER)) {
-                    continue;
-                }
-
-                if(!currentForegroundColor.equals(newCharacter.getForegroundColor())) {
-                    getTerminal().setForegroundColor(newCharacter.getForegroundColor());
-                    currentForegroundColor = newCharacter.getForegroundColor();
-                }
-                if(!currentBackgroundColor.equals(newCharacter.getBackgroundColor())) {
-                    getTerminal().setBackgroundColor(newCharacter.getBackgroundColor());
-                    currentBackgroundColor = newCharacter.getBackgroundColor();
-                }
-                for(SGR sgr: SGR.values()) {
-                    if(currentSGR.contains(sgr) && !newCharacter.getModifiers().contains(sgr)) {
-                        getTerminal().disableSGR(sgr);
-                        currentSGR.remove(sgr);
-                    }
-                    else if(!currentSGR.contains(sgr) && newCharacter.getModifiers().contains(sgr)) {
-                        getTerminal().enableSGR(sgr);
-                        currentSGR.add(sgr);
-                    }
-                }
-                if(currentColumn != x) {
-                    getTerminal().setCursorPosition(x, y);
-                    currentColumn = x;
-                }
-                getTerminal().putString(newCharacter.getCharacterString());
-                if(newCharacter.isDoubleWidth()) {
-                    // Double-width characters take up two columns
-                    currentColumn += 2;
-                    x++;
-                }
-                else {
-                    // Normal characters take up one column
-                    currentColumn += 1;
-                }
-            }
-        }
-    }
-    
-    /**
-     * Returns the underlying {@code Terminal} interface that this Screen is using. 
-     * <p>
-     * <b>Be aware:</b> directly modifying the underlying terminal will most likely result in unexpected behaviour if
-     * you then go on and try to interact with the Screen. The Screen's back-buffer/front-buffer will not know about
-     * the operations you are going on the Terminal and won't be able to properly generate a refresh unless you enforce
-     * a {@code Screen.RefreshType.COMPLETE}, at which the entire terminal area will be repainted according to the 
-     * back-buffer of the {@code Screen}.
-     * @return Underlying terminal used by the screen
-     */
-    @SuppressWarnings("WeakerAccess")
-    public Terminal getTerminal() {
-        return terminal;
-    }
-
-    @Override
-    public KeyStroke readInput() throws IOException {
-        return terminal.readInput();
-    }
-
-    @Override
-    public KeyStroke pollInput() throws IOException {
-        return terminal.pollInput();
-    }
-
-    @Override
-    public synchronized void clear() {
-        super.clear();
-        fullRedrawHint = true;
-        scrollHint = ScrollHint.INVALID;
-    }
-
-    @Override
-    public synchronized TerminalSize doResizeIfNecessary() {
-        TerminalSize newSize = super.doResizeIfNecessary();
-        if(newSize != null) {
-            fullRedrawHint = true;
-        }
-        return newSize;
-    }
-    
-    /**
-     * Perform the scrolling and save scroll-range and distance in order
-     * to be able to optimize Terminal-update later.
-     */
-    @Override
-    public void scrollLines(int firstLine, int lastLine, int distance) {
-        // just ignore certain kinds of garbage:
-        if (distance == 0 || firstLine > lastLine) { return; }
-
-        super.scrollLines(firstLine, lastLine, distance);
-
-        // Save scroll hint for next refresh:
-        ScrollHint newHint = new ScrollHint(firstLine,lastLine,distance);
-        if (scrollHint == null) {
-            // no scroll hint yet: use the new one:
-            scrollHint = newHint;
-        } else //noinspection StatementWithEmptyBody
-            if (scrollHint == ScrollHint.INVALID) {
-            // scroll ranges already inconsistent since latest refresh!
-            // leave at INVALID
-        } else if (scrollHint.matches(newHint)) {
-            // same range: just accumulate distance:
-            scrollHint.distance += newHint.distance;
-        } else {
-            // different scroll range: no scroll-optimization for next refresh
-            this.scrollHint = ScrollHint.INVALID;
-        }
-    }
-
-    private class TerminalScreenResizeListener implements TerminalResizeListener {
-        @Override
-        public void onResized(Terminal terminal, TerminalSize newSize) {
-            addResizeRequest(newSize);
-        }
-    }
-
-    private static class ScreenPointComparator implements Comparator<TerminalPosition> {
-        @Override
-        public int compare(TerminalPosition o1, TerminalPosition o2) {
-            if(o1.getRow() == o2.getRow()) {
-                if(o1.getColumn() == o2.getColumn()) {
-                    return 0;
-                } else {
-                    return Integer.compare(o1.getColumn(), o2.getColumn());
-                }
+        if ((refreshType == Screen.RefreshType.AUTOMATIC && fullRedrawHint) || refreshType == Screen.RefreshType.COMPLETE) {
+            refreshFull()
+            fullRedrawHint = false
+        } else if (
+            refreshType == Screen.RefreshType.AUTOMATIC &&
+            (scrollHint == null || scrollHint == ScrollHint.INVALID)
+        ) {
+            val currentTerminalSize = terminalSize ?: return
+            val threshold = currentTerminalSize.rows * currentTerminalSize.columns * 0.75
+            if (backBuffer.isVeryDifferent(frontBuffer, threshold.toInt())) {
+                refreshFull()
             } else {
-                return Integer.compare(o1.getRow(), o2.getRow());
+                refreshByDelta()
+            }
+        } else {
+            refreshByDelta()
+        }
+
+        backBuffer.copyTo(frontBuffer)
+        val currentCursorPosition = cursorPosition
+        if (currentCursorPosition != null) {
+            terminal.setCursorVisible(true)
+            val previousPosition = currentCursorPosition.withRelativeColumn(-1)
+            if (
+                currentCursorPosition.column > 0 &&
+                previousPosition != null &&
+                (frontBuffer.getCharacterAt(previousPosition)?.isDoubleWidth == true)
+            ) {
+                terminal.setCursorPosition(currentCursorPosition.column - 1, currentCursorPosition.row)
+            } else {
+                terminal.setCursorPosition(currentCursorPosition.column, currentCursorPosition.row)
+            }
+        } else {
+            terminal.setCursorVisible(false)
+        }
+        terminal.flush()
+    }
+
+    @Throws(IOException::class)
+    private fun useScrollHint() {
+        val currentScrollHint = scrollHint ?: return
+        try {
+            if (currentScrollHint == ScrollHint.INVALID) {
+                return
+            }
+            val term = terminal
+            if (term is Scrollable) {
+                currentScrollHint.applyTo(term)
+                currentScrollHint.applyTo(frontBuffer)
+            }
+        } catch (_: UnsupportedOperationException) {
+        } finally {
+            scrollHint = null
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun refreshByDelta() {
+        val updateMap = TreeMap<TerminalPosition, TextCharacter>(ScreenPointComparator())
+        val currentTerminalSize = terminalSize ?: return
+
+        useScrollHint()
+
+        for (y in 0 until currentTerminalSize.rows) {
+            var x = 0
+            while (x < currentTerminalSize.columns) {
+                val backBufferCharacter = backBuffer.getCharacterAt(x, y) ?: continue
+                val frontBufferCharacter = frontBuffer.getCharacterAt(x, y) ?: continue
+                if (backBufferCharacter != frontBufferCharacter) {
+                    updateMap[TerminalPosition(x, y)] = backBufferCharacter
+                }
+                if (backBufferCharacter.isDoubleWidth) {
+                    x++
+                } else if (frontBufferCharacter.isDoubleWidth && x + 1 < currentTerminalSize.columns) {
+                    updateMap[TerminalPosition(x + 1, y)] = frontBufferCharacter.withCharacter(' ')
+                }
+                x++
+            }
+        }
+
+        if (updateMap.isEmpty()) {
+            return
+        }
+
+        var currentPosition = updateMap.keys.first()
+        terminal.setCursorPosition(currentPosition.column, currentPosition.row)
+
+        val firstCharacter = updateMap.values.first()
+        val currentSGR = firstCharacter.getModifiers()
+        terminal.resetColorAndSGR()
+        for (sgr in currentSGR) {
+            terminal.enableSGR(sgr)
+        }
+        var currentForegroundColor = firstCharacter.foregroundColor
+        var currentBackgroundColor = firstCharacter.backgroundColor
+        terminal.setForegroundColor(currentForegroundColor)
+        terminal.setBackgroundColor(currentBackgroundColor)
+
+        for ((position, newCharacter) in updateMap) {
+            if (position != currentPosition) {
+                terminal.setCursorPosition(position.column, position.row)
+                currentPosition = position
+            }
+            if (currentForegroundColor != newCharacter.foregroundColor) {
+                terminal.setForegroundColor(newCharacter.foregroundColor)
+                currentForegroundColor = newCharacter.foregroundColor
+            }
+            if (currentBackgroundColor != newCharacter.backgroundColor) {
+                terminal.setBackgroundColor(newCharacter.backgroundColor)
+                currentBackgroundColor = newCharacter.backgroundColor
+            }
+            for (sgr in SGR.values()) {
+                if (currentSGR.contains(sgr) && !newCharacter.getModifiers().contains(sgr)) {
+                    terminal.disableSGR(sgr)
+                    currentSGR.remove(sgr)
+                } else if (!currentSGR.contains(sgr) && newCharacter.getModifiers().contains(sgr)) {
+                    terminal.enableSGR(sgr)
+                    currentSGR.add(sgr)
+                }
+            }
+            terminal.putString(newCharacter.characterString)
+            currentPosition = currentPosition.withRelativeColumn(if (newCharacter.isDoubleWidth) 2 else 1) ?: currentPosition
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun refreshFull() {
+        terminal.setForegroundColor(TextColor.ANSI.DEFAULT)
+        terminal.setBackgroundColor(TextColor.ANSI.DEFAULT)
+        terminal.clearScreen()
+        terminal.resetColorAndSGR()
+        scrollHint = null
+
+        val currentSGR = EnumSet.noneOf(SGR::class.java)
+        var currentForegroundColor: TextColor? = TextColor.ANSI.DEFAULT
+        var currentBackgroundColor: TextColor? = TextColor.ANSI.DEFAULT
+        val currentTerminalSize = terminalSize ?: return
+
+        for (y in 0 until currentTerminalSize.rows) {
+            terminal.setCursorPosition(0, y)
+            var currentColumn = 0
+            for (x in 0 until currentTerminalSize.columns) {
+                val newCharacter = backBuffer.getCharacterAt(x, y) ?: continue
+                if (newCharacter == Screen.DEFAULT_CHARACTER) {
+                    continue
+                }
+                if (currentForegroundColor != newCharacter.foregroundColor) {
+                    terminal.setForegroundColor(newCharacter.foregroundColor)
+                    currentForegroundColor = newCharacter.foregroundColor
+                }
+                if (currentBackgroundColor != newCharacter.backgroundColor) {
+                    terminal.setBackgroundColor(newCharacter.backgroundColor)
+                    currentBackgroundColor = newCharacter.backgroundColor
+                }
+                for (sgr in SGR.values()) {
+                    if (currentSGR.contains(sgr) && !newCharacter.getModifiers().contains(sgr)) {
+                        terminal.disableSGR(sgr)
+                        currentSGR.remove(sgr)
+                    } else if (!currentSGR.contains(sgr) && newCharacter.getModifiers().contains(sgr)) {
+                        terminal.enableSGR(sgr)
+                        currentSGR.add(sgr)
+                    }
+                }
+                if (currentColumn != x) {
+                    terminal.setCursorPosition(x, y)
+                    currentColumn = x
+                }
+                terminal.putString(newCharacter.characterString)
+                if (newCharacter.isDoubleWidth) {
+                    currentColumn += 2
+                } else {
+                    currentColumn += 1
+                }
             }
         }
     }
 
-    private static class ScrollHint {
-        public static final ScrollHint INVALID = new ScrollHint(-1,-1,0);
-        public final int firstLine;
-        public final int lastLine;
-        public int distance;
+    @Throws(IOException::class)
+    override fun readInput(): KeyStroke? = terminal.readInput()
 
-        public ScrollHint(int firstLine, int lastLine, int distance) {
-            this.firstLine = firstLine;
-            this.lastLine = lastLine;
-            this.distance = distance;
+    @Throws(IOException::class)
+    override fun pollInput(): KeyStroke? = terminal.pollInput()
+
+    @Synchronized
+    override fun clear() {
+        super.clear()
+        fullRedrawHint = true
+        scrollHint = ScrollHint.INVALID
+    }
+
+    @Synchronized
+    override fun doResizeIfNecessary(): TerminalSize? {
+        val newSize = super.doResizeIfNecessary()
+        if (newSize != null) {
+            fullRedrawHint = true
         }
+        return newSize
+    }
 
-        public boolean matches(ScrollHint other) {
-            return this.firstLine == other.firstLine
-                && this.lastLine == other.lastLine;
+    override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int) {
+        if (distance == 0 || firstLine > lastLine) {
+            return
         }
-
-        public void applyTo( Scrollable scr ) throws IOException {
-            scr.scrollLines(firstLine, lastLine, distance);
+        super.scrollLines(firstLine, lastLine, distance)
+        val newHint = ScrollHint(firstLine, lastLine, distance)
+        scrollHint = when (val current = scrollHint) {
+            null -> newHint
+            ScrollHint.INVALID -> ScrollHint.INVALID
+            else -> if (current.matches(newHint)) {
+                current.distance += newHint.distance
+                current
+            } else {
+                ScrollHint.INVALID
+            }
         }
     }
 
+    private inner class TerminalScreenResizeListener : TerminalResizeListener {
+        override fun onResized(terminal: Terminal?, newSize: TerminalSize?) {
+            addResizeRequest(newSize)
+        }
+    }
+
+    private class ScreenPointComparator : Comparator<TerminalPosition> {
+        override fun compare(o1: TerminalPosition, o2: TerminalPosition): Int {
+            return if (o1.row == o2.row) {
+                o1.column.compareTo(o2.column)
+            } else {
+                o1.row.compareTo(o2.row)
+            }
+        }
+    }
+
+    private class ScrollHint(
+        val firstLine: Int,
+        val lastLine: Int,
+        var distance: Int,
+    ) {
+        fun matches(other: ScrollHint): Boolean {
+            return firstLine == other.firstLine && lastLine == other.lastLine
+        }
+
+        @Throws(IOException::class)
+        fun applyTo(scrollable: Scrollable) {
+            scrollable.scrollLines(firstLine, lastLine, distance)
+        }
+
+        companion object {
+            val INVALID = ScrollHint(-1, -1, 0)
+        }
+    }
 }

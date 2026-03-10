@@ -17,21 +17,22 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 
-package com.googlecode.lanterna;
+package com.googlecode.lanterna
 
 /**
  * Prints the whole symbol table, this is debug stuff for UTF-8 to non-UTF-8
  * symbol character conversions...
  * @author Martin
  */
-public class TestAllCodes {
-    public static void main(String[] args) throws Exception
-    {
-        System.out.write(new byte[] { (byte)0x1B, 0x28, 0x30 });
-        for(int i = 0; i < 200; i++) {
-            System.out.write((i + " = " + ((char)i) + "\n").getBytes());
-        }
-        System.out.write(new byte[] { (byte)0x1B, 0x28, 0x42 });
-        //System.out.write(new byte[] { (byte)0x1B, (byte)0x21, (byte)0x40, 15 });
+ object TestAllCodes {
+@Throws(Exception::class)
+ fun main(args:Array<String?>?) {
+System.out.write(byteArrayOf(0x1B.toByte(), 0x28, 0x30))
+for (i in 0..199)
+{
+System.out.write((i.toString() + " = " + (i.toChar()) + "\n").toByteArray())
+}
+System.out.write(byteArrayOf(0x1B.toByte(), 0x28, 0x42))
+ //System.out.write(new byte[] { (byte)0x1B, (byte)0x21, (byte)0x40, 15 });
     }
 }

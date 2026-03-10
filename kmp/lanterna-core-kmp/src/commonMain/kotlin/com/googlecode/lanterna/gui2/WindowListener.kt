@@ -16,28 +16,28 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
 
 /**
- * Extended {@link BasePaneListener} for {@link Window} that exposes additional events that are specific to windows
+ * Extended [BasePaneListener] for [Window] that exposes additional events that are specific to windows
  */
-public interface WindowListener extends BasePaneListener<Window> {
-    /**
-     * Called whenever the window's size has changed, no matter if it was done by the window manager or the user
-     * @param window Window that was resized
-     * @param oldSize Previous size of the window
-     * @param newSize New size of the window
-     */
-    void onResized(Window window, TerminalSize oldSize, TerminalSize newSize);
+ interface WindowListener:BasePaneListener<Window?> {
+/**
+ * Called whenever the window's size has changed, no matter if it was done by the window manager or the user
+ * @param window Window that was resized
+ * @param oldSize Previous size of the window
+ * @param newSize New size of the window
+ */
+     fun onResized(window:Window?, oldSize:TerminalSize?, newSize:TerminalSize?) 
 
-    /**
-     * Called whenever the window's position has changed, no matter if it was done by the window manager or the user
-     * @param window Window that was repositioned
-     * @param oldPosition Previous position of the window
-     * @param newPosition New position of the window
-     */
-    void onMoved(Window window, TerminalPosition oldPosition, TerminalPosition newPosition);
+/**
+ * Called whenever the window's position has changed, no matter if it was done by the window manager or the user
+ * @param window Window that was repositioned
+ * @param oldPosition Previous position of the window
+ * @param newPosition New position of the window
+ */
+     fun onMoved(window:Window?, oldPosition:TerminalPosition?, newPosition:TerminalPosition?) 
 }

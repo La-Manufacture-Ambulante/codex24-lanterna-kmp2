@@ -16,344 +16,224 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal.swing;
+package com.googlecode.lanterna.terminal.swing
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.terminal.IOSafeTerminal;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.terminal.TerminalResizeListener;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.terminal.IOSafeTerminal
+import com.googlecode.lanterna.terminal.TerminalResizeListener
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.HeadlessException
+import java.util.EnumSet
+import java.util.concurrent.TimeUnit
+import javax.swing.JFrame
 
-import java.awt.*;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import javax.swing.*;
+@Suppress("serial")
+class SwingTerminalFrame : JFrame, IOSafeTerminal {
+    val swingTerminal: SwingTerminal
+    private val autoCloseTriggers: EnumSet<TerminalEmulatorAutoCloseTrigger>
+    private var disposed: Boolean = false
 
-/**
- * This class is similar to what SwingTerminal used to be before Lanterna 3.0; a JFrame that contains a terminal
- * emulator. In Lanterna 3, this class is just a JFrame containing a SwingTerminal component, but it also implements
- * the Terminal interface and delegates all calls to the internal SwingTerminal. You can tweak the class a bit to have
- * special behaviours when exiting private mode or when the user presses ESC key.
- * @author martin
- */
-@SuppressWarnings("serial")
-public class SwingTerminalFrame extends JFrame implements IOSafeTerminal {
-    private final SwingTerminal swingTerminal;
-    private final EnumSet<TerminalEmulatorAutoCloseTrigger> autoCloseTriggers;
-    private boolean disposed;
+    constructor(vararg autoCloseTriggers: TerminalEmulatorAutoCloseTrigger) : this("SwingTerminalFrame", *autoCloseTriggers)
 
-    /**
-     * Creates a new SwingTerminalFrame with an optional list of auto-close triggers
-     * @param autoCloseTriggers What to trigger automatic disposal of the JFrame
-     */
-    @SuppressWarnings({"SameParameterValue", "WeakerAccess"})
-    public SwingTerminalFrame(TerminalEmulatorAutoCloseTrigger... autoCloseTriggers) {
-        this("SwingTerminalFrame", autoCloseTriggers);
-    }
+    @Throws(HeadlessException::class)
+    constructor(title: String?, vararg autoCloseTriggers: TerminalEmulatorAutoCloseTrigger) :
+        this(title, SwingTerminal(), *autoCloseTriggers)
 
-    /**
-     * Creates a new SwingTerminalFrame with a specific title and an optional list of auto-close triggers
-     * @param title Title to use for the window
-     * @param autoCloseTriggers What to trigger automatic disposal of the JFrame
-     */
-    @SuppressWarnings("WeakerAccess")
-    public SwingTerminalFrame(String title, TerminalEmulatorAutoCloseTrigger... autoCloseTriggers) throws HeadlessException {
-        this(title, new SwingTerminal(), autoCloseTriggers);
-    }
+    constructor(
+        title: String?,
+        deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+        fontConfiguration: SwingTerminalFontConfiguration?,
+        colorConfiguration: TerminalEmulatorColorConfiguration?,
+        vararg autoCloseTriggers: TerminalEmulatorAutoCloseTrigger,
+    ) : this(title, null, deviceConfiguration, fontConfiguration, colorConfiguration, *autoCloseTriggers)
 
-    /**
-     * Creates a new SwingTerminalFrame using a specified title and a series of swing terminal configuration objects
-     * @param title What title to use for the window
-     * @param deviceConfiguration Device configuration for the embedded SwingTerminal
-     * @param fontConfiguration Font configuration for the embedded SwingTerminal
-     * @param colorConfiguration Color configuration for the embedded SwingTerminal
-     * @param autoCloseTriggers What to trigger automatic disposal of the JFrame
-     */
-    public SwingTerminalFrame(String title,
-            TerminalEmulatorDeviceConfiguration deviceConfiguration,
-            SwingTerminalFontConfiguration fontConfiguration,
-            TerminalEmulatorColorConfiguration colorConfiguration,
-            TerminalEmulatorAutoCloseTrigger... autoCloseTriggers) {
-        this(title, null, deviceConfiguration, fontConfiguration, colorConfiguration, autoCloseTriggers);
-    }
+    constructor(
+        title: String?,
+        terminalSize: TerminalSize?,
+        deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+        fontConfiguration: SwingTerminalFontConfiguration?,
+        colorConfiguration: TerminalEmulatorColorConfiguration?,
+        vararg autoCloseTriggers: TerminalEmulatorAutoCloseTrigger,
+    ) : this(
+        title,
+        SwingTerminal(terminalSize, deviceConfiguration, fontConfiguration, colorConfiguration),
+        *autoCloseTriggers,
+    )
 
-    /**
-     * Creates a new SwingTerminalFrame using a specified title and a series of swing terminal configuration objects
-     * @param title What title to use for the window
-     * @param terminalSize Initial size of the terminal, in rows and columns. If null, it will default to 80x25.
-     * @param deviceConfiguration Device configuration for the embedded SwingTerminal
-     * @param fontConfiguration Font configuration for the embedded SwingTerminal
-     * @param colorConfiguration Color configuration for the embedded SwingTerminal
-     * @param autoCloseTriggers What to trigger automatic disposal of the JFrame
-     */
-    public SwingTerminalFrame(String title,
-                              TerminalSize terminalSize,
-                              TerminalEmulatorDeviceConfiguration deviceConfiguration,
-                              SwingTerminalFontConfiguration fontConfiguration,
-                              TerminalEmulatorColorConfiguration colorConfiguration,
-                              TerminalEmulatorAutoCloseTrigger... autoCloseTriggers) {
-        this(title,
-                new SwingTerminal(terminalSize, deviceConfiguration, fontConfiguration, colorConfiguration),
-                autoCloseTriggers);
-    }
-    
-    private SwingTerminalFrame(String title, SwingTerminal swingTerminal, TerminalEmulatorAutoCloseTrigger... autoCloseTriggers) {
-        super(title != null ? title : "SwingTerminalFrame");
-        this.swingTerminal = swingTerminal;
-        if (autoCloseTriggers != null && autoCloseTriggers.length > 0)
-        {
-        	this.autoCloseTriggers = EnumSet.copyOf(Arrays.asList(autoCloseTriggers));
+    private constructor(
+        title: String?,
+        swingTerminal: SwingTerminal,
+        vararg autoCloseTriggers: TerminalEmulatorAutoCloseTrigger,
+    ) : super(title ?: "SwingTerminalFrame") {
+        this.swingTerminal = swingTerminal
+        this.autoCloseTriggers = if (autoCloseTriggers.isEmpty()) {
+            EnumSet.noneOf(TerminalEmulatorAutoCloseTrigger::class.java)
+        } else {
+            EnumSet.copyOf(autoCloseTriggers.asList())
         }
-        else this.autoCloseTriggers = null;
-        this.disposed = false;
 
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(swingTerminal, BorderLayout.CENTER);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBackground(Color.BLACK); //This will reduce white flicker when resizing the window
+        contentPane.layout = BorderLayout()
+        contentPane.add(swingTerminal, BorderLayout.CENTER)
+        defaultCloseOperation = DISPOSE_ON_CLOSE
+        background = Color.BLACK
     }
 
-    /**
-     * Returns the wrapped SwingTerminal which is holding the actual terminal content. This can be useful if you want to
-     * add custom Swing listeners to it, etc.
-     * @return The inner SwingTerminal
-     */
-    public SwingTerminal getSwingTerminal() {
-        return swingTerminal;
-    }
+    val fontConfiguration: SwingTerminalFontConfiguration
+        get() = swingTerminal.fontConfiguration
 
-    /**
-     * Returns the current font configuration. Note that it is immutable and cannot be changed.
-     * @return This {@link SwingTerminalFrame}'s current font configuration
-     */
-    public SwingTerminalFontConfiguration getFontConfiguration() {
-        return swingTerminal.getFontConfiguration();
-    }
+    val colorConfiguration: TerminalEmulatorColorConfiguration?
+        get() = swingTerminal.colorConfiguration
 
-    /**
-     * Returns this terminal emulator's color configuration. Note that it is immutable and cannot be changed.
-     * @return This {@link SwingTerminalFrame}'s color configuration
-     */
-    public TerminalEmulatorColorConfiguration getColorConfiguration() {
-        return swingTerminal.getColorConfiguration();
-    }
+    val deviceConfiguration: TerminalEmulatorDeviceConfiguration?
+        get() = swingTerminal.deviceConfiguration
 
-    /**
-     * Returns this terminal emulator's device configuration. Note that it is immutable and cannot be changed.
-     * @return This {@link SwingTerminalFrame}'s device configuration
-     */
-    public TerminalEmulatorDeviceConfiguration getDeviceConfiguration() {
-        return swingTerminal.getDeviceConfiguration();
-    }
+    val autoCloseTrigger: Set<TerminalEmulatorAutoCloseTrigger>
+        get() = EnumSet.copyOf(autoCloseTriggers)
 
-    /**
-     * Returns the auto-close triggers used by the SwingTerminalFrame
-     * @return Current auto-close trigger
-     */
-    public Set<TerminalEmulatorAutoCloseTrigger> getAutoCloseTrigger() {
-        return EnumSet.copyOf(autoCloseTriggers);
-    }
-
-    /**
-     * Sets the auto-close trigger to use on this terminal. This will reset any previous triggers. If called with
-     * {@code null}, all triggers are cleared.
-     * @param autoCloseTrigger Auto-close trigger to use on this terminal, or {@code null} to clear all existing triggers
-     * @return Itself
-     */
-    public SwingTerminalFrame setAutoCloseTrigger(TerminalEmulatorAutoCloseTrigger autoCloseTrigger) {
-        this.autoCloseTriggers.clear();
-        if(autoCloseTrigger != null) {
-            this.autoCloseTriggers.add(autoCloseTrigger);
+    fun setAutoCloseTrigger(autoCloseTrigger: TerminalEmulatorAutoCloseTrigger?): SwingTerminalFrame {
+        autoCloseTriggers.clear()
+        if (autoCloseTrigger != null) {
+            autoCloseTriggers.add(autoCloseTrigger)
         }
-        return this;
+        return this
     }
 
-    /**
-     * Adds an auto-close trigger to use on this terminal.
-     * @param autoCloseTrigger Auto-close trigger to add to this terminal
-     * @return Itself
-     */
-    public SwingTerminalFrame addAutoCloseTrigger(TerminalEmulatorAutoCloseTrigger autoCloseTrigger) {
-        if(autoCloseTrigger != null) {
-            this.autoCloseTriggers.add(autoCloseTrigger);
+    fun addAutoCloseTrigger(autoCloseTrigger: TerminalEmulatorAutoCloseTrigger?): SwingTerminalFrame {
+        if (autoCloseTrigger != null) {
+            autoCloseTriggers.add(autoCloseTrigger)
         }
-        return this;
+        return this
     }
 
-    @Override
-    public void dispose() {
-        super.dispose();
-        disposed = true;
-    }
-    
-    @Override
-    public void pack() {
-        super.pack();
-        disposed = false;
+    override fun dispose() {
+        super.dispose()
+        disposed = true
     }
 
-    @Override
-    public void setVisible(boolean visible) {
+    override fun pack() {
+        super.pack()
+        disposed = false
+    }
+
+    override fun setVisible(visible: Boolean) {
         if (visible) {
-            pack();
-
-            //Put input focus on the terminal component by default
-            swingTerminal.requestFocusInWindow();
+            pack()
+            swingTerminal.requestFocusInWindow()
         }
-        super.setVisible(visible);
+        super.setVisible(visible)
     }
 
-    @Override
-    public void close() {
-        dispose();
+    override fun close() {
+        dispose()
     }
 
-    /**
-     * Takes a KeyStroke and puts it on the input queue of the terminal emulator. This way you can insert synthetic
-     * input events to be processed as if they came from the user typing on the keyboard.
-     * @param keyStroke Key stroke input event to put on the queue
-     */
-    public void addInput(KeyStroke keyStroke) {
-        swingTerminal.addInput(keyStroke);
+    fun addInput(keyStroke: KeyStroke?) {
+        swingTerminal.addInput(keyStroke)
     }
 
-    ///////////
-    // Delegate all Terminal interface implementations to SwingTerminal
-    ///////////
-    @Override
-    public KeyStroke pollInput() {
-        if(disposed) {
-            return new KeyStroke(KeyType.EOF);
+    override fun pollInput(): KeyStroke? {
+        if (disposed) {
+            return KeyStroke(KeyType.EOF)
         }
-        KeyStroke keyStroke = swingTerminal.pollInput();
-        if(autoCloseTriggers != null && 
-           autoCloseTriggers.contains(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_ESCAPE) &&
-           keyStroke != null && 
-           keyStroke.getKeyType() == KeyType.ESCAPE) 
-        {
-            dispose();
+        val keyStroke = swingTerminal.pollInput()
+        if (
+            autoCloseTriggers.contains(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_ESCAPE) &&
+            keyStroke != null &&
+            keyStroke.keyType == KeyType.ESCAPE
+        ) {
+            dispose()
         }
-        return keyStroke;
+        return keyStroke
     }
 
-    @Override
-    public KeyStroke readInput() {
-        return swingTerminal.readInput();
+    override fun readInput(): KeyStroke? = swingTerminal.readInput()
+
+    override fun enterPrivateMode() {
+        swingTerminal.enterPrivateMode()
     }
 
-    @Override
-    public void enterPrivateMode() {
-        swingTerminal.enterPrivateMode();
-    }
-
-    @Override
-    public void exitPrivateMode() {
-        swingTerminal.exitPrivateMode();
-        if(autoCloseTriggers != null && 
-           autoCloseTriggers.contains(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_EXIT_PRIVATE_MODE)) 
-        {
-            dispose();
+    override fun exitPrivateMode() {
+        swingTerminal.exitPrivateMode()
+        if (autoCloseTriggers.contains(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_EXIT_PRIVATE_MODE)) {
+            dispose()
         }
     }
 
-    @Override
-    public void clearScreen() {
-        swingTerminal.clearScreen();
+    override fun clearScreen() {
+        swingTerminal.clearScreen()
     }
 
-    @Override
-    public void setCursorPosition(int x, int y) {
-        swingTerminal.setCursorPosition(x, y);
+    override fun setCursorPosition(x: Int, y: Int) {
+        swingTerminal.setCursorPosition(x, y)
     }
 
-    @Override
-    public void setCursorPosition(TerminalPosition position) {
-        swingTerminal.setCursorPosition(position);
+    override var cursorPosition: TerminalPosition?
+        get() = swingTerminal.cursorPosition
+        set(position) {
+            swingTerminal.cursorPosition = position
+        }
+
+    override fun setCursorVisible(visible: Boolean) {
+        swingTerminal.setCursorVisible(visible)
     }
 
-    @Override
-    public TerminalPosition getCursorPosition() {
-        return swingTerminal.getCursorPosition();
+    override fun putCharacter(c: Char) {
+        swingTerminal.putCharacter(c)
     }
 
-    @Override
-    public void setCursorVisible(boolean visible) {
-        swingTerminal.setCursorVisible(visible);
+    override fun putString(string: String?) {
+        swingTerminal.putString(string)
     }
 
-    @Override
-    public void putCharacter(char c) {
-        swingTerminal.putCharacter(c);
+    override fun newTextGraphics(): TextGraphics? = swingTerminal.newTextGraphics()
+
+    override fun enableSGR(sgr: SGR?) {
+        swingTerminal.enableSGR(sgr)
     }
 
-    @Override
-    public void putString(String string) {
-        swingTerminal.putString(string);
+    override fun disableSGR(sgr: SGR?) {
+        swingTerminal.disableSGR(sgr)
     }
 
-    @Override
-    public TextGraphics newTextGraphics() {
-        return swingTerminal.newTextGraphics();
+    override fun resetColorAndSGR() {
+        swingTerminal.resetColorAndSGR()
     }
 
-    @Override
-    public void enableSGR(SGR sgr) {
-        swingTerminal.enableSGR(sgr);
+    override fun setForegroundColor(color: TextColor?) {
+        swingTerminal.setForegroundColor(color)
     }
 
-    @Override
-    public void disableSGR(SGR sgr) {
-        swingTerminal.disableSGR(sgr);
+    override fun setBackgroundColor(color: TextColor?) {
+        swingTerminal.setBackgroundColor(color)
     }
 
-    @Override
-    public void resetColorAndSGR() {
-        swingTerminal.resetColorAndSGR();
+    override val terminalSize: TerminalSize?
+        get() = swingTerminal.terminalSize
+
+    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+        return swingTerminal.enquireTerminal(timeout, timeoutUnit)
     }
 
-    @Override
-    public void setForegroundColor(TextColor color) {
-        swingTerminal.setForegroundColor(color);
+    override fun bell() {
+        swingTerminal.bell()
     }
 
-    @Override
-    public void setBackgroundColor(TextColor color) {
-        swingTerminal.setBackgroundColor(color);
+    override fun flush() {
+        swingTerminal.flush()
     }
 
-    @Override
-    public TerminalSize getTerminalSize() {
-        return swingTerminal.getTerminalSize();
+    override fun addResizeListener(listener: TerminalResizeListener?) {
+        swingTerminal.addResizeListener(listener)
     }
 
-    @Override
-    public byte[] enquireTerminal(int timeout, TimeUnit timeoutUnit) {
-        return swingTerminal.enquireTerminal(timeout, timeoutUnit);
-    }
-
-    @Override
-    public void bell() {
-        swingTerminal.bell();
-    }
-
-    @Override
-    public void flush() {
-        swingTerminal.flush();
-    }
-
-    @Override
-    public void addResizeListener(TerminalResizeListener listener) {
-        swingTerminal.addResizeListener(listener);
-    }
-
-    @Override
-    public void removeResizeListener(TerminalResizeListener listener) {
-        swingTerminal.removeResizeListener(listener);
+    override fun removeResizeListener(listener: TerminalResizeListener?) {
+        swingTerminal.removeResizeListener(listener)
     }
 }

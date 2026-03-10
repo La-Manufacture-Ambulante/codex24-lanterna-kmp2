@@ -16,58 +16,68 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.TestTerminalFactory;
-import java.io.IOException;
+import com.googlecode.lanterna.*
+
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.TestTerminalFactory
+import java.io.IOException
 
 /**
- *
+ * 
  * @author martin
  */
-public class TerminalInputTest {
+ object TerminalInputTest {
 
-    public static void main(String[] args) throws InterruptedException, IOException {
-        // For IDE users: either set runtime arguments or uncomment this line:
+@Throws(InterruptedException::class, IOException::class)
+ fun main(args:Array<String?>?) {
+ // For IDE users: either set runtime arguments or uncomment this line:
         //args = new String[] { "--mouse-move", "--telnet-port=1024", "--with-timeout=12" };
 
-        final Terminal rawTerminal = new TestTerminalFactory(args).createTerminal();
-        rawTerminal.enterPrivateMode();
+        val rawTerminal = TestTerminalFactory(args).createTerminal()!!
+rawTerminal!!.enterPrivateMode()
 
-        int currentRow = 0;
-        rawTerminal.setCursorPosition(0, 0);
-        while(true) {
-            KeyStroke key = rawTerminal.pollInput();
-            if(key == null) {
-                Thread.sleep(1);
-                continue;
-            }
+var currentRow = 0
+rawTerminal!!.setCursorPosition(0, 0)
+while (true)
+{
+val key = rawTerminal!!.pollInput()
+if (key == null)
+{
+Thread.sleep(1)
+continue
+}
 
-            if(key.getKeyType() == KeyType.ESCAPE || key.getKeyType() == KeyType.EOF) {
-                break;
-            }
+if (key!!.getKeyType() === KeyType.ESCAPE || key!!.getKeyType() === KeyType.EOF)
+{
+break
+}
 
-            if(currentRow == 0) {
-                rawTerminal.clearScreen();
-            }
+if (currentRow == 0)
+{
+rawTerminal!!.clearScreen()
+}
 
-            rawTerminal.setCursorPosition(0, currentRow++);
-            putString(rawTerminal, key.toString());
+rawTerminal!!.setCursorPosition(0, currentRow++)
+putString(rawTerminal, key!!.toString())
 
-            if(currentRow >= rawTerminal.getTerminalSize().getRows()) {
-                currentRow = 0;
-            }
-        }
+if (currentRow >= rawTerminal!!.getTerminalSize().getRows())
+{
+currentRow = 0
+}
+}
 
-        rawTerminal.exitPrivateMode();
-    }
+rawTerminal!!.exitPrivateMode()
+}
 
-    private static void putString(Terminal rawTerminal, String string) throws IOException {
-        for(int i = 0; i < string.length(); i++) {
-            rawTerminal.putCharacter(string.charAt(i));
-        }
-        rawTerminal.flush();
-    }
+@Throws(IOException::class)
+private fun putString(rawTerminal:Terminal, string:String) {
+for (i in 0 until string.length)
+{
+rawTerminal!!.putCharacter(string.charAt(i))
+}
+rawTerminal!!.flush()
+}
 }

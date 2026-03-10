@@ -16,90 +16,80 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-
-import java.io.IOException;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import java.io.IOException
 
 @SuppressWarnings("rawtypes")
-public class InputUITest extends TestBase {
-    public static void main(String[] args) throws IOException, InterruptedException {
-        new InputUITest().run(args);
+class InputUITest : TestBase() {
+    fun init(textGUI: WindowBasedTextGUI) {
+        val window = BasicWindow("Input test")
+        val interactable = InputCaptureComponent()
+        interactable.withBorder(Borders.doubleLineBevel("Press any key to test capturing the KeyStroke"))
+
+        window.component = Panels.vertical(
+            interactable,
+            Label("Use the TAB key to shift focus"),
+            Button("Close", Runnable { window.close() }),
+        )
+        textGUI.addWindow(window)
     }
 
-    @Override
-    public void init(WindowBasedTextGUI textGUI) {
-        final BasicWindow window = new BasicWindow("Input test");
+    private class InputCaptureComponent : AbstractInteractableComponent<InputCaptureComponent>() {
+        private var lastKey: String? = null
 
-        Interactable interactable = new AbstractInteractableComponent() {
-            private String lastKey;
-
-            @Override
-            protected Result handleKeyStroke(KeyStroke keyStroke) {
-                if (keyStroke.getKeyType() == KeyType.TAB) {
-                    return super.handleKeyStroke(keyStroke);
-                }
-                if (keyStroke.getKeyType() == KeyType.CHARACTER) 
-                {
-                	if (keyStroke.getCharacter().equals(' '))
-                	{
-                		lastKey = "SPACE";
-                	}
-                	else lastKey = keyStroke.getCharacter() + "";
-                }
-                else {
-                    lastKey = keyStroke.getKeyType().toString();
-                }
-                if (keyStroke.isCtrlDown()) {
-                    lastKey += " + CTRL";
-                }
-                if (keyStroke.isAltDown()) {
-                    lastKey += " + ALT";
-                }
-                if (keyStroke.isShiftDown()) {
-                    lastKey += " + SHIFT";
-                }
-                return Result.HANDLED;
+        override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
+            if (keyStroke.keyType == KeyType.TAB) {
+                return super.handleKeyStroke(keyStroke)
             }
-
-            @Override
-            protected InteractableRenderer createDefaultRenderer() {
-                return new InteractableRenderer() {
-                    @Override
-                    public TerminalPosition getCursorLocation(Component component) {
-                        TerminalSize adjustedSize = component.getSize().withRelative(-1, -1);
-                        return new TerminalPosition(adjustedSize.getColumns(), adjustedSize.getRows());
-                    }
-
-                    @Override
-                    public TerminalSize getPreferredSize(Component component) {
-                        return new TerminalSize(70, 5);
-                    }
-
-                    @Override
-                    public void drawComponent(TextGUIGraphics graphics, Component component) {
-                        graphics.setBackgroundColor(TextColor.ANSI.BLACK);
-                        graphics.setForegroundColor(TextColor.ANSI.WHITE);
-                        graphics.fill(' ');
-                        if (lastKey != null) {
-                            int leftPosition = 35 - (lastKey.length() / 2);
-                            graphics.putString(leftPosition, 2, lastKey);
-                        }
-                    }
-                };
+            lastKey = if (keyStroke.keyType == KeyType.CHARACTER) {
+                keyStroke.character?.toString() ?: ""
+            } else {
+                keyStroke.keyType.toString()
             }
-        };
+            if (keyStroke.isCtrlDown) lastKey += " + CTRL"
+            if (keyStroke.isAltDown) lastKey += " + ALT"
+            if (keyStroke.isShiftDown) lastKey += " + SHIFT"
+            return Interactable.Result.HANDLED
+        }
 
-        window.setComponent(
-                Panels.vertical(
-                        interactable.withBorder(Borders.doubleLineBevel("Press any key to test capturing the KeyStroke")),
-                        new Label("Use the TAB key to shift focus"),
-                        new Button("Close", window::close)));
-        textGUI.addWindow(window);
+        override fun createDefaultRenderer(): InteractableRenderer<InputCaptureComponent?> {
+            return object : InteractableRenderer<InputCaptureComponent?> {
+                override fun getCursorLocation(component: InputCaptureComponent?): TerminalPosition? {
+                    val size = component?.size ?: return TerminalPosition.TOP_LEFT_CORNER
+                    val adjustedSize = size.withRelative(-1, -1) ?: size
+                    return TerminalPosition(adjustedSize.columns, adjustedSize.rows)
+                }
+
+                override fun getPreferredSize(component: InputCaptureComponent?): TerminalSize {
+                    return TerminalSize(70, 5)
+                }
+
+                override fun drawComponent(graphics: TextGUIGraphics?, component: InputCaptureComponent?) {
+                    val g = graphics ?: return
+                    g.setBackgroundColor(TextColor.ANSI.BLACK)
+                    g.setForegroundColor(TextColor.ANSI.WHITE)
+                    g.fill(' ')
+                    val text = component?.lastKey
+                    if (text != null) {
+                        val leftPosition = 35 - (text.length / 2)
+                        g.putString(leftPosition, 2, text)
+                    }
+                }
+            }
+        }
+    }
+
+    companion object {
+        @Throws(IOException::class, InterruptedException::class)
+        @JvmStatic
+        fun main(args: Array<String?>?) {
+            InputUITest().run(args)
+        }
     }
 }

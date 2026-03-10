@@ -16,103 +16,103 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TestUtils;
+import com.googlecode.lanterna.*
 
-import java.io.*;
-import java.util.Arrays;
-import java.util.Collections;
+import com.googlecode.lanterna.TestUtils
+
+import java.io.*
+import java.util.Arrays
+import java.util.Collections
 
 /**
  * Test/example class for various kinds of window manager behaviours
  * @author Martin
  */
-public class SimpleWindowManagerTest extends TestBase {
-    public static void main(String[] args) throws IOException, InterruptedException {
-        new SimpleWindowManagerTest().run(args);
-    }
+ class SimpleWindowManagerTest:TestBase() {
 
-    @Override
-    public void init(final WindowBasedTextGUI textGUI) {
-        final Window mainWindow = new BasicWindow("Choose test");
-        Panel contentArea = new Panel();
-        contentArea.setLayoutManager(new LinearLayout(Direction.VERTICAL));
-        contentArea.addComponent(new Button("Centered window", () -> textGUI.addWindow(new CenteredWindow())));
-        contentArea.addComponent(new Button("Undecorated window", () -> textGUI.addWindow(new UndecoratedWindow())));
-        contentArea.addComponent(new Button("Undecorated + Centered window", () -> textGUI.addWindow(new UndecoratedCenteredWindow())));
-        contentArea.addComponent(new Button("Full-screen window", () -> textGUI.addWindow(new FullScreenWindow(true))));
-        contentArea.addComponent(new Button("Undecorated + Full-screen window", () -> textGUI.addWindow(new FullScreenWindow(false))));
-        contentArea.addComponent(new Button("Expanded window", () -> textGUI.addWindow(new ExpandedWindow(true))));
-        contentArea.addComponent(new Button("Undecorated + Expanded window", () -> textGUI.addWindow(new ExpandedWindow(false))));
-        contentArea.addComponent(new Button("Close", mainWindow::close));
-        mainWindow.setComponent(contentArea);
-        textGUI.addWindow(mainWindow);
-    }
+@Override
+ fun init(textGUI:WindowBasedTextGUI) {
+val mainWindow = BasicWindow("Choose test")
+val contentArea = Panel()
+contentArea.setLayoutManager(LinearLayout(Direction.VERTICAL))
+contentArea.addComponent(Button("Centered window", { textGUI.addWindow(CenteredWindow()) }))
+contentArea.addComponent(Button("Undecorated window", { textGUI.addWindow(UndecoratedWindow()) }))
+contentArea.addComponent(Button("Undecorated + Centered window", { textGUI.addWindow(UndecoratedCenteredWindow()) }))
+contentArea.addComponent(Button("Full-screen window", { textGUI.addWindow(FullScreenWindow(true)) }))
+contentArea.addComponent(Button("Undecorated + Full-screen window", { textGUI.addWindow(FullScreenWindow(false)) }))
+contentArea.addComponent(Button("Expanded window", { textGUI.addWindow(ExpandedWindow(true)) }))
+contentArea.addComponent(Button("Undecorated + Expanded window", { textGUI.addWindow(ExpandedWindow(false)) }))
+contentArea.addComponent(Button("Close", Runnable({ mainWindow.close() })))
+mainWindow.setComponent(contentArea)
+textGUI.addWindow(mainWindow)
+}
 
-    private static class CenteredWindow extends TestWindow {
-        CenteredWindow() {
-            super("Centered window");
-            setHints(Collections.singletonList(Hint.CENTERED));
-        }
-    }
+private class CenteredWindow internal constructor():TestWindow("Centered window") {
+init{
+setHints(Collections.singletonList(Hint.CENTERED))
+}
+}
 
-    private static class UndecoratedWindow extends TestWindow {
-        UndecoratedWindow() {
-            super("Undecorated");
-            setHints(Collections.singletonList(Hint.NO_DECORATIONS));
-        }
-    }
+private class UndecoratedWindow internal constructor():TestWindow("Undecorated") {
+init{
+setHints(Collections.singletonList(Hint.NO_DECORATIONS))
+}
+}
 
-    private static class UndecoratedCenteredWindow extends TestWindow {
+private class UndecoratedCenteredWindow internal constructor():TestWindow("UndecoratedCentered") {
 
-        UndecoratedCenteredWindow() {
-            super("UndecoratedCentered");
-            setHints(Arrays.asList(Hint.NO_DECORATIONS, Hint.CENTERED));
-        }
-    }
+init{
+setHints(Arrays.asList(Hint.NO_DECORATIONS, Hint.CENTERED))
+}
+}
 
-    private static class FullScreenWindow extends TestWindow {
+private class FullScreenWindow(decorations:Boolean):TestWindow("FullScreenWindow") {
 
-        public FullScreenWindow(boolean decorations) {
-            super("FullScreenWindow");
+init{
 
-            Panel content = new Panel();
-            content.setLayoutManager(new BorderLayout());
-            TextBox textBox = new TextBox(TestUtils.downloadGPL(), TextBox.Style.MULTI_LINE);
-            textBox.setLayoutData(BorderLayout.Location.CENTER);
-            textBox.setReadOnly(true);
-            content.addComponent(textBox);
+val content = Panel()
+content.setLayoutManager(BorderLayout())
+val textBox = TextBox(TestUtils.downloadGPL() ?: "", TextBox.Style.MULTI_LINE)
+textBox.setLayoutData(BorderLayout.Location.CENTER)
+textBox.setReadOnly(true)
+content.addComponent(textBox)
 
-            setComponent(content);
+setComponent(content)
 
-            setHints(decorations ? Collections.singletonList(Hint.FULL_SCREEN) : Arrays.asList(Hint.FULL_SCREEN, Hint.NO_DECORATIONS));
-        }
-    }
+setHints(if (decorations) Collections.singletonList(Hint.FULL_SCREEN) else Arrays.asList(Hint.FULL_SCREEN, Hint.NO_DECORATIONS))
+}
+}
 
-    private static class ExpandedWindow extends TestWindow {
+private class ExpandedWindow(decorations:Boolean):TestWindow("ExpandedWindow") {
 
-        public ExpandedWindow(boolean decorations) {
-            super("ExpandedWindow");
+init{
 
-            Panel content = new Panel();
-            content.setLayoutManager(new BorderLayout());
-            TextBox textBox = new TextBox(TestUtils.downloadGPL(), TextBox.Style.MULTI_LINE);
-            textBox.setLayoutData(BorderLayout.Location.CENTER);
-            textBox.setReadOnly(true);
-            content.addComponent(textBox);
+val content = Panel()
+content.setLayoutManager(BorderLayout())
+val textBox = TextBox(TestUtils.downloadGPL() ?: "", TextBox.Style.MULTI_LINE)
+textBox.setLayoutData(BorderLayout.Location.CENTER)
+textBox.setReadOnly(true)
+content.addComponent(textBox)
 
-            setComponent(content);
+setComponent(content)
 
-            setHints(decorations ? Collections.singletonList(Hint.EXPANDED) : Arrays.asList(Hint.EXPANDED, Hint.NO_DECORATIONS));
-        }
-    }
+setHints(if (decorations) Collections.singletonList(Hint.EXPANDED) else Arrays.asList(Hint.EXPANDED, Hint.NO_DECORATIONS))
+}
+}
 
-    private static class TestWindow extends BasicWindow {
-        TestWindow(String title) {
-            super(title);
-            setComponent(new Button("Close", this::close));
-            setCloseWindowWithEscape(true);
-        }
-    }
+private open class TestWindow internal constructor(title:String):BasicWindow(title) {
+init{
+setComponent(Button("Close", Runnable({ this.close() })))
+setCloseWindowWithEscape(true)
+}
+}
+
+companion object {
+@Throws(IOException::class, InterruptedException::class)
+ fun main(args:Array<String?>?) {
+SimpleWindowManagerTest().run(args)
+}
+}
 }

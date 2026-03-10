@@ -16,33 +16,35 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.input;
+package com.googlecode.lanterna.input
 
-import java.io.IOException;
+import java.io.IOException
 
 /**
- * Objects implementing this interface can read character streams and transform them into {@code Key} objects which can
+ * Objects implementing this interface can read character streams and transform them into `Key` objects which can
  * be read in a FIFO manner.
- *
+ * 
  * @author Martin
  */
-public interface InputProvider {
-    /**
-     * Returns the next {@code Key} off the input queue or null if there is no more input events available. Note, this
-     * method call is <b>not</b> blocking, it returns null immediately if there is nothing on the input stream.
-     * @return Key object which represents a keystroke coming in through the input stream
-     * @throws java.io.IOException Propagated error if the underlying stream gave errors
-     */
-    KeyStroke pollInput() throws IOException;
+ interface InputProvider {
+/**
+ * Returns the next `Key` off the input queue or null if there is no more input events available. Note, this
+ * method call is **not** blocking, it returns null immediately if there is nothing on the input stream.
+ * @return Key object which represents a keystroke coming in through the input stream
+ * @throws java.io.IOException Propagated error if the underlying stream gave errors
+ */
+    @Throws(IOException::class)
+ fun pollInput():KeyStroke? 
 
-    /**
-     * Returns the next {@code Key} off the input queue or blocks until one is available. <b>NOTE:</b> In previous
-     * versions of Lanterna, this method was <b>not</b> blocking. From lanterna 3, it is blocking and you can call
-     * {@code pollInput()} for the non-blocking version.
-     * @return Key object which represents a keystroke coming in through the input stream
-     * @throws java.io.IOException Propagated error if the underlying stream gave errors
-     */
-    KeyStroke readInput() throws IOException;
+/**
+ * Returns the next `Key` off the input queue or blocks until one is available. **NOTE:** In previous
+ * versions of Lanterna, this method was **not** blocking. From lanterna 3, it is blocking and you can call
+ * `pollInput()` for the non-blocking version.
+ * @return Key object which represents a keystroke coming in through the input stream
+ * @throws java.io.IOException Propagated error if the underlying stream gave errors
+ */
+    @Throws(IOException::class)
+ fun readInput():KeyStroke? 
 
-    //TODO: Add a version of readInput() that takes a timeout specification, in a future version of lanterna
+ //TODO: Add a version of readInput() that takes a timeout specification, in a future version of lanterna
 }

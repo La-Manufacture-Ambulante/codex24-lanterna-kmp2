@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,315 +13,237 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.graphics.ThemeDefinition;
-import com.googlecode.lanterna.graphics.ThemeStyle;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.input.MouseAction;
-import com.googlecode.lanterna.input.MouseActionType;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.graphics.ThemeStyle
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.input.MouseAction
+import com.googlecode.lanterna.input.MouseActionType
+import java.util.ArrayList
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * This is a list box implementation where each item has its own checked state that can be toggled on and off
- * @author Martin
+ * List box where each item has its own checked state.
  */
-public class CheckBoxList<V> extends AbstractListBox<V, CheckBoxList<V>> {
-    /**
-     * Listener interface that can be attached to the {@code CheckBoxList} in order to be notified on user actions
-     */
-    public interface Listener {
-        /**
-         * Called by the {@code CheckBoxList} when the user changes the toggle state of one item
-         * @param itemIndex Index of the item that was toggled
-         * @param checked If the state of the item is now checked, this will be {@code true}, otherwise {@code false}
-         */
-        void onStatusChanged(int itemIndex, boolean checked);
+class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = null) :
+    AbstractListBox<V, CheckBoxList<V>>(preferredSize) {
+
+    interface Listener {
+        fun onStatusChanged(itemIndex: Int, checked: Boolean)
     }
 
-    private final List<Listener> listeners;
-    private final List<Boolean> itemStatus;
-    
-    // this is used during mouse dragged to assign all items to the same state
-    private boolean stateForMouseDragged;
-    private int minIndexForMouseDragged;
-    private int maxIndexForMouseDragged;
+    private val listeners: MutableList<Listener> = CopyOnWriteArrayList()
+    private val itemStatus: MutableList<Boolean> = ArrayList()
 
-    /**
-     * Creates a new {@code CheckBoxList} that is initially empty and has no hardcoded preferred size, so it will
-     * attempt to be as big as necessary to draw all items.
-     */
-    public CheckBoxList() {
-        this(null);
+    private var stateForMouseDragged: Boolean = false
+    private var minIndexForMouseDragged: Int = 0
+    private var maxIndexForMouseDragged: Int = 0
+
+    override fun createDefaultListItemRenderer(): ListItemRenderer<V, CheckBoxList<V>> {
+        return CheckBoxListItemRenderer()
     }
 
-    /**
-     * Creates a new {@code CheckBoxList} that is initially empty and has a pre-defined size that it will request. If
-     * there are more items that can fit in this size, the list box will use scrollbars.
-     * @param preferredSize Size the list box should request, no matter how many items it contains
-     */
-    public CheckBoxList(TerminalSize preferredSize) {
-        super(preferredSize);
-        this.listeners = new CopyOnWriteArrayList<>();
-        this.itemStatus = new ArrayList<>();
+    @Synchronized
+    override fun clearItems(): CheckBoxList<V>? {
+        itemStatus.clear()
+        return super.clearItems()
     }
 
-    @Override
-    protected ListItemRenderer<V,CheckBoxList<V>> createDefaultListItemRenderer() {
-        return new CheckBoxListItemRenderer<>();
+    override fun addItem(item: V?): CheckBoxList<V>? {
+        return addItem(item, false)
     }
 
-    @Override
-    public synchronized CheckBoxList<V> clearItems() {
-        itemStatus.clear();
-        return super.clearItems();
+    @Synchronized
+    override fun removeItem(index: Int): V {
+        val item = super.removeItem(index)
+        itemStatus.removeAt(index)
+        return item
     }
 
-    @Override
-    public CheckBoxList<V> addItem(V object) {
-        return addItem(object, false);
+    @Synchronized
+    fun addItem(item: V?, checkedState: Boolean): CheckBoxList<V>? {
+        itemStatus.add(checkedState)
+        return super.addItem(item)
     }
 
-    @Override
-    public synchronized V removeItem(int index) {
-        V item = super.removeItem(index);
-        itemStatus.remove(index);
-        return item;
-    }
-
-    /**
-     * Adds an item to the checkbox list with an explicit checked status
-     * @param object Object to add to the list
-     * @param checkedState If <code>true</code>, the new item will be initially checked
-     * @return Itself
-     */
-    public synchronized CheckBoxList<V> addItem(V object, boolean checkedState) {
-        itemStatus.add(checkedState);
-        return super.addItem(object);
-    }
-
-    /**
-     * Checks if a particular item is part of the check box list and returns a boolean value depending on the toggle
-     * state of the item.
-     * @param object Object to check the status of
-     * @return If the item wasn't found in the list box, {@code null} is returned, otherwise {@code true} or
-     * {@code false} depending on checked state of the item
-     */
-    public synchronized Boolean isChecked(V object) {
-        if(indexOf(object) == -1)
-            return null;
-
-        return itemStatus.get(indexOf(object));
-    }
-
-    /**
-     * Checks if a particular item is part of the check box list and returns a boolean value depending on the toggle
-     * state of the item.
-     * @param index Index of the item to check the status of
-     * @return If the index was not valid in the list box, {@code null} is returned, otherwise {@code true} or
-     * {@code false} depending on checked state of the item at that index
-     */
-    public synchronized Boolean isChecked(int index) {
-        if(index < 0 || index >= itemStatus.size())
-            return null;
-
-        return itemStatus.get(index);
-    }
-    
-    /**
-     * Programmatically sets the checked state of an item in the list box.
-     * If the state was already true, it is set to false, otherwise it is set to true.
-     * @param index Index of the item to toggle the status of
-     * @return Itself
-     */
-    public synchronized CheckBoxList<V> toggleChecked(final int index) {
-        setChecked(index, !isChecked(index));
-        return self();
-    }
-    
-    /**
-     * Programmatically sets the checked state of an item in the list box
-     * @param object Object to set the checked state of
-     * @param checked If {@code true}, then the item is set to checked, otherwise not
-     * @return Itself
-     */
-    public synchronized CheckBoxList<V> setChecked(V object, boolean checked) {
-        int index = indexOf(object);
-        if(index != -1) {
-            setChecked(index, checked);
+    @Synchronized
+    fun isChecked(item: V?): Boolean? {
+        val index = indexOf(item)
+        if (index == -1) {
+            return null
         }
-        return self();
+        return itemStatus[index]
     }
 
-    private void setChecked(final int index, final boolean checked) {
-        if (!(0 <= index && index < itemStatus.size())) {
-            return;
+    @Synchronized
+    fun isChecked(index: Int): Boolean? {
+        if (index < 0 || index >= itemStatus.size) {
+            return null
         }
-        itemStatus.set(index, checked);
-        runOnGUIThreadIfExistsOtherwiseRunDirect(() -> {
-            for(Listener listener: listeners) {
-                listener.onStatusChanged(index, checked);
-            }
-        });
+        return itemStatus[index]
     }
 
-    /**
-     * Returns all the items in the list box that have checked state, as a list
-     * @return List of all items in the list box that has checked state on
-     */
-    public synchronized List<V> getCheckedItems() {
-        List<V> result = new ArrayList<>();
-        for(int i = 0; i < itemStatus.size(); i++) {
-            if(itemStatus.get(i)) {
-                result.add(getItemAt(i));
+    @Synchronized
+    fun toggleChecked(index: Int): CheckBoxList<V>? {
+        setChecked(index, !(isChecked(index) ?: false))
+        return self()
+    }
+
+    @Synchronized
+    fun setChecked(item: V?, checked: Boolean): CheckBoxList<V>? {
+        val index = indexOf(item)
+        if (index != -1) {
+            setChecked(index, checked)
+        }
+        return self()
+    }
+
+    private fun setChecked(index: Int, checked: Boolean) {
+        if (index !in 0 until itemStatus.size) {
+            return
+        }
+        itemStatus[index] = checked
+        runOnGUIThreadIfExistsOtherwiseRunDirect(
+            Runnable {
+                for (listener in listeners) {
+                    listener.onStatusChanged(index, checked)
+                }
+            },
+        )
+    }
+
+    @Synchronized
+    fun getCheckedItems(): List<V> {
+        val result: MutableList<V> = ArrayList()
+        for (i in 0 until itemStatus.size) {
+            if (itemStatus[i]) {
+                result.add(getItemAt(i))
             }
         }
-        return result;
+        return result
     }
 
-    /**
-     * Adds a new listener to the {@code CheckBoxList} that will be called on certain user actions
-     * @param listener Listener to attach to this {@code CheckBoxList}
-     * @return Itself
-     */
-    public synchronized CheckBoxList<V> addListener(Listener listener) {
-        if(listener != null && !listeners.contains(listener)) {
-            listeners.add(listener);
+    @Synchronized
+    fun addListener(listener: Listener?): CheckBoxList<V> {
+        if (listener != null && !listeners.contains(listener)) {
+            listeners.add(listener)
         }
-        return this;
+        return this
     }
 
-    /**
-     * Removes a listener from this {@code CheckBoxList} so that if it had been added earlier, it will no longer be
-     * called on user actions
-     * @param listener Listener to remove from this {@code CheckBoxList}
-     * @return Itself
-     */
-    public CheckBoxList<V> removeListener(Listener listener) {
-        listeners.remove(listener);
-        return this;
+    fun removeListener(listener: Listener?): CheckBoxList<V> {
+        listeners.remove(listener)
+        return this
     }
 
-    @Override
-    public synchronized Result handleKeyStroke(KeyStroke keyStroke) {
+    @Synchronized
+    override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
         if (isKeyboardActivationStroke(keyStroke)) {
-            toggleChecked(getSelectedIndex());
-            return Result.HANDLED;
-        } else if (keyStroke.getKeyType() == KeyType.MOUSE_EVENT) {
-            MouseAction mouseAction = (MouseAction) keyStroke;
-            MouseActionType actionType = mouseAction.getActionType();
-            
-            if (isMouseMove(keyStroke)
-                    || actionType == MouseActionType.CLICK_RELEASE
-                    || actionType == MouseActionType.SCROLL_UP
-                    || actionType == MouseActionType.SCROLL_DOWN) {
-                return super.handleKeyStroke(keyStroke);
+            toggleChecked(getSelectedIndex())
+            return Interactable.Result.HANDLED
+        } else if (keyStroke.keyType == KeyType.MOUSE_EVENT) {
+            val mouseAction = keyStroke as MouseAction
+            val actionType = mouseAction.actionType
+
+            if (isMouseMove(keyStroke) ||
+                actionType == MouseActionType.CLICK_RELEASE ||
+                actionType == MouseActionType.SCROLL_UP ||
+                actionType == MouseActionType.SCROLL_DOWN
+            ) {
+                return super.handleKeyStroke(keyStroke)
             }
-            
-            Result result = super.handleKeyStroke(keyStroke);
-            int newIndex = getIndexByMouseAction(mouseAction);
+
+            val result = super.handleKeyStroke(keyStroke)
+            val newIndex = getIndexByMouseAction(mouseAction)
             if (actionType == MouseActionType.CLICK_DOWN) {
-                stateForMouseDragged = !isChecked(newIndex);
-                setChecked(newIndex, stateForMouseDragged);
-                minIndexForMouseDragged = newIndex;
-                maxIndexForMouseDragged = newIndex;
+                stateForMouseDragged = !(isChecked(newIndex) ?: false)
+                setChecked(newIndex, stateForMouseDragged)
+                minIndexForMouseDragged = newIndex
+                maxIndexForMouseDragged = newIndex
             }
-            
-            minIndexForMouseDragged = Math.min(minIndexForMouseDragged, newIndex);
-            maxIndexForMouseDragged = Math.max(maxIndexForMouseDragged, newIndex);
-            
+
+            minIndexForMouseDragged = kotlin.math.min(minIndexForMouseDragged, newIndex)
+            maxIndexForMouseDragged = kotlin.math.max(maxIndexForMouseDragged, newIndex)
+
             if (actionType == MouseActionType.DRAG) {
-                for (int i = minIndexForMouseDragged; i <= maxIndexForMouseDragged; i++) {
-	                setChecked(i, stateForMouseDragged);
+                for (i in minIndexForMouseDragged..maxIndexForMouseDragged) {
+                    setChecked(i, stateForMouseDragged)
                 }
             }
-            return result;
+            return result
         }
-        
-        return super.handleKeyStroke(keyStroke);
+
+        return super.handleKeyStroke(keyStroke)
     }
 
-    /**
-     * Default renderer for this component which is used unless overridden. The checked state is drawn on the left side
-     * of the item label using a "[ ]" block filled with an X if the item has checked state on
-     * @param <V> Type of items in the {@link CheckBoxList}
-     */
-    public static class CheckBoxListItemRenderer<V> extends ListItemRenderer<V,CheckBoxList<V>> {
-        @Override
-        public int getHotSpotPositionOnLine(int selectedIndex) {
-            return 1;
+    class CheckBoxListItemRenderer<V> : ListItemRenderer<V, CheckBoxList<V>>() {
+        override fun getHotSpotPositionOnLine(selectedIndex: Int): Int {
+            return 1
         }
 
-        @Override
-        public String getLabel(CheckBoxList<V> listBox, int index, V item) {
-            String check = " ";
-            List<Boolean> itemStatus = listBox.itemStatus;
-            if(itemStatus.get(index))
-                check = "x";
-
-            String text = item.toString();
-            return "[" + check + "] " + text;
+        override fun getLabel(listBox: CheckBoxList<V>?, index: Int, item: V?): String {
+            val lb = listBox ?: return "[ ] <null>"
+            val check = if (lb.itemStatus[index]) "x" else " "
+            val text = (item ?: "<null>").toString()
+            return "[$check] $text"
         }
 
-        @Override
-        public void drawItem(TextGUIGraphics graphics, CheckBoxList<V> listBox, int index, V item, boolean selected, boolean focused) {
-            ThemeDefinition themeDefinition = listBox.getTheme().getDefinition(CheckBoxList.class);
-            ThemeStyle itemStyle;
-            if(selected && !focused) {
-                itemStyle = themeDefinition.getSelected();
-            }
-            else if(selected) {
-                itemStyle = themeDefinition.getActive();
-            }
-            else if(focused) {
-                itemStyle = themeDefinition.getInsensitive();
-            }
-            else {
-                itemStyle = themeDefinition.getNormal();
-            }
-
-            if(themeDefinition.getBooleanProperty("CLEAR_WITH_NORMAL", false)) {
-                graphics.applyThemeStyle(themeDefinition.getNormal());
-                graphics.fill(' ');
-                graphics.applyThemeStyle(itemStyle);
-            }
-            else {
-                graphics.applyThemeStyle(itemStyle);
-                graphics.fill(' ');
+        override fun drawItem(
+            graphics: TextGUIGraphics?,
+            listBox: CheckBoxList<V>?,
+            index: Int,
+            item: V?,
+            selected: Boolean,
+            focused: Boolean,
+        ) {
+            val g = graphics ?: return
+            val lb = listBox ?: return
+            val themeDefinition = lb.theme?.getDefinition(CheckBoxList::class.java) ?: return
+            val itemStyle: ThemeStyle = if (selected && !focused) {
+                themeDefinition.selected ?: themeDefinition.normal ?: return
+            } else if (selected) {
+                themeDefinition.active ?: themeDefinition.normal ?: return
+            } else if (focused) {
+                themeDefinition.insensitive ?: themeDefinition.normal ?: return
+            } else {
+                themeDefinition.normal ?: return
             }
 
-            String brackets = themeDefinition.getCharacter("LEFT_BRACKET", '[') +
-                    " " +
-                    themeDefinition.getCharacter("RIGHT_BRACKET", ']');
-            if(themeDefinition.getBooleanProperty("FIXED_BRACKET_COLOR", false)) {
-                graphics.applyThemeStyle(themeDefinition.getPreLight());
-                graphics.putString(0, 0, brackets);
-                graphics.applyThemeStyle(itemStyle);
-            }
-            else {
-                graphics.putString(0, 0, brackets);
+            if (themeDefinition.getBooleanProperty("CLEAR_WITH_NORMAL", false)) {
+                g.applyThemeStyle(themeDefinition.normal)
+                g.fill(' ')
+                g.applyThemeStyle(itemStyle)
+            } else {
+                g.applyThemeStyle(itemStyle)
+                g.fill(' ')
             }
 
-            String text = (item != null ? item : "<null>").toString();
-            graphics.putString(4, 0, text);
+            val brackets = "${themeDefinition.getCharacter("LEFT_BRACKET", '[')} ${themeDefinition.getCharacter("RIGHT_BRACKET", ']')}"
+            if (themeDefinition.getBooleanProperty("FIXED_BRACKET_COLOR", false)) {
+                g.applyThemeStyle(themeDefinition.preLight)
+                g.putString(0, 0, brackets)
+                g.applyThemeStyle(itemStyle)
+            } else {
+                g.putString(0, 0, brackets)
+            }
 
-            boolean itemChecked = listBox.isChecked(index);
-            char marker = themeDefinition.getCharacter("MARKER", 'x');
-            if(themeDefinition.getBooleanProperty("MARKER_WITH_NORMAL", false)) {
-                graphics.applyThemeStyle(themeDefinition.getNormal());
+            val text = (item ?: "<null>").toString()
+            g.putString(4, 0, text)
+
+            val itemChecked = lb.isChecked(index) ?: false
+            val marker = themeDefinition.getCharacter("MARKER", 'x')
+            if (themeDefinition.getBooleanProperty("MARKER_WITH_NORMAL", false)) {
+                g.applyThemeStyle(themeDefinition.normal)
             }
-            if(selected && focused && themeDefinition.getBooleanProperty("HOTSPOT_PRELIGHT", false)) {
-                graphics.applyThemeStyle(themeDefinition.getPreLight());
+            if (selected && focused && themeDefinition.getBooleanProperty("HOTSPOT_PRELIGHT", false)) {
+                g.applyThemeStyle(themeDefinition.preLight)
             }
-            graphics.setCharacter(1, 0, (itemChecked ? marker : ' '));
+            g.setCharacter(1, 0, if (itemChecked) marker else ' ')
         }
     }
 }

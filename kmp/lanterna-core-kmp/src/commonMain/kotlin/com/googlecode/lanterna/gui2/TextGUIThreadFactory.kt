@@ -16,17 +16,17 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
 /**
- * Factory class for creating {@code TextGUIThread} objects. This is used by {@code TextGUI} implementations to assign
- * their local {@code TextGUIThread} reference
+ * Factory class for creating `TextGUIThread` objects. This is used by `TextGUI` implementations to assign
+ * their local `TextGUIThread` reference
  */
-public interface TextGUIThreadFactory {
-    /**
-     * Creates a new {@code TextGUIThread} objects
-     * @param textGUI {@code TextGUI} this {@code TextGUIThread} should be associated with
-     * @return The new {@code TextGUIThread}
-     */
-    TextGUIThread createTextGUIThread(TextGUI textGUI);
+ interface TextGUIThreadFactory {
+/**
+ * Creates a new `TextGUIThread` objects
+ * @param textGUI `TextGUI` this `TextGUIThread` should be associated with
+ * @return The new `TextGUIThread`
+ */
+     fun createTextGUIThread(textGUI:TextGUI?):TextGUIThread? 
 }

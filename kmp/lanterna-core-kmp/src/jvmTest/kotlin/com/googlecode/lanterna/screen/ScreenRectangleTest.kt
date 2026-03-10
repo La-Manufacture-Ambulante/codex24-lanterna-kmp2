@@ -16,77 +16,90 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.screen;
+package com.googlecode.lanterna.screen
 
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import java.io.IOException;
-import java.util.Random;
+import com.googlecode.lanterna.*
+
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import java.io.IOException
+import java.util.Random
 
 /**
- *
+ * 
  * @author martin
  */
-public class ScreenRectangleTest {
-    public static void main(String[] args) throws IOException, InterruptedException {
-        boolean useAnsiColors = false;
-        boolean useFilled = false;
-        boolean slow = false;
-        for(String arg: args) {
-            if(arg.equals("--ansi-colors")) {
-                useAnsiColors = true;
-            }
-            if(arg.equals("--filled")) {
-                useFilled = true;
-            }
-            if(arg.equals("--slow")) {
-                slow = true;
-            }
-        }
-        Screen screen = new TestTerminalFactory(args).createScreen();
-        screen.startScreen();
+ object ScreenRectangleTest {
+@Throws(IOException::class, InterruptedException::class)
+ fun main(args:Array<String?>) {
+var useAnsiColors = false
+var useFilled = false
+var slow = false
+for (arg in args)
+{
+if (arg!!.equals("--ansi-colors"))
+{
+useAnsiColors = true
+}
+if (arg!!.equals("--filled"))
+{
+useFilled = true
+}
+if (arg!!.equals("--slow"))
+{
+slow = true
+}
+}
+val screen = TestTerminalFactory(args).createScreen()
+screen!!.startScreen()
 
-        TextGraphics textGraphics = new ScreenTextGraphics(screen);
-        Random random = new Random();
+val textGraphics = ScreenTextGraphics(screen)
+val random = Random()
 
-        long startTime = System.currentTimeMillis();
-        while(System.currentTimeMillis() - startTime < 1000 * 20) {
-            KeyStroke keyStroke = screen.pollInput();
-            if(keyStroke != null &&
-                    (keyStroke.getKeyType() == KeyType.ESCAPE || keyStroke.getKeyType() == KeyType.EOF)) {
-                break;
-            }
-            screen.doResizeIfNecessary();
-            TerminalSize size = textGraphics.getSize();
-            TextColor color;
-            if(useAnsiColors) {
-                color = TextColor.ANSI.values()[random.nextInt(TextColor.ANSI.values().length)];
-            }
-            else {
-                //Draw a rectangle in random indexed color
-                color = new TextColor.Indexed(random.nextInt(256));
-            }
+val startTime = System.currentTimeMillis()
+while (System.currentTimeMillis() - startTime < 1000 * 20)
+{
+val keyStroke = screen!!.pollInput()
+if ((keyStroke != null && (keyStroke!!.getKeyType() === KeyType.ESCAPE || keyStroke!!.getKeyType() === KeyType.EOF)))
+{
+break
+}
+screen!!.doResizeIfNecessary()
+val size = textGraphics.getSize()
+val color:TextColor?
+if (useAnsiColors)
+{
+color = TextColor.ANSI.values()[random.nextInt(TextColor.ANSI.values().length)]
+}
+else
+{
+ //Draw a rectangle in random indexed color
+                color = TextColor.Indexed(random.nextInt(256))
+}
 
-            TerminalPosition topLeft = new TerminalPosition(random.nextInt(size.getColumns()), random.nextInt(size.getRows()));
-            TerminalSize rectangleSize = new TerminalSize(random.nextInt(size.getColumns() - topLeft.getColumn()), random.nextInt(size.getRows() - topLeft.getRow()));
+val topLeft = TerminalPosition(random.nextInt(size!!.getColumns()), random.nextInt(size!!.getRows()))
+val rectangleSize = TerminalSize(random.nextInt(size!!.getColumns() - topLeft.getColumn()), random.nextInt(size!!.getRows() - topLeft.getRow()))
 
-            textGraphics.setBackgroundColor(color);
-            if(useFilled) {
-                textGraphics.fillRectangle(topLeft, rectangleSize, ' ');
-            }
-            else {
-                textGraphics.drawRectangle(topLeft, rectangleSize, ' ');
-            }
-            screen.refresh(Screen.RefreshType.DELTA);
-            if(slow) {
-                Thread.sleep(500);
-            }
-        }
-        screen.stopScreen();
-    }
+textGraphics.setBackgroundColor(color)
+if (useFilled)
+{
+textGraphics.fillRectangle(topLeft, rectangleSize, ' ')
+}
+else
+{
+textGraphics.drawRectangle(topLeft, rectangleSize, ' ')
+}
+screen!!.refresh(Screen.RefreshType.DELTA)
+if (slow)
+{
+Thread.sleep(500)
+}
+}
+screen!!.stopScreen()
+}
 }

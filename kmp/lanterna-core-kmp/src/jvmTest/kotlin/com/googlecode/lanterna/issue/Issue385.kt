@@ -1,27 +1,30 @@
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.gui2.BasicWindow;
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
-import com.googlecode.lanterna.gui2.Window;
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
+import com.googlecode.lanterna.*
 
-import java.util.Collections;
+import com.googlecode.lanterna.gui2.BasicWindow
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.gui2.Window
+import com.googlecode.lanterna.gui2.WindowBasedTextGUI
+import com.googlecode.lanterna.screen.Screen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 
-public class Issue385 {
-    public static void main(String[] args) throws Exception {
+import java.util.Collections
 
-        DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
-        Screen screen = terminalFactory.createScreen();
-        screen.startScreen();
+ object Issue385 {
+@Throws(Exception::class)
+ fun main(args:Array<String?>?) {
 
-        final WindowBasedTextGUI textGUI = new MultiWindowTextGUI(screen);
+val terminalFactory = DefaultTerminalFactory()
+val screen = terminalFactory.createScreen()
+screen!!.startScreen()
 
-        final Window window = new BasicWindow("My Root Window");
-        window.setHints(Collections.singletonList(Window.Hint.FULL_SCREEN));
+val textGUI = MultiWindowTextGUI(screen)
 
-        textGUI.addWindowAndWait(window);
+val window = BasicWindow("My Root Window")
+window.setHints(Collections.singletonList(Window.Hint.FULL_SCREEN))
 
-    }
+textGUI.addWindowAndWait(window)
+
+}
 }

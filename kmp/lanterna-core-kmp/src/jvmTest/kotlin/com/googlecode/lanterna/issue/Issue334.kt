@@ -1,35 +1,38 @@
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.*
 
-import java.io.IOException;
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.screen.Screen
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.terminal.Terminal
 
-public class Issue334 {
-    public static void main(String[] args) throws IOException {
-        Terminal terminal = new DefaultTerminalFactory().createTerminal();
-        Screen screen = new TerminalScreen(terminal);
-        screen.startScreen();
+import java.io.IOException
 
-        // Create panel to hold components
-        Panel panel = new Panel();
-        panel.setLayoutManager(new GridLayout(1));
-        panel.addComponent(new Label(""));
+ object Issue334 {
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
+val terminal = DefaultTerminalFactory().createTerminal()!!
+val screen = TerminalScreen(terminal)
+screen.startScreen()
 
-        // Create gui and start gui
-        MultiWindowTextGUI gui = new MultiWindowTextGUI(screen, new DefaultWindowManager(), new EmptySpace(TextColor.ANSI.BLUE));
+ // Create panel to hold components
+        val panel = Panel()
+panel.setLayoutManager(GridLayout(1))
+panel.addComponent(Label(""))
 
-        // Create window to hold the panel
-        final BasicWindow window = new BasicWindow();
-        window.setComponent(Panels.vertical(panel));
-        window.setCloseWindowWithEscape(true);
+ // Create gui and start gui
+        val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
 
-        gui.addWindowAndWait(window);
-        screen.stopScreen();
-        terminal.close();
-    }
+ // Create window to hold the panel
+        val window = BasicWindow()
+window.setComponent(Panels.vertical(panel))
+window.setCloseWindowWithEscape(true)
+
+gui.addWindowAndWait(window)
+screen.stopScreen()
+terminal!!.close()
+}
 }

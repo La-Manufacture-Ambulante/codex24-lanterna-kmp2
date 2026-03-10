@@ -16,46 +16,38 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.input;
-
-import java.util.List;
+package com.googlecode.lanterna.input
 
 /**
- * Character pattern that matches characters pressed while ALT and CTRL keys are held down
- * 
- * @author Martin, Andreas
+ * Character pattern that matches characters pressed while ALT and CTRL are held down.
  */
-public class CtrlAltAndCharacterPattern implements CharacterPattern {
-
-    @Override
-    public Matching match(List<Character> seq) {
-        int size = seq.size();
-        if (size > 2 || seq.get(0) != KeyDecodingProfile.ESC_CODE) {
-            return null; // nope
+class CtrlAltAndCharacterPattern : CharacterPattern {
+    override fun match(seq: List<Char>?): CharacterPattern.Matching? {
+        val sequence = seq ?: return null
+        val size = sequence.size
+        if (size > 2 || sequence[0] != KeyDecodingProfile.ESC_CODE) {
+            return null
         }
         if (size == 1) {
-            return Matching.NOT_YET; // maybe later
+            return CharacterPattern.Matching.NOT_YET
         }
-        char ch = seq.get(1);
-        if (ch < 32 && ch != 0x08) {
-            // Control-chars: exclude Esc(^[), but still include ^\, ^], ^^ and ^_
-            char ctrlCode;
-            switch (ch) {
-            case KeyDecodingProfile.ESC_CODE: return null; // nope
-            case 0:  /* ^@ */ ctrlCode = ' '; break;
-            case 28: /* ^\ */ ctrlCode = '\\'; break;
-            case 29: /* ^] */ ctrlCode = ']'; break;
-            case 30: /* ^^ */ ctrlCode = '^'; break;
-            case 31: /* ^_ */ ctrlCode = '_'; break;
-            default: ctrlCode = (char)('a' - 1 + ch);
+
+        val ch = sequence[1]
+        if (ch.code < 32 && ch != '\b') {
+            val ctrlCode = when (ch) {
+                KeyDecodingProfile.ESC_CODE -> return null
+                '\u0000' -> ' '
+                '\u001c' -> '\\'
+                '\u001d' -> ']'
+                '\u001e' -> '^'
+                '\u001f' -> '_'
+                else -> ('a'.code - 1 + ch.code).toChar()
             }
-            KeyStroke ks = new KeyStroke( ctrlCode, true, true);
-            return new Matching( ks ); // yep
-        } else if (ch == 0x7f || ch == 0x08) {
-            KeyStroke ks = new KeyStroke( KeyType.BACKSPACE, false, true);
-            return new Matching( ks ); // yep
-        } else {
-            return null; // nope
+            return CharacterPattern.Matching(KeyStroke(ctrlCode, true, true))
         }
+        if (ch.code == 0x7f || ch == '\b') {
+            return CharacterPattern.Matching(KeyStroke(KeyType.BACKSPACE, false, true))
+        }
+        return null
     }
 }

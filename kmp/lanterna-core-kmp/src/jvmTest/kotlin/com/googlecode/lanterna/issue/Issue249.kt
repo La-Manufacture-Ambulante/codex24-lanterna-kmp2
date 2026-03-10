@@ -17,36 +17,39 @@
  * Copyright (C) 2010-2024 Martin Berglund
  * Author celyo (github)
  */
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import java.io.IOException;
+import com.googlecode.lanterna.*
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.screen.*;
-import com.googlecode.lanterna.terminal.*;
+import java.io.IOException
 
-public class Issue249 {
-    public static void main(String[] args) throws IOException {
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.screen.*
+import com.googlecode.lanterna.terminal.*
 
-        // Setup terminal and screen layers
-        Terminal terminal = new DefaultTerminalFactory().createTerminal();
-        Screen screen = new TerminalScreen(terminal);
-        screen.startScreen();
+ object Issue249 {
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
 
-        TerminalSize screenSize = screen.getTerminalSize();
+ // Setup terminal and screen layers
+        val terminal = DefaultTerminalFactory().createTerminal()!!
+val screen = TerminalScreen(terminal)
+screen.startScreen()
 
-        // Create panel to hold components
-        Panel panel = new Panel();
-        panel.setPreferredSize(screenSize);
+val screenSize = screen.getTerminalSize()
 
-        // Create window to hold the panel
-        BasicWindow window = new BasicWindow();
-        window.setComponent(panel);
+ // Create panel to hold components
+        val panel = Panel()
+panel.setPreferredSize(screenSize)
 
-        // Create gui and start gui
-        MultiWindowTextGUI gui = new MultiWindowTextGUI(screen, new DefaultWindowManager(), new EmptySpace(TextColor.ANSI.BLUE));
-        gui.addWindowAndWait(window);
-      }
+ // Create window to hold the panel
+        val window = BasicWindow()
+window.setComponent(panel)
+
+ // Create gui and start gui
+        val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
+gui.addWindowAndWait(window)
+}
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,82 +13,61 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.gui2.Border.BorderRenderer
 
 /**
- * Abstract implementation of {@code Border} interface that has some of the methods filled out. If you want to create
- * your own {@code Border} implementation, should should probably extend from this.
- * @author Martin
+ * Abstract implementation of [Border] interface with common behavior.
  */
-public abstract class AbstractBorder extends AbstractComposite<Border> implements Border {
-    @Override
-    public void setComponent(Component component) {
-        super.setComponent(component);
-        if(component != null) {
-            component.setPosition(TerminalPosition.TOP_LEFT_CORNER);
+abstract class AbstractBorder : AbstractComposite<Border?>(), Border {
+    override val renderer: BorderRenderer?
+        get() = super.renderer as BorderRenderer?
+
+    override val layoutData: LayoutData?
+        get() = component?.layoutData ?: super.layoutData
+
+    private val wrappedComponentTopLeftOffset: TerminalPosition?
+        get() = renderer?.wrappedComponentTopLeftOffset
+
+    override var component: Component?
+        get() = super.component
+        set(value) {
+            super.component = value
+            value?.setPosition(TerminalPosition.TOP_LEFT_CORNER)
         }
+
+    override fun setSize(size: TerminalSize?): Border? {
+        super.setSize(size)
+        component?.setSize(getWrappedComponentSize(size))
+        return self()
     }
 
-    @Override
-    public BorderRenderer getRenderer() {
-        return (BorderRenderer)super.getRenderer();
-    }
-
-    @Override
-    public Border setSize(TerminalSize size) {
-        super.setSize(size);
-        getComponent().setSize(getWrappedComponentSize(size));
-        return self();
-    }
-
-    @Override
-    public LayoutData getLayoutData() {
-        if(getComponent() == null) {
-            return super.getLayoutData();
-        }
-        return getComponent().getLayoutData();
-    }
-
-    @Override
-    public Border setLayoutData(LayoutData ld) {
-        if(getComponent() == null) {
-            super.setLayoutData(ld);
+    override fun setLayoutData(ld: LayoutData?): Border? {
+        if (component == null) {
+            super.setLayoutData(ld)
         } else {
-            getComponent().setLayoutData(ld);
+            component?.setLayoutData(ld)
         }
-        return this;
+        return this
     }
 
-    @Override
-    public TerminalPosition toBasePane(TerminalPosition position) {
-        TerminalPosition terminalPosition = super.toBasePane(position);
-        if(terminalPosition == null) {
-            return null;
-        }
-        return terminalPosition.withRelative(getWrappedComponentTopLeftOffset());
+    override fun toBasePane(position: TerminalPosition?): TerminalPosition? {
+        val terminalPosition = super.toBasePane(position) ?: return null
+        return terminalPosition.withRelative(wrappedComponentTopLeftOffset ?: TerminalPosition.TOP_LEFT_CORNER)
     }
 
-    @Override
-    public TerminalPosition toGlobal(TerminalPosition position) {
-        TerminalPosition terminalPosition = super.toGlobal(position);
-        if(terminalPosition == null) {
-            return null;
-        }
-        return terminalPosition.withRelative(getWrappedComponentTopLeftOffset());
+    override fun toGlobal(position: TerminalPosition?): TerminalPosition? {
+        val terminalPosition = super.toGlobal(position) ?: return null
+        return terminalPosition.withRelative(wrappedComponentTopLeftOffset ?: TerminalPosition.TOP_LEFT_CORNER)
     }
 
-    private TerminalPosition getWrappedComponentTopLeftOffset() {
-        return getRenderer().getWrappedComponentTopLeftOffset();
-    }
-
-    private TerminalSize getWrappedComponentSize(TerminalSize borderSize) {
-        return getRenderer().getWrappedComponentSize(borderSize);
+    private fun getWrappedComponentSize(borderSize: TerminalSize?): TerminalSize? {
+        return renderer?.getWrappedComponentSize(borderSize)
     }
 }

@@ -16,47 +16,39 @@
  * 
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.screen;
+package com.googlecode.lanterna.screen
 
 /**
  * What to do when line length is exceeded.
- *
+ * 
  * @author avl42
  */
-public enum WrapBehaviour {
-    /**
-     * Never ever leave current line.
-     */
-    SINGLE_LINE(false,false,false),
-    /**
-     * Don't wrap lines automatically, but honor explicit line-feeds.
-     */
-    CLIP(true,false,false),
-    /**
-     * Wrap at any character boundaries.
-     */
-    CHAR(true,true,false),
-    /**
-     * Only wrap at word boundaries. If a single word exceeds line
-     * length, it will still be broken to line length.
-     */
-    WORD(true,true,true);
-    
-    private final boolean allowLineFeed, autoWrap, keepWords;
-    
-    WrapBehaviour(boolean allowLineFeed,boolean autoWrap,boolean keepWords) {
-        this.allowLineFeed = allowLineFeed;
-        this.autoWrap = autoWrap;
-        this.keepWords = keepWords;
-    }
-    
-    public boolean allowLineFeed() {
-        return allowLineFeed;
-    }
-    public boolean autoWrap() {
-        return autoWrap;
-    }
-    public boolean keepWords() {
-        return keepWords;
-    }
+ enum class WrapBehaviour private constructor(private val allowLineFeed:Boolean, private val autoWrap:Boolean, private val keepWords:Boolean) {
+/**
+ * Never ever leave current line.
+ */
+    SINGLE_LINE(false, false, false), 
+/**
+ * Don't wrap lines automatically, but honor explicit line-feeds.
+ */
+    CLIP(true, false, false), 
+/**
+ * Wrap at any character boundaries.
+ */
+    CHAR(true, true, false), 
+/**
+ * Only wrap at word boundaries. If a single word exceeds line
+ * length, it will still be broken to line length.
+ */
+    WORD(true, true, true);
+
+ fun allowLineFeed():Boolean {
+return allowLineFeed
+}
+ fun autoWrap():Boolean {
+return autoWrap
+}
+ fun keepWords():Boolean {
+return keepWords
+}
 }

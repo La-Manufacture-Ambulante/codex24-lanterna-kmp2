@@ -16,11 +16,10 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
 /**
  * Empty interface to use for values that can be used as a layout meta-data on components.
  * @author martin
  */
-public interface LayoutData {
-}
+ interface LayoutData
