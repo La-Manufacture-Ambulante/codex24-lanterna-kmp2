@@ -24,14 +24,29 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset
 
+/**
+ * Base class for all terminals that generally behave like Unix terminals. This class defined a number of abstract
+ * methods that needs to be implemented which are all used to setup the terminal environment (turning off echo,
+ * canonical mode, etc) and also a control variable for how to react to CTRL+c keystroke.
+ */
 abstract class UnixLikeTerminal protected constructor(
     terminalInput: InputStream?,
     terminalOutput: OutputStream?,
     terminalCharset: Charset?,
-    private val terminalCtrlCBehaviour: CtrlCBehaviour?,
+    private val terminalCtrlCBehaviour: CtrlCBehaviour,
 ) : ANSITerminal(terminalInput, terminalOutput, terminalCharset) {
+    /**
+     * This enum lets you control how Lanterna will handle a ctrl+c keystroke from the user.
+     */
     enum class CtrlCBehaviour {
+        /**
+         * Pressing ctrl+c doesn't kill the application, it will be added to the input queue as any other key stroke
+         */
         TRAP,
+        /**
+         * Pressing ctrl+c will restore the terminal and kill the application as it normally does with terminal
+         * applications. Lanterna will restore the terminal and then call `System.exit(1)` for this.
+         */
         CTRL_C_KILLS_APPLICATION,
     }
 
@@ -53,6 +68,7 @@ abstract class UnixLikeTerminal protected constructor(
 
     @Throws(IOException::class)
     protected open fun acquire() {
+        // Make sure to set an initial size
         onResized(80, 24)
         saveTerminalSettings()
         canonicalMode(false)
@@ -62,9 +78,11 @@ abstract class UnixLikeTerminal protected constructor(
         }
         registerTerminalResizeListener(
             Runnable {
+                // This will trigger a resize notification as the size will be different than before
                 try {
                     terminalSize
                 } catch (_: IOException) {
+                    // Not much to do here, we can't re-throw it
                 }
             },
         )
@@ -94,12 +112,12 @@ abstract class UnixLikeTerminal protected constructor(
         return key
     }
 
-    protected fun getTerminalCtrlCBehaviour(): CtrlCBehaviour? {
+    protected fun getTerminalCtrlCBehaviour(): CtrlCBehaviour {
         return terminalCtrlCBehaviour
     }
 
     @Throws(IOException::class)
-    protected abstract fun registerTerminalResizeListener(onResize: Runnable?)
+    protected abstract fun registerTerminalResizeListener(onResize: Runnable)
 
     @Throws(IOException::class)
     protected abstract fun saveTerminalSettings()

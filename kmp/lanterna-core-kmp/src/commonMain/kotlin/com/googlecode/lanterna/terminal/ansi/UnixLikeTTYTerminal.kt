@@ -30,12 +30,23 @@ import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import java.nio.charset.Charset
 
+/**
+ * UnixLikeTerminal extends from ANSITerminal and defines functionality that is common to `UnixTerminal` and
+ * `CygwinTerminal`, like setting tty modes; echo, cbreak and minimum characters for reading as well as a shutdown
+ * hook to set the tty back to original state at the end.
+ *
+ * If requested, it handles Control-C input to terminate the program, and hooks into Unix WINCH signal to detect
+ * when the user has resized the terminal, if supported by the JVM.
+ *
+ * @author Andreas
+ * @author Martin
+ */
 abstract class UnixLikeTTYTerminal @Throws(IOException::class) protected constructor(
     private val ttyDev: File?,
     terminalInput: InputStream?,
     terminalOutput: OutputStream?,
     terminalCharset: Charset?,
-    terminalCtrlCBehaviour: CtrlCBehaviour?,
+    terminalCtrlCBehaviour: CtrlCBehaviour,
 ) : UnixLikeTerminal(terminalInput, terminalOutput, terminalCharset, terminalCtrlCBehaviour) {
     private var sttyStatusToRestore: String? = null
 
@@ -53,7 +64,7 @@ abstract class UnixLikeTTYTerminal @Throws(IOException::class) protected constru
     }
 
     @Throws(IOException::class)
-    override fun registerTerminalResizeListener(onResize: Runnable?) {
+    override fun registerTerminalResizeListener(onResize: Runnable) {
         try {
             val signalClass = Class.forName("sun.misc.Signal")
             for (method in signalClass.declaredMethods) {
@@ -63,7 +74,7 @@ abstract class UnixLikeTTYTerminal @Throws(IOException::class) protected constru
                         arrayOf(Class.forName("sun.misc.SignalHandler")),
                     ) { _, invokedMethod, _ ->
                         if (invokedMethod.name == "handle") {
-                            onResize?.run()
+                            onResize.run()
                         }
                         null
                     }
