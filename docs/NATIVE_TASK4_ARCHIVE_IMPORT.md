@@ -28,7 +28,7 @@ Identify native-progress work from the archived `lanterna` repo that can be reus
 ## Key Findings
 1. Archive has native targets enabled in Gradle (`macosArm64`, `macosX64`, `linuxX64`, `linuxArm64`, `mingwX64`); current repo only has `jvm()`.
 2. Archive contains true Kotlin/Native runtime code using `kotlinx.cinterop` and `platform.posix`.
-3. Current repo contains `src/nativeMain` files that still depend on JVM-only JNA (`com.sun.jna.*`), so they will not compile as real Kotlin/Native.
+3. Current repo previously had JNA files under `src/nativeMain`; this was corrected by moving active JNA backend code to `jvmMain` and replacing `nativeMain` with POSIX/no-JNA helpers.
 4. Archive includes a focused Windows-no-JNA research doc that is directly reusable for Task 6 planning.
 
 ## Copy Candidates
@@ -82,3 +82,21 @@ Identify native-progress work from the archived `lanterna` repo that can be reus
 - `gradle -p kmp :lanterna-core-kmp:compileKotlinMacosArm64`
 - `gradle -p kmp :lanterna-core-kmp:compileKotlinLinuxX64`
 - `gradle -p kmp :lanterna-demo-kmp:linkDebugExecutableMacosArm64`
+
+## Implemented Start (2026-03-10)
+- JNA backend isolation (JVM):
+  - moved Win32/JNA backend from `commonMain` to `jvmMain`:
+    - `kmp/lanterna-core-kmp/src/jvmMain/kotlin/com/googlecode/lanterna/terminal/win32/*`
+  - result: JNA code now clearly belongs to JVM flavor.
+- Native no-JNA bootstrap (Linux/macOS direction):
+  - added POSIX runtime helpers in `nativeMain`:
+    - `kmp/lanterna-core-kmp/src/nativeMain/kotlin/com/googlecode/lanterna/terminal/nativeposix/PosixTerminalDimensions.kt`
+    - `kmp/lanterna-core-kmp/src/nativeMain/kotlin/com/googlecode/lanterna/terminal/nativeposix/PosixTerminalRuntime.kt`
+    - `kmp/lanterna-core-kmp/src/nativeMain/kotlin/com/googlecode/lanterna/terminal/nativeposix/PosixTerminalIO.kt`
+  - implementation uses `platform.posix` + `kotlinx.cinterop` only (no JNA).
+
+## Current Constraint
+- `lanterna-core-kmp` still contains broad JVM/desktop APIs in `commonMain` (java/io/awt/swing, reflection).
+- Because of this, enabling macOS/Linux targets for this module immediately would fail compilation.
+- Next implementation step for true native builds:
+  - split JVM-only packages from `commonMain` into `jvmMain` in bounded slices, then enable linux/macos targets.
