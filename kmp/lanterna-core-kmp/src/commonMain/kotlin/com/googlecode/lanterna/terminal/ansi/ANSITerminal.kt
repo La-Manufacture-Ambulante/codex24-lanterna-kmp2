@@ -35,6 +35,14 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset
 
+/**
+ * Class containing graphics code for ANSI compliant text terminals and terminal emulators. All the methods inside of
+ * this class uses ANSI escape codes written to the underlying output stream.
+ *
+ * @see [Wikipedia](http://en.wikipedia.org/wiki/ANSI_escape_code)
+ *
+ * @author Martin
+ */
 abstract class ANSITerminal @Suppress("WeakerAccess") protected constructor(
     terminalInput: InputStream?,
     terminalOutput: OutputStream?,
@@ -44,6 +52,10 @@ abstract class ANSITerminal @Suppress("WeakerAccess") protected constructor(
     private var mouseCaptureMode: MouseCaptureMode? = null
     private var inPrivateMode = false
 
+    /**
+     * This method can be overridden in a custom terminal implementation to change the default key decoders.
+     * @return The KeyDecodingProfile used by the terminal when translating character sequences to keystrokes
+     */
     protected open fun getDefaultKeyDecodingProfile(): KeyDecodingProfile {
         return DefaultKeyDecodingProfile()
     }
@@ -100,25 +112,23 @@ abstract class ANSITerminal @Suppress("WeakerAccess") protected constructor(
     }
 
     @Throws(IOException::class)
-    override fun setTitle(title: String?) {
-        val safeTitle = (title ?: "").replace("\u0007", "")
+    override fun setTitle(title: String) {
+        val safeTitle = title.replace("\u0007", "")
         writeOSCSequenceToTerminal(*("2;$safeTitle\u0007").toByteArray())
     }
 
     @Throws(IOException::class)
-    override fun setForegroundColor(color: TextColor?) {
-        val safeColor = color ?: TextColor.ANSI.DEFAULT
-        writeSGRSequenceToTerminal(*requireNotNull(safeColor.foregroundSGRSequence))
+    override fun setForegroundColor(color: TextColor) {
+        writeSGRSequenceToTerminal(*requireNotNull(color.foregroundSGRSequence))
     }
 
     @Throws(IOException::class)
-    override fun setBackgroundColor(color: TextColor?) {
-        val safeColor = color ?: TextColor.ANSI.DEFAULT
-        writeSGRSequenceToTerminal(*requireNotNull(safeColor.backgroundSGRSequence))
+    override fun setBackgroundColor(color: TextColor) {
+        writeSGRSequenceToTerminal(*requireNotNull(color.backgroundSGRSequence))
     }
 
     @Throws(IOException::class)
-    override fun enableSGR(sgr: SGR?) {
+    override fun enableSGR(sgr: SGR) {
         when (sgr) {
             SGR.BLINK -> writeCSISequenceToTerminal('5'.code.toByte(), 'm'.code.toByte())
             SGR.BOLD -> writeCSISequenceToTerminal('1'.code.toByte(), 'm'.code.toByte())
@@ -129,12 +139,11 @@ abstract class ANSITerminal @Suppress("WeakerAccess") protected constructor(
             SGR.REVERSE -> writeCSISequenceToTerminal('7'.code.toByte(), 'm'.code.toByte())
             SGR.UNDERLINE -> writeCSISequenceToTerminal('4'.code.toByte(), 'm'.code.toByte())
             SGR.ITALIC -> writeCSISequenceToTerminal('3'.code.toByte(), 'm'.code.toByte())
-            null -> Unit
         }
     }
 
     @Throws(IOException::class)
-    override fun disableSGR(sgr: SGR?) {
+    override fun disableSGR(sgr: SGR) {
         when (sgr) {
             SGR.BLINK -> writeCSISequenceToTerminal('2'.code.toByte(), '5'.code.toByte(), 'm'.code.toByte())
             SGR.BOLD -> writeCSISequenceToTerminal('2'.code.toByte(), '2'.code.toByte(), 'm'.code.toByte())
@@ -145,7 +154,6 @@ abstract class ANSITerminal @Suppress("WeakerAccess") protected constructor(
             SGR.REVERSE -> writeCSISequenceToTerminal('2'.code.toByte(), '7'.code.toByte(), 'm'.code.toByte())
             SGR.UNDERLINE -> writeCSISequenceToTerminal('2'.code.toByte(), '4'.code.toByte(), 'm'.code.toByte())
             SGR.ITALIC -> writeCSISequenceToTerminal('2'.code.toByte(), '3'.code.toByte(), 'm'.code.toByte())
-            null -> Unit
         }
     }
 
@@ -391,6 +399,11 @@ abstract class ANSITerminal @Suppress("WeakerAccess") protected constructor(
         writeToTerminal(*sb.toString().toByteArray())
     }
 
+    /**
+     * Method to test if the terminal (as far as the library knows) is in private mode.
+     *
+     * @return True if there has been a call to enterPrivateMode() but not yet exitPrivateMode()
+     */
     internal fun isInPrivateMode(): Boolean {
         return inPrivateMode
     }
