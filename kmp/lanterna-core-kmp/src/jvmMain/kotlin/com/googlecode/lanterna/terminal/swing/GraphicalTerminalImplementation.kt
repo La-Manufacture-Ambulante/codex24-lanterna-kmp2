@@ -388,7 +388,7 @@ internal abstract class GraphicalTerminalImplementation(
             dirtyCellsLookupTable.setDirty(previousCursorPosition)
         }
 
-        val dirtyCells = virtualTerminal.andResetDirtyCells
+        val dirtyCells: Set<TerminalPosition> = virtualTerminal.andResetDirtyCells
         for (position in dirtyCells) {
             dirtyCellsLookupTable.setDirty(position)
         }

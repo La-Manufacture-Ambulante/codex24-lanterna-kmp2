@@ -71,7 +71,7 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
     override fun invokeLater(task: GuiTask?) {
         if (_state != AsynchronousTextGUIThread.State.STARTED) {
             throw IllegalStateException(
-                "Cannot schedule task for execution on TextGUIThread because state is $_state",
+                "Cannot schedule $task for execution on the TextGUIThread because the thread is in $_state state",
             )
         }
         super.invokeLater(task)
@@ -80,7 +80,13 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
     private fun mainGUILoop() {
         ownerThreadToken = currentThreadToken()
         try {
-            processEventsAndUpdate()
+            try {
+                textGUI.updateScreen()
+            } catch (t: Throwable) {
+                if (exceptionHandlerRef?.onException(t) == true) {
+                    stop()
+                }
+            }
 
             while (_state == AsynchronousTextGUIThread.State.STARTED) {
                 val didWork = processEventsAndUpdate()

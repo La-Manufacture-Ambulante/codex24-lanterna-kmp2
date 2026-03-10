@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.input
 
+import com.googlecode.lanterna.internal.compat.Character
+
 /**
  * Character pattern that matches characters pressed while ALT is held down.
  */
@@ -32,7 +34,7 @@ class AltAndCharacterPattern : CharacterPattern {
             return CharacterPattern.Matching.NOT_YET
         }
         val character = sequence[1]
-        if (com.googlecode.lanterna.internal.compat.Character.isISOControl(character)) {
+        if (Character.isISOControl(character)) {
             return null
         }
         return CharacterPattern.Matching(KeyStroke(character, false, true))
