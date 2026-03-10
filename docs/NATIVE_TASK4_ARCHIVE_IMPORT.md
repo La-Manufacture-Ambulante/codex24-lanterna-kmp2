@@ -95,6 +95,16 @@ Identify native-progress work from the archived `lanterna` repo that can be reus
     - `kmp/lanterna-core-kmp/src/nativeMain/kotlin/com/googlecode/lanterna/terminal/nativeposix/PosixTerminalIO.kt`
   - implementation uses `platform.posix` + `kotlinx.cinterop` only (no JNA).
 
+## Implemented Slice 2 (2026-03-10)
+- moved JVM-only terminal implementations from `commonMain` to `jvmMain`:
+  - `kmp/lanterna-core-kmp/src/jvmMain/kotlin/com/googlecode/lanterna/terminal/DefaultTerminalFactory.kt`
+  - `kmp/lanterna-core-kmp/src/jvmMain/kotlin/com/googlecode/lanterna/terminal/ansi/*`
+  - `kmp/lanterna-core-kmp/src/jvmMain/kotlin/com/googlecode/lanterna/terminal/swing/*`
+- outcome:
+  - JVM checks remain green.
+  - `commonMain` no longer contains `terminal/ansi` or `terminal/swing` packages.
+  - remaining `commonMain` JVM import footprint is still significant (`84` files with `java.*`/`javax.*`/`com.sun.*` imports), so native target enablement still requires further slicing.
+
 ## Current Constraint
 - `lanterna-core-kmp` still contains broad JVM/desktop APIs in `commonMain` (java/io/awt/swing, reflection).
 - Because of this, enabling macOS/Linux targets for this module immediately would fail compilation.
