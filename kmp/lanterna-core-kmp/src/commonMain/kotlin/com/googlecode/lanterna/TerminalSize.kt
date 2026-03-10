@@ -18,6 +18,9 @@
  */
 package com.googlecode.lanterna
 
+import kotlin.math.max
+import kotlin.math.min
+
 /**
  * Terminal dimensions in 2-d space, measured in number of rows and columns. This class is immutable and cannot change
  * its internal state after creation.
@@ -91,7 +94,7 @@ if (delta == 0)
 return this
 }
  // Prevent going below 0 (which would throw an exception)
-        return withColumns(Math.max(0, columns + delta))
+        return withColumns(max(0, columns + delta))
 }
 
 /**
@@ -107,7 +110,7 @@ if (delta == 0)
 return this
 }
  // Prevent going below 0 (which would throw an exception)
-        return withRows(Math.max(0, rows + delta))
+        return withRows(max(0, rows + delta))
 }
 
 /**
@@ -140,8 +143,8 @@ return withRelativeRows(deltaRows)!!.withRelativeColumns(deltaColumns)
  * @return TerminalSize that combines the maximum width between the two and the maximum height
  */
      fun max(other:TerminalSize):TerminalSize? {
-return withColumns(Math.max(columns, other.columns))!!
-.withRows(Math.max(rows, other.rows))
+return withColumns(max(columns, other.columns))!!
+.withRows(max(rows, other.rows))
 }
 
 /**
@@ -151,8 +154,8 @@ return withColumns(Math.max(columns, other.columns))!!
  * @return TerminalSize that combines the minimum width between the two and the minimum height
  */
      fun min(other:TerminalSize):TerminalSize? {
-return withColumns(Math.min(columns, other.columns))!!
-.withRows(Math.min(rows, other.rows))
+return withColumns(min(columns, other.columns))!!
+.withRows(min(rows, other.rows))
 }
 
 /**
@@ -170,12 +173,10 @@ return this
 return size
 }
 
-@Override
  override fun toString():String {
 return "{" + columns + "x" + rows + "}"
 }
 
-@Override
  override fun equals(obj:Any?):Boolean {
 if (this === obj)
 {
@@ -190,7 +191,6 @@ val other = obj as TerminalSize
 return (columns == other.columns && rows == other.rows)
 }
 
-@Override
  override fun hashCode():Int {
 var hash = 5
 hash = 53 * hash + this.columns

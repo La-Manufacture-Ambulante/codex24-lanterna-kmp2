@@ -18,6 +18,10 @@
  */
 package com.googlecode.lanterna
 
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+
 /**
  * A 2-d position in 'terminal space'. Please note that the coordinates are 0-indexed, meaning 0x0 is the top left
  * corner of the terminal. This object is immutable so you cannot change it after it has been created. Instead, you
@@ -156,24 +160,23 @@ return TerminalPosition(column / denominator.column, row / denominator.row)
 }
 
  fun abs():TerminalPosition {
-val x = Math.abs(column)
-val y = Math.abs(row)
+val x = abs(column)
+val y = abs(row)
 return TerminalPosition(x, y)
 }
 
  fun min(position:TerminalPosition):TerminalPosition {
-val x = Math.min(column, position.column)
-val y = Math.min(row, position.row)
+val x = min(column, position.column)
+val y = min(row, position.row)
 return TerminalPosition(x, y)
 }
 
  fun max(position:TerminalPosition):TerminalPosition {
-val x = Math.max(column, position.column)
-val y = Math.max(row, position.row)
+val x = max(column, position.column)
+val y = max(row, position.row)
 return TerminalPosition(x, y)
 }
 
-@Override
  override operator fun compareTo(o:TerminalPosition):Int {
 if (row < o.row)
 {
@@ -193,12 +196,10 @@ return 0
 return 1
 }
 
-@Override
  override fun toString():String {
 return "[" + column + ":" + row + "]"
 }
 
-@Override
  override fun hashCode():Int {
 var hash = 3
 hash = 23 * hash + this.row
@@ -210,7 +211,6 @@ return hash
 return (this.column == columnIndex && this.row == rowIndex)
 }
 
-@Override
  override fun equals(obj:Any?):Boolean {
 if (obj == null)
 {
