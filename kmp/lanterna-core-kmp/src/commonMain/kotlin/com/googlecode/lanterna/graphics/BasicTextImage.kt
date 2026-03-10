@@ -45,6 +45,7 @@ class BasicTextImage private constructor(
 
     /**
      * Creates a new [BasicTextImage] and initializes content to default blank characters.
+     * @param size Size to make the image
      */
     constructor(size: TerminalSize?) : this(
         requireNotNull(size) { "Cannot create BasicTextImage with null size" },
@@ -53,6 +54,8 @@ class BasicTextImage private constructor(
 
     /**
      * Creates a new [BasicTextImage] with [initialContent] as filler character.
+     * @param size Size of the image
+     * @param initialContent Character used as initial content
      */
     constructor(size: TerminalSize?, initialContent: TextCharacter?) : this(
         requireNotNull(size) { "Cannot create BasicTextImage with null size" },
