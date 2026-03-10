@@ -26,23 +26,43 @@ import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
 
 /**
- * List box where each item is a runnable action.
+ * This class is a list box implementation that displays a number of items that has actions associated with them. You
+ * can activate this action by pressing the Enter or Space keys on the keyboard and the action associated with the
+ * currently selected item will fire.
+ * @author Martin
  */
 class ActionListBox @JvmOverloads constructor(preferredSize: TerminalSize? = null) :
     AbstractListBox<Runnable, ActionListBox>(preferredSize) {
 
+    /**
+     * {@inheritDoc}
+     *
+     * The label of the item in the list box will be the result of calling `.toString()` on the runnable, which
+     * might not be what you want to have unless you explicitly declare it. Consider using
+     * `addItem(String label, Runnable action` instead, if you want to just set the label easily without having
+     * to override `.toString()`.
+     *
+     * @param item Runnable to execute when the action was selected and fired in the list
+     * @return Itself
+     */
     override fun addItem(item: Runnable?): ActionListBox? {
         return super.addItem(item)
     }
 
+    /**
+     * Adds a new item to the list, which is displayed in the list using a supplied label.
+     * @param label Label to use in the list for the new item
+     * @param action Runnable to invoke when this action is selected and then triggered
+     * @return Itself
+     */
     fun addItem(label: String?, action: Runnable?): ActionListBox {
         return addItem(object : Runnable {
             override fun run() {
-                action?.run()
+                action!!.run()
             }
 
             override fun toString(): String {
-                return label ?: ""
+                return label!!
             }
         }) ?: this
     }
@@ -67,9 +87,11 @@ class ActionListBox @JvmOverloads constructor(preferredSize: TerminalSize? = nul
                 return super.handleKeyStroke(keyStroke)
             }
 
+            // includes mouse drag
             val existingIndex = getSelectedIndex()
             val newIndex = getIndexByMouseAction(mouseAction)
             if (existingIndex != newIndex || !isFocused || actionType == MouseActionType.CLICK_DOWN) {
+                // the index has changed, or the focus needs to be obtained, or the user is clicking on the current selection to perform the action again
                 val result = super.handleKeyStroke(keyStroke)
                 runSelectedItem()
                 return result
