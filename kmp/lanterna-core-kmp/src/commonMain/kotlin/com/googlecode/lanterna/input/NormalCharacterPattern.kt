@@ -18,39 +18,36 @@
  */
 package com.googlecode.lanterna.input
 
-/**
- * Character pattern that matches one character as one KeyStroke with the character that was read
- * 
- * @author Martin, Andreas
- */
- class NormalCharacterPattern:CharacterPattern {
-override fun match(seq:List<Char>?):CharacterPattern.Matching? {
-if (seq == null || seq.size != 1)
-{
-return null // nope
-}
-val ch = seq[0]
-if (isPrintableChar(ch))
-{
-val ks = KeyStroke(ch, false, false)
-return CharacterPattern.Matching(ks)
-}
-else
-{
-return null // nope
-}
-}
+import com.googlecode.lanterna.internal.compat.Character
 
 /**
- * From http://stackoverflow.com/questions/220547/printable-char-in-java
- * @param c character to test
- * @return True if this is a 'normal', printable character, false otherwise
+ * Character pattern that matches one character as one KeyStroke with the character that was read
+ *
+ * @author Martin, Andreas
  */
-    private fun isPrintableChar(c:Char):Boolean {
-if (com.googlecode.lanterna.internal.compat.Character.isISOControl(c)) {
-return false
-}
-val block = com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.of(c)
-return block != null && block !== com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.SPECIALS
-}
+class NormalCharacterPattern : CharacterPattern {
+    override fun match(seq: List<Char>?): CharacterPattern.Matching? {
+        if (seq == null || seq.size != 1) {
+            return null // nope
+        }
+        val ch = seq[0]
+        return if (isPrintableChar(ch)) {
+            CharacterPattern.Matching(KeyStroke(ch, false, false))
+        } else {
+            null // nope
+        }
+    }
+
+    /**
+     * From http://stackoverflow.com/questions/220547/printable-char-in-java
+     * @param c character to test
+     * @return True if this is a 'normal', printable character, false otherwise
+     */
+    private fun isPrintableChar(c: Char): Boolean {
+        if (Character.isISOControl(c)) {
+            return false
+        }
+        val block = Character.UnicodeBlock.of(c)
+        return block != null && block !== Character.UnicodeBlock.SPECIALS
+    }
 }

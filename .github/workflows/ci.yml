@@ -112,7 +112,7 @@ jobs:
           fi
           out_dir="kmp/lanterna-demo-kmp/build/reports/demos/${{ matrix.target }}"
           mkdir -p "$out_dir"
-          DEMO_OUTPUT_DIR="$out_dir" DEMO_TARGET="${{ matrix.target }}" DEMO_LANTERNA_SMOKE=1 "$exe"
+          LANTERNA_RESOURCE_DIR="src/main/resources" DEMO_OUTPUT_DIR="$out_dir" DEMO_TARGET="${{ matrix.target }}" DEMO_LANTERNA_SMOKE=1 "$exe"
 
       - name: Summarize ${{ matrix.target }} snapshot artifacts
         if: always()

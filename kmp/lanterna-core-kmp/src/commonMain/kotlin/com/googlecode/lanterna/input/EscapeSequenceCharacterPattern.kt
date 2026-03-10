@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.input
 
+import com.googlecode.lanterna.internal.compat.Character
 import kotlin.collections.HashMap
 
 /**
@@ -157,7 +158,7 @@ open class EscapeSequenceCharacterPattern : CharacterPattern {
                 State.NUM1 -> {
                     when {
                         ch == ';' -> state = State.NUM2
-                        com.googlecode.lanterna.internal.compat.Character.isDigit(ch) -> num1 = num1 * 10 + com.googlecode.lanterna.internal.compat.Character.digit(ch, 10)
+                        Character.isDigit(ch) -> num1 = num1 * 10 + Character.digit(ch, 10)
                         else -> {
                             last = ch
                             state = State.DONE
@@ -165,8 +166,8 @@ open class EscapeSequenceCharacterPattern : CharacterPattern {
                     }
                 }
                 State.NUM2 -> {
-                    if (com.googlecode.lanterna.internal.compat.Character.isDigit(ch)) {
-                        num2 = num2 * 10 + com.googlecode.lanterna.internal.compat.Character.digit(ch, 10)
+                    if (Character.isDigit(ch)) {
+                        num2 = num2 * 10 + Character.digit(ch, 10)
                     } else {
                         last = ch
                         state = State.DONE

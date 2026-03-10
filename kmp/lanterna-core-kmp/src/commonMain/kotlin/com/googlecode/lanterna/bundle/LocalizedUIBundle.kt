@@ -24,29 +24,9 @@ import com.googlecode.lanterna.internal.compat.Locale
  * This class permits to get easily localized strings about the UI.
  * @author silveryocha
  */
-class LocalizedUIBundle private constructor(bundleName: String?) : BundleLocator(bundleName) {
+class LocalizedUIBundle private constructor(bundleName: String) : BundleLocator(bundleName) {
     companion object {
         private val MY_BUNDLE = LocalizedUIBundle("multilang.lanterna-ui")
-
-        init {
-            register(
-                bundleName = "multilang.lanterna-ui",
-                language = "en",
-                entries = mapOf(
-                    "short.label.ok" to "OK",
-                    "short.label.cancel" to "Cancel",
-                    "short.label.yes" to "Yes",
-                    "short.label.no" to "No",
-                    "short.label.close" to "Close",
-                    "short.label.abort" to "Abort",
-                    "short.label.ignore" to "Ignore",
-                    "short.label.retry" to "Retry",
-                    "short.label.continue" to "Continue",
-                    "short.label.open" to "Open",
-                    "short.label.save" to "Save",
-                ),
-            )
-        }
 
         fun get(key: String?, vararg parameters: String?): String? {
             return get(Locale.getDefault(), key, *parameters)

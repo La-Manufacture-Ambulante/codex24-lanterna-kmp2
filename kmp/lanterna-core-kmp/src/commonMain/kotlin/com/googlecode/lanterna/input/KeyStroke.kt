@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.input
 
+import com.googlecode.lanterna.internal.compat.System
 import kotlin.collections.ArrayList
 
 /**
@@ -60,7 +61,7 @@ open class KeyStroke private constructor(
             else -> Unit
         }
         this.character = actualCharacter
-        this.eventTime = com.googlecode.lanterna.internal.compat.System.currentTimeMillis()
+        this.eventTime = System.currentTimeMillis()
     }
 
     /**

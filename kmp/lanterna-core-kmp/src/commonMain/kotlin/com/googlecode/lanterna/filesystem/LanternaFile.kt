@@ -2,6 +2,10 @@ package com.googlecode.lanterna.filesystem
 
 /**
  * Cross-platform filesystem entry abstraction for common dialog code.
+ *
+ * This intentionally mirrors the minimal `java.io.File`-like API used by Lanterna dialogs instead of pulling in a
+ * new public dependency such as Okio. If we decide to expose Okio paths later, we can add adapters without changing
+ * this parity surface.
  */
 expect class LanternaFile {
     constructor(path: String)

@@ -11,32 +11,29 @@ import platform.posix.getenv
 import platform.posix.open
 import platform.posix.read
 
+/**
+ * Native resource loading is environment-driven (`LANTERNA_RESOURCE_DIR` / `LANTERNA_RESOURCE_PATHS`) with a small
+ * relative-path fallback, avoiding hard-coded build-layout probing.
+ */
 internal actual object BundleResourceLoader {
     @OptIn(ExperimentalForeignApi::class)
     actual fun loadTextResource(resourcePath: String): String? {
-        if (resourcePath.isBlank()) {
-            return null
-        }
-        val normalizedPath = resourcePath.trimStart('/')
+        val normalizedPath = normalizeResourcePath(resourcePath) ?: return null
         val searchPaths = linkedSetOf<String>()
 
         val resourceDir = getenv("LANTERNA_RESOURCE_DIR")?.toKString()
         if (!resourceDir.isNullOrBlank()) {
-            searchPaths += "$resourceDir/$normalizedPath"
+            searchPaths += resolveResourcePath(resourceDir, normalizedPath)
         }
         val resourcePathList = getenv("LANTERNA_RESOURCE_PATHS")?.toKString()
         if (!resourcePathList.isNullOrBlank()) {
             resourcePathList.split(':')
                 .filter { it.isNotBlank() }
-                .forEach { searchPaths += "${it.trimEnd('/')}/$normalizedPath" }
+                .forEach { searchPaths += resolveResourcePath(it, normalizedPath) }
         }
 
         searchPaths += normalizedPath
         searchPaths += "./$normalizedPath"
-        searchPaths += "src/main/resources/$normalizedPath"
-        searchPaths += "../src/main/resources/$normalizedPath"
-        searchPaths += "../../src/main/resources/$normalizedPath"
-        searchPaths += "lanterna-mabe02/src/main/resources/$normalizedPath"
 
         for (candidate in searchPaths) {
             val loaded = readUtf8File(candidate)
@@ -45,6 +42,22 @@ internal actual object BundleResourceLoader {
             }
         }
         return null
+    }
+}
+
+private fun normalizeResourcePath(resourcePath: String): String? {
+    if (resourcePath.isBlank()) {
+        return null
+    }
+    return resourcePath.trimStart('/').takeIf { it.isNotBlank() }
+}
+
+private fun resolveResourcePath(basePath: String, normalizedPath: String): String {
+    val trimmedBasePath = basePath.trim()
+    return if (trimmedBasePath.endsWith("/")) {
+        "$trimmedBasePath$normalizedPath"
+    } else {
+        "$trimmedBasePath/$normalizedPath"
     }
 }
 

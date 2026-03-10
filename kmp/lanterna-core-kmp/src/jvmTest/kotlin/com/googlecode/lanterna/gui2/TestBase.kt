@@ -28,6 +28,9 @@ import java.lang.reflect.Method
 
 /**
  * Some common code for the GUI tests to get a text system up and running on a separate thread
+ *
+ * These GUI integration tests intentionally live in `jvmTest`: they depend on `TestTerminalFactory` and JVM terminal
+ * behavior that is not available as deterministic `commonTest` coverage yet.
  * @author Martin
  */
 abstract class TestBase {
