@@ -25,14 +25,45 @@ import java.util.Collections
 import java.util.EnumMap
 
 /**
- * BorderLayout imitates AWT BorderLayout.
+ * BorderLayout imitates the BorderLayout class from AWT, allowing you to add a center component with optional
+ * components around it in top, bottom, left and right locations. The edge components will be sized at their preferred
+ * size and the center component will take up whatever remains.
+ * @author martin
  */
 class BorderLayout : LayoutManager {
+    /**
+     * This type is what you use as the layout data for components added to a panel using `BorderLayout` for its
+     * layout manager. This values specified where inside the panel the component should be added.
+     */
     enum class Location : LayoutData {
+        /**
+         * The component with this value as its layout data will occupy the center space, whatever is remaining after
+         * the other components (if any) have allocated their space.
+         */
         CENTER,
+        /**
+         * The component with this value as its layout data will occupy the left side of the container, attempting to
+         * allocate the preferred width of the component and at least the preferred height, but could be more depending
+         * on the other components added.
+         */
         LEFT,
+        /**
+         * The component with this value as its layout data will occupy the right side of the container, attempting to
+         * allocate the preferred width of the component and at least the preferred height, but could be more depending
+         * on the other components added.
+         */
         RIGHT,
+        /**
+         * The component with this value as its layout data will occupy the top side of the container, attempting to
+         * allocate the preferred height of the component and at least the preferred width, but could be more depending
+         * on the other components added.
+         */
         TOP,
+        /**
+         * The component with this value as its layout data will occupy the bottom side of the container, attempting to
+         * allocate the preferred height of the component and at least the preferred width, but could be more depending
+         * on the other components added.
+         */
         BOTTOM,
     }
 
@@ -149,6 +180,7 @@ class BorderLayout : LayoutManager {
     }
 
     companion object {
+        // When components don't have a location, we'll assign an available location based on this order.
         private val AUTO_ASSIGN_ORDER = Collections.unmodifiableList(
             listOf(Location.CENTER, Location.TOP, Location.BOTTOM, Location.LEFT, Location.RIGHT),
         )
