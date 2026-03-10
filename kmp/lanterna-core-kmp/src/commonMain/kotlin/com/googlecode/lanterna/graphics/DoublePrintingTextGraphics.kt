@@ -25,9 +25,11 @@ import com.googlecode.lanterna.TextCharacter
 /**
  * This TextGraphics implementation wraps another TextGraphics and forwards all operations to it, but with a few
  * differences. First, each individual character being printed is printed twice. Second, [size] returns a width that is
- * half of the underlying [TextGraphics], giving a view that is closer to square proportions.
+ * half of the underlying [TextGraphics], giving a view that is closer to square proportions. You can compare this by
+ * running `com.googlecode.lanterna.screen.ScreenTriangleTest` with and without the `--square` parameter.
  *
  * Creates a new [DoublePrintingTextGraphics] on top of [underlyingTextGraphics].
+ * @param underlyingTextGraphics Backend [TextGraphics] to forward all calls to
  */
 class DoublePrintingTextGraphics(private val underlyingTextGraphics: TextGraphics) : AbstractTextGraphics() {
     override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
