@@ -21,17 +21,27 @@ package com.googlecode.lanterna.gui2.dialogs
 import com.googlecode.lanterna.gui2.LocalizedString
 
 /**
- * Available selection of buttons that can be added to a [MessageDialog].
+ * Available selection of buttons that can be added to a [MessageDialog]. These values are also used as the
+ * result when a dialog button is selected.
  */
 enum class MessageDialogButton(private val label: LocalizedString) {
+    /** "OK" button. */
     OK(LocalizedString.OK),
+    /** "Cancel" button. */
     CANCEL(LocalizedString.Cancel),
+    /** "Yes" button. */
     YES(LocalizedString.Yes),
+    /** "No" button. */
     NO(LocalizedString.No),
+    /** "Close" button. */
     CLOSE(LocalizedString.Close),
+    /** "Abort" button. */
     ABORT(LocalizedString.Abort),
+    /** "Ignore" button. */
     IGNORE(LocalizedString.Ignore),
+    /** "Retry" button. */
     RETRY(LocalizedString.Retry),
+    /** "Continue" button. */
     CONTINUE(LocalizedString.Continue),
     ;
 

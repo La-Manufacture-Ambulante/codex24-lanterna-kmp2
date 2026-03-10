@@ -23,7 +23,7 @@ import java.util.ArrayList
 import java.util.HashSet
 
 /**
- * Dialog builder for the [MessageDialog] class.
+ * Dialog builder for [MessageDialog].
  */
 class MessageDialogBuilder {
     private var title: String = "MessageDialog"
@@ -36,12 +36,18 @@ class MessageDialogBuilder {
         extraWindowHints.add(Window.Hint.MODAL)
     }
 
+    /**
+     * Builds a new [MessageDialog] from the configured builder properties.
+     */
     fun build(): MessageDialog {
         val messageDialog = MessageDialog(title, text, *buttons.toTypedArray())
         messageDialog.setHints(extraWindowHints)
         return messageDialog
     }
 
+    /**
+     * Sets message dialog title.
+     */
     fun setTitle(title: String?): MessageDialogBuilder {
         this.title = title ?: ""
         return this

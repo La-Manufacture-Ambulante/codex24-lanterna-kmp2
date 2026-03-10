@@ -43,9 +43,15 @@ import java.util.Map
 import java.util.Properties
 
 /**
- * Very basic implementation of [Theme].
+ * Very basic [Theme] implementation that allows quick theme setup directly in code.
+ *
+ * This implementation does not perform class-hierarchy fallback. If a class has no explicit override, it uses the
+ * default definition.
  */
 class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles: SGR?) : Theme {
+    /**
+     * Default definition used whenever no class-specific override is registered.
+     */
     @get:Synchronized
     override val defaultDefinition: Definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
 
@@ -111,6 +117,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         override val preLight: ThemeStyle?
             get() = preLightBacking ?: normal
 
+        /**
+         * Sets style values for the `prelight` state.
+         */
         @Synchronized
         fun setPreLight(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             preLightBacking = DefaultMutableThemeStyle(foreground, background, *styles)
@@ -121,6 +130,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         override val selected: ThemeStyle?
             get() = selectedBacking ?: normal
 
+        /**
+         * Sets style values for the `selected` state.
+         */
         @Synchronized
         fun setSelected(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             selectedBacking = DefaultMutableThemeStyle(foreground, background, *styles)
@@ -131,6 +143,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         override val active: ThemeStyle?
             get() = activeBacking ?: normal
 
+        /**
+         * Sets style values for the `active` state.
+         */
         @Synchronized
         fun setActive(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             activeBacking = DefaultMutableThemeStyle(foreground, background, *styles)
@@ -141,6 +156,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         override val insensitive: ThemeStyle?
             get() = insensitiveBacking ?: normal
 
+        /**
+         * Sets style values for the `insensitive` state.
+         */
         @Synchronized
         fun setInsensitive(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             insensitiveBacking = DefaultMutableThemeStyle(foreground, background, *styles)
@@ -157,6 +175,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             return customStyles[name] ?: defaultValue
         }
 
+        /**
+         * Stores a named custom style retrievable through [getCustom].
+         */
         @Synchronized
         fun setCustom(name: String?, foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             customStyles[name] = DefaultMutableThemeStyle(foreground, background, *styles)
@@ -168,6 +189,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             return Integer.parseInt(properties.getProperty(name, Integer.toString(defaultValue)))
         }
 
+        /**
+         * Stores an integer property retrievable through [getIntegerProperty].
+         */
         @Synchronized
         fun setIntegerProperty(name: String?, value: Int): Definition {
             properties.setProperty(name, Integer.toString(value))
@@ -179,6 +203,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             return java.lang.Boolean.parseBoolean(properties.getProperty(name, java.lang.Boolean.toString(defaultValue)))
         }
 
+        /**
+         * Stores a boolean property retrievable through [getBooleanProperty].
+         */
         @Synchronized
         fun setBooleanProperty(name: String?, value: Boolean): Definition {
             properties.setProperty(name, java.lang.Boolean.toString(value))
@@ -189,6 +216,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         override val isCursorVisible: Boolean
             get() = cursorVisible
 
+        /**
+         * Sets whether this definition prefers showing the text cursor.
+         */
         @Synchronized
         fun setCursorVisible(cursorVisible: Boolean): Definition {
             this.cursorVisible = cursorVisible
@@ -200,6 +230,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             return characterMap[name] ?: fallback
         }
 
+        /**
+         * Stores a named character retrievable through [getCharacter].
+         */
         @Synchronized
         fun setCharacter(name: String?, character: Char): Definition {
             characterMap[name] = character
@@ -216,6 +249,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             return rendererProvider?.getRenderer(type)
         }
 
+        /**
+         * Registers a renderer provider for a specific component type.
+         */
         @Synchronized
         fun <T : Component?> setRenderer(type: Class<T?>?, rendererProvider: RendererProvider<T?>?): Definition {
             if (type == null) {
