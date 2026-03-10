@@ -26,6 +26,7 @@ import java.util.EnumSet
 
 /**
  * Label is a simple read-only text display component. It supports customized colors and multi-line text.
+ * @author Martin
  */
 open class Label(text: String?) : AbstractComponent<Label?>() {
     protected var lines: Array<String> = emptyArray()
@@ -36,12 +37,22 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
     private val additionalStyles: EnumSet<SGR> = EnumSet.noneOf(SGR::class.java)
 
     init {
-        setText(text ?: "")
+        setText(text!!)
+    }
+
+    /**
+     * Protected access to set the internal representation of the text in this label, to be used by sub-classes of label
+     * in certain cases where `setText(..)` doesn't work. In general, you probably want to stick to
+     * `setText(..)` instead of this method unless you have a good reason not to.
+     * @param lines New lines this label will display
+     */
+    protected fun setLines(lines: Array<String>) {
+        this.lines = lines
     }
 
     @Synchronized
     fun setText(text: String) {
-        lines = splitIntoMultipleLines(text)
+        setLines(splitIntoMultipleLines(text))
         this.labelSize = getBounds(lines, labelSize)
         invalidate()
     }
