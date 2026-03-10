@@ -29,11 +29,25 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * The list box will display a number of items, of which one and only one can be marked as selected.
+ * The user can select an item in the list box by pressing the return key or space bar key. If you
+ * select one item when another item is already selected, the previously selected item will be
+ * deselected and the highlighted item will be the selected one instead.
+ * @author Martin
  */
 class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = null) :
     AbstractListBox<V, RadioBoxList<V>>(preferredSize) {
 
+    /**
+     * Listener interface that can be attached to the `RadioBoxList` in order to be notified on user actions.
+     */
     interface Listener {
+        /**
+         * Called by the `RadioBoxList` when the user changes which item is selected.
+         * @param selectedIndex Index of the newly selected item, or -1 if the selection has been cleared (can only be
+         * done programmatically)
+         * @param previousSelection The index of the previously selected item which is now no longer selected, or -1 if
+         * nothing was previously selected
+         */
         fun onSelectionChanged(selectedIndex: Int, previousSelection: Int)
     }
 
@@ -142,6 +156,11 @@ class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         setCheckedIndex(-1)
     }
 
+    /**
+     * Adds a new listener to the `RadioBoxList` that will be called on certain user actions.
+     * @param listener Listener to attach to this `RadioBoxList`
+     * @return Itself
+     */
     fun addListener(listener: Listener?): RadioBoxList<V> {
         if (listener != null && !listeners.contains(listener)) {
             listeners.add(listener)
@@ -149,6 +168,12 @@ class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return this
     }
 
+    /**
+     * Removes a listener from this `RadioBoxList` so that if it had been added earlier, it will no longer be called
+     * on user actions.
+     * @param listener Listener to remove from this `RadioBoxList`
+     * @return Itself
+     */
     fun removeListener(listener: Listener?): RadioBoxList<V> {
         if (listener != null) {
             listeners.remove(listener)
@@ -169,6 +194,11 @@ class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         )
     }
 
+    /**
+     * Default renderer for this component which is used unless overridden. The selected state is drawn on the left side
+     * of the item label using a "< >" block filled with an "o" if the item is the selected one.
+     * @param <V> Type of items in the [RadioBoxList]
+     */
     class RadioBoxListItemRenderer<V> : ListItemRenderer<V, RadioBoxList<V>>() {
         override fun getHotSpotPositionOnLine(selectedIndex: Int): Int {
             return 1
