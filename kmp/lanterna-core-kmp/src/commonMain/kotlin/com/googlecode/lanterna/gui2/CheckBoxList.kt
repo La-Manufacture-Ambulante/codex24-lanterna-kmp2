@@ -28,12 +28,21 @@ import java.util.ArrayList
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * List box where each item has its own checked state.
+ * This is a list box implementation where each item has its own checked state that can be toggled on and off.
+ * @author Martin
  */
 class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = null) :
     AbstractListBox<V, CheckBoxList<V>>(preferredSize) {
 
+    /**
+     * Listener interface that can be attached to the `CheckBoxList` in order to be notified on user actions.
+     */
     interface Listener {
+        /**
+         * Called by the `CheckBoxList` when the user changes the toggle state of one item.
+         * @param itemIndex Index of the item that was toggled
+         * @param checked If the state of the item is now checked, this will be `true`, otherwise `false`
+         */
         fun onStatusChanged(itemIndex: Int, checked: Boolean)
     }
 
@@ -65,6 +74,12 @@ class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return item
     }
 
+    /**
+     * Adds an item to the checkbox list with an explicit checked status.
+     * @param item Object to add to the list
+     * @param checkedState If `true`, the new item will be initially checked
+     * @return Itself
+     */
     @Synchronized
     fun addItem(item: V?, checkedState: Boolean): CheckBoxList<V>? {
         itemStatus.add(checkedState)
@@ -128,6 +143,11 @@ class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return result
     }
 
+    /**
+     * Adds a new listener to the `CheckBoxList` that will be called on certain user actions.
+     * @param listener Listener to attach to this `CheckBoxList`
+     * @return Itself
+     */
     @Synchronized
     fun addListener(listener: Listener?): CheckBoxList<V> {
         if (listener != null && !listeners.contains(listener)) {
@@ -136,6 +156,12 @@ class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return this
     }
 
+    /**
+     * Removes a listener from this `CheckBoxList` so that if it had been added earlier, it will no longer be called
+     * on user actions.
+     * @param listener Listener to remove from this `CheckBoxList`
+     * @return Itself
+     */
     fun removeListener(listener: Listener?): CheckBoxList<V> {
         listeners.remove(listener)
         return this
@@ -181,6 +207,11 @@ class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return super.handleKeyStroke(keyStroke)
     }
 
+    /**
+     * Default renderer for this component which is used unless overridden. The checked state is drawn on the left side
+     * of the item label using a "[ ]" block filled with an X if the item has checked state on.
+     * @param <V> Type of items in the [CheckBoxList]
+     */
     class CheckBoxListItemRenderer<V> : ListItemRenderer<V, CheckBoxList<V>>() {
         override fun getHotSpotPositionOnLine(selectedIndex: Int): Int {
             return 1
