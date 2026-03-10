@@ -122,7 +122,7 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
 
         if (selectedColumn != -1 && localViewLeftColumn > selectedColumn) {
             localViewLeftColumn = selectedColumn
-        } else if (selectedColumn != 1 && localViewLeftColumn <= selectedColumn - visibleColumns) {
+        } else if (selectedColumn != -1 && localViewLeftColumn <= selectedColumn - visibleColumns) {
             localViewLeftColumn = kotlin.math.max(0, selectedColumn - visibleColumns + 1)
         }
         if (localViewTopRow > selectedRow) {
@@ -293,7 +293,7 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
             }
         }
 
-        while (selectedColumn != 1 && viewLeftColumn <= selectedColumn - visibleColumns) {
+        while (selectedColumn != -1 && viewLeftColumn <= selectedColumn - visibleColumns) {
             viewLeftColumn = kotlin.math.max(0, selectedColumn - visibleColumns + 1)
             visibleColumns = calculateVisibleColumns(areaWithoutScrollBars, viewLeftColumn, preferredVisibleColumns)
         }
