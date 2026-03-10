@@ -110,3 +110,23 @@ Identify native-progress work from the archived `lanterna` repo that can be reus
 - Because of this, enabling macOS/Linux targets for this module immediately would fail compilation.
 - Next implementation step for true native builds:
   - split JVM-only packages from `commonMain` into `jvmMain` in bounded slices, then enable linux/macos targets.
+
+## Implemented Slice 3 (2026-03-10)
+- completed the remaining `commonMain -> jvmMain` move for converted Lanterna JVM-centric sources.
+- enabled native targets in `kmp/lanterna-core-kmp/build.gradle.kts`:
+  - `linuxX64()`
+  - `macosX64()`
+  - `macosArm64()`
+- kept JNA dependencies JVM-scoped in `jvmMain`.
+- set `kotlin.native.ignoreDisabledTargets=true` in `kmp/gradle.properties` to keep Linux-host output clean while macOS targets remain declared for macOS CI runners.
+- validation:
+  - `:lanterna-core-kmp:compileKotlinLinuxX64`
+  - `:lanterna-core-kmp:jvmTest`
+  - `:lanterna-core-kmp:check`
+  - `:lanterna-demo-kmp:check`
+  - all passed on Linux host.
+
+## Updated Constraint
+- `lanterna-core-kmp` no longer has a broad JVM API surface in `commonMain` because the remaining converted sources were moved under `jvmMain`.
+- native targets compile for Linux host, while macOS targets are declared and skipped on Linux (to be validated in macOS CI).
+- next step is adding a minimal shared/native-facing API layer that can be consumed by linux/macos implementations without depending on JVM-only classes.
