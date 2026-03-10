@@ -54,3 +54,99 @@ jobs:
 
       - name: KMP JVM checks
         run: gradle -p kmp :lanterna-core-kmp:check :lanterna-demo-kmp:check --no-daemon
+
+      - name: Render JVM demo snapshot
+        run: gradle -p kmp :lanterna-demo-kmp:jvmRenderSnapshot --no-daemon
+
+      - name: Upload JVM render artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jvm-render-${{ matrix.os }}
+          path: kmp/lanterna-demo-kmp/build/reports/demos/jvm/**
+
+  kmp-native-linux:
+    name: KMP Native Demo (linuxX64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Build linuxX64 native demo executable
+        run: gradle -p kmp :lanterna-demo-kmp:linkDebugExecutableLinuxX64 --no-daemon
+
+      - name: Run linuxX64 native demo snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          exe="$(find kmp/lanterna-demo-kmp/build/bin/linuxX64/debugExecutable -maxdepth 1 -type f | head -n 1)"
+          out_dir="kmp/lanterna-demo-kmp/build/reports/demos/linuxX64"
+          mkdir -p "$out_dir"
+          DEMO_OUTPUT_DIR="$out_dir" DEMO_TARGET="linuxX64" "$exe"
+
+      - name: Upload linuxX64 render artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-render-linuxX64
+          path: kmp/lanterna-demo-kmp/build/reports/demos/linuxX64/**
+
+  kmp-native-macos:
+    name: KMP Native Demo (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Build macOS native demo executables
+        run: gradle -p kmp :lanterna-demo-kmp:linkDebugExecutableMacosArm64 :lanterna-demo-kmp:linkDebugExecutableMacosX64 --no-daemon
+
+      - name: Run macOS native demo snapshot(s)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ran=0
+          for dir in kmp/lanterna-demo-kmp/build/bin/macos*/debugExecutable; do
+            [ -d "$dir" ] || continue
+            exe="$(find "$dir" -maxdepth 1 -type f | head -n 1)"
+            [ -n "$exe" ] || continue
+            target="$(echo "$dir" | sed -E 's#.*build/bin/([^/]+)/debugExecutable#\1#')"
+            out_dir="kmp/lanterna-demo-kmp/build/reports/demos/${target}"
+            mkdir -p "$out_dir"
+            DEMO_OUTPUT_DIR="$out_dir" DEMO_TARGET="$target" "$exe"
+            ran=$((ran + 1))
+          done
+          if [ "$ran" -eq 0 ]; then
+            echo "No macOS native executable was produced."
+            exit 1
+          fi
+
+      - name: Upload macOS render artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-render-macos
+          path: |
+            kmp/lanterna-demo-kmp/build/reports/demos/macosX64/**
+            kmp/lanterna-demo-kmp/build/reports/demos/macosArm64/**
