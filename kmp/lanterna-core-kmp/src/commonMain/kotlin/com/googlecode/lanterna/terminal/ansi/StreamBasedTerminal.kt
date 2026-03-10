@@ -38,6 +38,14 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
+/**
+ * An abstract terminal implementing functionality for terminals using OutputStream/InputStream. You can extend from
+ * this class if your terminal implementation is using standard input and standard output but not ANSI escape codes (in
+ * which case you should extend ANSITerminal). This class also contains some automatic UTF-8 to VT100 character
+ * conversion when the terminal is not set to read UTF-8.
+ *
+ * @author Martin
+ */
 abstract class StreamBasedTerminal @Suppress("WeakerAccess") constructor(
     private val terminalInput: InputStream?,
     private val terminalOutput: OutputStream?,
@@ -65,10 +73,7 @@ abstract class StreamBasedTerminal @Suppress("WeakerAccess") constructor(
     }
 
     @Throws(IOException::class)
-    override fun putString(string: String?) {
-        if (string == null) {
-            return
-        }
+    override fun putString(string: String) {
         for (character in string) {
             putCharacter(character)
         }
@@ -83,8 +88,7 @@ abstract class StreamBasedTerminal @Suppress("WeakerAccess") constructor(
     }
 
     @Throws(IOException::class)
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray {
-        val effectiveTimeoutUnit = timeoutUnit ?: TimeUnit.MILLISECONDS
+    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit): ByteArray {
         synchronized(terminalOutput as Any) {
             terminalOutput.write(5)
             flush()
@@ -92,7 +96,7 @@ abstract class StreamBasedTerminal @Suppress("WeakerAccess") constructor(
 
         val startTime = System.currentTimeMillis()
         while (terminalInput!!.available() == 0) {
-            if (System.currentTimeMillis() - startTime > effectiveTimeoutUnit.toMillis(timeout.toLong())) {
+            if (System.currentTimeMillis() - startTime > timeoutUnit.toMillis(timeout.toLong())) {
                 return ByteArray(0)
             }
             try {
