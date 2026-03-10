@@ -1,3 +1,21 @@
+/*
+ * This file is part of lanterna (https://github.com/mabe02/lanterna).
+ *
+ * lanterna is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2010-2020 Martin Berglund
+ */
 package com.googlecode.lanterna.graphics
 
 import com.googlecode.lanterna.SGR
@@ -11,7 +29,14 @@ import com.googlecode.lanterna.screen.WrapBehaviour
 import java.util.Arrays
 import java.util.EnumSet
 
+/**
+ * Helper writer that forwards text operations to a [TextGraphics] backend while tracking cursor position, wrapping,
+ * and ANSI style state.
+ */
 class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraphicsWriter?>, ScreenTranslator {
+    /**
+     * Current cursor position in backend coordinates.
+     */
     var cursorPosition: TerminalPosition = TerminalPosition(0, 0)
 
     override var foregroundColor: TextColor? = null
@@ -22,9 +47,17 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
     override val activeModifiers: EnumSet<SGR>
         get() = EnumSet.copyOf(style)
 
+    /**
+     * Wrap behavior used when writing text that does not fit on the current line.
+     */
     var wrapBehaviour: WrapBehaviour = WrapBehaviour.WORD
+
+    /**
+     * Whether ANSI style escape sequences embedded in strings should be parsed and applied.
+     */
     var isStyleable: Boolean = true
 
+    // A word kept together when word-wrapping may contain multiple style chunks.
     private data class WordPart(
         val word: String,
         val wordLen: Int,
@@ -37,6 +70,9 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
         setStyleFrom(backend)
     }
 
+    /**
+     * Writes a string at the current cursor position and advances the cursor according to wrapping and style rules.
+     */
     fun putString(string: String): TextGraphicsWriter {
         val wordPart = StringBuilder()
         val originalStyle = StyleSet.Set(backend)
@@ -143,6 +179,9 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
         }
     }
 
+    /**
+     * Writes an explicit control character representation at the cursor.
+     */
     fun putControlChar(ch: Char) {
         val subst = when (ch) {
             '\u001b' -> '['
@@ -244,6 +283,9 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
         return this
     }
 
+    /**
+     * Translates a position into screen coordinates. If [pos] is null, [cursorPosition] is translated.
+     */
     override fun toScreenPosition(pos: TerminalPosition?): TerminalPosition? {
         return backend.toScreenPosition(pos ?: cursorPosition)
     }

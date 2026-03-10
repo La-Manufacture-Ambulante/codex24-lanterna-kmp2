@@ -65,6 +65,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         return resolved ?: defaultDefinition
     }
 
+    /**
+     * Adds or replaces a definition override for [clazz].
+     */
     @Synchronized
     fun addOverride(clazz: Class<*>?, foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
         val definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
@@ -90,6 +93,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         fun getRenderer(type: Class<T?>?): ComponentRenderer<T?>?
     }
 
+    /**
+     * Mutable [ThemeDefinition] used by [SimpleTheme].
+     */
     class Definition constructor(override val normal: ThemeStyle?) : ThemeDefinition {
         private var preLightBacking: ThemeStyle? = null
         private var selectedBacking: ThemeStyle? = null
@@ -226,6 +232,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
     }
 
     companion object {
+        /**
+         * Creates a preconfigured [SimpleTheme] similar to Lanterna's default simple style setup.
+         */
         fun makeTheme(
             activeIsBold: Boolean,
             baseForeground: TextColor?,

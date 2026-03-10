@@ -170,6 +170,9 @@ class FileDialog(
         component = contentPane
     }
 
+    /**
+     * Opens the dialog and returns the selected file, or `null` if cancelled.
+     */
     override fun showDialog(textGUI: WindowBasedTextGUI): File? {
         selectedFile = null
         super.showDialog(textGUI)

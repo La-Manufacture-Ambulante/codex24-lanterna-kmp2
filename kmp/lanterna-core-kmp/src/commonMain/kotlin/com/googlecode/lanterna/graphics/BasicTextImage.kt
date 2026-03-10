@@ -38,13 +38,22 @@ class BasicTextImage private constructor(
 
     private val buffer: Array<Array<TextCharacter>>
 
+    /**
+     * Creates a new [BasicTextImage] with the specified dimensions.
+     */
     constructor(columns: Int, rows: Int) : this(TerminalSize(columns, rows))
 
+    /**
+     * Creates a new [BasicTextImage] and initializes content to default blank characters.
+     */
     constructor(size: TerminalSize?) : this(
         requireNotNull(size) { "Cannot create BasicTextImage with null size" },
         TextCharacter(' ', TextColor.ANSI.DEFAULT, TextColor.ANSI.DEFAULT),
     )
 
+    /**
+     * Creates a new [BasicTextImage] with [initialContent] as filler character.
+     */
     constructor(size: TerminalSize?, initialContent: TextCharacter?) : this(
         requireNotNull(size) { "Cannot create BasicTextImage with null size" },
         emptyArray(),
@@ -74,6 +83,9 @@ class BasicTextImage private constructor(
         }
     }
 
+    /**
+     * Resizes this image, copying all overlapping content into the new image and filling uncovered cells with [filler].
+     */
     override fun resize(newSize: TerminalSize?, filler: TextCharacter?): BasicTextImage {
         val targetSize = requireNotNull(newSize) {
             "Cannot resize BasicTextImage with null newSize"
@@ -244,6 +256,9 @@ class BasicTextImage private constructor(
         }
     }
 
+    /**
+     * Creates a [TextGraphics] facade that writes directly into this image.
+     */
     override fun newTextGraphics(): TextGraphics {
         return object : AbstractTextGraphics() {
             override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
