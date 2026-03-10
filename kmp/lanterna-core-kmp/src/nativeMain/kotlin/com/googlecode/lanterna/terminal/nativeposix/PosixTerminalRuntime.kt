@@ -4,8 +4,10 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
+import platform.posix.STDIN_FILENO
 import platform.posix.STDOUT_FILENO
 import platform.posix.TIOCGWINSZ
+import platform.posix.isatty
 import platform.posix.ioctl
 import platform.posix.system
 import platform.posix.winsize
@@ -24,9 +26,19 @@ object PosixTerminalRuntime {
         }
     }
 
-    fun configureRawModeNoEcho(): Boolean = system("stty raw -echo") == 0
+    fun configureRawModeNoEcho(): Boolean {
+        if (isatty(STDIN_FILENO) != 1) {
+            return false
+        }
+        return system("stty raw -echo >/dev/null 2>&1") == 0
+    }
 
-    fun restoreCookedMode(): Boolean = system("stty sane") == 0
+    fun restoreCookedMode(): Boolean {
+        if (isatty(STDIN_FILENO) != 1) {
+            return false
+        }
+        return system("stty sane >/dev/null 2>&1") == 0
+    }
 
     private fun readWinsize(): Pair<Int, Int>? = memScoped {
         val ws = alloc<winsize>()

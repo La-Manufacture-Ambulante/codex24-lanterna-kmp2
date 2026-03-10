@@ -19,13 +19,13 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting
-        val commonTest by getting
-        val jvmMain by getting {
+        val commonMain by getting {
             dependencies {
                 implementation(project(":lanterna-core-kmp"))
             }
         }
+        val commonTest by getting
+        val jvmMain by getting
         val jvmTest by getting
     }
 }
