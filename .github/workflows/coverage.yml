@@ -70,26 +70,26 @@ jobs:
 
           if [ "$jacoco_xml_present" = "yes" ]; then
             python3 - "$xml_report" > coverage-values.env <<'PY'
-import sys
-import xml.etree.ElementTree as ET
+            import sys
+            import xml.etree.ElementTree as ET
 
-report_path = sys.argv[1]
-root = ET.parse(report_path).getroot()
-counters = {c.attrib.get("type"): c.attrib for c in root.findall("counter")}
+            report_path = sys.argv[1]
+            root = ET.parse(report_path).getroot()
+            counters = {c.attrib.get("type"): c.attrib for c in root.findall("counter")}
 
-line = counters.get("LINE", {})
-branch = counters.get("BRANCH", {})
+            line = counters.get("LINE", {})
+            branch = counters.get("BRANCH", {})
 
-line_missed = int(line.get("missed", "0"))
-line_covered = int(line.get("covered", "0"))
-branch_missed = int(branch.get("missed", "0"))
-branch_covered = int(branch.get("covered", "0"))
+            line_missed = int(line.get("missed", "0"))
+            line_covered = int(line.get("covered", "0"))
+            branch_missed = int(branch.get("missed", "0"))
+            branch_covered = int(branch.get("covered", "0"))
 
-print(f"line_missed={line_missed}")
-print(f"line_covered={line_covered}")
-print(f"branch_missed={branch_missed}")
-print(f"branch_covered={branch_covered}")
-PY
+            print(f"line_missed={line_missed}")
+            print(f"line_covered={line_covered}")
+            print(f"branch_missed={branch_missed}")
+            print(f"branch_covered={branch_covered}")
+            PY
             . ./coverage-values.env
           fi
 
