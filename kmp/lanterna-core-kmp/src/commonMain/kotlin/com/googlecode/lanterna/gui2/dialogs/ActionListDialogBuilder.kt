@@ -23,7 +23,8 @@ import java.util.ArrayList
 import java.util.Arrays
 
 /**
- * Dialog builder for the [ActionListDialog] class.
+ * Dialog builder for the [ActionListDialog] class, use this to create instances of that class and customize them.
+ * @author Martin
  */
 class ActionListDialogBuilder : AbstractDialogBuilder<ActionListDialogBuilder, ActionListDialog>("ActionListDialogBuilder") {
     private val actions: MutableList<Runnable> = ArrayList()

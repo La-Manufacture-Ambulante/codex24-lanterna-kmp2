@@ -32,6 +32,7 @@ import java.util.regex.Pattern
 
 /**
  * Modal text input dialog that prompts the user to enter a text string.
+ * @author Martin
  */
 class TextInputDialog internal constructor(
     title: String?,

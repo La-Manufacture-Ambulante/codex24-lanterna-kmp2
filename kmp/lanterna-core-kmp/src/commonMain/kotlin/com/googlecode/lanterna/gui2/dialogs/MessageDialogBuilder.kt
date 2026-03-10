@@ -23,7 +23,8 @@ import java.util.ArrayList
 import java.util.HashSet
 
 /**
- * Dialog builder for [MessageDialog].
+ * Dialog builder for the [MessageDialog] class, use this to create instances of that class and customize them.
+ * @author Martin
  */
 class MessageDialogBuilder {
     private var title: String = "MessageDialog"
@@ -33,7 +34,6 @@ class MessageDialogBuilder {
 
     init {
         extraWindowHints.add(Window.Hint.CENTERED)
-        extraWindowHints.add(Window.Hint.MODAL)
     }
 
     /**

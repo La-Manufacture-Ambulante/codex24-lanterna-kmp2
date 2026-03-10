@@ -23,7 +23,8 @@ import java.util.ArrayList
 import java.util.Arrays
 
 /**
- * Dialog builder for the [ListSelectDialog] class.
+ * Dialog builder for the [ListSelectDialog] class, use this to create instances of that class and customize them.
+ * @author Martin
  */
 class ListSelectDialogBuilder<T> : AbstractDialogBuilder<ListSelectDialogBuilder<T>, ListSelectDialog<T>>("ListSelectDialog") {
     private val content: MutableList<T> = ArrayList()

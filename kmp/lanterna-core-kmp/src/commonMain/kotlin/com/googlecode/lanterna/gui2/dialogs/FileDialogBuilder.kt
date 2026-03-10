@@ -23,7 +23,8 @@ import com.googlecode.lanterna.gui2.LocalizedString
 import java.io.File
 
 /**
- * Dialog builder for the [FileDialog] class.
+ * Dialog builder for the [FileDialog] class, use this to create instances of that class and customize them.
+ * @author Martin
  */
 class FileDialogBuilder : AbstractDialogBuilder<FileDialogBuilder, FileDialog>("FileDialog") {
     private var actionLabel: String? = LocalizedString.OK.toString()

@@ -31,6 +31,7 @@ import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 
 /**
  * Dialog that allows the user to select an item from a list.
+ * @author Martin
  */
 class ListSelectDialog<T> internal constructor(
     title: String?,

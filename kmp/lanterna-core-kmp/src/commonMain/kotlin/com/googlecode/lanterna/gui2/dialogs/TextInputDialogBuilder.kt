@@ -22,7 +22,8 @@ import com.googlecode.lanterna.TerminalSize
 import java.util.regex.Pattern
 
 /**
- * Dialog builder for the [TextInputDialog] class.
+ * Dialog builder for the [TextInputDialog] class, use this to create instances of that class and customize them.
+ * @author Martin
  */
 class TextInputDialogBuilder : AbstractDialogBuilder<TextInputDialogBuilder, TextInputDialog>("TextInputDialog") {
     private var initialContent: String? = ""

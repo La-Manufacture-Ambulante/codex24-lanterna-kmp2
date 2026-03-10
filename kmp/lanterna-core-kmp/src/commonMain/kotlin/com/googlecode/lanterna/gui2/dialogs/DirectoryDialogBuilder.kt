@@ -23,7 +23,10 @@ import com.googlecode.lanterna.gui2.LocalizedString
 import java.io.File
 
 /**
- * Dialog builder for the [DirectoryDialog] class.
+ * Dialog builder for the [DirectoryDialog] class, use this to create instances of that class and customize them.
+ *
+ * @author Martin
+ * @author FracPete (fracpete at waikato dot ac dot nz)
  */
 class DirectoryDialogBuilder : AbstractDialogBuilder<DirectoryDialogBuilder, DirectoryDialog>("DirectoryDialog") {
     private var actionLabel: String? = LocalizedString.OK.toString()
