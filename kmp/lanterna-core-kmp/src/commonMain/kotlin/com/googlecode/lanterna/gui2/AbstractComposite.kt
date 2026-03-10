@@ -18,173 +18,103 @@
  */
 package com.googlecode.lanterna.gui2
 
-import java.util.Collections
-
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.gui2.menu.MenuBar
-import com.googlecode.lanterna.input.KeyStroke
 
 /**
- * This abstract implementation contains common code for the different `Composite` implementations. A
- * `Composite` component is one that encapsulates a single component, like borders. Because of this, a
- * `Composite` can be seen as a special case of a `Container` and indeed this abstract class does in fact
- * implement the `Container` interface as well, to make the composites easier to work with internally.
- * @author martin
- * @param <T> Should always be itself, see `AbstractComponent`
-</T> */
-abstract class AbstractComposite<T : Container?>:AbstractComponent<T?>(), Composite, Container {
-
-private var component:Component? = null
-
- val childCount:Int
-@Override
-get() {
-return if (component != null) 1 else 0
-}
-
- val childrenList:List<Component?>?
-@Override
-get() {
-if (component != null)
-{
-return Collections.singletonList(component)
-}
-else
-{
-return Collections.emptyList()
-}
-}
-
- val children:Collection<Component?>?
-@Override
-get() {
-return childrenList
-}
-
- val isInvalid:Boolean
-@Override
-get() {
-return component != null && component!!.isInvalid()
-}
-/**
- * Default constructor
+ * Abstract implementation with common code for [Composite]s.
  */
-    init{
-component = null
-}
+abstract class AbstractComposite<T : Container?> : AbstractComponent<T>(), Composite, Container {
+    private var childComponent: Component? = null
 
-@Override
- fun setComponent(component:Component?) {
-val oldComponent = this.component
-if (oldComponent === component)
-{
-return 
-}
-if (oldComponent != null)
-{
-removeComponent(oldComponent)
-}
-if (component != null)
-{
-this.component = component
-component!!.onAdded(this)
-if (getBasePane() != null)
-{
-val menuBar = getBasePane().getMenuBar()
-if (menuBar == null || menuBar!!.isEmptyMenuBar())
-{
-component!!.setPosition(TerminalPosition.TOP_LEFT_CORNER)
-}
-else
-{
-component!!.setPosition(TerminalPosition.TOP_LEFT_CORNER.withRelativeRow(1))
-}
-}
-invalidate()
-}
-}
+    override open var component: Component?
+        get() = childComponent
+        set(value) {
+            val oldComponent = childComponent
+            if (oldComponent === value) {
+                return
+            }
+            if (oldComponent != null) {
+                removeComponent(oldComponent)
+            }
+            if (value != null) {
+                childComponent = value
+                value.onAdded(this)
+                if (basePane != null) {
+                    val menuBar: MenuBar? = basePane?.menuBar
+                    if (menuBar == null || menuBar.isEmptyMenuBar) {
+                        value.setPosition(TerminalPosition.TOP_LEFT_CORNER)
+                    } else {
+                        value.setPosition(TerminalPosition.TOP_LEFT_CORNER.withRelativeRow(1))
+                    }
+                }
+                invalidate()
+            }
+        }
 
-@Override
- fun getComponent():Component? {
-return component
-}
+    override val childCount: Int
+        get() = if (childComponent != null) 1 else 0
 
-@Override
- fun containsComponent(component:Component?):Boolean {
-return component != null && component!!.hasParent(this)
-}
+    override val childrenList: List<Component?>
+        get() = if (childComponent != null) listOf(childComponent) else emptyList()
 
-@Override
- fun removeComponent(component:Component?):Boolean {
-if (this.component === component)
-{
-this.component = null
-component!!.onRemoved(this)
-invalidate()
-return true
-}
-return false
-}
+    override val children: Collection<Component?>
+        get() = childrenList
 
-@Override
-@JvmStatic  fun invalidate() {
-super.invalidate()
+    override open val isInvalid: Boolean
+        get() = childComponent != null && childComponent?.isInvalid == true
 
- //Propagate
-        if (component != null)
-{
-component!!.invalidate()
-}
-}
+    override fun containsComponent(component: Component?): Boolean {
+        return component != null && component.hasParent(this)
+    }
 
-@Override
- fun nextFocus(fromThis:Interactable?):Interactable? {
-if (fromThis == null && getComponent() is Interactable)
-{
-val interactable = getComponent() as Interactable?
-if (interactable!!.isEnabled())
-{
-return interactable
-}
-}
-else if (getComponent() is Container)
-{
-return (getComponent() as Container).nextFocus(fromThis)
-}
-return null
-}
+    override open fun removeComponent(component: Component?): Boolean {
+        if (childComponent === component) {
+            childComponent = null
+            component?.onRemoved(this)
+            invalidate()
+            return true
+        }
+        return false
+    }
 
-@Override
- fun previousFocus(fromThis:Interactable?):Interactable? {
-if (fromThis == null && getComponent() is Interactable)
-{
-val interactable = getComponent() as Interactable?
-if (interactable!!.isEnabled())
-{
-return interactable
-}
-}
-else if (getComponent() is Container)
-{
-return (getComponent() as Container).previousFocus(fromThis)
-}
-return null
-}
+    override open fun invalidate() {
+        super.invalidate()
+        childComponent?.invalidate()
+    }
 
-@Override
- fun handleInput(key:KeyStroke?):Boolean {
-return false
-}
+    override open fun nextFocus(fromThis: Interactable?): Interactable? {
+        val current = component
+        if (fromThis == null && current is Interactable) {
+            return if (current.isEnabled) current else null
+        }
+        if (current is Container) {
+            return current.nextFocus(fromThis)
+        }
+        return null
+    }
 
-@Override
- fun updateLookupMap(interactableLookupMap:InteractableLookupMap?) {
-if (getComponent() is Container)
-{
-(getComponent() as Container).updateLookupMap(interactableLookupMap)
-}
-else if (getComponent() is Interactable)
-{
-interactableLookupMap!!.add(getComponent() as Interactable?)
-}
-}
+    override open fun previousFocus(fromThis: Interactable?): Interactable? {
+        val current = component
+        if (fromThis == null && current is Interactable) {
+            return if (current.isEnabled) current else null
+        }
+        if (current is Container) {
+            return current.previousFocus(fromThis)
+        }
+        return null
+    }
+
+    override open fun handleInput(key: com.googlecode.lanterna.input.KeyStroke?): Boolean {
+        return false
+    }
+
+    override open fun updateLookupMap(interactableLookupMap: InteractableLookupMap?) {
+        val current = component
+        if (current is Container) {
+            current.updateLookupMap(interactableLookupMap)
+        } else if (current is Interactable) {
+            interactableLookupMap?.add(current)
+        }
+    }
 }

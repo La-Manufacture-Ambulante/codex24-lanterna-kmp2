@@ -24,17 +24,16 @@ import java.util.Locale
  * This class permits to get easily localized strings about the UI.
  * @author silveryocha
  */
- class LocalizedUIBundle private constructor(bundleName:String?):BundleLocator(bundleName) {
-companion object {
+class LocalizedUIBundle private constructor(bundleName: String?) : BundleLocator(bundleName) {
+    companion object {
+        private val MY_BUNDLE = LocalizedUIBundle("multilang.lanterna-ui")
 
-private val MY_BUNDLE = LocalizedUIBundle("multilang.lanterna-ui")
+        fun get(key: String?, vararg parameters: String?): String? {
+            return get(Locale.getDefault(), key, *parameters)
+        }
 
- fun get(key:String?, vararg parameters:String?):String? {
-return get(Locale.getDefault(), key, parameters)
-}
-
- fun get(locale:Locale?, key:String?, vararg parameters:String?):String? {
-return MY_BUNDLE.getBundleKeyValue(locale, key, parameters as Array<Object?>?)
-}
-}
+        fun get(locale: Locale?, key: String?, vararg parameters: String?): String? {
+            return MY_BUNDLE.getBundleKeyValue(locale, key, *parameters)
+        }
+    }
 }

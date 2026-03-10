@@ -121,6 +121,5 @@ destinationColumnOffset:Int)
  * 
  * TextImage implementations of this method do **not** throw IOException.
  */
-    @Override
- fun scrollLines(firstLine:Int, lastLine:Int, distance:Int) 
+ override fun scrollLines(firstLine:Int, lastLine:Int, distance:Int) 
 }

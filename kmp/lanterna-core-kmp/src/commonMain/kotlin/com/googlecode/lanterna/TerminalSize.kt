@@ -171,12 +171,12 @@ return size
 }
 
 @Override
- fun toString():String? {
+ override fun toString():String {
 return "{" + columns + "x" + rows + "}"
 }
 
 @Override
- fun equals(obj:Object?):Boolean {
+ override fun equals(obj:Any?):Boolean {
 if (this === obj)
 {
 return true
@@ -186,12 +186,12 @@ if (!(obj is TerminalSize))
 return false
 }
 
-val other = obj as TerminalSize?
-return (columns == other!!.columns && rows == other!!.rows)
+val other = obj as TerminalSize
+return (columns == other.columns && rows == other.rows)
 }
 
 @Override
- fun hashCode():Int {
+ override fun hashCode():Int {
 var hash = 5
 hash = 53 * hash + this.columns
 hash = 53 * hash + this.rows

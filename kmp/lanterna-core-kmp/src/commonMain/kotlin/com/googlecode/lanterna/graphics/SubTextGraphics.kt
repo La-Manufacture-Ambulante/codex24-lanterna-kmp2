@@ -18,44 +18,40 @@
  */
 package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
 
 /**
- * This implementation of TextGraphics will take a 'proper' object and composite a view on top of it, by using a
- * top-left position and a size. Any attempts to put text outside of this area will be dropped.
- * @author Martin
+ * This implementation of TextGraphics will take a proper object and composite a view on top of it.
  */
-internal class SubTextGraphics(private val underlyingTextGraphics:TextGraphics?, private val topLeft:TerminalPosition?, screenRelative:TerminalPosition, @get:Override
- val size:TerminalSize?):AbstractTextGraphics() {
-@get:Override
-protected val screenLocation:TerminalPosition?
+internal class SubTextGraphics(
+    private val underlyingTextGraphics: TextGraphics,
+    private val topLeft: TerminalPosition,
+    screenRelative: TerminalPosition,
+    override val size: TerminalSize,
+) : AbstractTextGraphics() {
 
-init{
-this.screenLocation = screenRelative.plus(topLeft)
-}
+    override val screenLocation: TerminalPosition = requireNotNull(screenRelative.plus(topLeft))
 
-private fun project(column:Int, row:Int):TerminalPosition? {
-return topLeft!!.withRelative(column, row)
-}
+    private fun project(column: Int, row: Int): TerminalPosition {
+        return requireNotNull(topLeft.withRelative(column, row))
+    }
 
-@Override
- fun setCharacter(columnIndex:Int, rowIndex:Int, textCharacter:TextCharacter?):TextGraphics? {
-val writableArea = size
-if ((columnIndex < 0 || columnIndex >= writableArea!!.columns || 
-rowIndex < 0 || rowIndex >= writableArea!!.rows))
-{
-return this
-}
-val projectedPosition = project(columnIndex, rowIndex)
-underlyingTextGraphics!!.setCharacter(projectedPosition, textCharacter)
-return this
-}
+    override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
+        val writableArea = size
+        if (columnIndex < 0 || columnIndex >= writableArea.columns ||
+            rowIndex < 0 || rowIndex >= writableArea.rows
+        ) {
+            return this
+        }
+        val projectedPosition = project(columnIndex, rowIndex)
+        underlyingTextGraphics.setCharacter(projectedPosition, textCharacter)
+        return this
+    }
 
-@Override
- fun getCharacter(column:Int, row:Int):TextCharacter? {
-val projectedPosition = project(column, row)
-return underlyingTextGraphics!!.getCharacter(projectedPosition!!.column, projectedPosition!!.row)
-}
+    override fun getCharacter(column: Int, row: Int): TextCharacter? {
+        val projectedPosition = project(column, row)
+        return underlyingTextGraphics.getCharacter(projectedPosition.column, projectedPosition.row)
+    }
 }

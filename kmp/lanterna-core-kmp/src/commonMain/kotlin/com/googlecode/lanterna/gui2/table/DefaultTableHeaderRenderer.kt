@@ -18,29 +18,26 @@
  */
 package com.googlecode.lanterna.gui2.table
 
-import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.graphics.ThemeDefinition
+import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.gui2.TextGUIGraphics
 
 /**
- * Default implementation of `TableHeaderRenderer`
- * @author Martin
+ * Default implementation of [TableHeaderRenderer].
  */
- class DefaultTableHeaderRenderer<V>:TableHeaderRenderer<V?> {
-@Override
- fun getPreferredSize(table:Table<V?>?, label:String?, columnIndex:Int):TerminalSize {
-if (label == null)
-{
-return TerminalSize.ZERO
-}
-return TerminalSize(TerminalTextUtils.getColumnWidth(label), 1)
-}
+open class DefaultTableHeaderRenderer<V> : TableHeaderRenderer<V?> {
+    override fun getPreferredSize(table: Table<V?>?, label: String?, columnIndex: Int): TerminalSize {
+        if (label == null) {
+            return TerminalSize.ZERO
+        }
+        return TerminalSize(TerminalTextUtils.getColumnWidth(label), 1)
+    }
 
-@Override
- fun drawHeader(table:Table<V?>, label:String?, index:Int, textGUIGraphics:TextGUIGraphics) {
-val themeDefinition = table.getThemeDefinition()
-textGUIGraphics.applyThemeStyle(themeDefinition!!.getCustom("HEADER", themeDefinition!!.getNormal()))
-textGUIGraphics.putString(0, 0, label)
-}
+    override fun drawHeader(table: Table<V?>?, label: String?, index: Int, textGUIGraphics: TextGUIGraphics?) {
+        val activeTable = table ?: return
+        val activeGraphics = textGUIGraphics ?: return
+        val themeDefinition = activeTable.themeDefinition ?: return
+        activeGraphics.applyThemeStyle(themeDefinition.getCustom("HEADER", themeDefinition.normal))
+        activeGraphics.putString(0, 0, label)
+    }
 }

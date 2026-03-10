@@ -1,278 +1,298 @@
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
-import com.googlecode.lanterna.graphics.*
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.graphics.StyleSet
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.graphics.TextImage
+import com.googlecode.lanterna.graphics.ThemeStyle
+import com.googlecode.lanterna.graphics.NullTextGraphics
 import com.googlecode.lanterna.screen.TabBehaviour
 import java.util.EnumSet
 
 /**
  * Created by Martin on 2017-08-11.
  */
- class DefaultTextGUIGraphics internal constructor(@get:Override
- val textGUI:TextGUI?, private val backend:TextGraphics?):TextGUIGraphics {
+class DefaultTextGUIGraphics internal constructor(
+    override val textGUI: TextGUI?,
+    backend: TextGraphics?,
+) : TextGUIGraphics {
+    private val backend: TextGraphics = backend ?: NullTextGraphics(TerminalSize.ZERO)
 
- val size:TerminalSize?
-@Override
-get() {
-return backend!!.getSize()
-}
+    override val size: TerminalSize?
+        get() = backend.size
 
- val backgroundColor:TextColor?
-@Override
-get() {
-return backend!!.getBackgroundColor()
-}
+    override val backgroundColor: TextColor?
+        get() = backend.backgroundColor
 
- val foregroundColor:TextColor?
-@Override
-get() {
-return backend!!.getForegroundColor()
-}
+    override val foregroundColor: TextColor?
+        get() = backend.foregroundColor
 
- val activeModifiers:EnumSet<SGR?>?
-@Override
-get() {
-return backend!!.getActiveModifiers()
-}
+    override val activeModifiers: EnumSet<SGR>?
+        get() = backend.activeModifiers
 
- val tabBehaviour:TabBehaviour?
-@Override
-get() {
-return backend!!.getTabBehaviour()
-}
+    override val tabBehaviour: TabBehaviour?
+        get() = backend.tabBehaviour
 
-@Override
-@Throws(IllegalArgumentException::class)
- fun newTextGraphics(topLeftCorner:TerminalPosition?, size:TerminalSize?):DefaultTextGUIGraphics {
-return DefaultTextGUIGraphics(textGUI, backend!!.newTextGraphics(topLeftCorner, size))
-}
+    @Throws(IllegalArgumentException::class)
+    override fun newTextGraphics(topLeftCorner: TerminalPosition?, size: TerminalSize?): DefaultTextGUIGraphics {
+        return DefaultTextGUIGraphics(textGUI, backend.newTextGraphics(topLeftCorner, size)!!)
+    }
 
-@Override
- fun applyThemeStyle(themeStyle:ThemeStyle):DefaultTextGUIGraphics {
-setForegroundColor(themeStyle.getForeground())
-setBackgroundColor(themeStyle.getBackground())
-setModifiers(themeStyle.getSGRs())
-return this
-}
+    override fun applyThemeStyle(themeStyle: ThemeStyle?): DefaultTextGUIGraphics {
+        if (themeStyle != null) {
+            setForegroundColor(themeStyle.foreground)
+            setBackgroundColor(themeStyle.background)
+            setModifiers(themeStyle.sgRs)
+        }
+        return this
+    }
 
-@Override
- fun setBackgroundColor(backgroundColor:TextColor?):DefaultTextGUIGraphics {
-backend!!.setBackgroundColor(backgroundColor)
-return this
-}
+    override fun setBackgroundColor(backgroundColor: TextColor?): DefaultTextGUIGraphics {
+        backend.setBackgroundColor(backgroundColor)
+        return this
+    }
 
-@Override
- fun setForegroundColor(foregroundColor:TextColor?):DefaultTextGUIGraphics {
-backend!!.setForegroundColor(foregroundColor)
-return this
-}
+    override fun setForegroundColor(foregroundColor: TextColor?): DefaultTextGUIGraphics {
+        backend.setForegroundColor(foregroundColor)
+        return this
+    }
 
-@Override
- fun enableModifiers(vararg modifiers:SGR?):DefaultTextGUIGraphics {
-backend!!.enableModifiers(modifiers)
-return this
-}
+    override fun enableModifiers(vararg modifiers: SGR?): DefaultTextGUIGraphics {
+        backend.enableModifiers(*modifiers)
+        return this
+    }
 
-@Override
- fun disableModifiers(vararg modifiers:SGR?):DefaultTextGUIGraphics {
-backend!!.disableModifiers(modifiers)
-return this
-}
+    override fun disableModifiers(vararg modifiers: SGR?): DefaultTextGUIGraphics {
+        backend.disableModifiers(*modifiers)
+        return this
+    }
 
-@Override
- fun setModifiers(modifiers:EnumSet<SGR?>?):DefaultTextGUIGraphics {
-backend!!.setModifiers(modifiers)
-return this
-}
+    override fun setModifiers(modifiers: EnumSet<SGR>?): DefaultTextGUIGraphics {
+        backend.setModifiers(modifiers)
+        return this
+    }
 
-@Override
- fun clearModifiers():DefaultTextGUIGraphics {
-backend!!.clearModifiers()
-return this
-}
+    override fun clearModifiers(): DefaultTextGUIGraphics {
+        backend.clearModifiers()
+        return this
+    }
 
-@Override
- fun setTabBehaviour(tabBehaviour:TabBehaviour?):DefaultTextGUIGraphics {
-backend!!.setTabBehaviour(tabBehaviour)
-return this
-}
+    override fun setTabBehaviour(tabBehaviour: TabBehaviour?): DefaultTextGUIGraphics {
+        backend.setTabBehaviour(tabBehaviour)
+        return this
+    }
 
-@Override
- fun fill(c:Char):DefaultTextGUIGraphics {
-backend!!.fill(c)
-return this
-}
+    override fun fill(c: Char): DefaultTextGUIGraphics {
+        backend.fill(c)
+        return this
+    }
 
-@Override
- fun fillRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:Char):DefaultTextGUIGraphics {
-backend!!.fillRectangle(topLeft, size, character)
-return this
-}
+    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): DefaultTextGUIGraphics {
+        backend.fillRectangle(topLeft, size, character)
+        return this
+    }
 
-@Override
- fun fillRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:TextCharacter?):DefaultTextGUIGraphics {
-backend!!.fillRectangle(topLeft, size, character)
-return this
-}
+    override fun fillRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: TextCharacter?,
+    ): DefaultTextGUIGraphics {
+        backend.fillRectangle(topLeft, size, character)
+        return this
+    }
 
-@Override
- fun drawRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:Char):DefaultTextGUIGraphics {
-backend!!.drawRectangle(topLeft, size, character)
-return this
-}
+    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): DefaultTextGUIGraphics {
+        backend.drawRectangle(topLeft, size, character)
+        return this
+    }
 
-@Override
- fun drawRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:TextCharacter?):DefaultTextGUIGraphics {
-backend!!.drawRectangle(topLeft, size, character)
-return this
-}
+    override fun drawRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: TextCharacter?,
+    ): DefaultTextGUIGraphics {
+        backend.drawRectangle(topLeft, size, character)
+        return this
+    }
 
-@Override
- fun fillTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:Char):DefaultTextGUIGraphics {
-backend!!.fillTriangle(p1, p2, p3, character)
-return this
-}
+    override fun fillTriangle(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        p3: TerminalPosition?,
+        character: Char,
+    ): DefaultTextGUIGraphics {
+        backend.fillTriangle(p1, p2, p3, character)
+        return this
+    }
 
-@Override
- fun fillTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:TextCharacter?):DefaultTextGUIGraphics {
-backend!!.fillTriangle(p1, p2, p3, character)
-return this
-}
+    override fun fillTriangle(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        p3: TerminalPosition?,
+        character: TextCharacter?,
+    ): DefaultTextGUIGraphics {
+        backend.fillTriangle(p1, p2, p3, character)
+        return this
+    }
 
-@Override
- fun drawTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:Char):DefaultTextGUIGraphics {
-backend!!.drawTriangle(p1, p2, p3, character)
-return this
-}
+    override fun drawTriangle(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        p3: TerminalPosition?,
+        character: Char,
+    ): DefaultTextGUIGraphics {
+        backend.drawTriangle(p1, p2, p3, character)
+        return this
+    }
 
-@Override
- fun drawTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:TextCharacter?):DefaultTextGUIGraphics {
-backend!!.drawTriangle(p1, p2, p3, character)
-return this
-}
+    override fun drawTriangle(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        p3: TerminalPosition?,
+        character: TextCharacter?,
+    ): DefaultTextGUIGraphics {
+        backend.drawTriangle(p1, p2, p3, character)
+        return this
+    }
 
-@Override
- fun drawLine(fromPoint:TerminalPosition?, toPoint:TerminalPosition?, character:Char):DefaultTextGUIGraphics {
-backend!!.drawLine(fromPoint, toPoint, character)
-return this
-}
+    override fun drawLine(fromPoint: TerminalPosition?, toPoint: TerminalPosition?, character: Char): DefaultTextGUIGraphics {
+        backend.drawLine(fromPoint, toPoint, character)
+        return this
+    }
 
-@Override
- fun drawLine(fromPoint:TerminalPosition?, toPoint:TerminalPosition?, character:TextCharacter?):DefaultTextGUIGraphics {
-backend!!.drawLine(fromPoint, toPoint, character)
-return this
-}
+    override fun drawLine(
+        fromPoint: TerminalPosition?,
+        toPoint: TerminalPosition?,
+        character: TextCharacter?,
+    ): DefaultTextGUIGraphics {
+        backend.drawLine(fromPoint, toPoint, character)
+        return this
+    }
 
-@Override
- fun drawLine(fromX:Int, fromY:Int, toX:Int, toY:Int, character:Char):DefaultTextGUIGraphics {
-backend!!.drawLine(fromX, fromY, toX, toY, character)
-return this
-}
+    override fun drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, character: Char): DefaultTextGUIGraphics {
+        backend.drawLine(fromX, fromY, toX, toY, character)
+        return this
+    }
 
-@Override
- fun drawLine(fromX:Int, fromY:Int, toX:Int, toY:Int, character:TextCharacter?):DefaultTextGUIGraphics {
-backend!!.drawLine(fromX, fromY, toX, toY, character)
-return this
-}
+    override fun drawLine(
+        fromX: Int,
+        fromY: Int,
+        toX: Int,
+        toY: Int,
+        character: TextCharacter?,
+    ): DefaultTextGUIGraphics {
+        backend.drawLine(fromX, fromY, toX, toY, character)
+        return this
+    }
 
-@Override
- fun drawImage(topLeft:TerminalPosition?, image:TextImage?):DefaultTextGUIGraphics {
-backend!!.drawImage(topLeft, image)
-return this
-}
+    override fun drawImage(topLeft: TerminalPosition?, image: TextImage?): DefaultTextGUIGraphics {
+        backend.drawImage(topLeft, image)
+        return this
+    }
 
-@Override
- fun drawImage(topLeft:TerminalPosition?, image:TextImage?, sourceImageTopLeft:TerminalPosition?, sourceImageSize:TerminalSize?):DefaultTextGUIGraphics {
-backend!!.drawImage(topLeft, image, sourceImageTopLeft, sourceImageSize)
-return this
-}
+    override fun drawImage(
+        topLeft: TerminalPosition?,
+        image: TextImage?,
+        sourceImageTopLeft: TerminalPosition?,
+        sourceImageSize: TerminalSize?,
+    ): DefaultTextGUIGraphics {
+        backend.drawImage(topLeft, image, sourceImageTopLeft, sourceImageSize)
+        return this
+    }
 
-@Override
- fun setCharacter(position:TerminalPosition?, character:Char):DefaultTextGUIGraphics {
-backend!!.setCharacter(position, character)
-return this
-}
+    override fun setCharacter(position: TerminalPosition?, character: Char): DefaultTextGUIGraphics {
+        backend.setCharacter(position, character)
+        return this
+    }
 
-@Override
- fun setCharacter(position:TerminalPosition?, character:TextCharacter?):DefaultTextGUIGraphics {
-backend!!.setCharacter(position, character)
-return this
-}
+    override fun setCharacter(position: TerminalPosition?, character: TextCharacter?): DefaultTextGUIGraphics {
+        backend.setCharacter(position, character)
+        return this
+    }
 
-@Override
- fun setCharacter(column:Int, row:Int, character:Char):DefaultTextGUIGraphics {
-backend!!.setCharacter(column, row, character)
-return this
-}
+    override fun setCharacter(column: Int, row: Int, character: Char): DefaultTextGUIGraphics {
+        backend.setCharacter(column, row, character)
+        return this
+    }
 
-@Override
- fun setCharacter(column:Int, row:Int, character:TextCharacter?):DefaultTextGUIGraphics {
-backend!!.setCharacter(column, row, character)
-return this
-}
+    override fun setCharacter(column: Int, row: Int, character: TextCharacter?): DefaultTextGUIGraphics {
+        backend.setCharacter(column, row, character)
+        return this
+    }
 
-@Override
- fun putString(column:Int, row:Int, string:String?):DefaultTextGUIGraphics {
-backend!!.putString(column, row, string)
-return this
-}
+    override fun putString(column: Int, row: Int, string: String?): DefaultTextGUIGraphics {
+        backend.putString(column, row, string)
+        return this
+    }
 
-@Override
- fun putString(position:TerminalPosition?, string:String?):DefaultTextGUIGraphics {
-backend!!.putString(position, string)
-return this
-}
+    override fun putString(position: TerminalPosition?, string: String?): DefaultTextGUIGraphics {
+        backend.putString(position, string)
+        return this
+    }
 
-@Override
- fun putString(column:Int, row:Int, string:String?, extraModifier:SGR?, vararg optionalExtraModifiers:SGR?):DefaultTextGUIGraphics {
-backend!!.putString(column, row, string, extraModifier, optionalExtraModifiers)
-return this
-}
+    override fun putString(
+        column: Int,
+        row: Int,
+        string: String?,
+        extraModifier: SGR?,
+        vararg optionalExtraModifiers: SGR?,
+    ): DefaultTextGUIGraphics {
+        backend.putString(column, row, string, extraModifier, *optionalExtraModifiers)
+        return this
+    }
 
-@Override
- fun putString(position:TerminalPosition?, string:String?, extraModifier:SGR?, vararg optionalExtraModifiers:SGR?):DefaultTextGUIGraphics {
-backend!!.putString(position, string, extraModifier, optionalExtraModifiers)
-return this
-}
+    override fun putString(
+        position: TerminalPosition?,
+        string: String?,
+        extraModifier: SGR?,
+        vararg optionalExtraModifiers: SGR?,
+    ): DefaultTextGUIGraphics {
+        backend.putString(position, string, extraModifier, *optionalExtraModifiers)
+        return this
+    }
 
-@Override
- fun putString(column:Int, row:Int, string:String?, extraModifiers:Collection<SGR?>?):DefaultTextGUIGraphics {
-backend!!.putString(column, row, string, extraModifiers)
-return this
-}
+    override fun putString(
+        column: Int,
+        row: Int,
+        string: String?,
+        extraModifiers: kotlin.collections.Collection<SGR?>?,
+    ): DefaultTextGUIGraphics {
+        backend.putString(column, row, string, extraModifiers)
+        return this
+    }
 
-@Override
- fun putCSIStyledString(column:Int, row:Int, string:String?):DefaultTextGUIGraphics {
-backend!!.putCSIStyledString(column, row, string)
-return this
-}
+    override fun putCSIStyledString(column: Int, row: Int, string: String?): DefaultTextGUIGraphics {
+        backend.putCSIStyledString(column, row, string)
+        return this
+    }
 
-@Override
- fun putCSIStyledString(position:TerminalPosition?, string:String?):DefaultTextGUIGraphics {
-backend!!.putCSIStyledString(position, string)
-return this
-}
+    override fun putCSIStyledString(position: TerminalPosition?, string: String?): DefaultTextGUIGraphics {
+        backend.putCSIStyledString(position, string)
+        return this
+    }
 
-@Override
- fun getCharacter(column:Int, row:Int):TextCharacter? {
-return backend!!.getCharacter(column, row)
-}
+    override fun getCharacter(column: Int, row: Int): TextCharacter? {
+        return backend.getCharacter(column, row)
+    }
 
-@Override
- fun getCharacter(position:TerminalPosition?):TextCharacter? {
-return backend!!.getCharacter(position)
-}
+    override fun getCharacter(position: TerminalPosition?): TextCharacter? {
+        return backend.getCharacter(position)
+    }
 
-@Override
- fun setStyleFrom(source:StyleSet<*>):DefaultTextGUIGraphics {
-setBackgroundColor(source.getBackgroundColor())
-setForegroundColor(source.getForegroundColor())
-setModifiers(source.getActiveModifiers())
-return this
-}
+    override fun setStyleFrom(source: StyleSet<*>?): DefaultTextGUIGraphics {
+        if (source != null) {
+            setBackgroundColor(source.backgroundColor)
+            setForegroundColor(source.foregroundColor)
+            setModifiers(source.activeModifiers)
+        }
+        return this
+    }
 
-@Override
- fun toScreenPosition(pos:TerminalPosition?):TerminalPosition? {
-return backend!!.toScreenPosition(pos)
-}
+    override fun toScreenPosition(pos: TerminalPosition?): TerminalPosition? {
+        return backend.toScreenPosition(pos)
+    }
 }

@@ -41,7 +41,7 @@ package com.googlecode.lanterna
  * Returns the index of the row this position is representing, zero indexed (the first row has index 0)
  * @return Index of the row this position has
  */
-     val row:Int):Comparable<TerminalPosition?> {
+     val row:Int):Comparable<TerminalPosition> {
 
 /**
  * Creates a new TerminalPosition object representing a position with the same column index as this but with a
@@ -174,7 +174,7 @@ return TerminalPosition(x, y)
 }
 
 @Override
- fun compareTo(o:TerminalPosition):Int {
+ override operator fun compareTo(o:TerminalPosition):Int {
 if (row < o.row)
 {
 return -1
@@ -194,12 +194,12 @@ return 1
 }
 
 @Override
- fun toString():String? {
+ override fun toString():String {
 return "[" + column + ":" + row + "]"
 }
 
 @Override
- fun hashCode():Int {
+ override fun hashCode():Int {
 var hash = 3
 hash = 23 * hash + this.row
 hash = 23 * hash + this.column
@@ -211,17 +211,17 @@ return (this.column == columnIndex && this.row == rowIndex)
 }
 
 @Override
- fun equals(obj:Object?):Boolean {
+ override fun equals(obj:Any?):Boolean {
 if (obj == null)
 {
 return false
 }
-if (getClass() !== obj!!.getClass())
+if (this::class != obj::class)
 {
 return false
 }
-val other = obj as TerminalPosition?
-return this.row == other!!.row && this.column == other!!.column
+val other = obj as TerminalPosition
+return this.row == other.row && this.column == other.column
 }
 
 companion object {

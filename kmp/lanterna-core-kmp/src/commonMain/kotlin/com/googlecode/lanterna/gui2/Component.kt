@@ -196,7 +196,7 @@ import com.googlecode.lanterna.graphics.ThemeDefinition
  * Marks the component as invalid and requiring to be re-drawn at next opportunity. Container components should take
  * this as a hint to layout the child components again.
  */
-    @JvmStatic  fun invalidate() 
+    fun invalidate() 
 
 /**
  * Takes a border object and moves this component inside it and then returns it again. This makes it easy to quickly

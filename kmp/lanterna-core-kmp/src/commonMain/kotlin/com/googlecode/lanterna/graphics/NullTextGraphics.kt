@@ -18,258 +18,141 @@
  */
 package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.*
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.screen.TabBehaviour
 import java.util.Arrays
 import java.util.EnumSet
 
 /**
- * TextGraphics implementation that does nothing, but has a pre-defined size
- * @author martin
+ * TextGraphics implementation that does nothing, but has a pre-defined size.
  */
-internal class NullTextGraphics/**
- * Creates a new `NullTextGraphics` that will return the specified size value if asked how big it is but other
- * than that ignore all other calls.
- * @param size The size to report
- */
-    (@get:Override
- val size:TerminalSize?):TextGraphics {
-private var foregroundColor:TextColor? = null
-private var backgroundColor:TextColor? = null
-private var tabBehaviour:TabBehaviour? = null
-private val activeModifiers:EnumSet<SGR?>?
+internal class NullTextGraphics(override val size: TerminalSize?) : TextGraphics {
+    override var foregroundColor: TextColor? = TextColor.ANSI.DEFAULT
+    override var backgroundColor: TextColor? = TextColor.ANSI.DEFAULT
+    override var tabBehaviour: TabBehaviour? = TabBehaviour.ALIGN_TO_COLUMN_4
 
-init{
-this.foregroundColor = TextColor.ANSI.DEFAULT
-this.backgroundColor = TextColor.ANSI.DEFAULT
-this.tabBehaviour = TabBehaviour.ALIGN_TO_COLUMN_4
-this.activeModifiers = EnumSet.noneOf(SGR::class.java)
-}
+    private val styleSet: EnumSet<SGR> = EnumSet.noneOf(SGR::class.java)
 
-/**
- * The default implementation just returns null, as this Graphics never writes anywhere.
- * @param pos position to translate
- * @return null
- */
-     fun toScreenPosition(pos:TerminalPosition?):TerminalPosition? {
-return null
-}
+    override val activeModifiers: EnumSet<SGR>
+        get() = EnumSet.copyOf(styleSet)
 
-@Override
-@Throws(IllegalArgumentException::class)
- fun newTextGraphics(topLeftCorner:TerminalPosition?, size:TerminalSize?):TextGraphics? {
-return this
-}
+    override fun toScreenPosition(pos: TerminalPosition?): TerminalPosition? {
+        return null
+    }
 
-@Override
- fun getBackgroundColor():TextColor? {
-return backgroundColor
-}
+    override fun newTextGraphics(topLeftCorner: TerminalPosition?, size: TerminalSize?): TextGraphics {
+        return this
+    }
 
-@Override
- fun setBackgroundColor(backgroundColor:TextColor?):TextGraphics? {
-this.backgroundColor = backgroundColor
-return this
-}
+    override fun setBackgroundColor(backgroundColor: TextColor?): TextGraphics {
+        this.backgroundColor = backgroundColor
+        return this
+    }
 
-@Override
- fun getForegroundColor():TextColor? {
-return foregroundColor
-}
+    override fun setForegroundColor(foregroundColor: TextColor?): TextGraphics {
+        this.foregroundColor = foregroundColor
+        return this
+    }
 
-@Override
- fun setForegroundColor(foregroundColor:TextColor?):TextGraphics? {
-this.foregroundColor = foregroundColor
-return this
-}
+    override fun enableModifiers(vararg modifiers: SGR?): TextGraphics {
+        styleSet.addAll(Arrays.asList(*modifiers).filterNotNull())
+        return this
+    }
 
-@Override
- fun enableModifiers(vararg modifiers:SGR?):TextGraphics? {
-activeModifiers!!.addAll(Arrays.asList(modifiers))
-return this
-}
+    override fun disableModifiers(vararg modifiers: SGR?): TextGraphics {
+        styleSet.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
+        return this
+    }
 
-@Override
- fun disableModifiers(vararg modifiers:SGR?):TextGraphics? {
-activeModifiers!!.removeAll(Arrays.asList(modifiers))
-return this
-}
+    override fun setModifiers(modifiers: EnumSet<SGR>?): TextGraphics {
+        clearModifiers()
+        if (modifiers != null) {
+            styleSet.addAll(modifiers)
+        }
+        return this
+    }
 
-@Override
- fun setModifiers(modifiers:EnumSet<SGR?>?):TextGraphics? {
-clearModifiers()
-activeModifiers!!.addAll(modifiers)
-return this
-}
+    override fun clearModifiers(): TextGraphics {
+        styleSet.clear()
+        return this
+    }
 
-@Override
- fun clearModifiers():TextGraphics? {
-activeModifiers!!.clear()
-return this
-}
+    override fun setTabBehaviour(tabBehaviour: TabBehaviour?): TextGraphics {
+        this.tabBehaviour = tabBehaviour
+        return this
+    }
 
-@Override
- fun getActiveModifiers():EnumSet<SGR?>? {
-return EnumSet.copyOf(activeModifiers)
-}
+    override fun fill(c: Char): TextGraphics = this
 
-@Override
- fun getTabBehaviour():TabBehaviour? {
-return tabBehaviour
-}
+    override fun setCharacter(column: Int, row: Int, character: Char): TextGraphics = this
 
-@Override
- fun setTabBehaviour(tabBehaviour:TabBehaviour?):TextGraphics? {
-this.tabBehaviour = tabBehaviour
-return this
-}
+    override fun setCharacter(column: Int, row: Int, character: TextCharacter?): TextGraphics = this
 
-@Override
- fun fill(c:Char):TextGraphics? {
-return this
-}
+    override fun setCharacter(position: TerminalPosition?, character: Char): TextGraphics = this
 
-@Override
- fun setCharacter(column:Int, row:Int, character:Char):TextGraphics? {
-return this
-}
+    override fun setCharacter(position: TerminalPosition?, character: TextCharacter?): TextGraphics = this
 
-@Override
- fun setCharacter(column:Int, row:Int, character:TextCharacter?):TextGraphics? {
-return this
-}
+    override fun drawLine(fromPoint: TerminalPosition?, toPoint: TerminalPosition?, character: Char): TextGraphics = this
 
-@Override
- fun setCharacter(position:TerminalPosition?, character:Char):TextGraphics? {
-return this
-}
+    override fun drawLine(fromPoint: TerminalPosition?, toPoint: TerminalPosition?, character: TextCharacter?): TextGraphics = this
 
-@Override
- fun setCharacter(position:TerminalPosition?, character:TextCharacter?):TextGraphics? {
-return this
-}
+    override fun drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, character: Char): TextGraphics = this
 
-@Override
- fun drawLine(fromPoint:TerminalPosition?, toPoint:TerminalPosition?, character:Char):TextGraphics? {
-return this
-}
+    override fun drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, character: TextCharacter?): TextGraphics = this
 
-@Override
- fun drawLine(fromPoint:TerminalPosition?, toPoint:TerminalPosition?, character:TextCharacter?):TextGraphics? {
-return this
-}
+    override fun drawTriangle(p1: TerminalPosition?, p2: TerminalPosition?, p3: TerminalPosition?, character: Char): TextGraphics = this
 
-@Override
- fun drawLine(fromX:Int, fromY:Int, toX:Int, toY:Int, character:Char):TextGraphics? {
-return this
-}
+    override fun drawTriangle(p1: TerminalPosition?, p2: TerminalPosition?, p3: TerminalPosition?, character: TextCharacter?): TextGraphics = this
 
-@Override
- fun drawLine(fromX:Int, fromY:Int, toX:Int, toY:Int, character:TextCharacter?):TextGraphics? {
-return this
-}
+    override fun fillTriangle(p1: TerminalPosition?, p2: TerminalPosition?, p3: TerminalPosition?, character: Char): TextGraphics = this
 
-@Override
- fun drawTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:Char):TextGraphics? {
-return this
-}
+    override fun fillTriangle(p1: TerminalPosition?, p2: TerminalPosition?, p3: TerminalPosition?, character: TextCharacter?): TextGraphics = this
 
-@Override
- fun drawTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:TextCharacter?):TextGraphics? {
-return this
-}
+    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGraphics = this
 
-@Override
- fun fillTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:Char):TextGraphics? {
-return this
-}
+    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: TextCharacter?): TextGraphics = this
 
-@Override
- fun fillTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:TextCharacter?):TextGraphics? {
-return this
-}
+    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGraphics = this
 
-@Override
- fun drawRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:Char):TextGraphics? {
-return this
-}
+    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: TextCharacter?): TextGraphics = this
 
-@Override
- fun drawRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:TextCharacter?):TextGraphics? {
-return this
-}
+    override fun drawImage(topLeft: TerminalPosition?, image: TextImage?): TextGraphics = this
 
-@Override
- fun fillRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:Char):TextGraphics? {
-return this
-}
+    override fun drawImage(
+        topLeft: TerminalPosition?,
+        image: TextImage?,
+        sourceImageTopLeft: TerminalPosition?,
+        sourceImageSize: TerminalSize?,
+    ): TextGraphics = this
 
-@Override
- fun fillRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:TextCharacter?):TextGraphics? {
-return this
-}
+    override fun putString(column: Int, row: Int, string: String?): TextGraphics = this
 
-@Override
- fun drawImage(topLeft:TerminalPosition?, image:TextImage?):TextGraphics? {
-return this
-}
+    override fun putString(position: TerminalPosition?, string: String?): TextGraphics = this
 
-@Override
- fun drawImage(topLeft:TerminalPosition?, image:TextImage?, sourceImageTopLeft:TerminalPosition?, sourceImageSize:TerminalSize?):TextGraphics? {
-return this
-}
+    override fun putString(column: Int, row: Int, string: String?, extraModifier: SGR?, vararg optionalExtraModifiers: SGR?): TextGraphics = this
 
-@Override
- fun putString(column:Int, row:Int, string:String?):TextGraphics? {
-return this
-}
+    override fun putString(position: TerminalPosition?, string: String?, extraModifier: SGR?, vararg optionalExtraModifiers: SGR?): TextGraphics = this
 
-@Override
- fun putString(position:TerminalPosition?, string:String?):TextGraphics? {
-return this
-}
+    override fun putString(column: Int, row: Int, string: String?, extraModifiers: kotlin.collections.Collection<SGR?>?): TextGraphics = this
 
-@Override
- fun putString(column:Int, row:Int, string:String?, extraModifier:SGR?, vararg optionalExtraModifiers:SGR?):TextGraphics? {
-return this
-}
+    override fun putCSIStyledString(column: Int, row: Int, string: String?): TextGraphics = this
 
-@Override
- fun putString(position:TerminalPosition?, string:String?, extraModifier:SGR?, vararg optionalExtraModifiers:SGR?):TextGraphics? {
-return this
-}
+    override fun putCSIStyledString(position: TerminalPosition?, string: String?): TextGraphics = this
 
-@Override
- fun putString(column:Int, row:Int, string:String?, extraModifiers:Collection<SGR?>?):TextGraphics? {
-return this
-}
+    override fun getCharacter(column: Int, row: Int): TextCharacter? = null
 
-@Override
- fun putCSIStyledString(column:Int, row:Int, string:String?):TextGraphics? {
-return this
-}
+    override fun getCharacter(position: TerminalPosition?): TextCharacter? = null
 
-@Override
- fun putCSIStyledString(position:TerminalPosition?, string:String?):TextGraphics? {
-return this
-}
-
-@Override
- fun getCharacter(column:Int, row:Int):TextCharacter? {
-return null
-}
-
-@Override
- fun getCharacter(position:TerminalPosition?):TextCharacter? {
-return null
-}
-
-@Override
- fun setStyleFrom(source:StyleSet<*>):TextGraphics? {
-setBackgroundColor(source.getBackgroundColor())
-setForegroundColor(source.getForegroundColor())
-setModifiers(source.getActiveModifiers())
-return this
-}
-
+    override fun setStyleFrom(source: StyleSet<*>?): TextGraphics {
+        if (source != null) {
+            setBackgroundColor(source.backgroundColor)
+            setForegroundColor(source.foregroundColor)
+            setModifiers(source.activeModifiers)
+        }
+        return this
+    }
 }

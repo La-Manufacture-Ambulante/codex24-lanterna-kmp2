@@ -19,28 +19,23 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.graphics.ThemeDefinition
 
 /**
  * Special component that is by default displayed as the background of a text gui unless you override it with something
  * else. Themes can control how this backdrop is drawn, the normal is one solid color.
  */
- class GUIBackdrop:EmptySpace() {
-@Override
-protected fun createDefaultRenderer():ComponentRenderer<EmptySpace?>? {
-return object:ComponentRenderer<EmptySpace?>() {
+class GUIBackdrop : EmptySpace() {
+    override fun createDefaultRenderer(): ComponentRenderer<EmptySpace?> {
+        return object : ComponentRenderer<EmptySpace?> {
+            override fun getPreferredSize(component: EmptySpace?): TerminalSize {
+                return TerminalSize.ONE
+            }
 
-@Override
- fun getPreferredSize(component:EmptySpace?):TerminalSize {
-return TerminalSize.ONE
-}
-
-@Override
- fun drawComponent(graphics:TextGUIGraphics?, component:EmptySpace?) {
-val themeDefinition = component!!.getTheme().getDefinition(GUIBackdrop::class.java)
-graphics!!.applyThemeStyle(themeDefinition!!.getNormal())
-graphics!!.fill(themeDefinition!!.getCharacter("BACKGROUND", ' '))
-}
-}
-}
+            override fun drawComponent(graphics: TextGUIGraphics?, component: EmptySpace?) {
+                val themeDefinition = component!!.theme!!.getDefinition(GUIBackdrop::class.java)!!
+                graphics!!.applyThemeStyle(themeDefinition.normal)
+                graphics.fill(themeDefinition.getCharacter("BACKGROUND", ' '))
+            }
+        }
+    }
 }

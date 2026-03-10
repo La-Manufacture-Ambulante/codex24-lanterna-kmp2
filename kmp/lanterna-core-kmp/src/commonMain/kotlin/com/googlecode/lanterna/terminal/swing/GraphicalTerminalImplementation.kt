@@ -91,7 +91,7 @@ internal abstract class GraphicalTerminalImplementation(
     private var lastComponentWidth: Int
     private var lastComponentHeight: Int
 
-    protected var mouseCaptureMode: MouseCaptureMode? = null
+    protected var activeMouseCaptureMode: MouseCaptureMode? = null
 
     private var backbuffer: BufferedImage? = null
     private var copybuffer: BufferedImage? = null
@@ -128,8 +128,8 @@ internal abstract class GraphicalTerminalImplementation(
 
     internal val preferredSize: java.awt.Dimension
         @Synchronized get() = java.awt.Dimension(
-            fontWidth * requireNotNull(virtualTerminal.getTerminalSize()).columns,
-            fontHeight * requireNotNull(virtualTerminal.getTerminalSize()).rows,
+            fontWidth * requireNotNull(virtualTerminal.terminalSize).columns,
+            fontHeight * requireNotNull(virtualTerminal.terminalSize).rows,
         )
 
     @Synchronized
@@ -185,7 +185,7 @@ internal abstract class GraphicalTerminalImplementation(
             val columns = currentWidth / fontWidth
             val rows = currentHeight / fontHeight
             val terminalSize = requireNotNull(
-                requireNotNull(virtualTerminal.getTerminalSize()).withColumns(columns),
+                requireNotNull(virtualTerminal.terminalSize).withColumns(columns),
             ).withRows(rows)
             virtualTerminal.setTerminalSize(terminalSize)
             needToUpdateBackBuffer = true
@@ -227,7 +227,7 @@ internal abstract class GraphicalTerminalImplementation(
         val currentFontWidth = fontWidth
         val currentFontHeight = fontHeight
         val cursorPosition = requireNotNull(virtualTerminal.cursorBufferPosition)
-        val viewportSize = requireNotNull(virtualTerminal.getTerminalSize())
+        val viewportSize = requireNotNull(virtualTerminal.terminalSize)
         val firstVisibleRowIndex = scrollOffsetFromTopInPixels / currentFontHeight
         val lastVisibleRowIndex = (scrollOffsetFromTopInPixels + height) / currentFontHeight
 
@@ -370,7 +370,7 @@ internal abstract class GraphicalTerminalImplementation(
             return
         }
 
-        val viewportSize = requireNotNull(virtualTerminal.getTerminalSize())
+        val viewportSize = requireNotNull(virtualTerminal.terminalSize)
         val cursorPosition = requireNotNull(virtualTerminal.cursorBufferPosition)
         dirtyCellsLookupTable.resetAndInitialize(firstRowOffset, lastRowOffset, viewportSize.columns)
         dirtyCellsLookupTable.setDirty(cursorPosition)
@@ -389,11 +389,9 @@ internal abstract class GraphicalTerminalImplementation(
             dirtyCellsLookupTable.setDirty(previousCursorPosition)
         }
 
-        val dirtyCells: TreeSet<TerminalPosition?> = requireNotNull(virtualTerminal.andResetDirtyCells)
+        val dirtyCells: TreeSet<TerminalPosition> = virtualTerminal.andResetDirtyCells
         for (position in dirtyCells) {
-            if (position != null) {
-                dirtyCellsLookupTable.setDirty(position)
-            }
+            dirtyCellsLookupTable.setDirty(position)
         }
     }
 
@@ -636,7 +634,7 @@ internal abstract class GraphicalTerminalImplementation(
     }
 
     override val terminalSize: TerminalSize?
-        get() = virtualTerminal.getTerminalSize()
+        get() = virtualTerminal.terminalSize
 
     override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray = enquiryString.toByteArray()
 
@@ -679,7 +677,7 @@ internal abstract class GraphicalTerminalImplementation(
     }
 
     fun setMouseCaptureMode(mouseCaptureMode: MouseCaptureMode?) {
-        this.mouseCaptureMode = mouseCaptureMode
+        this.activeMouseCaptureMode = mouseCaptureMode
         updateMouseCaptureMode(mouseCaptureMode)
     }
 

@@ -19,132 +19,108 @@
 package com.googlecode.lanterna.terminal.virtual
 
 import com.googlecode.lanterna.TextCharacter
-
 import java.util.ArrayList
 import java.util.LinkedList
+import java.util.ListIterator
 
 /**
  * This class is used to store lines of text inside of a terminal emulator. As used by [DefaultVirtualTerminal], it keeps
  * two [TextBuffer]s, one for private mode and one for normal mode and it can switch between them as needed.
  */
 internal class TextBuffer {
+    private val lines: LinkedList<MutableList<TextCharacter>> = LinkedList()
 
-private val lines:LinkedList<List<TextCharacter?>?>?
+    val lineCount: Int
+        @Synchronized get() = lines.size
 
- val lineCount:Int
-@Synchronized get() {
-return lines!!.size()
-}
-init{
-this.lines = LinkedList()
-newLine()
-}
+    init {
+        newLine()
+    }
 
-@Synchronized @JvmStatic  fun newLine() {
-lines!!.add(ArrayList(200))
-}
+    @Synchronized
+    fun newLine() {
+        lines.add(ArrayList(200))
+    }
 
-@Synchronized  fun removeTopLines(numberOfLinesToRemove:Int) {
-for (i in 0 until numberOfLinesToRemove)
-{
-lines!!.removeFirst()
-}
-}
+    @Synchronized
+    fun removeTopLines(numberOfLinesToRemove: Int) {
+        repeat(numberOfLinesToRemove) {
+            lines.removeFirst()
+        }
+    }
 
-@Synchronized @JvmStatic  fun clear() {
-lines!!.clear()
-newLine()
-}
+    @Synchronized
+    fun clear() {
+        lines.clear()
+        newLine()
+    }
 
- fun getLinesFrom(rowNumber:Int):ListIterator<List<TextCharacter?>?>? {
-return lines!!.listIterator(rowNumber)
-}
+    fun getLinesFrom(rowNumber: Int): MutableListIterator<MutableList<TextCharacter>> = lines.listIterator(rowNumber)
 
-@Synchronized  fun setCharacter(lineNumber:Int, columnIndex:Int, textCharacter:TextCharacter?):Int {
-var textCharacter = textCharacter
-if (lineNumber < 0 || columnIndex < 0)
-{
-throw IllegalArgumentException(("Illegal argument to TextBuffer.setCharacter(..), lineNumber = " + 
-lineNumber + ", columnIndex = " + columnIndex))
-}
-if (textCharacter == null)
-{
-textCharacter = TextCharacter.DEFAULT_CHARACTER
-}
-while (lineNumber >= lines!!.size())
-{
-newLine()
-}
-val line = lines!!.get(lineNumber)
-while (line!!.size() <= columnIndex)
-{
-line!!.add(TextCharacter.DEFAULT_CHARACTER)
-}
+    @Synchronized
+    fun setCharacter(lineNumber: Int, columnIndex: Int, textCharacter: TextCharacter?): Int {
+        if (lineNumber < 0 || columnIndex < 0) {
+            throw IllegalArgumentException(
+                "Illegal argument to TextBuffer.setCharacter(..), lineNumber = $lineNumber, columnIndex = $columnIndex",
+            )
+        }
+        val resolvedCharacter = textCharacter ?: TextCharacter.DEFAULT_CHARACTER
+        while (lineNumber >= lines.size) {
+            newLine()
+        }
+        val line = lines[lineNumber]
+        while (line.size <= columnIndex) {
+            line.add(TextCharacter.DEFAULT_CHARACTER)
+        }
 
- // Default
         var returnStyle = 0
+        if (line[columnIndex].isDoubleWidth) {
+            line[columnIndex + 1] = line[columnIndex].withCharacter(' ')
+            returnStyle = 1
+        } else if (line[columnIndex] === DOUBLE_WIDTH_CHAR_PADDING) {
+            line[columnIndex - 1] = TextCharacter.DEFAULT_CHARACTER
+            returnStyle = 2
+        }
+        line[columnIndex] = resolvedCharacter
 
- // Check if we are overwriting a double-width character, in that case we need to reset the other half
-        if (line!!.get(columnIndex).isDoubleWidth())
-{
-line!!.set(columnIndex + 1, line!!.get(columnIndex).withCharacter(' '))
-returnStyle = 1 // this character and the one to the right
-}
-else if (line!!.get(columnIndex) === DOUBLE_WIDTH_CHAR_PADDING)
-{
-line!!.set(columnIndex - 1, TextCharacter.DEFAULT_CHARACTER)
-returnStyle = 2 // this character and the one to the left
-}
-line!!.set(columnIndex, textCharacter)
-
-if (textCharacter!!.isDoubleWidth())
-{
- // We don't report this column as dirty (yet), it's implied since a double-width character is reported
+        if (resolvedCharacter.isDoubleWidth) {
             setCharacter(lineNumber, columnIndex + 1, DOUBLE_WIDTH_CHAR_PADDING)
-}
-return returnStyle
-}
+        }
+        return returnStyle
+    }
 
-@Synchronized  fun getCharacter(lineNumber:Int, columnIndex:Int):TextCharacter? {
-if (lineNumber < 0 || columnIndex < 0)
-{
-throw IllegalArgumentException(("Illegal argument to TextBuffer.getCharacter(..), lineNumber = " + 
-lineNumber + ", columnIndex = " + columnIndex))
-}
-if (lineNumber >= lines!!.size())
-{
-return TextCharacter.DEFAULT_CHARACTER
-}
-val line = lines!!.get(lineNumber)
-if (line!!.size() <= columnIndex)
-{
-return TextCharacter.DEFAULT_CHARACTER
-}
-val textCharacter = line!!.get(columnIndex)
-if (textCharacter === DOUBLE_WIDTH_CHAR_PADDING)
-{
-return line!!.get(columnIndex - 1)
-}
-return textCharacter
-}
+    @Synchronized
+    fun getCharacter(lineNumber: Int, columnIndex: Int): TextCharacter {
+        if (lineNumber < 0 || columnIndex < 0) {
+            throw IllegalArgumentException(
+                "Illegal argument to TextBuffer.getCharacter(..), lineNumber = $lineNumber, columnIndex = $columnIndex",
+            )
+        }
+        if (lineNumber >= lines.size) {
+            return TextCharacter.DEFAULT_CHARACTER
+        }
+        val line = lines[lineNumber]
+        if (line.size <= columnIndex) {
+            return TextCharacter.DEFAULT_CHARACTER
+        }
+        val textCharacter = line[columnIndex]
+        return if (textCharacter === DOUBLE_WIDTH_CHAR_PADDING) line[columnIndex - 1] else textCharacter
+    }
 
-@Override
- fun toString():String? {
-val bo = StringBuilder()
-for (line in lines!!)
-{
-val b = StringBuilder()
-for (c in line!!)
-{
-b.append(c!!.getCharacterString())
-}
-bo.append(b.toString().replaceFirst("\\s+$", ""))
-bo.append('\n')
-}
-return bo.toString()
-}
+    override fun toString(): String {
+        val builder = StringBuilder()
+        for (line in lines) {
+            val lineBuilder = StringBuilder()
+            for (character in line) {
+                lineBuilder.append(character.characterString)
+            }
+            builder.append(lineBuilder.toString().replaceFirst("\\s+$".toRegex(), ""))
+            builder.append('\n')
+        }
+        return builder.toString()
+    }
 
-companion object {
-private val DOUBLE_WIDTH_CHAR_PADDING = TextCharacter(' ')
-}
+    companion object {
+        private val DOUBLE_WIDTH_CHAR_PADDING = TextCharacter(' ')
+    }
 }

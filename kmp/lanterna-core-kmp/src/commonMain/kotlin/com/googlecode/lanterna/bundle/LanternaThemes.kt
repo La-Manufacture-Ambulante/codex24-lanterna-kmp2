@@ -21,10 +21,8 @@ package com.googlecode.lanterna.bundle
 import com.googlecode.lanterna.graphics.PropertyTheme
 import com.googlecode.lanterna.graphics.Theme
 import com.googlecode.lanterna.gui2.AbstractTextGUI
-
 import java.io.FileInputStream
 import java.io.IOException
-import java.io.InputStream
 import java.util.ArrayList
 import java.util.Properties
 import java.util.concurrent.ConcurrentHashMap
@@ -33,108 +31,63 @@ import java.util.concurrent.ConcurrentHashMap
  * Catalog of available themes, this class will initially contain the themes bundled with Lanterna but it is possible to
  * add additional themes as well.
  */
- object LanternaThemes {
+object LanternaThemes {
+    private val REGISTERED_THEMES = ConcurrentHashMap<String, Theme>()
 
-private val REGISTERED_THEMES = ConcurrentHashMap()
+    val registeredThemes: Collection<String?>
+        get() = ArrayList(REGISTERED_THEMES.keys)
 
-/**
- * Returns a collection of all themes registered with this class, by their name. To get the associated [Theme]
- * object, please use [.getRegisteredTheme].
- * @return Collection of theme names
- */
-     val registeredThemes:Collection<String?>
-get() {
-return ArrayList(REGISTERED_THEMES.keySet())
-}
+    val defaultTheme: Theme?
+        get() = REGISTERED_THEMES["default"]
 
-/**
- * Returns lanterna's default theme which is used if no other theme is selected.
- * @return Lanterna's default theme, as a [Theme]
- */
-     val defaultTheme:Theme?
-get() {
-return REGISTERED_THEMES.get("default")
-}
-
-init{
- // Register the default theme first
+    init {
         val defaultThemeProperties = loadPropTheme("default-theme.properties")
-if (defaultThemeProperties != null)
-{
-registerPropTheme("default", defaultThemeProperties)
-}
-else
-{
- // If we couldn't load it from file, use the hard-coded one instead
+        if (defaultThemeProperties != null) {
+            registerPropTheme("default", defaultThemeProperties)
+        } else {
             registerTheme("default", DefaultTheme())
-}
+        }
 
- // Now register all bundled themes that are defined in property files (if found)
         registerPropTheme("bigsnake", loadPropTheme("bigsnake-theme.properties"))
-registerPropTheme("businessmachine", loadPropTheme("businessmachine-theme.properties"))
-registerPropTheme("conqueror", loadPropTheme("conqueror-theme.properties"))
-registerPropTheme("defrost", loadPropTheme("defrost-theme.properties"))
-registerPropTheme("blaster", loadPropTheme("blaster-theme.properties"))
-}
+        registerPropTheme("businessmachine", loadPropTheme("businessmachine-theme.properties"))
+        registerPropTheme("conqueror", loadPropTheme("conqueror-theme.properties"))
+        registerPropTheme("defrost", loadPropTheme("defrost-theme.properties"))
+        registerPropTheme("blaster", loadPropTheme("blaster-theme.properties"))
+    }
 
-/**
- * Returns the [Theme] registered with this class under `name`, or `null` if there is no such
- * registration.
- * @param name Name of the theme to retrieve
- * @return [Theme] registered with the supplied name, or `null` if none
- */
-     fun getRegisteredTheme(name:String?):Theme? {
-return REGISTERED_THEMES.get(name)
-}
+    fun getRegisteredTheme(name: String?): Theme? = REGISTERED_THEMES[name]
 
-/**
- * Registers a [Theme] with this class under a certain name so that calling
- * [.getRegisteredTheme] on that name will return this theme and calling
- * [.getRegisteredThemes] will return a collection including this name.
- * @param name Name to register the theme under
- * @param theme Theme to register with this name
- */
-     fun registerTheme(name:String?, theme:Theme?) {
-if (theme == null)
-{
-throw IllegalArgumentException("Name cannot be null")
-}
-else if (name!!.isEmpty())
-{
-throw IllegalArgumentException("Name cannot be empty")
-}
-val result = REGISTERED_THEMES.putIfAbsent(name, theme)
-if (result != null && result !== theme)
-{
-throw IllegalArgumentException("There is already a theme registered with the name '" + name + "'")
-}
-}
+    fun registerTheme(name: String?, theme: Theme?) {
+        if (theme == null) {
+            throw IllegalArgumentException("Theme cannot be null")
+        }
+        if (name.isNullOrEmpty()) {
+            throw IllegalArgumentException("Name cannot be empty")
+        }
+        val result = REGISTERED_THEMES.putIfAbsent(name, theme)
+        if (result != null && result !== theme) {
+            throw IllegalArgumentException("There is already a theme registered with the name '$name'")
+        }
+    }
 
-private fun registerPropTheme(name:String?, properties:Properties?) {
-if (properties != null)
-{
-registerTheme(name, PropertyTheme(properties, false))
-}
-}
+    private fun registerPropTheme(name: String?, properties: Properties?) {
+        if (properties != null) {
+            registerTheme(name, PropertyTheme(properties, false))
+        }
+    }
 
-private fun loadPropTheme(resourceFileName:String?):Properties? {
-val properties = Properties()
-try
-{
-val classLoader = AbstractTextGUI::class.java!!.getClassLoader()
-var resourceAsStream = classLoader!!.getResourceAsStream(resourceFileName)
-if (resourceAsStream == null)
-{
-resourceAsStream = FileInputStream("src/main/resources/" + resourceFileName!!)
+    private fun loadPropTheme(resourceFileName: String): Properties? {
+        val properties = Properties()
+        return try {
+            val classLoader = AbstractTextGUI::class.java.classLoader
+            val resourceAsStream = classLoader.getResourceAsStream(resourceFileName)
+                ?: FileInputStream("src/main/resources/$resourceFileName")
+            resourceAsStream.use { stream ->
+                properties.load(stream)
+            }
+            properties
+        } catch (_: IOException) {
+            null
+        }
+    }
 }
-properties.load(resourceAsStream)
-resourceAsStream!!.close()
-return properties
-}
-catch (e:IOException) {
- // Failed to load theme, return null
-            return null
-}
-
-}
-}// No instantiation

@@ -25,31 +25,36 @@ import com.googlecode.lanterna.TerminalSize
  * manually assigned to. When using the AbsoluteLayout, please use setPosition(..) and setSize(..) manually on each
  * component to choose where to place them. Components that have not had their position and size explicitly set will
  * not be visible.
- * 
+ *
  * @author martin
  */
- class AbsoluteLayout:LayoutManager {
-@Override
- fun getPreferredSize(components:List<Component?>):TerminalSize? {
-var size:TerminalSize? = TerminalSize.ZERO
-for (component in components)
-{
-size = size!!.max(
-TerminalSize(
-component!!.getPosition().getColumn() + component!!.getSize().getColumns(), 
-component!!.getPosition().getRow() + component!!.getSize().getRows()))
-
-}
-return size
-}
-
-@Override
- fun doLayout(area:TerminalSize?, components:List<Component?>?) {
- //Do nothing
+class AbsoluteLayout : LayoutManager {
+    override fun getPreferredSize(components: List<Component?>?): TerminalSize? {
+        var size: TerminalSize? = TerminalSize.ZERO
+        for (component in components.orEmpty()) {
+            if (component == null) {
+                continue
+            }
+            val position = component.position ?: continue
+            val componentSize = component.size ?: continue
+            size = size?.max(
+                TerminalSize(
+                    position.column + componentSize.columns,
+                    position.row + componentSize.rows,
+                ),
+            ) ?: TerminalSize(
+                position.column + componentSize.columns,
+                position.row + componentSize.rows,
+            )
+        }
+        return size ?: TerminalSize.ZERO
     }
 
-@Override
- fun hasChanged():Boolean {
-return false
-}
+    override fun doLayout(area: TerminalSize?, components: List<Component?>?) {
+        // Do nothing
+    }
+
+    override fun hasChanged(): Boolean {
+        return false
+    }
 }

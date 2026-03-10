@@ -65,8 +65,7 @@ import com.googlecode.lanterna.gui2.TextGUIGraphics
  */
      var allowPartialColumn:Boolean
 @Override
- fun drawComponent(graphics:TextGUIGraphics?, component:Table<V?>?) 
+ override fun drawComponent(graphics:TextGUIGraphics?, component:Table<V?>?) 
 
-@Override
- fun getPreferredSize(component:Table<V?>?):TerminalSize? 
+ override fun getPreferredSize(component:Table<V?>?):TerminalSize? 
 }

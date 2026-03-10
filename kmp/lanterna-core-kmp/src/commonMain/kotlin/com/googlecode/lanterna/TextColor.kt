@@ -116,8 +116,8 @@ return backgroundSGR!!.clone()
 private constructor(index:Int, red:Int, green:Int, blue:Int) : this(index, false, red, green, blue) {}
 
 init{
-foregroundSGR = String.format("%d%d", if (isBright) 9 else 3, index).getBytes()
-backgroundSGR = String.format("%d%d", if (isBright) 10 else 4, index).getBytes()
+foregroundSGR = String.format("%d%d", if (isBright) 9 else 3, index).toByteArray()
+backgroundSGR = String.format("%d%d", if (isBright) 10 else 4, index).toByteArray()
 }
 
 @Override
@@ -154,31 +154,31 @@ return Color(red, green, blue)
 public override val foregroundSGRSequence:ByteArray?
 @Override
 get() {
-return ("38;5;" + colorIndex).getBytes()
+return ("38;5;" + colorIndex).toByteArray()
 }
 
 public override val backgroundSGRSequence:ByteArray?
 @Override
 get() {
-return ("48;5;" + colorIndex).getBytes()
+return ("48;5;" + colorIndex).toByteArray()
 }
 
 public override val red:Int
 @Override
 get() {
-return COLOR_TABLE[colorIndex][0] and 0x000000ff
+return COLOR_TABLE[colorIndex][0].toInt() and 0x000000ff
 }
 
 public override val green:Int
 @Override
 get() {
-return COLOR_TABLE[colorIndex][1] and 0x000000ff
+return COLOR_TABLE[colorIndex][1].toInt() and 0x000000ff
 }
 
 public override val blue:Int
 @Override
 get() {
-return COLOR_TABLE[colorIndex][2] and 0x000000ff
+return COLOR_TABLE[colorIndex][2].toInt() and 0x000000ff
 }
 
 init{
@@ -195,33 +195,33 @@ return Color(red, green, blue)
 }
 
 @Override
- fun toString():String? {
+ override fun toString():String {
 return "{IndexedColor:" + colorIndex + "}"
 }
 
 @Override
- fun hashCode():Int {
+ override fun hashCode():Int {
 var hash = 3
 hash = 43 * hash + this.colorIndex
 return hash
 }
 
 @Override
- fun equals(obj:Object?):Boolean {
+ override fun equals(obj:Any?):Boolean {
 if (obj == null)
 {
 return false
 }
-if (getClass() !== obj!!.getClass())
+if (this::class != obj::class)
 {
 return false
 }
-val other = obj as Indexed?
-return this.colorIndex == other!!.colorIndex
+val other = obj as Indexed
+return this.colorIndex == other.colorIndex
 }
 
 companion object {
-private val COLOR_TABLE = arrayOf<ByteArray?>(
+private val COLOR_TABLE = arrayOf<ByteArray>(
  //These are the standard 16-color VGA palette entries
             byteArrayOf(0.toByte(), 0.toByte(), 0.toByte()), byteArrayOf(170.toByte(), 0.toByte(), 0.toByte()), byteArrayOf(0.toByte(), 170.toByte(), 0.toByte()), byteArrayOf(170.toByte(), 85.toByte(), 0.toByte()), byteArrayOf(0.toByte(), 0.toByte(), 170.toByte()), byteArrayOf(170.toByte(), 0.toByte(), 170.toByte()), byteArrayOf(0.toByte(), 170.toByte(), 170.toByte()), byteArrayOf(170.toByte(), 170.toByte(), 170.toByte()), byteArrayOf(85.toByte(), 85.toByte(), 85.toByte()), byteArrayOf(255.toByte(), 85.toByte(), 85.toByte()), byteArrayOf(85.toByte(), 255.toByte(), 85.toByte()), byteArrayOf(255.toByte(), 255.toByte(), 85.toByte()), byteArrayOf(85.toByte(), 85.toByte(), 255.toByte()), byteArrayOf(255.toByte(), 85.toByte(), 255.toByte()), byteArrayOf(85.toByte(), 255.toByte(), 255.toByte()), byteArrayOf(255.toByte(), 255.toByte(), 255.toByte()), 
 
@@ -315,13 +315,13 @@ public override val blue:Int):TextColor {
 public override val foregroundSGRSequence:ByteArray?
 @Override
 get() {
-return ("38;2;" + red + ";" + green + ";" + blue).getBytes()
+return ("38;2;" + red + ";" + green + ";" + blue).toByteArray()
 }
 
 public override val backgroundSGRSequence:ByteArray?
 @Override
 get() {
-return ("48;2;" + red + ";" + green + ";" + blue).getBytes()
+return ("48;2;" + red + ";" + green + ";" + blue).toByteArray()
 }
 
 init{
@@ -345,12 +345,12 @@ return Color(red, green, blue)
 }
 
 @Override
- fun toString():String? {
+ override fun toString():String {
 return "{RGB:" + red + "," + green + "," + blue + "}"
 }
 
 @Override
- fun hashCode():Int {
+ override fun hashCode():Int {
 var hash = 7
 hash = 29 * hash + red
 hash = 29 * hash + green
@@ -359,25 +359,25 @@ return hash
 }
 
 @Override
- fun equals(obj:Object?):Boolean {
+ override fun equals(obj:Any?):Boolean {
 if (obj == null)
 {
 return false
 }
-if (getClass() !== obj!!.getClass())
+if (this::class != obj::class)
 {
 return false
 }
-val other = obj as RGB?
-return (this.red == other!!.red 
-&& this.green == other!!.green 
-&& this.blue == other!!.blue)
+val other = obj as RGB
+return (this.red == other.red 
+&& this.green == other.green 
+&& this.blue == other.blue)
 }
 
 companion object {
 
  fun fromAWTColor(awtColor:Color):RGB {
-return RGB(awtColor.getRed(), awtColor.getGreen(), awtColor.getBlue())
+return RGB(awtColor.red, awtColor.green, awtColor.blue)
 }
 }
 }
@@ -423,7 +423,7 @@ return TextColor.Indexed(index)
 }
 try
 {
-return TextColor.ANSI.valueOf(value!!.toUpperCase())
+return TextColor.ANSI.valueOf(value!!.uppercase())
 }
 catch (e:IllegalArgumentException) {
 throw IllegalArgumentException("Unknown color definition \"" + value + "\"", e)

@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,623 +13,491 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
+import com.googlecode.lanterna.Symbols
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TerminalTextUtils
+import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.graphics.Theme
 import com.googlecode.lanterna.graphics.ThemeDefinition
 
-import java.util.Arrays
-
 /**
- * This class containers a couple of border implementation and utility methods for instantiating them. It also contains
- * a utility method for joining border line graphics together with adjacent lines so they blend in together:
- * `joinLinesWithFrame(..)`.
- * @author Martin
+ * Border helpers and implementations.
  */
- object Borders {
-
- //Different ways to draw the border
+object Borders {
     private enum class BorderStyle {
-Solid, 
-Bevel, 
-ReverseBevel
-}
+        Solid,
+        Bevel,
+        ReverseBevel,
+    }
 
-/**
- * Creates a `Border` that is drawn as a solid color single line surrounding the wrapped component with a
- * title string normally drawn at the top-left side
- * @param title The title to draw on the border
- * @return New solid color single line `Border` with a title
- */
-    @JvmOverloads  fun singleLine(title:String? = ""):Border {
-return SingleLine(title, BorderStyle.Solid)
-}
+    @JvmOverloads
+    fun singleLine(title: String = ""): Border {
+        return SingleLine(title, BorderStyle.Solid)
+    }
 
-/**
- * Creates a `Border` that is drawn as a bevel color single line surrounding the wrapped component with a
- * title string normally drawn at the top-left side
- * @param title The title to draw on the border
- * @return New bevel color single line `Border` with a title
- */
-    @JvmOverloads  fun singleLineBevel(title:String? = ""):Border {
-return SingleLine(title, BorderStyle.Bevel)
-}
+    @JvmOverloads
+    fun singleLineBevel(title: String = ""): Border {
+        return SingleLine(title, BorderStyle.Bevel)
+    }
 
-/**
- * Creates a `Border` that is drawn as a reverse bevel color single line surrounding the wrapped component
- * with a title string normally drawn at the top-left side
- * @param title The title to draw on the border
- * @return New reverse bevel color single line `Border` with a title
- */
-    @JvmOverloads  fun singleLineReverseBevel(title:String? = ""):Border {
-return SingleLine(title, BorderStyle.ReverseBevel)
-}
+    @JvmOverloads
+    fun singleLineReverseBevel(title: String = ""): Border {
+        return SingleLine(title, BorderStyle.ReverseBevel)
+    }
 
-/**
- * Creates a `Border` that is drawn as a solid color double line surrounding the wrapped component with a
- * title string normally drawn at the top-left side
- * @param title The title to draw on the border
- * @return New solid color double line `Border` with a title
- */
-    @JvmOverloads  fun doubleLine(title:String? = ""):Border {
-return DoubleLine(title, BorderStyle.Solid)
-}
+    @JvmOverloads
+    fun doubleLine(title: String = ""): Border {
+        return DoubleLine(title, BorderStyle.Solid)
+    }
 
-/**
- * Creates a `Border` that is drawn as a bevel color double line surrounding the wrapped component with a
- * title string normally drawn at the top-left side
- * @param title The title to draw on the border
- * @return New bevel color double line `Border` with a title
- */
-    @JvmOverloads  fun doubleLineBevel(title:String? = ""):Border {
-return DoubleLine(title, BorderStyle.Bevel)
-}
+    @JvmOverloads
+    fun doubleLineBevel(title: String = ""): Border {
+        return DoubleLine(title, BorderStyle.Bevel)
+    }
 
-/**
- * Creates a `Border` that is drawn as a reverse bevel color double line surrounding the wrapped component
- * with a title string normally drawn at the top-left side
- * @param title The title to draw on the border
- * @return New reverse bevel color double line `Border` with a title
- */
-    @JvmOverloads  fun doubleLineReverseBevel(title:String? = ""):Border {
-return DoubleLine(title, BorderStyle.ReverseBevel)
-}
+    @JvmOverloads
+    fun doubleLineReverseBevel(title: String = ""): Border {
+        return DoubleLine(title, BorderStyle.ReverseBevel)
+    }
 
-private abstract class StandardBorder protected constructor( val title:String?, protected val borderStyle:BorderStyle?):AbstractBorder() {
+    private abstract class StandardBorder(
+        private val title: String,
+        protected val borderStyle: BorderStyle,
+    ) : AbstractBorder() {
+        fun getTitle(): String {
+            return title
+        }
 
-init{
-if (title == null)
-{
-throw IllegalArgumentException("Cannot create a border with null title")
-}
-}
+        override fun toString(): String {
+            return javaClass.simpleName + "{" + title + "}"
+        }
+    }
 
-@Override
- fun toString():String {
-return getClass().getSimpleName() + "{" + title + "}"
-}
-}
+    private abstract class AbstractBorderRenderer(
+        private val borderStyle: BorderStyle,
+    ) : Border.BorderRenderer {
+        override val wrappedComponentTopLeftOffset: TerminalPosition
+            get() = TerminalPosition.OFFSET_1x1
 
-private abstract class AbstractBorderRenderer protected constructor(private val borderStyle:BorderStyle?):Border.BorderRenderer {
+        override fun getPreferredSize(component: Border?): TerminalSize {
+            val border = component as StandardBorder
+            val wrappedComponent = border.component
+            var preferredSize = if (wrappedComponent == null) {
+                TerminalSize.ZERO
+            } else {
+                wrappedComponent.preferredSize ?: TerminalSize.ZERO
+            }
+            preferredSize = preferredSize.withRelativeColumns(2)?.withRelativeRows(2) ?: TerminalSize.ZERO
+            val borderTitle = border.getTitle()
+            val titleWidth = if (borderTitle.isEmpty()) 2 else TerminalTextUtils.getColumnWidth(borderTitle) + 4
+            return preferredSize.max(TerminalSize(titleWidth, 2)) ?: preferredSize
+        }
 
- val wrappedComponentTopLeftOffset:TerminalPosition
-@Override
-get() {
-return TerminalPosition.OFFSET_1x1
-}
+        override fun getWrappedComponentSize(borderSize: TerminalSize?): TerminalSize {
+            val size = borderSize ?: TerminalSize.ZERO
+            return size
+                .withRelativeColumns(-kotlin.math.min(2, size.columns))
+                ?.withRelativeRows(-kotlin.math.min(2, size.rows))
+                ?: TerminalSize.ZERO
+        }
 
-@Override
- fun getPreferredSize(component:Border?):TerminalSize? {
-val border = component as StandardBorder?
-val wrappedComponent = border!!.getComponent()
-val preferredSize:TerminalSize?
-if (wrappedComponent == null)
-{
-preferredSize = TerminalSize.ZERO
-}
-else
-{
-preferredSize = wrappedComponent!!.getPreferredSize()
-}
-preferredSize = preferredSize!!.withRelativeColumns(2)!!.withRelativeRows(2)
-val borderTitle = border!!.title
-return preferredSize!!.max(TerminalSize((if (borderTitle!!.isEmpty()) 2 else TerminalTextUtils.getColumnWidth(borderTitle) + 4), 2))
-}
+        override fun drawComponent(graphics: TextGUIGraphics?, component: Border?) {
+            val border = component as? StandardBorder ?: return
+            val wrappedComponent = border.component ?: return
+            val g = graphics ?: return
+            val drawableArea = g.size ?: return
+            val theme = component.theme ?: return
 
-@Override
- fun getWrappedComponentSize(borderSize:TerminalSize):TerminalSize? {
-return borderSize
-.withRelativeColumns(-Math.min(2, borderSize.columns))!!
-.withRelativeRows(-Math.min(2, borderSize.rows))
-}
+            val horizontalLine = getHorizontalLine(theme)
+            val verticalLine = getVerticalLine(theme)
+            val bottomLeftCorner = getBottomLeftCorner(theme)
+            val topLeftCorner = getTopLeftCorner(theme)
+            val bottomRightCorner = getBottomRightCorner(theme)
+            val topRightCorner = getTopRightCorner(theme)
+            val titleLeft = getTitleLeft(theme)
+            val titleRight = getTitleRight(theme)
 
-@Override
- fun drawComponent(graphics:TextGUIGraphics?, component:Border?) {
-val border = component as StandardBorder?
-val wrappedComponent = border!!.getComponent()
-if (wrappedComponent == null)
-{
-return 
-}
-val drawableArea = graphics!!.getSize()
+            val themeDefinition: ThemeDefinition = theme.getDefinition(AbstractBorder::class.java) ?: return
+            if (borderStyle == BorderStyle.Bevel) {
+                g.applyThemeStyle(themeDefinition.preLight)
+            } else {
+                g.applyThemeStyle(themeDefinition.normal)
+            }
+            g.setCharacter(0, drawableArea.rows - 1, bottomLeftCorner)
+            if (drawableArea.rows > 2) {
+                g.drawLine(TerminalPosition(0, drawableArea.rows - 2), TerminalPosition(0, 1), verticalLine)
+            }
+            g.setCharacter(0, 0, topLeftCorner)
+            if (drawableArea.columns > 2) {
+                g.drawLine(TerminalPosition(1, 0), TerminalPosition(drawableArea.columns - 2, 0), horizontalLine)
+            }
 
-val horizontalLine = getHorizontalLine(component!!.getTheme())
-val verticalLine = getVerticalLine(component!!.getTheme())
-val bottomLeftCorner = getBottomLeftCorner(component!!.getTheme())
-val topLeftCorner = getTopLeftCorner(component!!.getTheme())
-val bottomRightCorner = getBottomRightCorner(component!!.getTheme())
-val topRightCorner = getTopRightCorner(component!!.getTheme())
-val titleLeft = getTitleLeft(component!!.getTheme())
-val titleRight = getTitleRight(component!!.getTheme())
+            if (borderStyle == BorderStyle.ReverseBevel) {
+                g.applyThemeStyle(themeDefinition.preLight)
+            } else {
+                g.applyThemeStyle(themeDefinition.normal)
+            }
+            g.setCharacter(drawableArea.columns - 1, 0, topRightCorner)
+            if (drawableArea.rows > 2) {
+                g.drawLine(
+                    TerminalPosition(drawableArea.columns - 1, 1),
+                    TerminalPosition(drawableArea.columns - 1, drawableArea.rows - 2),
+                    verticalLine,
+                )
+            }
+            g.setCharacter(drawableArea.columns - 1, drawableArea.rows - 1, bottomRightCorner)
+            if (drawableArea.columns > 2) {
+                g.drawLine(
+                    TerminalPosition(1, drawableArea.rows - 1),
+                    TerminalPosition(drawableArea.columns - 2, drawableArea.rows - 1),
+                    horizontalLine,
+                )
+            }
 
-val themeDefinition = component!!.getTheme().getDefinition(AbstractBorder::class.java)
-if (borderStyle == BorderStyle.Bevel)
-{
-graphics!!.applyThemeStyle(themeDefinition!!.getPreLight())
-}
-else
-{
-graphics!!.applyThemeStyle(themeDefinition!!.getNormal())
-}
-graphics!!.setCharacter(0, drawableArea!!.rows - 1, bottomLeftCorner)
-if (drawableArea!!.rows > 2)
-{
-graphics!!.drawLine(TerminalPosition(0, drawableArea!!.rows - 2), TerminalPosition(0, 1), verticalLine)
-}
-graphics!!.setCharacter(0, 0, topLeftCorner)
-if (drawableArea!!.columns > 2)
-{
-graphics!!.drawLine(TerminalPosition(1, 0), TerminalPosition(drawableArea!!.columns - 2, 0), horizontalLine)
-}
+            if (border.getTitle().isNotEmpty() && drawableArea.columns >= TerminalTextUtils.getColumnWidth(border.getTitle()) + 4) {
+                g.applyThemeStyle(themeDefinition.active)
+                g.putString(2, 0, border.getTitle())
 
-if (borderStyle == BorderStyle.ReverseBevel)
-{
-graphics!!.applyThemeStyle(themeDefinition!!.getPreLight())
-}
-else
-{
-graphics!!.applyThemeStyle(themeDefinition!!.getNormal())
-}
-graphics!!.setCharacter(drawableArea!!.columns - 1, 0, topRightCorner)
-if (drawableArea!!.rows > 2)
-{
-graphics!!.drawLine(TerminalPosition(drawableArea!!.columns - 1, 1), 
-TerminalPosition(drawableArea!!.columns - 1, drawableArea!!.rows - 2), 
-verticalLine)
-}
-graphics!!.setCharacter(drawableArea!!.columns - 1, drawableArea!!.rows - 1, bottomRightCorner)
-if (drawableArea!!.columns > 2)
-{
-graphics!!.drawLine(TerminalPosition(1, drawableArea!!.rows - 1), 
-TerminalPosition(drawableArea!!.columns - 2, drawableArea!!.rows - 1), 
-horizontalLine)
-}
+                if (borderStyle == BorderStyle.Bevel) {
+                    g.applyThemeStyle(themeDefinition.preLight)
+                } else {
+                    g.applyThemeStyle(themeDefinition.normal)
+                }
+                g.setCharacter(1, 0, titleLeft)
+                g.setCharacter(2 + TerminalTextUtils.getColumnWidth(border.getTitle()), 0, titleRight)
+            }
 
+            wrappedComponent.draw(g.newTextGraphics(wrappedComponentTopLeftOffset, getWrappedComponentSize(drawableArea)))
+            joinLinesWithFrame(g)
+        }
 
-if ((border!!.title != null && !border!!.title!!.isEmpty() && 
-drawableArea!!.columns >= TerminalTextUtils.getColumnWidth(border!!.title) + 4))
-{
-graphics!!.applyThemeStyle(themeDefinition!!.getActive())
-graphics!!.putString(2, 0, border!!.title)
+        protected abstract fun getHorizontalLine(theme: Theme): Char
+        protected abstract fun getVerticalLine(theme: Theme): Char
+        protected abstract fun getBottomLeftCorner(theme: Theme): Char
+        protected abstract fun getTopLeftCorner(theme: Theme): Char
+        protected abstract fun getBottomRightCorner(theme: Theme): Char
+        protected abstract fun getTopRightCorner(theme: Theme): Char
+        protected abstract fun getTitleLeft(theme: Theme): Char
+        protected abstract fun getTitleRight(theme: Theme): Char
+    }
 
-if (borderStyle == BorderStyle.Bevel)
-{
-graphics!!.applyThemeStyle(themeDefinition!!.getPreLight())
-}
-else
-{
-graphics!!.applyThemeStyle(themeDefinition!!.getNormal())
-}
-graphics!!.setCharacter(1, 0, titleLeft)
-graphics!!.setCharacter(2 + TerminalTextUtils.getColumnWidth(border!!.title), 0, titleRight)
-}
+    fun joinLinesWithFrame(graphics: TextGraphics) {
+        val drawableArea = graphics.size ?: return
+        if (drawableArea.rows <= 2 || drawableArea.columns <= 2) {
+            return
+        }
 
-wrappedComponent!!.draw(graphics!!.newTextGraphics(wrappedComponentTopLeftOffset, getWrappedComponentSize(drawableArea!!)))
-joinLinesWithFrame(graphics!!)
-}
+        val upperRow = 0
+        val lowerRow = drawableArea.rows - 1
+        val leftRow = 0
+        val rightRow = drawableArea.columns - 1
 
-protected abstract fun getHorizontalLine(theme:Theme?):Char 
-protected abstract fun getVerticalLine(theme:Theme?):Char 
-protected abstract fun getBottomLeftCorner(theme:Theme?):Char 
-protected abstract fun getTopLeftCorner(theme:Theme?):Char 
-protected abstract fun getBottomRightCorner(theme:Theme?):Char 
-protected abstract fun getTopRightCorner(theme:Theme?):Char 
-protected abstract fun getTitleLeft(theme:Theme?):Char 
-protected abstract fun getTitleRight(theme:Theme?):Char 
-}
+        val junctionFromBelowSingle = listOf(
+            Symbols.SINGLE_LINE_VERTICAL,
+            Symbols.BOLD_FROM_NORMAL_SINGLE_LINE_VERTICAL,
+            Symbols.BOLD_SINGLE_LINE_VERTICAL,
+            Symbols.SINGLE_LINE_CROSS,
+            Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS,
+            Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER,
+            Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER,
+            Symbols.SINGLE_LINE_T_LEFT,
+            Symbols.SINGLE_LINE_T_RIGHT,
+            Symbols.SINGLE_LINE_T_UP,
+            Symbols.SINGLE_LINE_T_DOUBLE_LEFT,
+            Symbols.SINGLE_LINE_T_DOUBLE_RIGHT,
+            Symbols.DOUBLE_LINE_T_SINGLE_UP,
+        )
+        val junctionFromBelowDouble = listOf(
+            Symbols.DOUBLE_LINE_VERTICAL,
+            Symbols.DOUBLE_LINE_CROSS,
+            Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS,
+            Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER,
+            Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER,
+            Symbols.DOUBLE_LINE_T_LEFT,
+            Symbols.DOUBLE_LINE_T_RIGHT,
+            Symbols.DOUBLE_LINE_T_UP,
+            Symbols.DOUBLE_LINE_T_SINGLE_LEFT,
+            Symbols.DOUBLE_LINE_T_SINGLE_RIGHT,
+            Symbols.SINGLE_LINE_T_DOUBLE_UP,
+        )
+        val junctionFromAboveSingle = listOf(
+            Symbols.SINGLE_LINE_VERTICAL,
+            Symbols.BOLD_TO_NORMAL_SINGLE_LINE_VERTICAL,
+            Symbols.BOLD_SINGLE_LINE_VERTICAL,
+            Symbols.SINGLE_LINE_CROSS,
+            Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS,
+            Symbols.SINGLE_LINE_TOP_LEFT_CORNER,
+            Symbols.SINGLE_LINE_TOP_RIGHT_CORNER,
+            Symbols.SINGLE_LINE_T_LEFT,
+            Symbols.SINGLE_LINE_T_RIGHT,
+            Symbols.SINGLE_LINE_T_DOWN,
+            Symbols.SINGLE_LINE_T_DOUBLE_LEFT,
+            Symbols.SINGLE_LINE_T_DOUBLE_RIGHT,
+            Symbols.DOUBLE_LINE_T_SINGLE_DOWN,
+        )
+        val junctionFromAboveDouble = listOf(
+            Symbols.DOUBLE_LINE_VERTICAL,
+            Symbols.DOUBLE_LINE_CROSS,
+            Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS,
+            Symbols.DOUBLE_LINE_TOP_LEFT_CORNER,
+            Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER,
+            Symbols.DOUBLE_LINE_T_LEFT,
+            Symbols.DOUBLE_LINE_T_RIGHT,
+            Symbols.DOUBLE_LINE_T_DOWN,
+            Symbols.DOUBLE_LINE_T_SINGLE_LEFT,
+            Symbols.DOUBLE_LINE_T_SINGLE_RIGHT,
+            Symbols.SINGLE_LINE_T_DOUBLE_DOWN,
+        )
+        val junctionFromLeftSingle = listOf(
+            Symbols.SINGLE_LINE_HORIZONTAL,
+            Symbols.BOLD_TO_NORMAL_SINGLE_LINE_HORIZONTAL,
+            Symbols.BOLD_SINGLE_LINE_HORIZONTAL,
+            Symbols.SINGLE_LINE_CROSS,
+            Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS,
+            Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER,
+            Symbols.SINGLE_LINE_TOP_LEFT_CORNER,
+            Symbols.SINGLE_LINE_T_UP,
+            Symbols.SINGLE_LINE_T_DOWN,
+            Symbols.SINGLE_LINE_T_RIGHT,
+            Symbols.SINGLE_LINE_T_DOUBLE_UP,
+            Symbols.SINGLE_LINE_T_DOUBLE_DOWN,
+            Symbols.DOUBLE_LINE_T_SINGLE_RIGHT,
+        )
+        val junctionFromLeftDouble = listOf(
+            Symbols.DOUBLE_LINE_HORIZONTAL,
+            Symbols.DOUBLE_LINE_CROSS,
+            Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS,
+            Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER,
+            Symbols.DOUBLE_LINE_TOP_LEFT_CORNER,
+            Symbols.DOUBLE_LINE_T_UP,
+            Symbols.DOUBLE_LINE_T_DOWN,
+            Symbols.DOUBLE_LINE_T_RIGHT,
+            Symbols.DOUBLE_LINE_T_SINGLE_UP,
+            Symbols.DOUBLE_LINE_T_SINGLE_DOWN,
+            Symbols.SINGLE_LINE_T_DOUBLE_RIGHT,
+        )
+        val junctionFromRightSingle = listOf(
+            Symbols.SINGLE_LINE_HORIZONTAL,
+            Symbols.BOLD_FROM_NORMAL_SINGLE_LINE_HORIZONTAL,
+            Symbols.BOLD_SINGLE_LINE_HORIZONTAL,
+            Symbols.SINGLE_LINE_CROSS,
+            Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS,
+            Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER,
+            Symbols.SINGLE_LINE_TOP_RIGHT_CORNER,
+            Symbols.SINGLE_LINE_T_UP,
+            Symbols.SINGLE_LINE_T_DOWN,
+            Symbols.SINGLE_LINE_T_LEFT,
+            Symbols.SINGLE_LINE_T_DOUBLE_UP,
+            Symbols.SINGLE_LINE_T_DOUBLE_DOWN,
+            Symbols.DOUBLE_LINE_T_SINGLE_LEFT,
+        )
+        val junctionFromRightDouble = listOf(
+            Symbols.DOUBLE_LINE_HORIZONTAL,
+            Symbols.DOUBLE_LINE_CROSS,
+            Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS,
+            Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER,
+            Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER,
+            Symbols.DOUBLE_LINE_T_UP,
+            Symbols.DOUBLE_LINE_T_DOWN,
+            Symbols.DOUBLE_LINE_T_LEFT,
+            Symbols.DOUBLE_LINE_T_SINGLE_UP,
+            Symbols.DOUBLE_LINE_T_SINGLE_DOWN,
+            Symbols.SINGLE_LINE_T_DOUBLE_LEFT,
+        )
 
-/**
- * This method will attempt to join line drawing characters with the outermost bottom and top rows and left and
- * right columns. For example, if a vertical left border character is ║ and the character immediately to the right
- * of it is ─, then the border character will be updated to ╟ to join the two together. Please note that this method
- * will **only** join the outer border columns and rows.
- * @param graphics Graphics to use when inspecting and joining characters
- */
-     fun joinLinesWithFrame(graphics:TextGraphics) {
-val drawableArea = graphics.getSize()
-if (drawableArea!!.rows <= 2 || drawableArea!!.columns <= 2)
-{
- //Too small
-            return 
-}
-
-val upperRow = 0
-val lowerRow = drawableArea!!.rows - 1
-val leftRow = 0
-val rightRow = drawableArea!!.columns - 1
-
-val junctionFromBelowSingle = Arrays.asList(
-Symbols.SINGLE_LINE_VERTICAL, 
-Symbols.BOLD_FROM_NORMAL_SINGLE_LINE_VERTICAL, 
-Symbols.BOLD_SINGLE_LINE_VERTICAL, 
-Symbols.SINGLE_LINE_CROSS, 
-Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS, 
-Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER, 
-Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER, 
-Symbols.SINGLE_LINE_T_LEFT, 
-Symbols.SINGLE_LINE_T_RIGHT, 
-Symbols.SINGLE_LINE_T_UP, 
-Symbols.SINGLE_LINE_T_DOUBLE_LEFT, 
-Symbols.SINGLE_LINE_T_DOUBLE_RIGHT, 
-Symbols.DOUBLE_LINE_T_SINGLE_UP)
-val junctionFromBelowDouble = Arrays.asList(
-Symbols.DOUBLE_LINE_VERTICAL, 
-Symbols.DOUBLE_LINE_CROSS, 
-Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS, 
-Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER, 
-Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER, 
-Symbols.DOUBLE_LINE_T_LEFT, 
-Symbols.DOUBLE_LINE_T_RIGHT, 
-Symbols.DOUBLE_LINE_T_UP, 
-Symbols.DOUBLE_LINE_T_SINGLE_LEFT, 
-Symbols.DOUBLE_LINE_T_SINGLE_RIGHT, 
-Symbols.SINGLE_LINE_T_DOUBLE_UP)
-val junctionFromAboveSingle = Arrays.asList(
-Symbols.SINGLE_LINE_VERTICAL, 
-Symbols.BOLD_TO_NORMAL_SINGLE_LINE_VERTICAL, 
-Symbols.BOLD_SINGLE_LINE_VERTICAL, 
-Symbols.SINGLE_LINE_CROSS, 
-Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS, 
-Symbols.SINGLE_LINE_TOP_LEFT_CORNER, 
-Symbols.SINGLE_LINE_TOP_RIGHT_CORNER, 
-Symbols.SINGLE_LINE_T_LEFT, 
-Symbols.SINGLE_LINE_T_RIGHT, 
-Symbols.SINGLE_LINE_T_DOWN, 
-Symbols.SINGLE_LINE_T_DOUBLE_LEFT, 
-Symbols.SINGLE_LINE_T_DOUBLE_RIGHT, 
-Symbols.DOUBLE_LINE_T_SINGLE_DOWN)
-val junctionFromAboveDouble = Arrays.asList(
-Symbols.DOUBLE_LINE_VERTICAL, 
-Symbols.DOUBLE_LINE_CROSS, 
-Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS, 
-Symbols.DOUBLE_LINE_TOP_LEFT_CORNER, 
-Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER, 
-Symbols.DOUBLE_LINE_T_LEFT, 
-Symbols.DOUBLE_LINE_T_RIGHT, 
-Symbols.DOUBLE_LINE_T_DOWN, 
-Symbols.DOUBLE_LINE_T_SINGLE_LEFT, 
-Symbols.DOUBLE_LINE_T_SINGLE_RIGHT, 
-Symbols.SINGLE_LINE_T_DOUBLE_DOWN)
-val junctionFromLeftSingle = Arrays.asList(
-Symbols.SINGLE_LINE_HORIZONTAL, 
-Symbols.BOLD_TO_NORMAL_SINGLE_LINE_HORIZONTAL, 
-Symbols.BOLD_SINGLE_LINE_HORIZONTAL, 
-Symbols.SINGLE_LINE_CROSS, 
-Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS, 
-Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER, 
-Symbols.SINGLE_LINE_TOP_LEFT_CORNER, 
-Symbols.SINGLE_LINE_T_UP, 
-Symbols.SINGLE_LINE_T_DOWN, 
-Symbols.SINGLE_LINE_T_RIGHT, 
-Symbols.SINGLE_LINE_T_DOUBLE_UP, 
-Symbols.SINGLE_LINE_T_DOUBLE_DOWN, 
-Symbols.DOUBLE_LINE_T_SINGLE_RIGHT)
-val junctionFromLeftDouble = Arrays.asList(
-Symbols.DOUBLE_LINE_HORIZONTAL, 
-Symbols.DOUBLE_LINE_CROSS, 
-Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS, 
-Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER, 
-Symbols.DOUBLE_LINE_TOP_LEFT_CORNER, 
-Symbols.DOUBLE_LINE_T_UP, 
-Symbols.DOUBLE_LINE_T_DOWN, 
-Symbols.DOUBLE_LINE_T_RIGHT, 
-Symbols.DOUBLE_LINE_T_SINGLE_UP, 
-Symbols.DOUBLE_LINE_T_SINGLE_DOWN, 
-Symbols.SINGLE_LINE_T_DOUBLE_RIGHT)
-val junctionFromRightSingle = Arrays.asList(
-Symbols.SINGLE_LINE_HORIZONTAL, 
-Symbols.BOLD_FROM_NORMAL_SINGLE_LINE_HORIZONTAL, 
-Symbols.BOLD_SINGLE_LINE_HORIZONTAL, 
-Symbols.SINGLE_LINE_CROSS, 
-Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS, 
-Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER, 
-Symbols.SINGLE_LINE_TOP_RIGHT_CORNER, 
-Symbols.SINGLE_LINE_T_UP, 
-Symbols.SINGLE_LINE_T_DOWN, 
-Symbols.SINGLE_LINE_T_LEFT, 
-Symbols.SINGLE_LINE_T_DOUBLE_UP, 
-Symbols.SINGLE_LINE_T_DOUBLE_DOWN, 
-Symbols.DOUBLE_LINE_T_SINGLE_LEFT)
-val junctionFromRightDouble = Arrays.asList(
-Symbols.DOUBLE_LINE_HORIZONTAL, 
-Symbols.DOUBLE_LINE_CROSS, 
-Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS, 
-Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER, 
-Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER, 
-Symbols.DOUBLE_LINE_T_UP, 
-Symbols.DOUBLE_LINE_T_DOWN, 
-Symbols.DOUBLE_LINE_T_LEFT, 
-Symbols.DOUBLE_LINE_T_SINGLE_UP, 
-Symbols.DOUBLE_LINE_T_SINGLE_DOWN, 
-Symbols.SINGLE_LINE_T_DOUBLE_LEFT)
-
- //Go horizontally and check vertical neighbours if it's possible to extend lines into the border
-        for (column in 1 until drawableArea!!.columns - 1)
-{
- //Check first row
+        for (column in 1 until drawableArea.columns - 1) {
             var borderCharacter = graphics.getCharacter(column, upperRow)
-if (borderCharacter == null)
-{
-continue
-}
-var neighbourCharacter = graphics.getCharacter(column, upperRow + 1)
-if (neighbourCharacter != null)
-{
-val neighbour = neighbourCharacter!!.getCharacterString().charAt(0)
-if (borderCharacter!!.`is`(Symbols.SINGLE_LINE_HORIZONTAL))
-{
-if (junctionFromBelowSingle!!.contains(neighbour))
-{
-graphics.setCharacter(column, upperRow, borderCharacter!!.withCharacter(Symbols.SINGLE_LINE_T_DOWN))
-}
-else if (junctionFromBelowDouble!!.contains(neighbour))
-{
-graphics.setCharacter(column, upperRow, borderCharacter!!.withCharacter(Symbols.SINGLE_LINE_T_DOUBLE_DOWN))
-}
-}
-else if (borderCharacter!!.`is`(Symbols.DOUBLE_LINE_HORIZONTAL))
-{
-if (junctionFromBelowSingle!!.contains(neighbour))
-{
-graphics.setCharacter(column, upperRow, borderCharacter!!.withCharacter(Symbols.DOUBLE_LINE_T_SINGLE_DOWN))
-}
-else if (junctionFromBelowDouble!!.contains(neighbour))
-{
-graphics.setCharacter(column, upperRow, borderCharacter!!.withCharacter(Symbols.DOUBLE_LINE_T_DOWN))
-}
-}
-}
+            if (borderCharacter == null) {
+                continue
+            }
+            var neighbourCharacter = graphics.getCharacter(column, upperRow + 1)
+            if (neighbourCharacter != null) {
+                val neighbour = neighbourCharacter.characterString[0]
+                if (borderCharacter.`is`(Symbols.SINGLE_LINE_HORIZONTAL)) {
+                    if (junctionFromBelowSingle.contains(neighbour)) {
+                        graphics.setCharacter(column, upperRow, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_DOWN))
+                    } else if (junctionFromBelowDouble.contains(neighbour)) {
+                        graphics.setCharacter(column, upperRow, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_DOUBLE_DOWN))
+                    }
+                } else if (borderCharacter.`is`(Symbols.DOUBLE_LINE_HORIZONTAL)) {
+                    if (junctionFromBelowSingle.contains(neighbour)) {
+                        graphics.setCharacter(column, upperRow, borderCharacter.withCharacter(Symbols.DOUBLE_LINE_T_SINGLE_DOWN))
+                    } else if (junctionFromBelowDouble.contains(neighbour)) {
+                        graphics.setCharacter(column, upperRow, borderCharacter.withCharacter(Symbols.DOUBLE_LINE_T_DOWN))
+                    }
+                }
+            }
 
- //Check last row
             borderCharacter = graphics.getCharacter(column, lowerRow)
-if (borderCharacter == null)
-{
-continue
-}
-neighbourCharacter = graphics.getCharacter(column, lowerRow - 1)
-if (neighbourCharacter != null)
-{
-val neighbour = neighbourCharacter!!.getCharacterString().charAt(0)
-if (borderCharacter!!.`is`(Symbols.SINGLE_LINE_HORIZONTAL))
-{
-if (junctionFromAboveSingle!!.contains(neighbour))
-{
-graphics.setCharacter(column, lowerRow, borderCharacter!!.withCharacter(Symbols.SINGLE_LINE_T_UP))
-}
-else if (junctionFromAboveDouble!!.contains(neighbour))
-{
-graphics.setCharacter(column, lowerRow, borderCharacter!!.withCharacter(Symbols.SINGLE_LINE_T_DOUBLE_UP))
-}
-}
-else if (borderCharacter!!.`is`(Symbols.DOUBLE_LINE_HORIZONTAL))
-{
-if (junctionFromAboveSingle!!.contains(neighbour))
-{
-graphics.setCharacter(column, lowerRow, borderCharacter!!.withCharacter(Symbols.DOUBLE_LINE_T_SINGLE_UP))
-}
-else if (junctionFromAboveDouble!!.contains(neighbour))
-{
-graphics.setCharacter(column, lowerRow, borderCharacter!!.withCharacter(Symbols.DOUBLE_LINE_T_UP))
-}
-}
-}
-}
+            if (borderCharacter == null) {
+                continue
+            }
+            neighbourCharacter = graphics.getCharacter(column, lowerRow - 1)
+            if (neighbourCharacter != null) {
+                val neighbour = neighbourCharacter.characterString[0]
+                if (borderCharacter.`is`(Symbols.SINGLE_LINE_HORIZONTAL)) {
+                    if (junctionFromAboveSingle.contains(neighbour)) {
+                        graphics.setCharacter(column, lowerRow, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_UP))
+                    } else if (junctionFromAboveDouble.contains(neighbour)) {
+                        graphics.setCharacter(column, lowerRow, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_DOUBLE_UP))
+                    }
+                } else if (borderCharacter.`is`(Symbols.DOUBLE_LINE_HORIZONTAL)) {
+                    if (junctionFromAboveSingle.contains(neighbour)) {
+                        graphics.setCharacter(column, lowerRow, borderCharacter.withCharacter(Symbols.DOUBLE_LINE_T_SINGLE_UP))
+                    } else if (junctionFromAboveDouble.contains(neighbour)) {
+                        graphics.setCharacter(column, lowerRow, borderCharacter.withCharacter(Symbols.DOUBLE_LINE_T_UP))
+                    }
+                }
+            }
+        }
 
- //Go vertically and check horizontal neighbours if it's possible to extend lines into the border
-        for (row in 1 until drawableArea!!.rows - 1)
-{
- //Check first column
-            var borderCharacter = graphics.getCharacter(leftRow, row)
-if (borderCharacter == null)
-{
-continue
-}
-var neighbourCharacter = graphics.getCharacter(leftRow + 1, row)
-if (neighbourCharacter != null)
-{
-val neighbour = neighbourCharacter!!.getCharacterString().charAt(0)
-if (borderCharacter!!.`is`(Symbols.SINGLE_LINE_VERTICAL))
-{
-if (junctionFromRightSingle!!.contains(neighbour))
-{
-graphics.setCharacter(leftRow, row, borderCharacter!!.withCharacter(Symbols.SINGLE_LINE_T_RIGHT))
-}
-else if (junctionFromRightDouble!!.contains(neighbour))
-{
-graphics.setCharacter(leftRow, row, borderCharacter!!.withCharacter(Symbols.SINGLE_LINE_T_DOUBLE_RIGHT))
-}
-}
-else if (borderCharacter!!.`is`(Symbols.DOUBLE_LINE_VERTICAL))
-{
-if (junctionFromRightSingle!!.contains(neighbour))
-{
-graphics.setCharacter(leftRow, row, borderCharacter!!.withCharacter(Symbols.DOUBLE_LINE_T_SINGLE_RIGHT))
-}
-else if (junctionFromRightDouble!!.contains(neighbour))
-{
-graphics.setCharacter(leftRow, row, borderCharacter!!.withCharacter(Symbols.DOUBLE_LINE_T_RIGHT))
-}
-}
-}
+        for (row in 1 until drawableArea.rows - 1) {
+            var borderCharacter: TextCharacter? = graphics.getCharacter(leftRow, row)
+            if (borderCharacter == null) {
+                continue
+            }
+            var neighbourCharacter = graphics.getCharacter(leftRow + 1, row)
+            if (neighbourCharacter != null) {
+                val neighbour = neighbourCharacter.characterString[0]
+                if (borderCharacter.`is`(Symbols.SINGLE_LINE_VERTICAL)) {
+                    if (junctionFromRightSingle.contains(neighbour)) {
+                        graphics.setCharacter(leftRow, row, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_RIGHT))
+                    } else if (junctionFromRightDouble.contains(neighbour)) {
+                        graphics.setCharacter(leftRow, row, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_DOUBLE_RIGHT))
+                    }
+                } else if (borderCharacter.`is`(Symbols.DOUBLE_LINE_VERTICAL)) {
+                    if (junctionFromRightSingle.contains(neighbour)) {
+                        graphics.setCharacter(leftRow, row, borderCharacter.withCharacter(Symbols.DOUBLE_LINE_T_SINGLE_RIGHT))
+                    } else if (junctionFromRightDouble.contains(neighbour)) {
+                        graphics.setCharacter(leftRow, row, borderCharacter.withCharacter(Symbols.DOUBLE_LINE_T_RIGHT))
+                    }
+                }
+            }
 
- //Check last column
             borderCharacter = graphics.getCharacter(rightRow, row)
-if (borderCharacter == null)
-{
-continue
-}
-neighbourCharacter = graphics.getCharacter(rightRow - 1, row)
-if (neighbourCharacter != null)
-{
-val neighbour = neighbourCharacter!!.getCharacterString().charAt(0)
-if (borderCharacter!!.`is`(Symbols.SINGLE_LINE_VERTICAL))
-{
-if (junctionFromLeftSingle!!.contains(neighbour))
-{
-graphics.setCharacter(rightRow, row, borderCharacter!!.withCharacter(Symbols.SINGLE_LINE_T_LEFT))
-}
-else if (junctionFromLeftDouble!!.contains(neighbour))
-{
-graphics.setCharacter(rightRow, row, borderCharacter!!.withCharacter(Symbols.SINGLE_LINE_T_DOUBLE_LEFT))
-}
-}
-else if (borderCharacter!!.`is`(Symbols.DOUBLE_LINE_VERTICAL))
-{
-if (junctionFromLeftSingle!!.contains(neighbour))
-{
-graphics.setCharacter(rightRow, row, borderCharacter!!.withCharacter(Symbols.DOUBLE_LINE_T_SINGLE_LEFT))
-}
-else if (junctionFromLeftDouble!!.contains(neighbour))
-{
-graphics.setCharacter(rightRow, row, borderCharacter!!.withCharacter(Symbols.DOUBLE_LINE_T_LEFT))
-}
-}
-}
-}
-}
+            if (borderCharacter == null) {
+                continue
+            }
+            neighbourCharacter = graphics.getCharacter(rightRow - 1, row)
+            if (neighbourCharacter != null) {
+                val neighbour = neighbourCharacter.characterString[0]
+                if (borderCharacter.`is`(Symbols.SINGLE_LINE_VERTICAL)) {
+                    if (junctionFromLeftSingle.contains(neighbour)) {
+                        graphics.setCharacter(rightRow, row, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_LEFT))
+                    } else if (junctionFromLeftDouble.contains(neighbour)) {
+                        graphics.setCharacter(rightRow, row, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_DOUBLE_LEFT))
+                    }
+                } else if (borderCharacter.`is`(Symbols.DOUBLE_LINE_VERTICAL)) {
+                    if (junctionFromLeftSingle.contains(neighbour)) {
+                        graphics.setCharacter(rightRow, row, borderCharacter.withCharacter(Symbols.DOUBLE_LINE_T_SINGLE_LEFT))
+                    } else if (junctionFromLeftDouble.contains(neighbour)) {
+                        graphics.setCharacter(rightRow, row, borderCharacter.withCharacter(Symbols.DOUBLE_LINE_T_LEFT))
+                    }
+                }
+            }
+        }
+    }
 
-private class SingleLine private constructor(title:String?, borderStyle:BorderStyle?):StandardBorder(title, borderStyle) {
+    private class SingleLine(title: String, borderStyle: BorderStyle) : StandardBorder(title, borderStyle) {
+        override fun createDefaultRenderer(): Border.BorderRenderer {
+            return SingleLineRenderer(borderStyle)
+        }
+    }
 
-@Override
-protected fun createDefaultRenderer():BorderRenderer {
-return SingleLineRenderer(borderStyle)
-}
-}
+    private class SingleLineRenderer(borderStyle: BorderStyle) : AbstractBorderRenderer(borderStyle) {
+        override fun getTopRightCorner(theme: Theme): Char {
+            return theme.getDefinition(SingleLine::class.java)?.getCharacter("TOP_RIGHT_CORNER", Symbols.SINGLE_LINE_TOP_RIGHT_CORNER)
+                ?: Symbols.SINGLE_LINE_TOP_RIGHT_CORNER
+        }
 
-private class SingleLineRenderer(borderStyle:BorderStyle?):AbstractBorderRenderer(borderStyle) {
+        override fun getBottomRightCorner(theme: Theme): Char {
+            return theme.getDefinition(SingleLine::class.java)?.getCharacter("BOTTOM_RIGHT_CORNER", Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER)
+                ?: Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER
+        }
 
-@Override
-protected override fun getTopRightCorner(theme:Theme):Char {
-return theme.getDefinition(SingleLine::class.java).getCharacter("TOP_RIGHT_CORNER", Symbols.SINGLE_LINE_TOP_RIGHT_CORNER)
-}
+        override fun getTopLeftCorner(theme: Theme): Char {
+            return theme.getDefinition(SingleLine::class.java)?.getCharacter("TOP_LEFT_CORNER", Symbols.SINGLE_LINE_TOP_LEFT_CORNER)
+                ?: Symbols.SINGLE_LINE_TOP_LEFT_CORNER
+        }
 
-@Override
-protected override fun getBottomRightCorner(theme:Theme):Char {
-return theme.getDefinition(SingleLine::class.java).getCharacter("BOTTOM_RIGHT_CORNER", Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER)
-}
+        override fun getBottomLeftCorner(theme: Theme): Char {
+            return theme.getDefinition(SingleLine::class.java)?.getCharacter("BOTTOM_LEFT_CORNER", Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER)
+                ?: Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER
+        }
 
-@Override
-protected override fun getTopLeftCorner(theme:Theme):Char {
-return theme.getDefinition(SingleLine::class.java).getCharacter("TOP_LEFT_CORNER", Symbols.SINGLE_LINE_TOP_LEFT_CORNER)
-}
+        override fun getVerticalLine(theme: Theme): Char {
+            return theme.getDefinition(SingleLine::class.java)?.getCharacter("VERTICAL_LINE", Symbols.SINGLE_LINE_VERTICAL)
+                ?: Symbols.SINGLE_LINE_VERTICAL
+        }
 
-@Override
-protected override fun getBottomLeftCorner(theme:Theme):Char {
-return theme.getDefinition(SingleLine::class.java).getCharacter("BOTTOM_LEFT_CORNER", Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER)
-}
+        override fun getHorizontalLine(theme: Theme): Char {
+            return theme.getDefinition(SingleLine::class.java)?.getCharacter("HORIZONTAL_LINE", Symbols.SINGLE_LINE_HORIZONTAL)
+                ?: Symbols.SINGLE_LINE_HORIZONTAL
+        }
 
-@Override
-protected override fun getVerticalLine(theme:Theme):Char {
-return theme.getDefinition(SingleLine::class.java).getCharacter("VERTICAL_LINE", Symbols.SINGLE_LINE_VERTICAL)
-}
+        override fun getTitleLeft(theme: Theme): Char {
+            return theme.getDefinition(SingleLine::class.java)?.getCharacter("TITLE_LEFT", Symbols.SINGLE_LINE_HORIZONTAL)
+                ?: Symbols.SINGLE_LINE_HORIZONTAL
+        }
 
-@Override
-protected override fun getHorizontalLine(theme:Theme):Char {
-return theme.getDefinition(SingleLine::class.java).getCharacter("HORIZONTAL_LINE", Symbols.SINGLE_LINE_HORIZONTAL)
-}
+        override fun getTitleRight(theme: Theme): Char {
+            return theme.getDefinition(SingleLine::class.java)?.getCharacter("TITLE_RIGHT", Symbols.SINGLE_LINE_HORIZONTAL)
+                ?: Symbols.SINGLE_LINE_HORIZONTAL
+        }
+    }
 
-@Override
-protected override fun getTitleLeft(theme:Theme):Char {
-return theme.getDefinition(SingleLine::class.java).getCharacter("TITLE_LEFT", Symbols.SINGLE_LINE_HORIZONTAL)
-}
+    private class DoubleLine(title: String, borderStyle: BorderStyle) : StandardBorder(title, borderStyle) {
+        override fun createDefaultRenderer(): Border.BorderRenderer {
+            return DoubleLineRenderer(borderStyle)
+        }
+    }
 
-@Override
-protected override fun getTitleRight(theme:Theme):Char {
-return theme.getDefinition(SingleLine::class.java).getCharacter("TITLE_RIGHT", Symbols.SINGLE_LINE_HORIZONTAL)
-}
-}
+    private class DoubleLineRenderer(borderStyle: BorderStyle) : AbstractBorderRenderer(borderStyle) {
+        override fun getTopRightCorner(theme: Theme): Char {
+            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("TOP_RIGHT_CORNER", Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER)
+                ?: Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER
+        }
 
-private class DoubleLine private constructor(title:String?, borderStyle:BorderStyle?):StandardBorder(title, borderStyle) {
+        override fun getBottomRightCorner(theme: Theme): Char {
+            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("BOTTOM_RIGHT_CORNER", Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER)
+                ?: Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER
+        }
 
-@Override
-protected fun createDefaultRenderer():BorderRenderer {
-return DoubleLineRenderer(borderStyle)
-}
-}
+        override fun getTopLeftCorner(theme: Theme): Char {
+            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("TOP_LEFT_CORNER", Symbols.DOUBLE_LINE_TOP_LEFT_CORNER)
+                ?: Symbols.DOUBLE_LINE_TOP_LEFT_CORNER
+        }
 
-private class DoubleLineRenderer(borderStyle:BorderStyle?):AbstractBorderRenderer(borderStyle) {
+        override fun getBottomLeftCorner(theme: Theme): Char {
+            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("BOTTOM_LEFT_CORNER", Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER)
+                ?: Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER
+        }
 
-@Override
-protected override fun getTopRightCorner(theme:Theme):Char {
-return theme.getDefinition(DoubleLine::class.java).getCharacter("TOP_RIGHT_CORNER", Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER)
-}
+        override fun getVerticalLine(theme: Theme): Char {
+            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("VERTICAL_LINE", Symbols.DOUBLE_LINE_VERTICAL)
+                ?: Symbols.DOUBLE_LINE_VERTICAL
+        }
 
-@Override
-protected override fun getBottomRightCorner(theme:Theme):Char {
-return theme.getDefinition(DoubleLine::class.java).getCharacter("BOTTOM_RIGHT_CORNER", Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER)
-}
+        override fun getHorizontalLine(theme: Theme): Char {
+            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("HORIZONTAL_LINE", Symbols.DOUBLE_LINE_HORIZONTAL)
+                ?: Symbols.DOUBLE_LINE_HORIZONTAL
+        }
 
-@Override
-protected override fun getTopLeftCorner(theme:Theme):Char {
-return theme.getDefinition(DoubleLine::class.java).getCharacter("TOP_LEFT_CORNER", Symbols.DOUBLE_LINE_TOP_LEFT_CORNER)
-}
+        override fun getTitleLeft(theme: Theme): Char {
+            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("TITLE_LEFT", Symbols.DOUBLE_LINE_HORIZONTAL)
+                ?: Symbols.DOUBLE_LINE_HORIZONTAL
+        }
 
-@Override
-protected override fun getBottomLeftCorner(theme:Theme):Char {
-return theme.getDefinition(DoubleLine::class.java).getCharacter("BOTTOM_LEFT_CORNER", Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER)
+        override fun getTitleRight(theme: Theme): Char {
+            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("TITLE_RIGHT", Symbols.DOUBLE_LINE_HORIZONTAL)
+                ?: Symbols.DOUBLE_LINE_HORIZONTAL
+        }
+    }
 }
-
-@Override
-protected override fun getVerticalLine(theme:Theme):Char {
-return theme.getDefinition(DoubleLine::class.java).getCharacter("VERTICAL_LINE", Symbols.DOUBLE_LINE_VERTICAL)
-}
-
-@Override
-protected override fun getHorizontalLine(theme:Theme):Char {
-return theme.getDefinition(DoubleLine::class.java).getCharacter("HORIZONTAL_LINE", Symbols.DOUBLE_LINE_HORIZONTAL)
-}
-
-@Override
-protected override fun getTitleLeft(theme:Theme):Char {
-return theme.getDefinition(DoubleLine::class.java).getCharacter("TITLE_LEFT", Symbols.DOUBLE_LINE_HORIZONTAL)
-}
-
-@Override
-protected override fun getTitleRight(theme:Theme):Char {
-return theme.getDefinition(DoubleLine::class.java).getCharacter("TITLE_RIGHT", Symbols.DOUBLE_LINE_HORIZONTAL)
-}
-}
-}/**
- * Creates a `Border` that is drawn as a solid color single line surrounding the wrapped component
- * @return New solid color single line `Border`
- *//**
- * Creates a `Border` that is drawn as a bevel color single line surrounding the wrapped component
- * @return New bevel color single line `Border`
- *//**
- * Creates a `Border` that is drawn as a reverse bevel color single line surrounding the wrapped component
- * @return New reverse bevel color single line `Border`
- *//**
- * Creates a `Border` that is drawn as a solid color double line surrounding the wrapped component
- * @return New solid color double line `Border`
- *//**
- * Creates a `Border` that is drawn as a bevel color double line surrounding the wrapped component
- * @return New bevel color double line `Border`
- *//**
- * Creates a `Border` that is drawn as a reverse bevel color double line surrounding the wrapped component
- * @return New reverse bevel color double line `Border`
- */

@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,13 +13,10 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
-
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.atomic.AtomicBoolean
 
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
@@ -29,579 +26,459 @@ import com.googlecode.lanterna.gui2.menu.MenuBar
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * This abstract implementation of `BasePane` has the common code shared by all different concrete
- * implementations.
+ * This abstract implementation of [BasePane] has the common code shared by all different concrete implementations.
  */
-abstract class AbstractBasePane<T : BasePane?> protected constructor():BasePane {
-protected val contentHolder:ContentHolder?
-private val listeners:CopyOnWriteArrayList<BasePaneListener<T?>?>?
-protected var interactableLookupMap:InteractableLookupMap? = null
-private var focusedInteractable:Interactable? = null
-private var invalid:Boolean = false
-private var strictFocusChange:Boolean = false
-private var enableDirectionBasedMovements:Boolean = false
-private var theme:Theme? = null
+abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePane {
+    protected val contentHolder: ContentHolder = ContentHolder()
+    private val listeners: CopyOnWriteArrayList<BasePaneListener<T>> = CopyOnWriteArrayList()
 
-private var mouseDownForDrag:Interactable? = null
+    protected var interactableLookupMap: InteractableLookupMap = InteractableLookupMap(TerminalSize(80, 25))
 
- val isInvalid:Boolean
-@Override
-get() {
-return invalid || contentHolder!!.isInvalid
-}
+    private var focusedInteractableBacking: Interactable? = null
+    private var invalid: Boolean = false
+    private var strictFocusChange: Boolean = false
+    private var enableDirectionBasedMovements: Boolean = true
+    private var themeOverride: Theme? = null
+    private var mouseDownForDrag: Interactable? = null
 
- var component:Component?
-@Override
-get() {
-return contentHolder!!.getComponent()
-}
-@Override
-set(component) {
-contentHolder!!.setComponent(component)
-}
+    override val isInvalid: Boolean
+        get() = invalid || contentHolder.isInvalid
 
- //Don't allow the component to set the cursor outside of its own boundaries
- val cursorPosition:TerminalPosition?
-@Override
-get() {
-if (focusedInteractable == null)
-{
-return null
-}
-val position = focusedInteractable!!.getCursorLocation()
-if (position == null)
-{
-return null
-}
-if ((position!!.column < 0 || 
-position!!.row < 0 || 
-position!!.column >= focusedInteractable!!.getSize().getColumns() || 
-position!!.row >= focusedInteractable!!.getSize().getRows()))
-{
-return null
-}
-return focusedInteractable!!.toBasePane(position)
-}
+    override var component: Component?
+        get() = contentHolder.component
+        set(value) {
+            contentHolder.component = value
+        }
 
- var menuBar:MenuBar?
-@Override
-get() {
-return contentHolder!!.getMenuBar()
-}
-@Override
-set(menuBar) {
-contentHolder!!.setMenuBar(menuBar)
-}
+    override var focusedInteractable: Interactable?
+        get() = focusedInteractableBacking
+        set(value) {
+            setFocusedInteractable(
+                value,
+                if (value != null) Interactable.FocusChangeDirection.TELEPORT else Interactable.FocusChangeDirection.RESET,
+            )
+        }
 
-protected val basePaneListeners:List<BasePaneListener<T?>?>?
-get() {
-return listeners
-}
+    override val cursorPosition: TerminalPosition?
+        get() {
+            val focused = focusedInteractableBacking ?: return null
+            val position = focused.cursorLocation ?: return null
+            val focusedSize = focused.size ?: return null
+            if (position.column < 0 ||
+                position.row < 0 ||
+                position.column >= focusedSize.columns ||
+                position.row >= focusedSize.rows
+            ) {
+                return null
+            }
+            return focused.toBasePane(position)
+        }
 
-init{
-this.contentHolder = ContentHolder()
-this.listeners = CopyOnWriteArrayList()
-this.interactableLookupMap = InteractableLookupMap(TerminalSize(80, 25))
-this.invalid = false
-this.strictFocusChange = false
-this.enableDirectionBasedMovements = true
-this.theme = null
-}
+    override var theme: Theme?
+        @Synchronized get() {
+            if (themeOverride != null) {
+                return themeOverride
+            }
+            return textGUI?.theme
+        }
+        @Synchronized set(value) {
+            themeOverride = value
+            invalidate()
+        }
 
-@Override
-@JvmStatic  fun invalidate() {
-invalid = true
+    override var menuBar: MenuBar?
+        get() = contentHolder.getMenuBar()
+        set(value) {
+            contentHolder.setMenuBar(value)
+        }
 
- //Propagate
-        contentHolder!!.invalidate()
-}
+    protected val basePaneListeners: List<BasePaneListener<T>>
+        get() = listeners
 
-@Override
- fun draw(graphics:TextGUIGraphics) {
-graphics.applyThemeStyle(getTheme()!!.getDefinition(Window::class.java).getNormal())
-graphics.fill(' ')
+    override fun invalidate() {
+        invalid = true
+        contentHolder.invalidate()
+    }
 
-if (!interactableLookupMap!!.getSize().equals(graphics.getSize()))
-{
-interactableLookupMap = InteractableLookupMap(graphics.getSize())
-}
-else
-{
-interactableLookupMap!!.reset()
-}
+    override fun draw(graphics: TextGUIGraphics?) {
+        if (graphics == null) {
+            return
+        }
 
-contentHolder!!.draw(graphics)
-contentHolder!!.updateLookupMap(interactableLookupMap)
- //interactableLookupMap.debug();
+        graphics.applyThemeStyle(theme?.getDefinition(Window::class.java)?.normal)
+        graphics.fill(' ')
+
+        val graphicsSize = graphics.size ?: TerminalSize.ZERO
+        if (interactableLookupMap.size != graphicsSize) {
+            interactableLookupMap = InteractableLookupMap(graphicsSize)
+        } else {
+            interactableLookupMap.reset()
+        }
+
+        contentHolder.draw(graphics)
+        contentHolder.updateLookupMap(interactableLookupMap)
         invalid = false
-}
+    }
 
-@Override
- fun handleInput(key:KeyStroke?):Boolean {
- // Fire events first and decide if the event should be sent to the focused component or not
+    override fun handleInput(key: KeyStroke?): Boolean {
+        val event = key ?: return false
+
         val deliverEvent = AtomicBoolean(true)
-for (listener in listeners!!)
-{
-listener!!.onInput(self(), key, deliverEvent)
-}
-if (!deliverEvent.get())
-{
-return true
-}
+        for (listener in listeners) {
+            listener.onInput(self(), event, deliverEvent)
+        }
+        if (!deliverEvent.get()) {
+            return true
+        }
 
- // Now try to deliver the event to the focused component
-        var handled = doHandleInput(key!!)
-if (!handled)
-{
- // Now try to deliver the event as an accelerator to unfocused components
-        	handled = doHandleAccelerator(key!!)
-}
+        var handled = doHandleInput(event)
+        if (!handled) {
+            handled = doHandleAccelerator(event)
+        }
 
- // If it wasn't handled, fire the listeners and decide what to report to the TextGUI
-        if (!handled)
-{
-val hasBeenHandled = AtomicBoolean(false)
-for (listener in listeners!!)
-{
-listener!!.onUnhandledInput(self(), key, hasBeenHandled)
-}
-handled = hasBeenHandled.get()
-}
-return handled
-}
+        if (!handled) {
+            val hasBeenHandled = AtomicBoolean(false)
+            for (listener in listeners) {
+                listener.onUnhandledInput(self(), event, hasBeenHandled)
+            }
+            handled = hasBeenHandled.get()
+        }
+        return handled
+    }
 
-internal abstract fun self():T? 
+    protected abstract fun self(): T
 
-private fun doHandleAccelerator(key:KeyStroke):Boolean {
-if (key.getKeyType() === KeyType.MOUSE_EVENT) return false
-
-val menuBar = menuBar
-
- // Check menu accelerators
-    	if (menuBar != null && menuBar!!.handleInput(key)) return true
-
- // Check on base component    	    	
-    	return handleAccelerator(contentHolder!!, key)
-}
-
-private fun handleAccelerator(container:Container, key:KeyStroke?):Boolean {
- // Check unfocused buttons
-    	for (child in container.getChildren())
-{
-if (child is Button)
-{
-val btn = child as Button?
-if (btn!!.handleInput(key) === Result.HANDLED) return true
-}
-
-if (child is Container && (child as Container).getChildCount() > 0)
-{
-if (handleAccelerator((child as Container?)!!, key)) return true
-}
-}
-
-return false
-}
-
-private fun doHandleInput(key:KeyStroke):Boolean {
-var result = false
-if (key.getKeyType() === KeyType.MOUSE_EVENT)
-{
-return handleMouseInput(key as MouseAction)
-}
-var direction = Interactable.FocusChangeDirection.TELEPORT // Default
-var nextFocus:Interactable? = null
-if (focusedInteractable == null)
-{
- // If nothing is focused and the user presses certain navigation keys, try to find if there is an
-            // Interactable component we can move focus to.
-            val menuBar = menuBar
-val baseComponent = component
-when (key.getKeyType()) {
-TAB, ARROW_RIGHT, ARROW_DOWN -> {
-direction = Interactable.FocusChangeDirection.NEXT
- // First try the menu, then the actual component
-                    nextFocus = menuBar!!.nextFocus(null)
-if (nextFocus == null)
-{
-if (baseComponent is Container)
-{
-nextFocus = (baseComponent as Container).nextFocus(null)
-}
-else if (baseComponent is Interactable)
-{
-nextFocus = baseComponent as Interactable?
-}
-}
-}
-
-REVERSE_TAB, ARROW_UP, ARROW_LEFT -> {
-direction = Interactable.FocusChangeDirection.PREVIOUS
-if (baseComponent is Container)
-{
-nextFocus = (baseComponent as Container).previousFocus(null)
-}
-else if (baseComponent is Interactable)
-{
-nextFocus = baseComponent as Interactable?
-}
- // If no component can take focus, try the menu
-                    if (nextFocus == null)
-{
-nextFocus = menuBar!!.previousFocus(null)
-}
-}
-}
-if (nextFocus != null)
-{
-setFocusedInteractable(nextFocus, direction)
-result = true
-}
-}
-else
-{
-var handleResult = focusedInteractable!!.handleInput(key)
-if (!enableDirectionBasedMovements)
-{
-if (handleResult === Interactable.Result.MOVE_FOCUS_DOWN || handleResult === Interactable.Result.MOVE_FOCUS_RIGHT)
-{
-handleResult = Interactable.Result.MOVE_FOCUS_NEXT
-}
-else if (handleResult === Interactable.Result.MOVE_FOCUS_UP || handleResult === Interactable.Result.MOVE_FOCUS_LEFT)
-{
-handleResult = Interactable.Result.MOVE_FOCUS_PREVIOUS
-}
-}
-when (handleResult) {
-HANDLED -> result = true
-UNHANDLED -> {
- //Filter the event recursively through all parent containers until we hit null; give the containers
-                    //a chance to absorb the event
-                    var parent = focusedInteractable!!.getParent()
-while (parent != null)
-{
-if (parent!!.handleInput(key))
-{
-return true
-}
-parent = parent!!.getParent()
-}
-result = false
-}
-MOVE_FOCUS_NEXT -> {
-nextFocus = contentHolder!!.nextFocus(focusedInteractable)
-if (nextFocus == null)
-{
-nextFocus = contentHolder!!.nextFocus(null)
-}
-direction = Interactable.FocusChangeDirection.NEXT
-}
-MOVE_FOCUS_PREVIOUS -> {
-nextFocus = contentHolder!!.previousFocus(focusedInteractable)
-if (nextFocus == null)
-{
-nextFocus = contentHolder!!.previousFocus(null)
-}
-direction = Interactable.FocusChangeDirection.PREVIOUS
-}
-MOVE_FOCUS_DOWN -> {
-nextFocus = interactableLookupMap!!.findNextDown(focusedInteractable)
-direction = Interactable.FocusChangeDirection.DOWN
-if (nextFocus == null && !strictFocusChange)
-{
-nextFocus = contentHolder!!.nextFocus(focusedInteractable)
-direction = Interactable.FocusChangeDirection.NEXT
-}
-}
-MOVE_FOCUS_LEFT -> {
-nextFocus = interactableLookupMap!!.findNextLeft(focusedInteractable)
-direction = Interactable.FocusChangeDirection.LEFT
-}
-MOVE_FOCUS_RIGHT -> {
-nextFocus = interactableLookupMap!!.findNextRight(focusedInteractable)
-direction = Interactable.FocusChangeDirection.RIGHT
-}
-MOVE_FOCUS_UP -> {
-nextFocus = interactableLookupMap!!.findNextUp(focusedInteractable)
-direction = Interactable.FocusChangeDirection.UP
-if (nextFocus == null && !strictFocusChange)
-{
-nextFocus = contentHolder!!.previousFocus(focusedInteractable)
-direction = Interactable.FocusChangeDirection.PREVIOUS
-}
-}
-}
-}
-if (nextFocus != null)
-{
-setFocusedInteractable(nextFocus, direction)
-result = true
-}
-return result
-}
-
-private fun handleMouseInput(mouseAction:MouseAction):Boolean {
-val localCoordinates = fromGlobal(mouseAction.getPosition())
-if (localCoordinates == null)
-{
-return false
-}
-val interactable = interactableLookupMap!!.getInteractableAt(localCoordinates)
-if (mouseAction.isMouseDown())
-{
-mouseDownForDrag = interactable
-}
-val wasMouseDownForDrag = mouseDownForDrag
-if (mouseAction.isMouseUp())
-{
-mouseDownForDrag = null
-}
-if (mouseAction.isMouseDrag() && mouseDownForDrag != null)
-{
-return mouseDownForDrag!!.handleInput(mouseAction) === Result.HANDLED
-}
-if (interactable == null)
-{
-return false
-}
-if (mouseAction.isMouseUp())
-{
- // MouseUp only handled by same interactable as MouseDown
-            if (wasMouseDownForDrag === interactable)
-{
-return interactable!!.handleInput(mouseAction) === Result.HANDLED
-}
- // did not handleInput because mouse up was not on component mouse down was on
+    private fun doHandleAccelerator(key: KeyStroke): Boolean {
+        if (key.keyType == KeyType.MOUSE_EVENT) {
             return false
-}
-return interactable!!.handleInput(mouseAction) === Result.HANDLED
-}
+        }
 
-@Override
- fun getFocusedInteractable():Interactable? {
-return focusedInteractable
-}
+        val activeMenuBar = menuBar
+        if (activeMenuBar != null && activeMenuBar.handleInput(key)) {
+            return true
+        }
 
-@Override
- fun setFocusedInteractable(toFocus:Interactable?) {
-setFocusedInteractable(toFocus, 
-if (toFocus != null)
-Interactable.FocusChangeDirection.TELEPORT
-else
-Interactable.FocusChangeDirection.RESET)
-}
+        return handleAccelerator(contentHolder, key)
+    }
 
-protected fun setFocusedInteractable(toFocus:Interactable?, direction:Interactable.FocusChangeDirection?) {
-if (focusedInteractable === toFocus)
-{
-return 
-}
-if (toFocus != null && !toFocus!!.isEnabled())
-{
-return 
-}
-if (focusedInteractable != null)
-{
-focusedInteractable!!.onLeaveFocus(direction, toFocus)
-}
-val previous = focusedInteractable
-focusedInteractable = toFocus
-if (toFocus != null)
-{
-toFocus!!.onEnterFocus(direction, previous)
-}
-invalidate()
-}
+    private fun handleAccelerator(container: Container, key: KeyStroke): Boolean {
+        for (child in container.children.orEmpty()) {
+            if (child is Button && child.handleInput(key) == Result.HANDLED) {
+                return true
+            }
 
-@Override
- fun setStrictFocusChange(strictFocusChange:Boolean) {
-this.strictFocusChange = strictFocusChange
-}
+            if (child is Container && child.childCount > 0) {
+                if (handleAccelerator(child, key)) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
 
-@Override
- fun setEnableDirectionBasedMovements(enableDirectionBasedMovements:Boolean) {
-this.enableDirectionBasedMovements = enableDirectionBasedMovements
-}
+    private fun doHandleInput(key: KeyStroke): Boolean {
+        if (key.keyType == KeyType.MOUSE_EVENT) {
+            return handleMouseInput(key as MouseAction)
+        }
 
-@Override
-@Synchronized  fun getTheme():Theme? {
-if (theme != null)
-{
-return theme
-}
-else if (getTextGUI() != null)
-{
-return getTextGUI().getTheme()
-}
-return null
-}
+        var direction = Interactable.FocusChangeDirection.TELEPORT
+        var nextFocus: Interactable? = null
+        var result = false
 
-@Override
-@Synchronized  fun setTheme(theme:Theme?) {
-this.theme = theme
-invalidate()
-}
+        val focused = focusedInteractableBacking
+        if (focused == null) {
+            val activeMenuBar = menuBar
+            val baseComponent = component
+            when (key.keyType) {
+                KeyType.TAB, KeyType.ARROW_RIGHT, KeyType.ARROW_DOWN -> {
+                    direction = Interactable.FocusChangeDirection.NEXT
+                    nextFocus = activeMenuBar?.nextFocus(null)
+                    if (nextFocus == null) {
+                        nextFocus = when (baseComponent) {
+                            is Container -> baseComponent.nextFocus(null)
+                            is Interactable -> baseComponent
+                            else -> null
+                        }
+                    }
+                }
 
-protected fun addBasePaneListener(basePaneListener:BasePaneListener<T?>?) {
-listeners!!.addIfAbsent(basePaneListener)
-}
+                KeyType.REVERSE_TAB, KeyType.ARROW_UP, KeyType.ARROW_LEFT -> {
+                    direction = Interactable.FocusChangeDirection.PREVIOUS
+                    nextFocus = when (baseComponent) {
+                        is Container -> baseComponent.previousFocus(null)
+                        is Interactable -> baseComponent
+                        else -> null
+                    }
+                    if (nextFocus == null) {
+                        nextFocus = activeMenuBar?.previousFocus(null)
+                    }
+                }
 
-protected fun removeBasePaneListener(basePaneListener:BasePaneListener<T?>?) {
-listeners!!.remove(basePaneListener)
-}
+                else -> {
+                    // no-op
+                }
+            }
+            if (nextFocus != null) {
+                setFocusedInteractable(nextFocus, direction)
+                result = true
+            }
+        } else {
+            var handleResult = focused.handleInput(key)
+            if (!enableDirectionBasedMovements) {
+                if (handleResult == Result.MOVE_FOCUS_DOWN || handleResult == Result.MOVE_FOCUS_RIGHT) {
+                    handleResult = Result.MOVE_FOCUS_NEXT
+                } else if (handleResult == Result.MOVE_FOCUS_UP || handleResult == Result.MOVE_FOCUS_LEFT) {
+                    handleResult = Result.MOVE_FOCUS_PREVIOUS
+                }
+            }
 
-protected inner class ContentHolder internal constructor():AbstractComposite<Container?>() {
-private var menuBar:MenuBar? = null
+            when (handleResult) {
+                Result.HANDLED -> {
+                    result = true
+                }
 
- val isInvalid:Boolean
-@Override
-get() {
-return super.isInvalid() || menuBar!!.isInvalid()
-}
+                Result.UNHANDLED -> {
+                    var parent = focused.parent
+                    while (parent != null) {
+                        if (parent.handleInput(key)) {
+                            return true
+                        }
+                        parent = parent.parent
+                    }
+                    result = false
+                }
 
- val textGUI:TextGUI?
-@Override
-get() {
-return this@AbstractBasePane.getTextGUI()
-}
+                Result.MOVE_FOCUS_NEXT -> {
+                    nextFocus = contentHolder.nextFocus(focused)
+                    if (nextFocus == null) {
+                        nextFocus = contentHolder.nextFocus(null)
+                    }
+                    direction = Interactable.FocusChangeDirection.NEXT
+                }
 
- val basePane:BasePane?
-@Override
-get() {
-return this@AbstractBasePane
-}
+                Result.MOVE_FOCUS_PREVIOUS -> {
+                    nextFocus = contentHolder.previousFocus(focused)
+                    if (nextFocus == null) {
+                        nextFocus = contentHolder.previousFocus(null)
+                    }
+                    direction = Interactable.FocusChangeDirection.PREVIOUS
+                }
 
-init{
-this.menuBar = EmptyMenuBar()
-}
+                Result.MOVE_FOCUS_DOWN -> {
+                    nextFocus = interactableLookupMap.findNextDown(focused)
+                    direction = Interactable.FocusChangeDirection.DOWN
+                    if (nextFocus == null && !strictFocusChange) {
+                        nextFocus = contentHolder.nextFocus(focused)
+                        direction = Interactable.FocusChangeDirection.NEXT
+                    }
+                }
 
-private fun setMenuBar(menuBar:MenuBar?) {
-var menuBar = menuBar
-if (menuBar == null)
-{
-menuBar = EmptyMenuBar()
-}
+                Result.MOVE_FOCUS_LEFT -> {
+                    nextFocus = interactableLookupMap.findNextLeft(focused)
+                    direction = Interactable.FocusChangeDirection.LEFT
+                }
 
-if (this.menuBar !== menuBar)
-{
-menuBar!!.onAdded(this)
-this.menuBar!!.onRemoved(this)
-this.menuBar = menuBar
-if (focusedInteractable == null)
-{
-setFocusedInteractable(menuBar!!.nextFocus(null))
-}
-invalidate()
-}
-}
+                Result.MOVE_FOCUS_RIGHT -> {
+                    nextFocus = interactableLookupMap.findNextRight(focused)
+                    direction = Interactable.FocusChangeDirection.RIGHT
+                }
 
-private fun getMenuBar():MenuBar? {
-return menuBar
-}
+                Result.MOVE_FOCUS_UP -> {
+                    nextFocus = interactableLookupMap.findNextUp(focused)
+                    direction = Interactable.FocusChangeDirection.UP
+                    if (nextFocus == null && !strictFocusChange) {
+                        nextFocus = contentHolder.previousFocus(focused)
+                        direction = Interactable.FocusChangeDirection.PREVIOUS
+                    }
+                }
 
-@Override
- fun invalidate() {
-super.invalidate()
-menuBar!!.invalidate()
-}
+                null -> {
+                    result = false
+                }
+            }
+        }
 
-@Override
- fun updateLookupMap(interactableLookupMap:InteractableLookupMap?) {
-super.updateLookupMap(interactableLookupMap)
-menuBar!!.updateLookupMap(interactableLookupMap)
-}
+        if (nextFocus != null) {
+            setFocusedInteractable(nextFocus, direction)
+            result = true
+        }
+        return result
+    }
 
-@Override
- fun setComponent(component:Component?) {
-if (component === component)
-{
-return 
-}
-setFocusedInteractable(null)
-super.setComponent(component)
-if (focusedInteractable == null && component is Interactable)
-{
-setFocusedInteractable(component as Interactable?)
-}
-else if (focusedInteractable == null && component is Container)
-{
-setFocusedInteractable((component as Container).nextFocus(null))
-}
-}
+    private fun handleMouseInput(mouseAction: MouseAction): Boolean {
+        val localCoordinates = fromGlobal(mouseAction.position) ?: return false
+        val interactable = interactableLookupMap.getInteractableAt(localCoordinates)
 
- fun removeComponent(component:Component?):Boolean {
-val removed = super.removeComponent(component)
-if (removed)
-{
-focusedInteractable = null
-}
-return removed
-}
+        if (mouseAction.isMouseDown) {
+            mouseDownForDrag = interactable
+        }
+        val wasMouseDownForDrag = mouseDownForDrag
+        if (mouseAction.isMouseUp) {
+            mouseDownForDrag = null
+        }
 
-@Override
-protected fun createDefaultRenderer():ComponentRenderer<Container?>? {
-return object:ComponentRenderer<Container?>() {
-@Override
- fun getPreferredSize(component:Container?):TerminalSize? {
-val subComponent = component
-if (subComponent == null)
-{
-return TerminalSize.ZERO
-}
-return subComponent!!.getPreferredSize()
-}
+        if (mouseAction.isMouseDrag && mouseDownForDrag != null) {
+            return mouseDownForDrag?.handleInput(mouseAction) == Result.HANDLED
+        }
 
-@Override
- fun drawComponent(graphics:TextGUIGraphics?, component:Container?) {
-var graphics = graphics
-if (!(menuBar is EmptyMenuBar))
-{
-val menuBarHeight = menuBar!!.getPreferredSize().getRows()
-val menuGraphics = graphics!!.newTextGraphics(TerminalPosition.TOP_LEFT_CORNER, graphics!!.getSize().withRows(menuBarHeight))
-menuBar!!.draw(menuGraphics)
-graphics = graphics!!.newTextGraphics(TerminalPosition.TOP_LEFT_CORNER.withRelativeRow(menuBarHeight), graphics!!.getSize().withRelativeRows(-menuBarHeight))
-}
+        val target = interactable ?: return false
+        if (mouseAction.isMouseUp) {
+            if (wasMouseDownForDrag === target) {
+                return target.handleInput(mouseAction) == Result.HANDLED
+            }
+            return false
+        }
+        return target.handleInput(mouseAction) == Result.HANDLED
+    }
 
-val subComponent = component
-if (subComponent == null)
-{
-return 
-}
-subComponent!!.draw(graphics)
-}
-}
-}
+    protected fun setFocusedInteractable(toFocus: Interactable?, direction: Interactable.FocusChangeDirection) {
+        if (focusedInteractableBacking === toFocus) {
+            return
+        }
+        if (toFocus != null && !toFocus.isEnabled) {
+            return
+        }
+        focusedInteractableBacking?.onLeaveFocus(direction, toFocus)
+        val previous = focusedInteractableBacking
+        focusedInteractableBacking = toFocus
+        toFocus?.onEnterFocus(direction, previous)
+        invalidate()
+    }
 
-@Override
- fun toGlobal(position:TerminalPosition?):TerminalPosition? {
-return this@AbstractBasePane.toGlobal(position)
-}
+    override fun setStrictFocusChange(strictFocusChange: Boolean) {
+        this.strictFocusChange = strictFocusChange
+    }
 
-@Override
- fun toBasePane(position:TerminalPosition?):TerminalPosition? {
-return position
-}
-}
+    override fun setEnableDirectionBasedMovements(enableDirectionBasedMovements: Boolean) {
+        this.enableDirectionBasedMovements = enableDirectionBasedMovements
+    }
 
-private class EmptyMenuBar:MenuBar() {
- val isInvalid:Boolean
-@Override
-get() {
-return false
-}
+    protected fun addBasePaneListener(basePaneListener: BasePaneListener<T>) {
+        listeners.addIfAbsent(basePaneListener)
+    }
 
- val isEmptyMenuBar:Boolean
-@Override
-get() {
-return true
-}
+    protected fun removeBasePaneListener(basePaneListener: BasePaneListener<T>) {
+        listeners.remove(basePaneListener)
+    }
 
-@Override
-@Synchronized  fun onAdded(container:Container?) {}
+    protected inner class ContentHolder : AbstractComposite<Container?>() {
+        private var internalMenuBar: MenuBar = EmptyMenuBar()
 
-@Override
-@Synchronized  fun onRemoved(container:Container?) {}
-}
+        fun setMenuBar(menuBar: MenuBar?) {
+            var resolved = menuBar
+            if (resolved == null) {
+                resolved = EmptyMenuBar()
+            }
+
+            if (internalMenuBar !== resolved) {
+                resolved.onAdded(this)
+                internalMenuBar.onRemoved(this)
+                internalMenuBar = resolved
+                if (focusedInteractableBacking == null) {
+                    focusedInteractable = resolved.nextFocus(null)
+                }
+                invalidate()
+            }
+        }
+
+        fun getMenuBar(): MenuBar {
+            return internalMenuBar
+        }
+
+        override val isInvalid: Boolean
+            get() = super.isInvalid || internalMenuBar.isInvalid
+
+        override fun invalidate() {
+            super.invalidate()
+            internalMenuBar.invalidate()
+        }
+
+        override fun updateLookupMap(interactableLookupMap: InteractableLookupMap?) {
+            super.updateLookupMap(interactableLookupMap)
+            internalMenuBar.updateLookupMap(interactableLookupMap)
+        }
+
+        override var component: Component?
+            get() = super.component
+            set(value) {
+                if (super.component === value) {
+                    return
+                }
+                focusedInteractable = null
+                super.component = value
+                if (focusedInteractableBacking == null && value is Interactable) {
+                    focusedInteractable = value
+                } else if (focusedInteractableBacking == null && value is Container) {
+                    focusedInteractable = value.nextFocus(null)
+                }
+            }
+
+        override fun removeComponent(component: Component?): Boolean {
+            val removed = super.removeComponent(component)
+            if (removed) {
+                focusedInteractableBacking = null
+            }
+            return removed
+        }
+
+        override val textGUI: TextGUI?
+            get() = this@AbstractBasePane.textGUI
+
+        override val basePane: BasePane
+            get() = this@AbstractBasePane
+
+        override fun createDefaultRenderer(): ComponentRenderer<Container?> {
+            return object : ComponentRenderer<Container?> {
+                override fun getPreferredSize(component: Container?): TerminalSize {
+                    val subComponent = this@ContentHolder.component ?: return TerminalSize.ZERO
+                    return subComponent.preferredSize ?: TerminalSize.ZERO
+                }
+
+                override fun drawComponent(graphics: TextGUIGraphics?, component: Container?) {
+                    var activeGraphics = graphics ?: return
+
+                    if (!internalMenuBar.isEmptyMenuBar) {
+                        val menuBarHeight = internalMenuBar.preferredSize?.rows ?: 0
+                        val topSlice = activeGraphics.size?.withRows(menuBarHeight)
+                        val menuGraphics = activeGraphics.newTextGraphics(TerminalPosition.TOP_LEFT_CORNER, topSlice)
+                        internalMenuBar.draw(menuGraphics)
+                        val remainderSize = activeGraphics.size?.withRelativeRows(-menuBarHeight)
+                        val offset = TerminalPosition.TOP_LEFT_CORNER.withRelativeRow(menuBarHeight)
+                        activeGraphics = activeGraphics.newTextGraphics(offset, remainderSize) ?: return
+                    }
+
+                    val subComponent = this@ContentHolder.component ?: return
+                    subComponent.draw(activeGraphics)
+                }
+            }
+        }
+
+        override fun toGlobal(position: TerminalPosition?): TerminalPosition? {
+            return this@AbstractBasePane.toGlobal(position)
+        }
+
+        override fun toBasePane(position: TerminalPosition?): TerminalPosition? {
+            return position
+        }
+    }
+
+    private class EmptyMenuBar : MenuBar() {
+        override val isInvalid: Boolean
+            get() = false
+
+        override fun onAdded(container: Container?) {
+            // no-op
+        }
+
+        override fun onRemoved(container: Container?) {
+            // no-op
+        }
+
+        override val isEmptyMenuBar: Boolean
+            get() = true
+    }
 }

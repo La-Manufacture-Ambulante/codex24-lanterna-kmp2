@@ -24,7 +24,7 @@ import com.googlecode.lanterna.TextColor
  * Returns all the SGR codes that are currently active
  * @return Currently active SGR modifiers
  */
-     val activeModifiers:EnumSet<SGR?>?
+     val activeModifiers:EnumSet<SGR>?
 
 /**
  * Updates the current background color
@@ -60,7 +60,7 @@ import com.googlecode.lanterna.TextColor
  * @param modifiers Modifiers to set as active
  * @return Itself
  */
-     fun setModifiers(modifiers:EnumSet<SGR?>?):T? 
+     fun setModifiers(modifiers:EnumSet<SGR>?):T? 
 
 /**
  * Removes all active modifiers
@@ -84,7 +84,7 @@ private set
 public override var backgroundColor:TextColor? = null
 private set
 private val style = EnumSet.noneOf(SGR::class.java)
-public override val activeModifiers:EnumSet<SGR?>?
+public override val activeModifiers:EnumSet<SGR>?
 @Override
 get() {
 return EnumSet.copyOf(style)
@@ -106,31 +106,35 @@ return this
 }
 @Override
 public override fun enableModifiers(vararg modifiers:SGR?):Set {
-style!!.addAll(Arrays.asList(modifiers))
+style.addAll(Arrays.asList(*modifiers).filterNotNull())
 return this
 }
 @Override
 public override fun disableModifiers(vararg modifiers:SGR?):Set {
-style!!.removeAll(Arrays.asList(modifiers))
+style.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
 return this
 }
 @Override
-public override fun setModifiers(modifiers:EnumSet<SGR?>?):Set {
-style!!.clear()
-style!!.addAll(modifiers)
+public override fun setModifiers(modifiers:EnumSet<SGR>?):Set {
+style.clear()
+if (modifiers != null) {
+    style.addAll(modifiers)
+}
 return this
 }
 @Override
 public override fun clearModifiers():Set {
-style!!.clear()
+style.clear()
 return this
 }
 
 @Override
-public override fun setStyleFrom(source:StyleSet<*>):Set {
+public override fun setStyleFrom(source:StyleSet<*>?):Set {
+if (source != null) {
 setBackgroundColor(source.backgroundColor)
 setForegroundColor(source.foregroundColor)
 setModifiers(source.activeModifiers)
+}
 return this
 }
 }

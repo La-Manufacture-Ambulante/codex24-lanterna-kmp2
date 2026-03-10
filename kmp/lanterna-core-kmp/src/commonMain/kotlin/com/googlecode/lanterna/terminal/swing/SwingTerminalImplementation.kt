@@ -55,7 +55,7 @@ internal class SwingTerminalImplementation(
         )
         component.isDoubleBuffered = true
         component.addKeyListener(TerminalInputListener())
-        updateMouseCaptureMode(mouseCaptureMode)
+        updateMouseCaptureMode(activeMouseCaptureMode)
         component.addHierarchyListener { event ->
             if (event.changeFlags == HierarchyEvent.DISPLAYABILITY_CHANGED.toLong()) {
                 if (event.changed.isDisplayable) {
@@ -66,8 +66,6 @@ internal class SwingTerminalImplementation(
             }
         }
     }
-
-    fun getFontConfiguration(): SwingTerminalFontConfiguration = fontConfiguration
 
     override val fontHeight: Int
         get() = fontConfiguration.fontHeight
@@ -90,7 +88,7 @@ internal class SwingTerminalImplementation(
             component.removeMouseWheelListener(it)
             component.removeMouseMotionListener(it)
         }
-        mouseListener = object : TerminalMouseListener(this.mouseCaptureMode) {
+        mouseListener = object : TerminalMouseListener(this.activeMouseCaptureMode) {
             override fun mouseClicked(e: MouseEvent) {
                 super.mouseClicked(e)
                 component.requestFocusInWindow()

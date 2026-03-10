@@ -22,85 +22,48 @@ import com.googlecode.lanterna.gui2.Component
 import com.googlecode.lanterna.gui2.ComponentRenderer
 
 /**
- * Allows you to more easily wrap an existing theme definion and alter the behaviour in some special cases. You normally
- * create a new class that extends from this and override some of the methods to divert the call depending on what you
- * are trying to do. For an example, please see Issue409 in the test code.
- * @see DelegatingTheme
- * 
- * @see DefaultMutableThemeStyle
- * 
- * @see Theme
+ * Allows you to more easily wrap an existing theme definition and alter behavior.
  */
- class DelegatingThemeDefinition/**
- * Creates a new [DelegatingThemeDefinition] with a default implementation that will forward all calls to the
- * [ThemeDefinition] that is passed in.
- * @param themeDefinition Other theme definition to delegate all calls to
- */
-    (private val themeDefinition:ThemeDefinition?):ThemeDefinition {
+open class DelegatingThemeDefinition(private val themeDefinition: ThemeDefinition) : ThemeDefinition {
+    override val normal: ThemeStyle?
+        get() = themeDefinition.normal
 
- val normal:ThemeStyle?
-@Override
-get() {
-return themeDefinition!!.getNormal()
-}
+    override val preLight: ThemeStyle?
+        get() = themeDefinition.preLight
 
- val preLight:ThemeStyle?
-@Override
-get() {
-return themeDefinition!!.getPreLight()
-}
+    override val selected: ThemeStyle?
+        get() = themeDefinition.selected
 
- val selected:ThemeStyle?
-@Override
-get() {
-return themeDefinition!!.getSelected()
-}
+    override val active: ThemeStyle?
+        get() = themeDefinition.active
 
- val active:ThemeStyle?
-@Override
-get() {
-return themeDefinition!!.getActive()
-}
+    override val insensitive: ThemeStyle?
+        get() = themeDefinition.insensitive
 
- val insensitive:ThemeStyle?
-@Override
-get() {
-return themeDefinition!!.getInsensitive()
-}
+    override fun getCustom(name: String?): ThemeStyle? {
+        return themeDefinition.getCustom(name)
+    }
 
- val isCursorVisible:Boolean
-@Override
-get() {
-return themeDefinition!!.isCursorVisible()
-}
+    override fun getCustom(name: String?, defaultValue: ThemeStyle?): ThemeStyle? {
+        return themeDefinition.getCustom(name, defaultValue)
+    }
 
-@Override
- fun getCustom(name:String?):ThemeStyle? {
-return themeDefinition!!.getCustom(name)
-}
+    override fun getBooleanProperty(name: String?, defaultValue: Boolean): Boolean {
+        return themeDefinition.getBooleanProperty(name, defaultValue)
+    }
 
-@Override
- fun getCustom(name:String?, defaultValue:ThemeStyle?):ThemeStyle? {
-return themeDefinition!!.getCustom(name, defaultValue)
-}
+    override fun getIntegerProperty(name: String?, defaultValue: Int): Int {
+        return themeDefinition.getIntegerProperty(name, defaultValue)
+    }
 
-@Override
- fun getIntegerProperty(name:String?, defaultValue:Int):Int {
-return themeDefinition!!.getIntegerProperty(name, defaultValue)
-}
+    override val isCursorVisible: Boolean
+        get() = themeDefinition.isCursorVisible
 
-@Override
- fun getBooleanProperty(name:String?, defaultValue:Boolean):Boolean {
-return themeDefinition!!.getBooleanProperty(name, defaultValue)
-}
+    override fun getCharacter(name: String?, fallback: Char): Char {
+        return themeDefinition.getCharacter(name, fallback)
+    }
 
-@Override
- fun getCharacter(name:String?, fallback:Char):Char {
-return themeDefinition!!.getCharacter(name, fallback)
-}
-
-@Override
- fun <T : Component?> getRenderer(type:Class<T?>?):ComponentRenderer<T?>? {
-return themeDefinition!!.getRenderer(type)
-}
+    override fun <T : Component?> getRenderer(type: Class<T?>?): ComponentRenderer<T?>? {
+        return themeDefinition.getRenderer(type)
+    }
 }

@@ -19,53 +19,37 @@
 package com.googlecode.lanterna.graphics
 
 import com.googlecode.lanterna.TerminalPosition
-import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
 
 /**
- * This TextGraphics implementation wraps another TextGraphics and forwards all operations to it, but with a few
- * differences. First of all, each individual character being printed is printed twice. Secondly, if you call
- * `getSize()`, it will return a size that has half the width of the underlying TextGraphics. This presents the
- * writable view as somewhat squared, since normally terminal characters are twice as tall as wide. You can see some
- * examples of how this looks by running the Triangle test in `com.googlecode.lanterna.screen.ScreenTriangleTest`
- * and compare it when running with the --square parameter and without.
+ * Wraps another TextGraphics and prints each character twice horizontally.
  */
- class DoublePrintingTextGraphics/**
- * Creates a new `DoublePrintingTextGraphics` on top of a supplied `TextGraphics`
- * @param underlyingTextGraphics backend `TextGraphics` to forward all the calls to
- */
-    (private val underlyingTextGraphics:TextGraphics?):AbstractTextGraphics() {
+class DoublePrintingTextGraphics(private val underlyingTextGraphics: TextGraphics) : AbstractTextGraphics() {
+    override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
+        val adjustedColumn = columnIndex * 2
+        underlyingTextGraphics.setCharacter(adjustedColumn, rowIndex, textCharacter)
+        underlyingTextGraphics.setCharacter(adjustedColumn + 1, rowIndex, textCharacter)
+        return this
+    }
 
- val size:TerminalSize?
-@Override
-get() {
-val size = underlyingTextGraphics!!.getSize()
-return size!!.withColumns(size!!.columns / 2)
-}
+    override fun getCharacter(columnIndex: Int, rowIndex: Int): TextCharacter? {
+        val adjustedColumn = columnIndex * 2
+        return underlyingTextGraphics.getCharacter(adjustedColumn, rowIndex)
+    }
 
-@Override
- fun setCharacter(columnIndex:Int, rowIndex:Int, textCharacter:TextCharacter?):TextGraphics? {
-var columnIndex = columnIndex
-columnIndex = columnIndex * 2
-underlyingTextGraphics!!.setCharacter(columnIndex, rowIndex, textCharacter)
-underlyingTextGraphics!!.setCharacter(columnIndex + 1, rowIndex, textCharacter)
-return this
-}
+    override val size: TerminalSize
+        get() {
+            val innerSize = underlyingTextGraphics.size ?: TerminalSize(0, 0)
+            return requireNotNull(innerSize.withColumns(innerSize.columns / 2))
+        }
 
-@Override
- fun getCharacter(columnIndex:Int, rowIndex:Int):TextCharacter? {
-var columnIndex = columnIndex
-columnIndex = columnIndex * 2
-return underlyingTextGraphics!!.getCharacter(columnIndex, rowIndex)
+    override fun toScreenPosition(pos: TerminalPosition?): TerminalPosition? {
+        val position = pos ?: TerminalPosition.TOP_LEFT_CORNER
+        return underlyingTextGraphics.toScreenPosition(position.multiply(MULTIPLIER))
+    }
 
-}
-
-@Override
- fun toScreenPosition(pos:TerminalPosition):TerminalPosition? {
-return underlyingTextGraphics!!.toScreenPosition(pos.multiply(MULTIPLIER))
-}
-
-companion object {
-private val MULTIPLIER = TerminalPosition(2, 1)
-}
+    companion object {
+        private val MULTIPLIER = TerminalPosition(2, 1)
+    }
 }

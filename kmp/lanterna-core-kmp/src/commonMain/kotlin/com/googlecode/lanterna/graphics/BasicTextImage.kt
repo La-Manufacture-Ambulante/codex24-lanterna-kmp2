@@ -18,12 +18,11 @@
  */
 package com.googlecode.lanterna.graphics
 
-import java.util.Arrays
-
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
+import java.util.Arrays
 
 /**
  * Simple implementation of TextImage that keeps the content as a two-dimensional TextCharacter array. Copy operations
@@ -31,362 +30,289 @@ import com.googlecode.lanterna.TextColor
  * character and copying them over one by one.
  * @author martin
  */
- class BasicTextImage/**
- * Creates a new BasicTextImage by copying a region of a two-dimensional array of TextCharacter:s. If the area to be
- * copied to larger than the source array, a filler character is used.
- * @param size Size to create the new BasicTextImage as (and size to copy from the array)
- * @param toCopy Array to copy initial data from
- * @param initialContent Filler character to use if the source array is smaller than the requested size
- */
-     private constructor(@get:Override
- val size:TerminalSize?, toCopy:Array<Array<TextCharacter?>?>?, initialContent:TextCharacter?):TextImage {
-private val buffer:Array<Array<TextCharacter?>?>?
+class BasicTextImage private constructor(
+    override val size: TerminalSize,
+    toCopy: Array<Array<TextCharacter>>,
+    initialContent: TextCharacter,
+) : TextImage {
 
-/**
- * Creates a new BasicTextImage with the specified size and fills it initially with space characters using the
- * default foreground and background color
- * @param columns Size of the image in number of columns
- * @param rows Size of the image in number of rows
- */
-     constructor(columns:Int, rows:Int) : this(TerminalSize(columns, rows)) {}
+    private val buffer: Array<Array<TextCharacter>>
 
-/**
- * Creates a new BasicTextImage with a given size and a TextCharacter to initially fill it with
- * @param size Size of the image
- * @param initialContent What character to set as the initial content
- */
-    @JvmOverloads  constructor(size:TerminalSize?, initialContent:TextCharacter? = TextCharacter(' ', TextColor.ANSI.DEFAULT, TextColor.ANSI.DEFAULT)) : this(size, arrayOfNulls<Array<TextCharacter?>?>(0), initialContent) {}
+    constructor(columns: Int, rows: Int) : this(TerminalSize(columns, rows))
 
-init{
-if (size == null || toCopy == null || initialContent == null)
-{
-throw IllegalArgumentException(("Cannot create BasicTextImage with null " + (if (size == null) "size" else (if (toCopy == null) "toCopy" else "filler"))))
-}
+    constructor(size: TerminalSize?) : this(
+        requireNotNull(size) { "Cannot create BasicTextImage with null size" },
+        TextCharacter(' ', TextColor.ANSI.DEFAULT, TextColor.ANSI.DEFAULT),
+    )
 
-val rows = size!!.rows
-val columns = size!!.columns
-buffer = arrayOfNulls<Array<TextCharacter?>?>(rows)
-for (y in 0 until rows)
-{
-buffer[y] = arrayOfNulls<TextCharacter?>(columns)
-for (x in 0 until columns)
-{
-if (y < toCopy!!.size && x < toCopy!![y].size)
-{
-buffer!![y][x] = toCopy!![y][x]
-}
-else
-{
-buffer!![y][x] = initialContent
-}
-}
-}
-}
+    constructor(size: TerminalSize?, initialContent: TextCharacter?) : this(
+        requireNotNull(size) { "Cannot create BasicTextImage with null size" },
+        emptyArray(),
+        requireNotNull(initialContent) { "Cannot create BasicTextImage with null filler" },
+    )
 
-@Override
- fun setAll(character:TextCharacter?) {
-if (character == null)
-{
-throw IllegalArgumentException("Cannot call BasicTextImage.setAll(..) with null character")
-}
-for (line in buffer!!)
-{
-Arrays.fill(line, character)
-}
-}
+    init {
+        val rows = size.rows
+        val columns = size.columns
+        buffer = Array(rows) { y ->
+            Array(columns) { x ->
+                if (y < toCopy.size && x < toCopy[y].size) {
+                    toCopy[y][x]
+                } else {
+                    initialContent
+                }
+            }
+        }
+    }
 
-@Override
- fun resize(newSize:TerminalSize?, filler:TextCharacter?):BasicTextImage {
-if (newSize == null || filler == null)
-{
-throw IllegalArgumentException(("Cannot resize BasicTextImage with null " + (if (newSize == null) "newSize" else "filler")))
-}
-if ((newSize!!.rows == buffer!!.size && (buffer!!.size == 0 || newSize!!.columns == buffer!![0].size)))
-{
-return this
-}
-return BasicTextImage(newSize, buffer, filler)
-}
+    override fun setAll(character: TextCharacter?) {
+        val fillCharacter = requireNotNull(character) {
+            "Cannot call BasicTextImage.setAll(..) with null character"
+        }
+        for (line in buffer) {
+            Arrays.fill(line, fillCharacter)
+        }
+    }
 
-@Override
- fun setCharacterAt(position:TerminalPosition?, character:TextCharacter?) {
-if (position == null)
-{
-throw IllegalArgumentException("Cannot call BasicTextImage.setCharacterAt(..) with null position")
-}
-setCharacterAt(position!!.column, position!!.row, character)
-}
+    override fun resize(newSize: TerminalSize?, filler: TextCharacter?): BasicTextImage {
+        val targetSize = requireNotNull(newSize) {
+            "Cannot resize BasicTextImage with null newSize"
+        }
+        val fillCharacter = requireNotNull(filler) {
+            "Cannot resize BasicTextImage with null filler"
+        }
+        if (targetSize.rows == buffer.size &&
+            (buffer.isEmpty() || targetSize.columns == buffer[0].size)
+        ) {
+            return this
+        }
+        return BasicTextImage(targetSize, buffer, fillCharacter)
+    }
 
-@Override
- fun setCharacterAt(column:Int, row:Int, character:TextCharacter?) {
-if (character == null)
-{
-throw IllegalArgumentException("Cannot call BasicTextImage.setCharacterAt(..) with null character")
-}
-if (column < 0 || row < 0 || row >= buffer!!.size || column >= buffer!![0].size)
-{
-return 
-}
+    override fun setCharacterAt(position: TerminalPosition?, character: TextCharacter?) {
+        val p = requireNotNull(position) {
+            "Cannot call BasicTextImage.setCharacterAt(..) with null position"
+        }
+        setCharacterAt(p.column, p.row, character)
+    }
 
- // Double width character adjustments
-        if (column > 0 && buffer!![row][column - 1].isDoubleWidth())
-{
-buffer!![row][column - 1] = buffer!![row][column - 1].withCharacter(' ')
-}
+    override fun setCharacterAt(column: Int, row: Int, character: TextCharacter?) {
+        val value = requireNotNull(character) {
+            "Cannot call BasicTextImage.setCharacterAt(..) with null character"
+        }
+        if (column < 0 || row < 0 || row >= buffer.size || (buffer.isNotEmpty() && column >= buffer[0].size)) {
+            return
+        }
 
- // Assign the character at location we specified
-        buffer!![row][column] = character
+        if (column > 0 && buffer[row][column - 1].isDoubleWidth) {
+            buffer[row][column - 1] = buffer[row][column - 1].withCharacter(' ')
+        }
 
- // Double width character adjustments
-        if (character!!.isDoubleWidth() && column + 1 < buffer!![0].size)
-{
-buffer!![row][column + 1] = character!!.withCharacter(' ')
-}
-}
+        buffer[row][column] = value
 
-@Override
- fun getCharacterAt(position:TerminalPosition?):TextCharacter? {
-if (position == null)
-{
-throw IllegalArgumentException("Cannot call BasicTextImage.getCharacterAt(..) with null position")
-}
-return getCharacterAt(position!!.column, position!!.row)
-}
+        if (value.isDoubleWidth && column + 1 < buffer[0].size) {
+            buffer[row][column + 1] = value.withCharacter(' ')
+        }
+    }
 
-@Override
- fun getCharacterAt(column:Int, row:Int):TextCharacter? {
-if (column < 0 || row < 0 || row >= buffer!!.size || column >= buffer!![0].size)
-{
-return null
-}
+    override fun getCharacterAt(position: TerminalPosition?): TextCharacter? {
+        val p = requireNotNull(position) {
+            "Cannot call BasicTextImage.getCharacterAt(..) with null position"
+        }
+        return getCharacterAt(p.column, p.row)
+    }
 
-return buffer!![row][column]
-}
+    override fun getCharacterAt(column: Int, row: Int): TextCharacter? {
+        if (column < 0 || row < 0 || row >= buffer.size || buffer.isEmpty() || column >= buffer[0].size) {
+            return null
+        }
+        return buffer[row][column]
+    }
 
-@Override
- fun copyTo(destination:TextImage?) {
-if (buffer!!.size > 0)
-{
-copyTo(destination, 0, buffer!!.size, 0, buffer!![0].size, 0, 0)
-}
-}
+    override fun copyTo(destination: TextImage?) {
+        if (buffer.isNotEmpty()) {
+            copyTo(destination, 0, buffer.size, 0, buffer[0].size, 0, 0)
+        }
+    }
 
-@Override
- fun copyTo(
-destination:TextImage?, 
-startRowIndex:Int, 
-rows:Int, 
-startColumnIndex:Int, 
-columns:Int, 
-destinationRowOffset:Int, 
-destinationColumnOffset:Int) {
-var startRowIndex = startRowIndex
-var rows = rows
-var startColumnIndex = startColumnIndex
-var columns = columns
-var destinationRowOffset = destinationRowOffset
-var destinationColumnOffset = destinationColumnOffset
+    override fun copyTo(
+        destination: TextImage?,
+        startRowIndex: Int,
+        rows: Int,
+        startColumnIndex: Int,
+        columns: Int,
+        destinationRowOffset: Int,
+        destinationColumnOffset: Int,
+    ) {
+        val target = requireNotNull(destination) { "destination" }
 
- // If the source image position is negative, offset the whole image
-        if (startColumnIndex < 0)
-{
-destinationColumnOffset += -startColumnIndex
-columns += startColumnIndex
-startColumnIndex = 0
-}
-if (startRowIndex < 0)
-{
-destinationRowOffset += -startRowIndex
-rows += startRowIndex
-startRowIndex = 0
-}
+        var srcStartRow = startRowIndex
+        var srcRows = rows
+        var srcStartColumn = startColumnIndex
+        var srcColumns = columns
+        var dstRowOffset = destinationRowOffset
+        var dstColumnOffset = destinationColumnOffset
 
- // If the destination offset is negative, adjust the source start indexes
-        if (destinationColumnOffset < 0)
-{
-startColumnIndex -= destinationColumnOffset
-columns += destinationColumnOffset
-destinationColumnOffset = 0
-}
-if (destinationRowOffset < 0)
-{
-startRowIndex -= destinationRowOffset
-rows += destinationRowOffset
-destinationRowOffset = 0
-}
+        if (srcStartColumn < 0) {
+            dstColumnOffset += -srcStartColumn
+            srcColumns += srcStartColumn
+            srcStartColumn = 0
+        }
+        if (srcStartRow < 0) {
+            dstRowOffset += -srcStartRow
+            srcRows += srcStartRow
+            srcStartRow = 0
+        }
 
- //Make sure we can't copy more than is available
-        rows = Math.min(buffer!!.size - startRowIndex, rows)
-columns = if (rows > 0) Math.min(buffer!![0].size - startColumnIndex, columns) else 0
+        if (dstColumnOffset < 0) {
+            srcStartColumn -= dstColumnOffset
+            srcColumns += dstColumnOffset
+            dstColumnOffset = 0
+        }
+        if (dstRowOffset < 0) {
+            srcStartRow -= dstRowOffset
+            srcRows += dstRowOffset
+            dstRowOffset = 0
+        }
 
- //Adjust target lengths as well
-        columns = Math.min(destination!!.getSize().getColumns() - destinationColumnOffset, columns)
-rows = Math.min(destination!!.getSize().getRows() - destinationRowOffset, rows)
+        srcRows = kotlin.math.min(buffer.size - srcStartRow, srcRows)
+        srcColumns = if (srcRows > 0) {
+            kotlin.math.min(buffer[0].size - srcStartColumn, srcColumns)
+        } else {
+            0
+        }
 
-if (columns <= 0 || rows <= 0)
-{
-return 
-}
+        val targetSize = target.size ?: TerminalSize(0, 0)
+        srcColumns = kotlin.math.min(targetSize.columns - dstColumnOffset, srcColumns)
+        srcRows = kotlin.math.min(targetSize.rows - dstRowOffset, srcRows)
 
-val destinationSize = destination!!.getSize()
-if (destination is BasicTextImage)
-{
-var targetRow = destinationRowOffset
-var y = startRowIndex
-while (y < startRowIndex + rows && targetRow < destinationSize!!.rows)
-{
-System.arraycopy(buffer!![y], startColumnIndex, (destination as BasicTextImage).buffer!![targetRow++], destinationColumnOffset, columns)
-y++
-}
-}
-else
-{
- //Manually copy character by character
-            for (y in startRowIndex until startRowIndex + rows)
-{
-var x = startColumnIndex
-while (x < startColumnIndex + columns)
-{
-var character:TextCharacter? = buffer!![y][x]
-if (character!!.isDoubleWidth())
-{
- // If we're about to put a double-width character, first reset the character next to it
-                        if (x + 1 < startColumnIndex + columns)
-{
-destination!!.setCharacterAt(
-x - startColumnIndex + destinationColumnOffset, 
-y - startRowIndex + destinationRowOffset, 
-character!!.withCharacter(' '))
-}
-else if (x + 1 == startColumnIndex + columns)
-{
-character = character!!.withCharacter(' ')
-}// If the last character is a double-width character, it would exceed the dimension so reset it
-}
-destination!!.setCharacterAt(
-x - startColumnIndex + destinationColumnOffset, 
-y - startRowIndex + destinationRowOffset, 
-character)
-if (character!!.isDoubleWidth())
-{
-x++
-}
-x++
-}
-}
-}
+        if (srcColumns <= 0 || srcRows <= 0) {
+            return
+        }
 
- // If the character immediately to the left in the destination is double-width, then reset it
-        if (destinationColumnOffset > 0)
-{
-val destinationX = destinationColumnOffset - 1
-for (y in startRowIndex until startRowIndex + rows)
-{
-val destinationY = y - startRowIndex + destinationRowOffset
-val neighbour = destination!!.getCharacterAt(destinationX, destinationY)
-if (neighbour!!.isDoubleWidth())
-{
-destination!!.setCharacterAt(destinationX, destinationY, neighbour!!.withCharacter(' '))
-}
-}
-}
-}
+        if (target is BasicTextImage) {
+            var targetRow = dstRowOffset
+            var y = srcStartRow
+            while (y < srcStartRow + srcRows && targetRow < targetSize.rows) {
+                System.arraycopy(
+                    buffer[y],
+                    srcStartColumn,
+                    target.buffer[targetRow++],
+                    dstColumnOffset,
+                    srcColumns,
+                )
+                y++
+            }
+        } else {
+            for (y in srcStartRow until srcStartRow + srcRows) {
+                var x = srcStartColumn
+                while (x < srcStartColumn + srcColumns) {
+                    var character = buffer[y][x]
+                    if (character.isDoubleWidth) {
+                        if (x + 1 < srcStartColumn + srcColumns) {
+                            target.setCharacterAt(
+                                x - srcStartColumn + dstColumnOffset,
+                                y - srcStartRow + dstRowOffset,
+                                character.withCharacter(' '),
+                            )
+                        } else if (x + 1 == srcStartColumn + srcColumns) {
+                            character = character.withCharacter(' ')
+                        }
+                    }
+                    target.setCharacterAt(
+                        x - srcStartColumn + dstColumnOffset,
+                        y - srcStartRow + dstRowOffset,
+                        character,
+                    )
+                    if (character.isDoubleWidth) {
+                        x++
+                    }
+                    x++
+                }
+            }
+        }
 
-@Override
- fun newTextGraphics():TextGraphics? {
-return object:AbstractTextGraphics() {
+        if (dstColumnOffset > 0) {
+            val destinationX = dstColumnOffset - 1
+            for (y in srcStartRow until srcStartRow + srcRows) {
+                val destinationY = y - srcStartRow + dstRowOffset
+                val neighbour = target.getCharacterAt(destinationX, destinationY)
+                if (neighbour != null && neighbour.isDoubleWidth) {
+                    target.setCharacterAt(destinationX, destinationY, neighbour.withCharacter(' '))
+                }
+            }
+        }
+    }
 
- val size:TerminalSize?
-@Override
-get() {
-return size
-}
-@Override
- fun setCharacter(columnIndex:Int, rowIndex:Int, textCharacter:TextCharacter?):TextGraphics? {
-this@BasicTextImage.setCharacterAt(columnIndex, rowIndex, textCharacter)
-return this
-}
+    override fun newTextGraphics(): TextGraphics {
+        return object : AbstractTextGraphics() {
+            override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
+                this@BasicTextImage.setCharacterAt(columnIndex, rowIndex, textCharacter)
+                return this
+            }
 
-@Override
- fun getCharacter(column:Int, row:Int):TextCharacter? {
-return this@BasicTextImage.getCharacterAt(column, row)
-}
-}
-}
+            override fun getCharacter(column: Int, row: Int): TextCharacter? {
+                return this@BasicTextImage.getCharacterAt(column, row)
+            }
 
-private fun newBlankLine():Array<TextCharacter?> {
-val line = arrayOfNulls<TextCharacter?>(size!!.columns)
-Arrays.fill(line, TextCharacter.DEFAULT_CHARACTER)
-return line
-}
+            override val size: TerminalSize
+                get() = this@BasicTextImage.size
+        }
+    }
 
-@Override
- fun scrollLines(firstLine:Int, lastLine:Int, distance:Int) {
-var firstLine = firstLine
-var lastLine = lastLine
-var distance = distance
-if (firstLine < 0) {
-firstLine = 0
-}
-if (lastLine >= size!!.rows) {
-lastLine = size!!.rows - 1
-}
-if (firstLine < lastLine)
-{
-if (distance > 0)
-{
- // scrolling up: start with first line as target:
-                var curLine = firstLine
- // copy lines from further "below":
-                while (curLine <= lastLine - distance)
-{
-buffer[curLine] = buffer!![curLine + distance]
-curLine++
-}
- // blank out the remaining lines:
-                while (curLine <= lastLine)
-{
-buffer[curLine] = newBlankLine()
-curLine++
-}
-}
-else if (distance < 0)
-{
- // scrolling down: start with last line as target:
-               var curLine = lastLine
-distance = -distance
- // copy lines from further "above":
-               while (curLine >= firstLine + distance)
-{
-buffer[curLine] = buffer!![curLine - distance]
-curLine--
-}
- // blank out the remaining lines:
-               while (curLine >= firstLine)
-{
-buffer[curLine] = newBlankLine()
-curLine--
-}
-} /* else: distance == 0 => no-op */
-}
-}
+    private fun newBlankLine(): Array<TextCharacter> {
+        val line = Array(size.columns) { TextCharacter.DEFAULT_CHARACTER }
+        Arrays.fill(line, TextCharacter.DEFAULT_CHARACTER)
+        return line
+    }
 
-@Override
- fun toString():String? {
-val sb = StringBuilder(size!!.rows * (size!!.columns + 1) + 50)
-sb.append('{').append(size!!.columns).append('x').append(size!!.rows).append('}').append('\n')
-for (line in buffer!!)
-{
-for (tc in line!!)
-{
-sb.append(tc!!.getCharacterString())
+    override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int) {
+        var start = firstLine
+        var end = lastLine
+        var delta = distance
+
+        if (start < 0) {
+            start = 0
+        }
+        if (end >= size.rows) {
+            end = size.rows - 1
+        }
+
+        if (start < end) {
+            if (delta > 0) {
+                var curLine = start
+                while (curLine <= end - delta) {
+                    buffer[curLine] = buffer[curLine + delta]
+                    curLine++
+                }
+                while (curLine <= end) {
+                    buffer[curLine] = newBlankLine()
+                    curLine++
+                }
+            } else if (delta < 0) {
+                var curLine = end
+                delta = -delta
+                while (curLine >= start + delta) {
+                    buffer[curLine] = buffer[curLine - delta]
+                    curLine--
+                }
+                while (curLine >= start) {
+                    buffer[curLine] = newBlankLine()
+                    curLine--
+                }
+            }
+        }
+    }
+
+    override fun toString(): String {
+        val sb = StringBuilder(size.rows * (size.columns + 1) + 50)
+        sb.append('{').append(size.columns).append('x').append(size.rows).append('}').append('\n')
+        for (line in buffer) {
+            for (tc in line) {
+                sb.append(tc.characterString)
+            }
+            sb.append('\n')
+        }
+        return sb.toString()
+    }
 }
-sb.append('\n')
-}
-return sb.toString()
-}
-}/**
- * Creates a new BasicTextImage with the specified size and fills it initially with space characters using the
- * default foreground and background color
- * @param size Size to make the image
- */

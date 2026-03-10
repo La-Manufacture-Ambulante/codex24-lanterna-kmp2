@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
@@ -25,242 +25,168 @@ import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
 
 /**
- * Default implementation of Interactable that extends from AbstractComponent. If you want to write your own component
- * that is interactable, i.e. can receive keyboard (and mouse) input, you probably want to extend from this class as
- * it contains some common implementations of the methods from `Interactable` interface
- * @param <T> Should always be itself, see `AbstractComponent`
- * @author Martin
-</T> */
-abstract class AbstractInteractableComponent<T : AbstractInteractableComponent<T?>?>/**
- * Default constructor
+ * Default implementation of [Interactable] that extends [AbstractComponent].
  */
-     protected constructor():AbstractComponent<T?>(), Interactable {
+abstract class AbstractInteractableComponent<T : AbstractInteractableComponent<T>?> protected constructor() :
+    AbstractComponent<T>(),
+    Interactable {
 
-private var inputFilter:InputFilter? = null
-@get:Override
- var isFocused:Boolean = false
-private set
-private var enabled:Boolean = false
-private var accelerator:KeyStroke? = null
+    private var inputFilterBacking: InputFilter? = null
+    private var inFocus: Boolean = false
+    private var enabledBacking: Boolean = true
+    private var accelerator: KeyStroke? = null
 
- val renderer:InteractableRenderer<T?>?
-@Override
-get() {
-return super.getRenderer() as InteractableRenderer<T?>
-}
+    override val renderer: InteractableRenderer<T?>?
+        get() = super.renderer as InteractableRenderer<T?>?
 
- val isFocusable:Boolean
-@Override
-get() {
-return true
-}
+    override val isFocused: Boolean
+        get() = inFocus
 
- val cursorLocation:TerminalPosition?
-@Override
-get() {
-return renderer!!.getCursorLocation(self())
-}
+    override val isEnabled: Boolean
+        get() = enabledBacking
 
-init{
-inputFilter = null
-isFocused = false
-enabled = true
-}
+    override open val isFocusable: Boolean
+        get() = true
 
-@Override
- fun takeFocus():T? {
-if (!isEnabled())
-{
-return self()
-}
-val basePane = getBasePane()
-if (basePane != null)
-{
-basePane!!.setFocusedInteractable(this)
-}
-return self()
-}
+    override val cursorLocation: TerminalPosition?
+        get() = renderer?.getCursorLocation(self())
 
-/**
- * {@inheritDoc}
- * 
- * 
- * This method is final in `AbstractInteractableComponent`, please override `afterEnterFocus` instead
- */
-    @Override
- fun onEnterFocus(direction:FocusChangeDirection?, previouslyInFocus:Interactable?) {
-isFocused = true
-afterEnterFocus(direction, previouslyInFocus)
-}
+    override val inputFilter: InputFilter?
+        get() = inputFilterBacking
 
-/**
- * Called by `AbstractInteractableComponent` automatically after this component has received input focus. You
- * can override this method if you need to trigger some action based on this.
- * @param direction How focus was transferred, keep in mind this is from the previous component's point of view so
- * if this parameter has value DOWN, focus came in from above
- * @param previouslyInFocus Which interactable component had focus previously
- */
-    @SuppressWarnings("EmptyMethod")
-protected fun afterEnterFocus(direction:FocusChangeDirection?, previouslyInFocus:Interactable?) {
- //By default no action
+    override fun takeFocus(): T? {
+        if (!isEnabled) {
+            return self()
+        }
+        basePane?.focusedInteractable = this
+        return self()
     }
 
-@Synchronized protected fun setAccelerator(keyStroke:KeyStroke?):T? {
-this.accelerator = keyStroke
-return self()
-}
-
-@Synchronized protected fun getAccelerator():KeyStroke? {
-return this.accelerator
-}
-
-/**
- * {@inheritDoc}
- * 
- * 
- * This method is final in `AbstractInteractableComponent`, please override `afterLeaveFocus` instead
- */
-    @Override
- fun onLeaveFocus(direction:FocusChangeDirection?, nextInFocus:Interactable?) {
-isFocused = false
-afterLeaveFocus(direction, nextInFocus)
-}
-
-/**
- * Called by `AbstractInteractableComponent` automatically after this component has lost input focus. You
- * can override this method if you need to trigger some action based on this.
- * @param direction How focus was transferred, keep in mind this is from the this component's point of view so
- * if this parameter has value DOWN, focus is moving down to a component below
- * @param nextInFocus Which interactable component is going to receive focus
- */
-    @SuppressWarnings("EmptyMethod")
-protected fun afterLeaveFocus(direction:FocusChangeDirection?, nextInFocus:Interactable?) {
- //By default no action
+    override fun onEnterFocus(direction: Interactable.FocusChangeDirection?, previouslyInFocus: Interactable?) {
+        inFocus = true
+        afterEnterFocus(direction, previouslyInFocus)
     }
 
-@Override
-protected abstract fun createDefaultRenderer():InteractableRenderer<T?>? 
+    @Suppress("EmptyMethod")
+    protected open fun afterEnterFocus(direction: Interactable.FocusChangeDirection?, previouslyInFocus: Interactable?) {
+        // By default no action
+    }
 
-@Override
-@Synchronized  fun setEnabled(enabled:Boolean):T? {
-this.enabled = enabled
-if (!enabled && isFocused)
-{
-val basePane = getBasePane()
-if (basePane != null)
-{
-basePane!!.setFocusedInteractable(null)
-}
-}
-return self()
-}
+    @Synchronized
+    protected open fun setAccelerator(keyStroke: KeyStroke?): T? {
+        accelerator = keyStroke
+        return self()
+    }
 
-@Override
- fun isEnabled():Boolean {
-return enabled
-}
+    @Synchronized
+    protected open fun getAccelerator(): KeyStroke? {
+        return accelerator
+    }
 
-@Override
-@Synchronized  fun handleInput(keyStroke:KeyStroke?):Result? {
-if (inputFilter == null || inputFilter!!.onInput(this, keyStroke))
-{
-return handleKeyStroke(keyStroke!!)
-}
-else
-{
-return Result.UNHANDLED
-}
-}
+    override fun onLeaveFocus(direction: Interactable.FocusChangeDirection?, nextInFocus: Interactable?) {
+        inFocus = false
+        afterLeaveFocus(direction, nextInFocus)
+    }
 
-/**
- * This method can be overridden to handle various user input (mostly from the keyboard) when this component is in
- * focus. The input method from the interface, `handleInput(..)` is final in
- * `AbstractInteractableComponent` to ensure the input filter is properly handled. If the filter decides that
- * this event should be processed, it will call this method.
- * @param keyStroke What input was entered by the user
- * @return Result of processing the key-stroke
- */
-    protected fun handleKeyStroke(keyStroke:KeyStroke):Result? {
- // Skip the keystroke if ctrl, alt or shift was down
-        if (!keyStroke.isAltDown() && !keyStroke.isCtrlDown() && !keyStroke.isShiftDown())
-{
-when (keyStroke.getKeyType()) {
-ARROW_DOWN -> return Result.MOVE_FOCUS_DOWN
-ARROW_LEFT -> return Result.MOVE_FOCUS_LEFT
-ARROW_RIGHT -> return Result.MOVE_FOCUS_RIGHT
-ARROW_UP -> return Result.MOVE_FOCUS_UP
-TAB -> return Result.MOVE_FOCUS_NEXT
-REVERSE_TAB -> return Result.MOVE_FOCUS_PREVIOUS
-MOUSE_EVENT -> {
-if (isMouseMove(keyStroke))
-{
- // do nothing
-                        return Result.UNHANDLED
-}
-getBasePane().setFocusedInteractable(this)
-return Result.HANDLED
-}
-}
-}
-return Result.UNHANDLED
-}
+    @Suppress("EmptyMethod")
+    protected open fun afterLeaveFocus(direction: Interactable.FocusChangeDirection?, nextInFocus: Interactable?) {
+        // By default no action
+    }
 
-@Override
- fun getInputFilter():InputFilter? {
-return inputFilter
-}
+    override abstract fun createDefaultRenderer(): InteractableRenderer<T?>?
 
-@Override
-@Synchronized  fun setInputFilter(inputFilter:InputFilter?):T? {
-this.inputFilter = inputFilter
-return self()
-}
+    @Synchronized
+    override fun setEnabled(enabled: Boolean): T? {
+        enabledBacking = enabled
+        if (!enabled && isFocused) {
+            basePane?.focusedInteractable = null
+        }
+        return self()
+    }
 
- fun isKeyboardActivationStroke(keyStroke:KeyStroke):Boolean {
-val isKeyboardActivation = (keyStroke.getKeyType() === KeyType.CHARACTER && keyStroke.getCharacter() === ' ') || keyStroke.getKeyType() === KeyType.ENTER
+    @Synchronized
+    override fun handleInput(keyStroke: KeyStroke?): Interactable.Result? {
+        if (keyStroke == null) {
+            return Interactable.Result.UNHANDLED
+        }
+        if (inputFilterBacking == null || inputFilterBacking?.onInput(this, keyStroke) == true) {
+            return handleKeyStroke(keyStroke)
+        }
+        return Interactable.Result.UNHANDLED
+    }
 
-return isFocused && isKeyboardActivation
-}
+    protected open fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
+        if (!keyStroke.isAltDown && !keyStroke.isCtrlDown && !keyStroke.isShiftDown) {
+            return when (keyStroke.keyType) {
+                KeyType.ARROW_DOWN -> Interactable.Result.MOVE_FOCUS_DOWN
+                KeyType.ARROW_LEFT -> Interactable.Result.MOVE_FOCUS_LEFT
+                KeyType.ARROW_RIGHT -> Interactable.Result.MOVE_FOCUS_RIGHT
+                KeyType.ARROW_UP -> Interactable.Result.MOVE_FOCUS_UP
+                KeyType.TAB -> Interactable.Result.MOVE_FOCUS_NEXT
+                KeyType.REVERSE_TAB -> Interactable.Result.MOVE_FOCUS_PREVIOUS
+                KeyType.MOUSE_EVENT -> {
+                    if (isMouseMove(keyStroke)) {
+                        Interactable.Result.UNHANDLED
+                    } else {
+                        basePane?.focusedInteractable = this
+                        Interactable.Result.HANDLED
+                    }
+                }
 
- fun isKeyboardAcceleratorStroke(keyStroke:KeyStroke?):Boolean {
-if (accelerator == null) return false
+                else -> Interactable.Result.UNHANDLED
+            }
+        }
+        return Interactable.Result.UNHANDLED
+    }
 
-return isEnabled() && accelerator!!.equals(keyStroke)
-}
+    @Synchronized
+    override fun setInputFilter(inputFilter: InputFilter?): T? {
+        inputFilterBacking = inputFilter
+        return self()
+    }
 
- fun isMouseActivationStroke(keyStroke:KeyStroke?):Boolean {
-var isMouseActivation = false
-if (keyStroke is MouseAction)
-{
-val action = keyStroke as MouseAction?
-isMouseActivation = action!!.getActionType() === MouseActionType.CLICK_DOWN
-}
+    fun isKeyboardActivationStroke(keyStroke: KeyStroke): Boolean {
+        val isKeyboardActivation =
+            (keyStroke.keyType == KeyType.CHARACTER && keyStroke.character == ' ') || keyStroke.keyType == KeyType.ENTER
+        return isFocused && isKeyboardActivation
+    }
 
-return isFocused && isMouseActivation
-}
+    fun isKeyboardAcceleratorStroke(keyStroke: KeyStroke?): Boolean {
+        val currentAccelerator = accelerator ?: return false
+        return isEnabled && currentAccelerator == keyStroke
+    }
 
- fun isActivationStroke(keyStroke:KeyStroke?):Boolean {
-val isKeyboardActivationStroke = isKeyboardActivationStroke(keyStroke!!)
-val isMouseActivationStroke = isMouseActivationStroke(keyStroke)
+    fun isMouseActivationStroke(keyStroke: KeyStroke?): Boolean {
+        val isMouseActivation = if (keyStroke is MouseAction) {
+            keyStroke.actionType == MouseActionType.CLICK_DOWN
+        } else {
+            false
+        }
+        return isFocused && isMouseActivation
+    }
 
-return isKeyboardActivationStroke || isMouseActivationStroke
-}
+    fun isActivationStroke(keyStroke: KeyStroke?): Boolean {
+        if (keyStroke == null) {
+            return false
+        }
+        val isKeyboardActivationStroke = isKeyboardActivationStroke(keyStroke)
+        val isMouseActivationStroke = isMouseActivationStroke(keyStroke)
+        return isKeyboardActivationStroke || isMouseActivationStroke
+    }
 
- fun isMouseDown(keyStroke:KeyStroke):Boolean {
-return keyStroke.getKeyType() === KeyType.MOUSE_EVENT && (keyStroke as MouseAction).isMouseDown()
-}
+    fun isMouseDown(keyStroke: KeyStroke): Boolean {
+        return keyStroke.keyType == KeyType.MOUSE_EVENT && (keyStroke as MouseAction).isMouseDown
+    }
 
- fun isMouseDrag(keyStroke:KeyStroke):Boolean {
-return keyStroke.getKeyType() === KeyType.MOUSE_EVENT && (keyStroke as MouseAction).isMouseDrag()
-}
+    fun isMouseDrag(keyStroke: KeyStroke): Boolean {
+        return keyStroke.keyType == KeyType.MOUSE_EVENT && (keyStroke as MouseAction).isMouseDrag
+    }
 
- fun isMouseMove(keyStroke:KeyStroke):Boolean {
-return keyStroke.getKeyType() === KeyType.MOUSE_EVENT && (keyStroke as MouseAction).isMouseMove()
-}
+    fun isMouseMove(keyStroke: KeyStroke): Boolean {
+        return keyStroke.keyType == KeyType.MOUSE_EVENT && (keyStroke as MouseAction).isMouseMove
+    }
 
- fun isMouseUp(keyStroke:KeyStroke):Boolean {
-return keyStroke.getKeyType() === KeyType.MOUSE_EVENT && (keyStroke as MouseAction).isMouseUp()
-}
-
-
+    fun isMouseUp(keyStroke: KeyStroke): Boolean {
+        return keyStroke.keyType == KeyType.MOUSE_EVENT && (keyStroke as MouseAction).isMouseUp
+    }
 }

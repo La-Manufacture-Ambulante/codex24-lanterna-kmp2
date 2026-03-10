@@ -27,19 +27,19 @@ import com.googlecode.lanterna.terminal.TerminalResizeListener
  * [com.googlecode.lanterna.terminal.Terminal.addResizeListener], in that case only the
  * resize event will fire on the listener.
  */
- interface VirtualTerminalListener:TerminalResizeListener {
-/**
- * Called when the [Terminal.flush] method is invoked on the [VirtualTerminal]
- */
-    @JvmStatic  fun onFlush() 
+interface VirtualTerminalListener : TerminalResizeListener {
+    /**
+     * Called when the [Terminal.flush] method is invoked on the [VirtualTerminal]
+     */
+    fun onFlush()
 
-/**
- * Called when the [Terminal.bell] method is invoked on the [VirtualTerminal]
- */
-    @JvmStatic  fun onBell() 
+    /**
+     * Called when the [Terminal.bell] method is invoked on the [VirtualTerminal]
+     */
+    fun onBell()
 
-/**
- * Called when the [Terminal.close] method is invoked on the [VirtualTerminal]
- */
-    @JvmStatic  fun onClose() 
+    /**
+     * Called when the [Terminal.close] method is invoked on the [VirtualTerminal]
+     */
+    fun onClose()
 }

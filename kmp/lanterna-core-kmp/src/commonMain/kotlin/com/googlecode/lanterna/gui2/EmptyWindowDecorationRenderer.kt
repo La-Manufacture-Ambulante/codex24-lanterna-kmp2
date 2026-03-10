@@ -25,19 +25,16 @@ import com.googlecode.lanterna.TerminalSize
  * Implementation of WindowDecorationRenderer that is doesn't render any window decorations
  * @author Martin
  */
- class EmptyWindowDecorationRenderer:WindowDecorationRenderer {
-@Override
- fun draw(textGUI:WindowBasedTextGUI?, graphics:TextGUIGraphics?, window:Window?):TextGUIGraphics? {
-return graphics
-}
+class EmptyWindowDecorationRenderer : WindowDecorationRenderer {
+    override fun draw(textGUI: WindowBasedTextGUI?, graphics: TextGUIGraphics?, window: Window?): TextGUIGraphics? {
+        return graphics
+    }
 
-@Override
- fun getDecoratedSize(window:Window?, contentAreaSize:TerminalSize?):TerminalSize? {
-return contentAreaSize
-}
+    override fun getDecoratedSize(window: Window?, contentAreaSize: TerminalSize?): TerminalSize? {
+        return contentAreaSize
+    }
 
-@Override
- fun getOffset(window:Window?):TerminalPosition {
-return TerminalPosition.TOP_LEFT_CORNER
-}
+    override fun getOffset(window: Window?): TerminalPosition {
+        return TerminalPosition.TOP_LEFT_CORNER
+    }
 }

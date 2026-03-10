@@ -71,7 +71,6 @@ class SwingTerminal : JComponent, IOSafeTerminal {
         scrollController: TerminalScrollController?,
     ) : this(null, deviceConfiguration, fontConfiguration, colorConfiguration, scrollController)
 
-    @JvmOverloads
     constructor(
         initialTerminalSize: TerminalSize?,
         deviceConfiguration: TerminalEmulatorDeviceConfiguration?,

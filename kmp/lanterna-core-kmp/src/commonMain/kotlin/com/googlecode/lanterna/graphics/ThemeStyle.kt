@@ -47,5 +47,5 @@ import java.util.EnumSet
  * altering it will not change the theme in any way.
  * @return SGR flags associated with this style
  */
-     val sgRs:EnumSet<SGR?>?
+     val sgRs:EnumSet<SGR>?
 }

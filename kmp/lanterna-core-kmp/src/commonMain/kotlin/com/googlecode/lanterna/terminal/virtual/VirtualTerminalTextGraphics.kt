@@ -26,38 +26,26 @@ import com.googlecode.lanterna.graphics.TextGraphics
 
 /**
  * Implementation of [TextGraphics] for [VirtualTerminal]
- * @author Martin
  */
-internal class VirtualTerminalTextGraphics(private val virtualTerminal:DefaultVirtualTerminal?):AbstractTextGraphics() {
+internal class VirtualTerminalTextGraphics(
+    private val virtualTerminal: DefaultVirtualTerminal,
+) : AbstractTextGraphics() {
+    override val size: TerminalSize
+        get() = virtualTerminal.terminalSize ?: TerminalSize.ZERO
 
- val size:TerminalSize?
-@Override
-get() {
-return virtualTerminal!!.getTerminalSize()
-}
+    override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
+        val size = size
+        if (columnIndex < 0 || columnIndex >= size.columns || rowIndex < 0 || rowIndex >= size.rows) {
+            return this
+        }
+        synchronized(virtualTerminal) {
+            virtualTerminal.cursorPosition = TerminalPosition(columnIndex, rowIndex)
+            virtualTerminal.putCharacter(textCharacter ?: TextCharacter.DEFAULT_CHARACTER)
+        }
+        return this
+    }
 
-@Override
- fun setCharacter(columnIndex:Int, rowIndex:Int, textCharacter:TextCharacter?):TextGraphics? {
-val size = size
-if ((columnIndex < 0 || columnIndex >= size!!.columns || 
-rowIndex < 0 || rowIndex >= size!!.rows))
-{
-return this
-}
-synchronized (virtualTerminal) {
-virtualTerminal!!.setCursorPosition(TerminalPosition(columnIndex, rowIndex))
-virtualTerminal!!.putCharacter(textCharacter)
-}
-return this
-}
+    override fun getCharacter(position: TerminalPosition?): TextCharacter? = virtualTerminal.getCharacter(position)
 
-@Override
- fun getCharacter(position:TerminalPosition?):TextCharacter? {
-return virtualTerminal!!.getCharacter(position)
-}
-
-@Override
- fun getCharacter(column:Int, row:Int):TextCharacter? {
-return getCharacter(TerminalPosition(column, row))
-}
+    override fun getCharacter(column: Int, row: Int): TextCharacter? = getCharacter(TerminalPosition(column, row))
 }

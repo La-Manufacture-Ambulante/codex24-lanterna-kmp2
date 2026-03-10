@@ -47,7 +47,7 @@ abstract class BundleLocator/**
  * @return the formatted value associated to the given key. Empty string if no value exists for
  * the given key.
  */
-    protected fun getBundleKeyValue(locale:Locale?, key:String?, vararg parameters:Object?):String? {
+    protected fun getBundleKeyValue(locale:Locale?, key:String?, vararg parameters:Any?):String? {
 var value:String? = null
 try
 {
@@ -55,7 +55,7 @@ value = getBundle(locale)!!.getString(key)
 }
 catch (ignore:Exception) {}
 
-return if (value != null) MessageFormat.format(value, parameters) else null
+return if (value != null) MessageFormat.format(value, *parameters) else null
 }
 
 /**
@@ -86,7 +86,7 @@ catch (e:UnsupportedOperationException) {
     // All credits to poster BalusC (http://stackoverflow.com/users/157882/balusc)
     private class UTF8Control:ResourceBundle.Control() {
 @Throws(IOException::class)
- fun newBundle(baseName:String?, locale:Locale?, format:String?, loader:ClassLoader?, reload:Boolean):ResourceBundle? {
+ override fun newBundle(baseName:String?, locale:Locale?, format:String?, loader:ClassLoader?, reload:Boolean):ResourceBundle? {
  // The below is a copy of the default implementation.
             val bundleName = toBundleName(baseName, locale)
 val resourceName = toResourceName(bundleName, "properties")

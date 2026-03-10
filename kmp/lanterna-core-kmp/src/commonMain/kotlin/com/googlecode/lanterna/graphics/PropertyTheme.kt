@@ -44,7 +44,7 @@ import java.util.Properties
  * superclass specified either.
  * 
  */
- class PropertyTheme/**
+ open class PropertyTheme/**
  * Creates a new `PropertyTheme` that is initialized by the properties value and optionally prevents it from
  * throwing an exception if there are invalid definitions in the properties object.
  * @param properties Properties to initialize this theme with

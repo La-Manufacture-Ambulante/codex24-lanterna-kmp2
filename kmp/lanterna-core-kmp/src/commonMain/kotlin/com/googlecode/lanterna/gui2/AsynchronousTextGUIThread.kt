@@ -20,62 +20,22 @@ package com.googlecode.lanterna.gui2
 
 import java.util.concurrent.TimeUnit
 
-/**
- * Extended interface of TextGUIThread for implementations that uses a separate thread for all GUI event processing and
- * updating.
- * 
- * @author Martin
- */
- interface AsynchronousTextGUIThread:TextGUIThread {
+interface AsynchronousTextGUIThread : TextGUIThread {
+    fun start()
+    fun stop()
 
-/**
- * Returns the current status of this GUI thread
- * @return Current status of the GUI thread
- */
-     val state:State?
-/**
- * Starts the AsynchronousTextGUIThread, typically meaning that the event processing loop will start.
- */
-    @JvmStatic  fun start() 
-
-/**
- * Requests that the AsynchronousTextGUIThread stops, typically meaning that the event processing loop will exit
- */
-    @JvmStatic  fun stop() 
-
-/**
- * Blocks until the GUI loop has stopped
- * @throws InterruptedException In case this thread was interrupted while waiting for the GUI thread to exit
- */
     @Throws(InterruptedException::class)
-@JvmStatic  fun waitForStop() 
+    fun waitForStop()
 
-/**
- * Blocks until the GUI loop has stopped
- * @throws InterruptedException In case this thread was interrupted while waiting for the GUI thread to exit
- */
     @Throws(InterruptedException::class)
- fun waitForStop(time:Long, unit:TimeUnit?) 
+    fun waitForStop(time: Long, unit: TimeUnit?)
 
-/**
- * Enum representing the states of the GUI thread life-cycle
- */
-     enum class State {
-/**
- * The instance has been created but not yet started
- */
-        CREATED, 
-/**
- * The thread has started an is running
- */
-        STARTED, 
-/**
- * The thread is trying to stop but is still running
- */
-        STOPPING, 
-/**
- * The thread has stopped
- */
-        STOPPED
-}
+    val state: State?
+
+    enum class State {
+        CREATED,
+        STARTED,
+        STOPPING,
+        STOPPED,
+    }
 }

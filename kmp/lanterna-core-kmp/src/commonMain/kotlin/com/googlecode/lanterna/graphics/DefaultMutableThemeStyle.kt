@@ -35,14 +35,14 @@ import java.util.EnumSet
  * @see Theme
  */
  class DefaultMutableThemeStyle:ThemeStyle {
-private var foreground:TextColor? = null
-private var background:TextColor? = null
-private var sgrs:EnumSet<SGR?>? = null
+override var foreground:TextColor? = null
+override var background:TextColor? = null
+private var sgrs:EnumSet<SGR>? = null
 
- val sgRs:EnumSet<SGR?>?
+ override val sgRs:EnumSet<SGR>?
 @Override
 get() {
-return EnumSet.copyOf(sgrs)
+return if (sgrs == null) EnumSet.noneOf(SGR::class.java) else EnumSet.copyOf(sgrs)
 }
 
 /**
@@ -50,9 +50,9 @@ return EnumSet.copyOf(sgrs)
  * that is passed in will be copied into the new object that is created.
  * @param themeStyleToCopy [ThemeStyle] object to copy the style parameters from
  */
-     constructor(themeStyleToCopy:ThemeStyle) : this(themeStyleToCopy.getForeground(), 
-themeStyleToCopy.getBackground(), 
-themeStyleToCopy.getSGRs()) {}
+     constructor(themeStyleToCopy:ThemeStyle) : this(themeStyleToCopy.foreground, 
+themeStyleToCopy.background, 
+themeStyleToCopy.sgRs) {}
 
 /**
  * Creates a new [DefaultMutableThemeStyle] with a specified style (foreground, background and SGR state)
@@ -60,9 +60,9 @@ themeStyleToCopy.getSGRs()) {}
  * @param background Background color of the text with this style
  * @param sgrs Modifiers to apply to the text with this style
  */
-     constructor(foreground:TextColor?, background:TextColor?, vararg sgrs:SGR?) : this(foreground, background, if (sgrs.size > 0) EnumSet.copyOf(Arrays.asList(sgrs)) else EnumSet.noneOf(SGR::class.java)) {}
+     constructor(foreground:TextColor?, background:TextColor?, vararg sgrs:SGR?) : this(foreground, background, if (sgrs.size > 0) EnumSet.copyOf(Arrays.asList(*sgrs).filterNotNull()) else EnumSet.noneOf(SGR::class.java)) {}
 
-private constructor(foreground:TextColor?, background:TextColor?, sgrs:EnumSet<SGR?>?) {
+private constructor(foreground:TextColor?, background:TextColor?, sgrs:EnumSet<SGR>?) {
 if (foreground == null)
 {
 throw IllegalArgumentException("Cannot set SimpleTheme's style foreground to null")
@@ -73,17 +73,7 @@ throw IllegalArgumentException("Cannot set SimpleTheme's style background to nul
 }
 this.foreground = foreground
 this.background = background
-this.sgrs = EnumSet.copyOf(sgrs)
-}
-
-@Override
- fun getForeground():TextColor? {
-return foreground
-}
-
-@Override
- fun getBackground():TextColor? {
-return background
+this.sgrs = if (sgrs == null) EnumSet.noneOf(SGR::class.java) else EnumSet.copyOf(sgrs)
 }
 
 /**
@@ -111,8 +101,8 @@ return this
  * @param sgrs New SGR modifiers for this theme style, the values in this set will be copied into the internal state
  * @return Itself
  */
-     fun setSGRs(sgrs:EnumSet<SGR?>?):DefaultMutableThemeStyle {
-this.sgrs = EnumSet.copyOf(sgrs)
+     fun setSGRs(sgrs:EnumSet<SGR>?):DefaultMutableThemeStyle {
+this.sgrs = if (sgrs == null) EnumSet.noneOf(SGR::class.java) else EnumSet.copyOf(sgrs)
 return this
 }
 }

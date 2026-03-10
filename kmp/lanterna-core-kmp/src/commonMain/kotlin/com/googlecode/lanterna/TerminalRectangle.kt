@@ -87,20 +87,20 @@ return false
 
 
 @Override
- fun toString():String? {
+ override fun toString():String {
 return "{x: " + x + ", y: " + y + ", width: " + columns + ", height: " + rows + "}"
 }
 
 @Override
- fun equals(obj:Object?):Boolean {
-return (obj != null 
-&& obj!!.getClass() === getClass() 
-&& Objects.equals(position, (obj as TerminalRectangle).position) 
+ override fun equals(obj:Any?):Boolean {
+return (obj != null
+&& this::class == obj::class
+&& Objects.equals(position, (obj as TerminalRectangle).position)
 && Objects.equals(size, (obj as TerminalRectangle).size))
 }
 
 @Override
- fun hashCode():Int {
+ override fun hashCode():Int {
 return Objects.hash(position, size)
 }
 }

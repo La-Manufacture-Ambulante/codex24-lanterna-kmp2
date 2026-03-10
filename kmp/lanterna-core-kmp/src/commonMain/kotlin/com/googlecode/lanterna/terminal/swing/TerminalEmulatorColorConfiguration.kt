@@ -41,7 +41,7 @@ import java.awt.Color
  fun toAWTColor(color:TextColor?, isForeground:Boolean, inBoldContext:Boolean):Color? {
 if (color is TextColor.ANSI)
 {
-return colorPalette!!.get(color as TextColor.ANSI?, isForeground, inBoldContext && useBrightColorsOnBold)
+return colorPalette!!.get(color, isForeground, inBoldContext && useBrightColorsOnBold)
 }
 return color!!.toColor()
 }

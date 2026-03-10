@@ -24,7 +24,7 @@ package com.googlecode.lanterna.gui2
  * 
  * @author Martin
  */
- class BasicWindow:AbstractWindow {
+open class BasicWindow:AbstractWindow {
 
 /**
  * Default constructor, creates a new window with no title
