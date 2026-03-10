@@ -47,26 +47,47 @@ class FileDialogBuilder : AbstractDialogBuilder<FileDialogBuilder, FileDialog>("
         return this
     }
 
+    /**
+     * Returns the action button label.
+     */
     fun getActionLabel(): String? = actionLabel
 
+    /**
+     * Sets suggested dialog size.
+     */
     fun setSuggestedSize(suggestedSize: TerminalSize?): FileDialogBuilder {
         this.suggestedSize = suggestedSize
         return this
     }
 
+    /**
+     * Returns suggested dialog size.
+     */
     fun getSuggestedSize(): TerminalSize? = suggestedSize
 
+    /**
+     * Sets initially selected file.
+     */
     fun setSelectedFile(selectedFile: File?): FileDialogBuilder {
         this.selectedFile = selectedFile
         return this
     }
 
+    /**
+     * Returns initially selected file.
+     */
     fun getSelectedFile(): File? = selectedFile
 
+    /**
+     * Controls visibility of hidden files/directories.
+     */
     fun setShowHiddenDirectories(showHiddenDirectories: Boolean) {
         this.showHiddenDirectories = showHiddenDirectories
     }
 
+    /**
+     * Returns whether hidden files/directories are shown.
+     */
     fun isShowHiddenDirectories(): Boolean = showHiddenDirectories
 
     override fun self(): FileDialogBuilder = this

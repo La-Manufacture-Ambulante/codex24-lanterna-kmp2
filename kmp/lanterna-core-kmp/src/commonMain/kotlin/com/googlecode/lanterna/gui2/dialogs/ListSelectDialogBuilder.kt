@@ -36,29 +36,50 @@ class ListSelectDialogBuilder<T> : AbstractDialogBuilder<ListSelectDialogBuilder
         return ListSelectDialog(getTitle(), getDescription(), listBoxSize, canCancel, content)
     }
 
+    /**
+     * Sets preferred list-box size.
+     */
     fun setListBoxSize(listBoxSize: TerminalSize?): ListSelectDialogBuilder<T> {
         this.listBoxSize = listBoxSize
         return this
     }
 
+    /**
+     * Returns preferred list-box size.
+     */
     fun getListBoxSize(): TerminalSize? = listBoxSize
 
+    /**
+     * Controls whether cancel controls are enabled.
+     */
     fun setCanCancel(canCancel: Boolean): ListSelectDialogBuilder<T> {
         this.canCancel = canCancel
         return this
     }
 
+    /**
+     * Returns whether cancel controls are enabled.
+     */
     fun isCanCancel(): Boolean = canCancel
 
+    /**
+     * Adds a selectable list item.
+     */
     fun addListItem(item: T): ListSelectDialogBuilder<T> {
         content.add(item)
         return this
     }
 
+    /**
+     * Adds multiple selectable list items.
+     */
     fun addListItems(vararg items: T): ListSelectDialogBuilder<T> {
         content.addAll(Arrays.asList(*items))
         return this
     }
 
+    /**
+     * Returns a copy of configured list items.
+     */
     fun getListItems(): List<T> = ArrayList(content)
 }

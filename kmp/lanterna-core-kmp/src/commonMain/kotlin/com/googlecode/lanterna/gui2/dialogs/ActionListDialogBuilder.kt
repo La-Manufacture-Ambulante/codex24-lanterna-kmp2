@@ -49,15 +49,27 @@ class ActionListDialogBuilder : AbstractDialogBuilder<ActionListDialogBuilder, A
         return this
     }
 
+    /**
+     * Returns the preferred list-box size for the dialog.
+     */
     fun getListBoxSize(): TerminalSize? = listBoxSize
 
+    /**
+     * Controls whether the dialog can be cancelled by the user.
+     */
     fun setCanCancel(canCancel: Boolean): ActionListDialogBuilder {
         this.canCancel = canCancel
         return this
     }
 
+    /**
+     * Returns `true` if cancel controls are enabled.
+     */
     fun isCanCancel(): Boolean = canCancel
 
+    /**
+     * Adds an action item with an explicit display label.
+     */
     fun addAction(label: String?, action: Runnable): ActionListDialogBuilder {
         return addAction(
             object : Runnable {
@@ -72,18 +84,30 @@ class ActionListDialogBuilder : AbstractDialogBuilder<ActionListDialogBuilder, A
         )
     }
 
+    /**
+     * Adds an action item, using [Runnable.toString] as display text.
+     */
     fun addAction(action: Runnable): ActionListDialogBuilder {
         actions.add(action)
         return this
     }
 
+    /**
+     * Adds multiple action items.
+     */
     fun addActions(vararg actions: Runnable): ActionListDialogBuilder {
         this.actions.addAll(Arrays.asList(*actions))
         return this
     }
 
+    /**
+     * Returns a copy of configured actions.
+     */
     fun getActions(): List<Runnable> = ArrayList(actions)
 
+    /**
+     * Controls whether selecting an action should automatically close the dialog.
+     */
     fun setCloseAutomaticallyOnAction(closeAutomatically: Boolean): ActionListDialogBuilder {
         this.closeAutomatically = closeAutomatically
         return this

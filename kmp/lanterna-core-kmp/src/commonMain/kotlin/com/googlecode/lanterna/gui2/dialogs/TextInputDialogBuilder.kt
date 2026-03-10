@@ -45,22 +45,40 @@ class TextInputDialogBuilder : AbstractDialogBuilder<TextInputDialogBuilder, Tex
         return this
     }
 
+    /**
+     * Returns initial content displayed in the text box.
+     */
     fun getInitialContent(): String? = initialContent
 
+    /**
+     * Sets preferred text-box size.
+     */
     fun setTextBoxSize(textBoxSize: TerminalSize?): TextInputDialogBuilder {
         this.textBoxSize = textBoxSize
         return this
     }
 
+    /**
+     * Returns preferred text-box size.
+     */
     fun getTextBoxSize(): TerminalSize? = textBoxSize
 
+    /**
+     * Sets a validation callback.
+     */
     fun setValidator(validator: TextInputDialogResultValidator?): TextInputDialogBuilder {
         this.validator = validator
         return this
     }
 
+    /**
+     * Returns the validation callback currently configured.
+     */
     fun getValidator(): TextInputDialogResultValidator? = validator
 
+    /**
+     * Configures validation from a regular expression pattern.
+     */
     fun setValidationPattern(pattern: Pattern, errorMessage: String?): TextInputDialogBuilder {
         return setValidator(
             object : TextInputDialogResultValidator {
@@ -75,10 +93,16 @@ class TextInputDialogBuilder : AbstractDialogBuilder<TextInputDialogBuilder, Tex
         )
     }
 
+    /**
+     * Enables or disables password input mode.
+     */
     fun setPasswordInput(passwordInput: Boolean): TextInputDialogBuilder {
         this.passwordInput = passwordInput
         return this
     }
 
+    /**
+     * Returns whether password input mode is enabled.
+     */
     fun isPasswordInput(): Boolean = passwordInput
 }

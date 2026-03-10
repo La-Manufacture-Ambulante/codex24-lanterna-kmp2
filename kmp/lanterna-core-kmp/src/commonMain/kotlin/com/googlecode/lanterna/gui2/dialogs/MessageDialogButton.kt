@@ -35,6 +35,9 @@ enum class MessageDialogButton(private val label: LocalizedString) {
     CONTINUE(LocalizedString.Continue),
     ;
 
+    /**
+     * Returns the localized button label.
+     */
     override fun toString(): String {
         return label.toString()
     }

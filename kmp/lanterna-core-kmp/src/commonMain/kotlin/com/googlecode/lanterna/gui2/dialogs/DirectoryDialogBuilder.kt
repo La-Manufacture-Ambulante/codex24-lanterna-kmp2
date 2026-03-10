@@ -47,26 +47,47 @@ class DirectoryDialogBuilder : AbstractDialogBuilder<DirectoryDialogBuilder, Dir
         return this
     }
 
+    /**
+     * Returns the action button label.
+     */
     fun getActionLabel(): String? = actionLabel
 
+    /**
+     * Sets suggested dialog size.
+     */
     fun setSuggestedSize(suggestedSize: TerminalSize?): DirectoryDialogBuilder {
         this.suggestedSize = suggestedSize
         return this
     }
 
+    /**
+     * Returns suggested dialog size.
+     */
     fun getSuggestedSize(): TerminalSize? = suggestedSize
 
+    /**
+     * Sets initially selected directory.
+     */
     fun setSelectedDirectory(selectedDir: File?): DirectoryDialogBuilder {
         this.selectedDir = selectedDir
         return this
     }
 
+    /**
+     * Returns initially selected directory.
+     */
     fun getSelectedDirectory(): File? = selectedDir
 
+    /**
+     * Controls visibility of hidden directories.
+     */
     fun setShowHiddenDirectories(showHiddenDirectories: Boolean) {
         this.showHiddenDirectories = showHiddenDirectories
     }
 
+    /**
+     * Returns whether hidden directories are shown.
+     */
     fun isShowHiddenDirectories(): Boolean = showHiddenDirectories
 
     override fun self(): DirectoryDialogBuilder = this

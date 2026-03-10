@@ -47,17 +47,26 @@ class MessageDialogBuilder {
         return this
     }
 
+    /**
+     * Sets message text.
+     */
     fun setText(text: String?): MessageDialogBuilder {
         this.text = text ?: ""
         return this
     }
 
+    /**
+     * Replaces the extra window hints used when building the dialog.
+     */
     fun setExtraWindowHints(extraWindowHints: Collection<Window.Hint?>?): MessageDialogBuilder {
         this.extraWindowHints.clear()
         this.extraWindowHints.addAll(extraWindowHints.orEmpty())
         return this
     }
 
+    /**
+     * Adds a message dialog button.
+     */
     fun addButton(button: MessageDialogButton?): MessageDialogBuilder {
         if (button != null) {
             buttons.add(button)
