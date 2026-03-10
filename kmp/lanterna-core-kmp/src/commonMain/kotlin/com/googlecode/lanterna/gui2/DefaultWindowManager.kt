@@ -22,7 +22,11 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 
 /**
- * Default window manager implementation.
+ * The default window manager implementation used by Lanterna. New windows will be generally added in a tiled manner,
+ * starting in the top-left corner and moving down-right as new windows are added. By using the various window hints
+ * that are available you have some control over how the window manager will place and size the windows.
+ *
+ * @author Martin
  */
 open class DefaultWindowManager(
     private val windowDecorationRendererOverride: WindowDecorationRenderer?,
@@ -39,7 +43,7 @@ open class DefaultWindowManager(
         get() = false
 
     override fun getWindowDecorationRenderer(window: Window?): WindowDecorationRenderer? {
-        val w = window ?: return DefaultWindowDecorationRenderer()
+        val w = window!!
         return when {
             w.hints?.contains(Window.Hint.NO_DECORATIONS) == true -> EmptyWindowDecorationRenderer()
             windowDecorationRendererOverride != null -> windowDecorationRendererOverride
@@ -49,8 +53,8 @@ open class DefaultWindowManager(
     }
 
     override fun onAdded(textGUI: WindowBasedTextGUI?, window: Window?, allWindows: List<Window?>?) {
-        val w = window ?: return
-        val windows = allWindows ?: emptyList()
+        val w = window!!
+        val windows = allWindows!!
         val decorationRenderer = getWindowDecorationRenderer(w) ?: DefaultWindowDecorationRenderer()
         val expectedDecoratedSize = decorationRenderer.getDecoratedSize(w, w.preferredSize) ?: TerminalSize.ZERO
         w.decoratedSize = expectedDecoratedSize
@@ -83,8 +87,8 @@ open class DefaultWindowManager(
     }
 
     override fun prepareWindows(textGUI: WindowBasedTextGUI?, allWindows: List<Window?>?, screenSize: TerminalSize?) {
-        lastKnownScreenSize = screenSize ?: lastKnownScreenSize
-        for (window in allWindows.orEmpty()) {
+        lastKnownScreenSize = screenSize!!
+        for (window in allWindows!!) {
             if (window != null) {
                 prepareWindow(lastKnownScreenSize, window)
             }
