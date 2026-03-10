@@ -29,6 +29,7 @@ import java.util.EnumSet
 
 /**
  * TextGraphics implementation that does nothing, but has a pre-defined size.
+ * @param size Size to report from [getSize]
  */
 internal class NullTextGraphics(override val size: TerminalSize?) : TextGraphics {
     override var foregroundColor: TextColor? = TextColor.ANSI.DEFAULT
@@ -40,6 +41,9 @@ internal class NullTextGraphics(override val size: TerminalSize?) : TextGraphics
     override val activeModifiers: EnumSet<SGR>
         get() = EnumSet.copyOf(styleSet)
 
+    /**
+     * Returns `null` because this graphics never writes to a real screen position.
+     */
     override fun toScreenPosition(pos: TerminalPosition?): TerminalPosition? {
         return null
     }
