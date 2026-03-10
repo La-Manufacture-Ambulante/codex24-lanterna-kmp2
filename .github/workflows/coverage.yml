@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   maven-jacoco:
-    name: Maven JaCoCo Coverage
+    name: KMP JVM JaCoCo Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -25,40 +25,95 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-          cache: maven
+          cache: gradle
+
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
 
       - name: Generate coverage
-        run: mvn -B -ntp verify
+        run: gradle -p kmp :lanterna-core-kmp:jvmTest :lanterna-core-kmp:jvmTestCoverageReport --no-daemon
 
       - name: Build coverage summary
         id: coverage-summary
         if: always()
         shell: bash
         run: |
+          xml_report="kmp/lanterna-core-kmp/build/reports/jacoco/jvmTestCoverageReport/jvmTestCoverageReport.xml"
+          html_index="kmp/lanterna-core-kmp/build/reports/jacoco/jvmTestCoverageReport/html/index.html"
+          exec_file="kmp/lanterna-core-kmp/build/jacoco/jvmTest.exec"
+
           jacoco_exec_present=no
           jacoco_xml_present=no
           jacoco_html_present=no
           jacoco_files=0
+          line_coverage_pct=n/a
+          branch_coverage_pct=n/a
+          line_covered=0
+          line_missed=0
+          branch_covered=0
+          branch_missed=0
 
-          if [ -f target/jacoco.exec ]; then
+          if [ -f "$exec_file" ]; then
             jacoco_exec_present=yes
           fi
-          if [ -f target/site/jacoco/jacoco.xml ]; then
+          if [ -f "$xml_report" ]; then
             jacoco_xml_present=yes
           fi
-          if [ -f target/site/jacoco/index.html ]; then
+          if [ -f "$html_index" ]; then
             jacoco_html_present=yes
           fi
-          if [ -d target/site/jacoco ]; then
-            jacoco_files=$(find target/site/jacoco -type f | wc -l | tr -d ' ')
+          if [ -d "kmp/lanterna-core-kmp/build/reports/jacoco/jvmTestCoverageReport" ]; then
+            jacoco_files=$(find kmp/lanterna-core-kmp/build/reports/jacoco/jvmTestCoverageReport -type f | wc -l | tr -d ' ')
+          fi
+
+          if [ "$jacoco_xml_present" = "yes" ]; then
+            python3 - "$xml_report" > coverage-values.env <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+
+report_path = sys.argv[1]
+root = ET.parse(report_path).getroot()
+counters = {c.attrib.get("type"): c.attrib for c in root.findall("counter")}
+
+line = counters.get("LINE", {})
+branch = counters.get("BRANCH", {})
+
+line_missed = int(line.get("missed", "0"))
+line_covered = int(line.get("covered", "0"))
+branch_missed = int(branch.get("missed", "0"))
+branch_covered = int(branch.get("covered", "0"))
+
+print(f"line_missed={line_missed}")
+print(f"line_covered={line_covered}")
+print(f"branch_missed={branch_missed}")
+print(f"branch_covered={branch_covered}")
+PY
+            . ./coverage-values.env
+          fi
+
+          line_total=$((line_covered + line_missed))
+          branch_total=$((branch_covered + branch_missed))
+          if [ "$line_total" -gt 0 ]; then
+            line_coverage_pct=$(awk "BEGIN { printf \"%.2f\", (100 * $line_covered) / $line_total }")
+          fi
+          if [ "$branch_total" -gt 0 ]; then
+            branch_coverage_pct=$(awk "BEGIN { printf \"%.2f\", (100 * $branch_covered) / $branch_total }")
           fi
 
           {
-            echo "JaCoCo summary"
+            echo "JaCoCo KMP JVM summary"
             echo "jacoco_exec_present=$jacoco_exec_present"
             echo "jacoco_xml_present=$jacoco_xml_present"
             echo "jacoco_html_present=$jacoco_html_present"
             echo "jacoco_files=$jacoco_files"
+            echo "line_covered=$line_covered"
+            echo "line_missed=$line_missed"
+            echo "line_coverage_pct=$line_coverage_pct"
+            echo "branch_covered=$branch_covered"
+            echo "branch_missed=$branch_missed"
+            echo "branch_coverage_pct=$branch_coverage_pct"
             echo "run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           } > coverage-summary.txt
 
@@ -66,6 +121,12 @@ jobs:
           echo "jacoco_xml_present=$jacoco_xml_present" >> "$GITHUB_OUTPUT"
           echo "jacoco_html_present=$jacoco_html_present" >> "$GITHUB_OUTPUT"
           echo "jacoco_files=$jacoco_files" >> "$GITHUB_OUTPUT"
+          echo "line_covered=$line_covered" >> "$GITHUB_OUTPUT"
+          echo "line_missed=$line_missed" >> "$GITHUB_OUTPUT"
+          echo "line_coverage_pct=$line_coverage_pct" >> "$GITHUB_OUTPUT"
+          echo "branch_covered=$branch_covered" >> "$GITHUB_OUTPUT"
+          echo "branch_missed=$branch_missed" >> "$GITHUB_OUTPUT"
+          echo "branch_coverage_pct=$branch_coverage_pct" >> "$GITHUB_OUTPUT"
 
           {
             echo "## Coverage Summary"
@@ -73,6 +134,8 @@ jobs:
             echo "- jacoco.xml present: $jacoco_xml_present"
             echo "- jacoco html present: $jacoco_html_present"
             echo "- jacoco report files: $jacoco_files"
+            echo "- line coverage: $line_coverage_pct% ($line_covered/$line_total)"
+            echo "- branch coverage: $branch_coverage_pct% ($branch_covered/$branch_total)"
             echo "- run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -82,7 +145,7 @@ jobs:
         with:
           name: jacoco-report
           path: |
-            target/site/jacoco/**
+            kmp/lanterna-core-kmp/build/reports/jacoco/jvmTestCoverageReport/**
             coverage-summary.txt
 
       - name: Comment coverage summary on PR
@@ -93,6 +156,12 @@ jobs:
           JACOCO_XML_PRESENT: ${{ steps.coverage-summary.outputs.jacoco_xml_present }}
           JACOCO_HTML_PRESENT: ${{ steps.coverage-summary.outputs.jacoco_html_present }}
           JACOCO_FILES: ${{ steps.coverage-summary.outputs.jacoco_files }}
+          LINE_COVERED: ${{ steps.coverage-summary.outputs.line_covered }}
+          LINE_MISSED: ${{ steps.coverage-summary.outputs.line_missed }}
+          LINE_COVERAGE_PCT: ${{ steps.coverage-summary.outputs.line_coverage_pct }}
+          BRANCH_COVERED: ${{ steps.coverage-summary.outputs.branch_covered }}
+          BRANCH_MISSED: ${{ steps.coverage-summary.outputs.branch_missed }}
+          BRANCH_COVERAGE_PCT: ${{ steps.coverage-summary.outputs.branch_coverage_pct }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
@@ -103,6 +172,8 @@ jobs:
             - jacoco.xml present: ${process.env.JACOCO_XML_PRESENT}
             - jacoco html present: ${process.env.JACOCO_HTML_PRESENT}
             - jacoco report files: ${process.env.JACOCO_FILES}
+            - line coverage: ${process.env.LINE_COVERAGE_PCT}% (${process.env.LINE_COVERED}/${Number(process.env.LINE_COVERED || 0) + Number(process.env.LINE_MISSED || 0)})
+            - branch coverage: ${process.env.BRANCH_COVERAGE_PCT}% (${process.env.BRANCH_COVERED}/${Number(process.env.BRANCH_COVERED || 0) + Number(process.env.BRANCH_MISSED || 0)})
             - reports artifact: \`jacoco-report\`
             - run: ${process.env.RUN_URL}`;
 

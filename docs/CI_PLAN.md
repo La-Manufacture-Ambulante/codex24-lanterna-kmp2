@@ -16,8 +16,8 @@
    - `detekt` static analysis report (advisory first, non-blocking).
 
 3. `coverage.yml` (reporting)
-   - Maven `verify` with JaCoCo output.
-   - Upload coverage artifacts (`target/site/jacoco/**`).
+   - KMP JVM tests + JaCoCo report generation (`:lanterna-core-kmp:jvmTestCoverageReport`).
+   - Upload coverage artifacts (`kmp/lanterna-core-kmp/build/reports/jacoco/jvmTestCoverageReport/**`).
 
 ## Rollout
 1. Start with tests/build as required gates.

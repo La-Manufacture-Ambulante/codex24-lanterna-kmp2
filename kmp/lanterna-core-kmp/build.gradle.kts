@@ -1,5 +1,8 @@
+import org.gradle.testing.jacoco.tasks.JacocoReport
+
 plugins {
     kotlin("multiplatform") version "2.1.21"
+    jacoco
 }
 
 kotlin {
@@ -23,5 +26,29 @@ kotlin {
                 implementation("junit:junit:4.13.2")
             }
         }
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+tasks.register<JacocoReport>("jvmTestCoverageReport") {
+    dependsOn(tasks.named("jvmTest"))
+
+    val jvmMainCompilation = kotlin.targets.getByName("jvm").compilations.getByName("main")
+
+    classDirectories.setFrom(jvmMainCompilation.output.classesDirs)
+    sourceDirectories.setFrom(jvmMainCompilation.allKotlinSourceSets.map { it.kotlin.sourceDirectories })
+    executionData.setFrom(
+        fileTree(layout.buildDirectory.dir("jacoco")) {
+            include("jvmTest.exec", "jvmTest*.exec")
+        }
+    )
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
     }
 }
