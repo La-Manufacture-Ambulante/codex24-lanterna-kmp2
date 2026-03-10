@@ -12,8 +12,7 @@ import com.googlecode.lanterna.gui2.Panel
 import com.googlecode.lanterna.gui2.TextBox
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 import com.googlecode.lanterna.input.KeyStroke
-import com.googlecode.lanterna.internal.compat.File
-import com.googlecode.lanterna.internal.compat.Arrays
+import com.googlecode.lanterna.filesystem.LanternaFile
 import kotlin.Comparator
 
 /**
@@ -25,17 +24,17 @@ class DirectoryDialog(
     actionLabel: String?,
     dialogSize: TerminalSize,
     private val showHiddenDirs: Boolean,
-    selectedObject: File?,
+    selectedObject: LanternaFile?,
 ) : DialogWindow(title) {
     private val dirListBox: ActionListBox
     private val dirBox: TextBox
-    private var directory: File? = null
-    private var selectedDir: File? = null
+    private var directory: LanternaFile? = null
+    private var selectedDir: LanternaFile? = null
 
     init {
         var resolvedSelectedObject = selectedObject
         if (resolvedSelectedObject == null || !resolvedSelectedObject.exists()) {
-            resolvedSelectedObject = File("").absoluteFile
+            resolvedSelectedObject = LanternaFile("").absoluteFile
         }
         resolvedSelectedObject = resolvedSelectedObject.absoluteFile
 
@@ -81,11 +80,11 @@ class DirectoryDialog(
             resolvedSelectedObject.isDirectory -> directory = resolvedSelectedObject
         }
 
-        reloadViews(directory ?: File("").absoluteFile)
+        reloadViews(directory ?: LanternaFile("").absoluteFile)
         component = contentPane
     }
 
-    override fun showDialog(textGUI: WindowBasedTextGUI): File? {
+    override fun showDialog(textGUI: WindowBasedTextGUI): LanternaFile? {
         selectedDir = null
         super.showDialog(textGUI)
         return selectedDir
@@ -93,7 +92,7 @@ class DirectoryDialog(
 
     private inner class OkHandler : Runnable {
         override fun run() {
-            val dir = File(dirBox.text)
+            val dir = LanternaFile(dirBox.text)
             if (dir.exists() && dir.isDirectory) {
                 selectedDir = dir
                 close()
@@ -120,7 +119,7 @@ class DirectoryDialog(
         override fun run() {}
     }
 
-    private fun reloadViews(directory: File) {
+    private fun reloadViews(directory: LanternaFile) {
         dirBox.setText(directory.absolutePath)
         dirListBox.clearItems()
         val entries = directory.listFiles() ?: return
@@ -135,7 +134,7 @@ class DirectoryDialog(
                 },
             )
         } else {
-            val roots = File.listRoots()
+            val roots = LanternaFile.listRoots()
             for (entry in roots) {
                 if (entry.canRead()) {
                     dirListBox.addItem(

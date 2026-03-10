@@ -22,7 +22,6 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyStroke
 import kotlin.collections.ArrayList
-import com.googlecode.lanterna.internal.compat.Collections
 import com.googlecode.lanterna.internal.compat.synchronizedCompat
 
 /**
@@ -184,7 +183,7 @@ open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
     override fun previousFocus(fromThis: Interactable?): Interactable? {
         var chooseNextAvailable = fromThis == null
         val reversedComponents = synchronizedCompat(components) { ArrayList(components) }
-        Collections.reverse(reversedComponents)
+        reversedComponents.reverse()
 
         for (component in reversedComponents) {
             if (!component.isVisible) {

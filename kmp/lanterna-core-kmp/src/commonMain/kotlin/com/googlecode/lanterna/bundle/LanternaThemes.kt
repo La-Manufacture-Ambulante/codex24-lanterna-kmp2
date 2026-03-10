@@ -23,6 +23,7 @@ import com.googlecode.lanterna.graphics.Theme
 import kotlin.collections.ArrayList
 import com.googlecode.lanterna.internal.compat.Properties
 import com.googlecode.lanterna.internal.compat.ConcurrentHashMap
+import com.googlecode.lanterna.internal.compat.StringReader
 
 /**
  * Catalog of available themes, this class will initially contain the themes bundled with Lanterna but it is possible to
@@ -74,7 +75,13 @@ object LanternaThemes {
     }
 
     private fun loadPropTheme(resourceFileName: String): Properties? {
-        // Resource loading is provided by platform-specific backends in later slices.
-        return null
+        val raw = BundleResourceLoader.loadTextResource(resourceFileName) ?: return null
+        return try {
+            val properties = Properties()
+            properties.load(StringReader(raw))
+            properties
+        } catch (_: Throwable) {
+            null
+        }
     }
 }

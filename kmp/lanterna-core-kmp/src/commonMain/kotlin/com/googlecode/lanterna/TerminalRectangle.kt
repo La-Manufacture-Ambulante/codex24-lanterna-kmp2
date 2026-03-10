@@ -18,7 +18,6 @@
  */
 package com.googlecode.lanterna
 
-import com.googlecode.lanterna.internal.compat.Objects
 
 /**
  * This class is immutable and cannot change its internal state after creation.
@@ -91,13 +90,14 @@ return "{x: " + x + ", y: " + y + ", width: " + columns + ", height: " + rows + 
 }
 
  override fun equals(obj:Any?):Boolean {
-return (obj != null
-&& this::class == obj::class
-&& Objects.equals(position, (obj as TerminalRectangle).position)
-&& Objects.equals(size, (obj as TerminalRectangle).size))
+if (obj == null || this::class != obj::class) {
+return false
+}
+obj as TerminalRectangle
+return position == obj.position && size == obj.size
 }
 
  override fun hashCode():Int {
-return Objects.hash(position, size)
+return arrayOf(position, size).contentHashCode()
 }
 }

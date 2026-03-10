@@ -21,7 +21,6 @@ package com.googlecode.lanterna.graphics
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TextColor
 
-import com.googlecode.lanterna.internal.compat.Arrays
 import com.googlecode.lanterna.internal.compat.EnumSet
 
 /**
@@ -60,7 +59,7 @@ themeStyleToCopy.sgRs) {}
  * @param background Background color of the text with this style
  * @param sgrs Modifiers to apply to the text with this style
  */
-     constructor(foreground:TextColor?, background:TextColor?, vararg sgrs:SGR?) : this(foreground, background, if (sgrs.size > 0) EnumSet.copyOf(Arrays.asList(*sgrs).filterNotNull()) else EnumSet.noneOf(SGR::class)) {}
+     constructor(foreground:TextColor?, background:TextColor?, vararg sgrs:SGR?) : this(foreground, background, if (sgrs.size > 0) EnumSet.copyOf(listOf(*sgrs).filterNotNull()) else EnumSet.noneOf(SGR::class)) {}
 
 private constructor(foreground:TextColor?, background:TextColor?, sgrs:EnumSet<SGR>?) {
 if (foreground == null)

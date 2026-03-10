@@ -8,7 +8,6 @@ import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.screen.ScreenTranslator
 import com.googlecode.lanterna.screen.TabBehaviour
 import com.googlecode.lanterna.screen.WrapBehaviour
-import com.googlecode.lanterna.internal.compat.Arrays
 import com.googlecode.lanterna.internal.compat.EnumSet
 
 class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraphicsWriter?>, ScreenTranslator {
@@ -213,12 +212,12 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
     }
 
     override fun enableModifiers(vararg modifiers: SGR?): TextGraphicsWriter {
-        style.addAll(Arrays.asList(*modifiers).filterNotNull())
+        style.addAll(listOf(*modifiers).filterNotNull())
         return this
     }
 
     override fun disableModifiers(vararg modifiers: SGR?): TextGraphicsWriter {
-        style.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
+        style.removeAll(listOf(*modifiers).filterNotNull().toSet())
         return this
     }
 

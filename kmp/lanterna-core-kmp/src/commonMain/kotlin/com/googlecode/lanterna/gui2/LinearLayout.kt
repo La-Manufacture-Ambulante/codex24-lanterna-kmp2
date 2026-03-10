@@ -21,7 +21,6 @@ package com.googlecode.lanterna.gui2
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import kotlin.collections.ArrayList
-import com.googlecode.lanterna.internal.compat.Collections
 import com.googlecode.lanterna.internal.compat.IdentityHashMap
 
 /**
@@ -189,7 +188,7 @@ class LinearLayout constructor(
 
         if (availableVerticalSpace < totalRequiredVerticalSpace) {
             val copyOfComponents = ArrayList(components)
-            Collections.reverse(copyOfComponents)
+            copyOfComponents.reverse()
             copyOfComponents.sortByDescending { fittingMap[it]?.rows ?: 0 }
 
             while (availableVerticalSpace < totalRequiredVerticalSpace) {
@@ -321,7 +320,7 @@ class LinearLayout constructor(
 
         if (availableHorizontalSpace < totalRequiredHorizontalSpace) {
             val copyOfComponents = ArrayList(components)
-            Collections.reverse(copyOfComponents)
+            copyOfComponents.reverse()
             copyOfComponents.sortByDescending { fittingMap[it]?.columns ?: 0 }
 
             while (availableHorizontalSpace < totalRequiredHorizontalSpace) {

@@ -18,7 +18,6 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.internal.compat.Collections
 import com.googlecode.lanterna.internal.compat.LinkedList
 
 class WindowList {
@@ -37,10 +36,10 @@ class WindowList {
         private set
 
     val windowsInZOrder: List<Window>
-        get() = Collections.unmodifiableList(windows)
+        get() = windows.toList()
 
     val windowsInStableOrder: List<Window>
-        get() = Collections.unmodifiableList(stableOrderingOfWindows)
+        get() = stableOrderingOfWindows.toList()
 
     fun addWindow(window: Window?) {
         val activeWindow = window ?: return

@@ -22,7 +22,6 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.internal.compat.Arrays
 
 /**
  * Simple implementation of TextImage that keeps the content as a two-dimensional TextCharacter array. Copy operations
@@ -70,7 +69,7 @@ class BasicTextImage private constructor(
             "Cannot call BasicTextImage.setAll(..) with null character"
         }
         for (line in buffer) {
-            Arrays.fill(line, fillCharacter)
+            line.fill(fillCharacter)
         }
     }
 
@@ -262,7 +261,7 @@ class BasicTextImage private constructor(
 
     private fun newBlankLine(): Array<TextCharacter> {
         val line = Array(size.columns) { TextCharacter.DEFAULT_CHARACTER }
-        Arrays.fill(line, TextCharacter.DEFAULT_CHARACTER)
+        line.fill(TextCharacter.DEFAULT_CHARACTER)
         return line
     }
 

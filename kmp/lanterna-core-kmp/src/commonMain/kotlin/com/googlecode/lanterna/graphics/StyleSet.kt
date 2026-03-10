@@ -1,6 +1,5 @@
 package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.internal.compat.Arrays
 import com.googlecode.lanterna.internal.compat.EnumSet
 
 import com.googlecode.lanterna.SGR
@@ -100,11 +99,11 @@ this.foregroundColor = foregroundColor
 return this
 }
 public override fun enableModifiers(vararg modifiers:SGR?):Set {
-style.addAll(Arrays.asList(*modifiers).filterNotNull())
+style.addAll(listOf(*modifiers).filterNotNull())
 return this
 }
 public override fun disableModifiers(vararg modifiers:SGR?):Set {
-style.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
+style.removeAll(listOf(*modifiers).filterNotNull().toSet())
 return this
 }
 public override fun setModifiers(modifiers:EnumSet<SGR>?):Set {

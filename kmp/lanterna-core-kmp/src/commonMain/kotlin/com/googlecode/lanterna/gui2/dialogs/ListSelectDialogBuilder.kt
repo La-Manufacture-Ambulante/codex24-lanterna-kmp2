@@ -2,7 +2,6 @@ package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.TerminalSize
 import kotlin.collections.ArrayList
-import com.googlecode.lanterna.internal.compat.Arrays
 
 /**
  * Dialog builder for the [ListSelectDialog] class.
@@ -38,7 +37,7 @@ class ListSelectDialogBuilder<T> : AbstractDialogBuilder<ListSelectDialogBuilder
     }
 
     fun addListItems(vararg items: T): ListSelectDialogBuilder<T> {
-        content.addAll(Arrays.asList(*items))
+        content.addAll(listOf(*items))
         return this
     }
 

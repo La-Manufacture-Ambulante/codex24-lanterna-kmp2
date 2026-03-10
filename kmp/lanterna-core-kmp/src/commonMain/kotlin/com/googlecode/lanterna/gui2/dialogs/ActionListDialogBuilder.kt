@@ -2,7 +2,6 @@ package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.TerminalSize
 import kotlin.collections.ArrayList
-import com.googlecode.lanterna.internal.compat.Arrays
 
 /**
  * Dialog builder for the [ActionListDialog] class.
@@ -60,7 +59,7 @@ class ActionListDialogBuilder : AbstractDialogBuilder<ActionListDialogBuilder, A
     }
 
     fun addActions(vararg actions: Runnable): ActionListDialogBuilder {
-        this.actions.addAll(Arrays.asList(*actions))
+        this.actions.addAll(listOf(*actions))
         return this
     }
 

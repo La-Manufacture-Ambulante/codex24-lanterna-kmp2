@@ -18,7 +18,6 @@
  */
 package com.googlecode.lanterna.input
 
-import com.googlecode.lanterna.internal.compat.Arrays
 
 /**
  * Simple pattern that matches the input stream against a predefined character sequence.
@@ -27,7 +26,7 @@ class BasicCharacterPattern(val result: KeyStroke?, vararg pattern: Char) : Char
     private val pattern: CharArray = pattern
 
     fun getPattern(): CharArray {
-        return Arrays.copyOf(pattern, pattern.size)
+        return pattern.copyOf(pattern.size)
     }
 
     override fun match(seq: List<Char>?): CharacterPattern.Matching? {
@@ -49,12 +48,12 @@ class BasicCharacterPattern(val result: KeyStroke?, vararg pattern: Char) : Char
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is BasicCharacterPattern && Arrays.equals(pattern, other.pattern)
+        return other is BasicCharacterPattern && pattern.contentEquals(other.pattern)
     }
 
     override fun hashCode(): Int {
         var hash = 3
-        hash = 53 * hash + Arrays.hashCode(pattern)
+        hash = 53 * hash + pattern.contentHashCode()
         return hash
     }
 }

@@ -25,7 +25,6 @@ import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.screen.TabBehaviour
-import com.googlecode.lanterna.internal.compat.Arrays
 import com.googlecode.lanterna.internal.compat.EnumSet
 
 /**

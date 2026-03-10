@@ -1,7 +1,6 @@
 package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.gui2.Window
-import com.googlecode.lanterna.internal.compat.Collections
 import kotlin.collections.HashSet
 
 /**
@@ -10,7 +9,7 @@ import kotlin.collections.HashSet
 abstract class AbstractDialogBuilder<B, T : DialogWindow>(initialTitle: String?) {
     private var dialogTitle: String? = initialTitle
     private var dialogDescription: String? = null
-    private var dialogExtraWindowHints: Set<Window.Hint?> = Collections.singleton(Window.Hint.CENTERED)
+    private var dialogExtraWindowHints: Set<Window.Hint?> = setOf(Window.Hint.CENTERED)
 
     fun setTitle(title: String?): B {
         this.dialogTitle = title ?: ""

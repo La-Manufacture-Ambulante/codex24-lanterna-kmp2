@@ -24,7 +24,6 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.screen.TabBehaviour
-import com.googlecode.lanterna.internal.compat.Arrays
 import com.googlecode.lanterna.internal.compat.EnumSet
 
 /**
@@ -59,12 +58,12 @@ internal class NullTextGraphics(override val size: TerminalSize?) : TextGraphics
     }
 
     override fun enableModifiers(vararg modifiers: SGR?): TextGraphics {
-        styleSet.addAll(Arrays.asList(*modifiers).filterNotNull())
+        styleSet.addAll(listOf(*modifiers).filterNotNull())
         return this
     }
 
     override fun disableModifiers(vararg modifiers: SGR?): TextGraphics {
-        styleSet.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
+        styleSet.removeAll(listOf(*modifiers).filterNotNull().toSet())
         return this
     }
 

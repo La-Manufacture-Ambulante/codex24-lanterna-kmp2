@@ -19,8 +19,6 @@
 package com.googlecode.lanterna.input
 
 import kotlin.collections.ArrayList
-import com.googlecode.lanterna.internal.compat.Arrays
-import com.googlecode.lanterna.internal.compat.Objects
 
 /**
  * Represents one decoded keyboard event.
@@ -131,7 +129,7 @@ open class KeyStroke private constructor(
         }
         other as KeyStroke
         return keyType == other.keyType &&
-            Objects.equals(character, other.character) &&
+            character == other.character &&
             isCtrlDown == other.isCtrlDown &&
             isAltDown == other.isAltDown &&
             isShiftDown == other.isShiftDown
@@ -150,7 +148,7 @@ open class KeyStroke private constructor(
                 return KeyStroke(KeyType.REVERSE_TAB)
             }
             if (keyStr.contains("-")) {
-                val segments = ArrayList(Arrays.asList(*keyStr.substring(1, keyStr.length - 1).split("-").toTypedArray()))
+                val segments = ArrayList(listOf(*keyStr.substring(1, keyStr.length - 1).split("-").toTypedArray()))
                 if (segments.size < 2) {
                     throw IllegalArgumentException("Invalid vim notation: $keyStr")
                 }

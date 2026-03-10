@@ -24,7 +24,6 @@ import com.googlecode.lanterna.gui2.Window.Hint
 import com.googlecode.lanterna.gui2.menu.MenuBar
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
-import com.googlecode.lanterna.internal.compat.Collections
 import kotlin.collections.HashSet
 
 /**
@@ -132,7 +131,7 @@ abstract class AbstractWindow protected constructor(initialTitle: String? = "") 
     }
 
     override val hints: Set<Hint?>
-        get() = Collections.unmodifiableSet(hintsBacking)
+        get() = hintsBacking.toSet()
 
     override val postRenderer: WindowPostRenderer?
         get() = windowPostRenderer

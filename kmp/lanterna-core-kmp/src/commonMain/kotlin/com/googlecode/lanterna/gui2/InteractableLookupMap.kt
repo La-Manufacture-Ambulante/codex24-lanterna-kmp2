@@ -20,7 +20,6 @@ package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.internal.compat.Arrays
 import kotlin.collections.HashSet
 
 /**
@@ -42,14 +41,14 @@ class InteractableLookupMap internal constructor(size: TerminalSize) {
 
     init {
         for (row in lookupMap) {
-            Arrays.fill(row, -1)
+            row.fill(-1)
         }
     }
 
     internal fun reset() {
         interactables.clear()
         for (row in lookupMap) {
-            Arrays.fill(row, -1)
+            row.fill(-1)
         }
     }
 

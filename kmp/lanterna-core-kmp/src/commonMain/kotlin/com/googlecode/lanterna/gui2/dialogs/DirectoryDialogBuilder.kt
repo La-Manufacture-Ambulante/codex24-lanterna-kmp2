@@ -2,7 +2,7 @@ package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.LocalizedString
-import com.googlecode.lanterna.internal.compat.File
+import com.googlecode.lanterna.filesystem.LanternaFile
 
 /**
  * Dialog builder for the [DirectoryDialog] class.
@@ -10,7 +10,7 @@ import com.googlecode.lanterna.internal.compat.File
 class DirectoryDialogBuilder : AbstractDialogBuilder<DirectoryDialogBuilder, DirectoryDialog>("DirectoryDialog") {
     private var actionLabel: String? = LocalizedString.OK.toString()
     private var suggestedSize: TerminalSize? = TerminalSize(45, 10)
-    private var selectedDir: File? = null
+    private var selectedDir: LanternaFile? = null
     private var showHiddenDirectories: Boolean = false
 
     override fun buildDialog(): DirectoryDialog {
@@ -38,12 +38,12 @@ class DirectoryDialogBuilder : AbstractDialogBuilder<DirectoryDialogBuilder, Dir
 
     fun getSuggestedSize(): TerminalSize? = suggestedSize
 
-    fun setSelectedDirectory(selectedDir: File?): DirectoryDialogBuilder {
+    fun setSelectedDirectory(selectedDir: LanternaFile?): DirectoryDialogBuilder {
         this.selectedDir = selectedDir
         return this
     }
 
-    fun getSelectedDirectory(): File? = selectedDir
+    fun getSelectedDirectory(): LanternaFile? = selectedDir
 
     fun setShowHiddenDirectories(showHiddenDirectories: Boolean) {
         this.showHiddenDirectories = showHiddenDirectories

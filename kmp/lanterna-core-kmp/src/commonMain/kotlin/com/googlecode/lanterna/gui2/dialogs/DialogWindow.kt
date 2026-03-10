@@ -3,7 +3,6 @@ package com.googlecode.lanterna.gui2.dialogs
 import com.googlecode.lanterna.gui2.AbstractWindow
 import com.googlecode.lanterna.gui2.Window
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
-import com.googlecode.lanterna.internal.compat.Collections
 import kotlin.collections.HashSet
 
 /**
@@ -22,6 +21,6 @@ abstract class DialogWindow protected constructor(title: String?) : AbstractWind
 
     companion object {
         private val GLOBAL_DIALOG_HINTS: Set<Window.Hint?> =
-            Collections.unmodifiableSet(HashSet(Collections.singletonList(Window.Hint.MODAL)))
+            HashSet(listOf(Window.Hint.MODAL))
     }
 }

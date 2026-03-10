@@ -19,7 +19,6 @@
 package com.googlecode.lanterna.gui2.table
 
 import kotlin.collections.ArrayList
-import com.googlecode.lanterna.internal.compat.Arrays
 
 /**
  * A [TableModel] contains the data model behind a table.
@@ -37,7 +36,7 @@ open class TableModel<V>(columnLabels: List<String?>) {
     private val rows: MutableList<MutableList<V>> = ArrayList()
     private val listeners: MutableList<Listener<V>> = ArrayList()
 
-    constructor(vararg columnLabels: String?) : this(Arrays.asList(*columnLabels))
+    constructor(vararg columnLabels: String?) : this(listOf(*columnLabels))
 
     init {
         require(columnLabels.isNotEmpty()) { "Table model needs at least one column" }
@@ -74,7 +73,7 @@ open class TableModel<V>(columnLabels: List<String?>) {
 
     
     final fun addRow(vararg values: V): TableModel<V> {
-        addRow(Arrays.asList(*values))
+        addRow(listOf(*values))
         return this
     }
 
