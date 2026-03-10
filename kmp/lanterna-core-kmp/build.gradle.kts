@@ -7,6 +7,10 @@ plugins {
 
 kotlin {
     jvm()
+    linuxX64()
+    macosX64()
+    macosArm64()
+
     sourceSets {
         val commonMain by getting
         val commonTest by getting {
@@ -14,6 +18,7 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
+
         val jvmMain by getting {
             dependencies {
                 implementation("net.java.dev.jna:jna:5.14.0")
