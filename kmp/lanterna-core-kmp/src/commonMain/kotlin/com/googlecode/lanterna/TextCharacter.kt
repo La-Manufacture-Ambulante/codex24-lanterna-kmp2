@@ -1,3 +1,21 @@
+/*
+ * This file is part of lanterna (https://github.com/mabe02/lanterna).
+ *
+ * lanterna is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2010-2024 Martin Berglund
+ */
 package com.googlecode.lanterna
 
 import com.googlecode.lanterna.internal.compat.Character
@@ -5,7 +23,10 @@ import com.googlecode.lanterna.internal.compat.EnumSet
 import kotlin.collections.ArrayList
 
 /**
- * Represents one rendered character plus style metadata.
+ * Represents a single character with additional metadata such as colors and modifiers.
+ * This class is immutable and cannot be modified after creation.
+ *
+ * @author Martin
  */
 class TextCharacter private constructor(
     val characterString: String,
@@ -41,6 +62,7 @@ class TextCharacter private constructor(
     val isDoubleWidth: Boolean
         get() = (
             TerminalTextUtils.isCharDoubleWidth(characterString.first()) ||
+                isEmoji(characterString) ||
                 (characterString.length > 1 && !TerminalTextUtils.isCharThai(characterString.first()))
             )
 
@@ -88,6 +110,7 @@ class TextCharacter private constructor(
 
     init {
         require(characterString.isNotEmpty()) { "Cannot create TextCharacter from an empty string" }
+        validateSingleCharacter(characterString)
         val first = characterString.first()
         require(!TerminalTextUtils.isControlCharacter(first) || first == '\t') {
             "Cannot create TextCharacter from control character 0x${first.code.toString(16)}"
@@ -218,6 +241,26 @@ class TextCharacter private constructor(
             return result.toTypedArray()
         }
 
+        private fun validateSingleCharacter(character: String) {
+            if (splitDisplayClusters(character).size != 1) {
+                throw IllegalArgumentException("Invalid String for TextCharacter, can only have one logical character")
+            }
+        }
+
+        private fun isEmoji(value: String): Boolean {
+            // Mirrors the Java heuristic while keeping common-safe behavior.
+            val firstCharacter = value[0]
+            return value.length > 1 ||
+                !(
+                    TerminalTextUtils.isCharCJK(firstCharacter) ||
+                        TerminalTextUtils.isPrintableCharacter(firstCharacter) ||
+                        TerminalTextUtils.isCharThai(firstCharacter) ||
+                        TerminalTextUtils.isCharCJK(firstCharacter) ||
+                        TerminalTextUtils.isControlCharacter(firstCharacter)
+                    )
+        }
+
+        // Kotlin/Native common code has no BreakIterator, so this mirrors Java's logical-character split semantics.
         private fun splitDisplayClusters(text: String): List<String> {
             if (text.isEmpty()) {
                 return emptyList()

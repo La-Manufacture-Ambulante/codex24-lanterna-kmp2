@@ -1,9 +1,30 @@
+/*
+ * This file is part of lanterna (https://github.com/mabe02/lanterna).
+ *
+ * lanterna is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2010-2020 Martin Berglund
+ */
 package com.googlecode.lanterna
 
-import kotlin.math.abs
-
 /**
- * Cross-platform terminal color abstraction.
+ * This is an abstract base interface for terminal color definitions.
+ *
+ * Since there are different ways of specifying terminal colors, all with different ranges of adoption,
+ * this makes it possible to program against an implementation-agnostic color definition.
+ *
+ * @author Martin
  */
 interface TextColor {
     val foregroundSGRSequence: ByteArray?
@@ -195,12 +216,10 @@ interface TextColor {
                 return Indexed(index)
             }
 
-            return try {
-                ANSI.valueOf(safe.uppercase())
-            } catch (_: IllegalArgumentException) {
-                // Preserve the historical fallback behavior for malformed color names.
-                val closest = ANSI.entries.minByOrNull { abs(it.name.length - safe.length) }
-                closest ?: ANSI.DEFAULT
+            try {
+                return ANSI.valueOf(safe.uppercase())
+            } catch (e: IllegalArgumentException) {
+                throw IllegalArgumentException("Unknown color definition \"$safe\"", e)
             }
         }
     }
