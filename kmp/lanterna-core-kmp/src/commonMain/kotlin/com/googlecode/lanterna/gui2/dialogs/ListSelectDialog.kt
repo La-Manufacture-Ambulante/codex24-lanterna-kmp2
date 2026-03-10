@@ -105,6 +105,9 @@ class ListSelectDialog<T> internal constructor(
         close()
     }
 
+    /**
+     * Opens the dialog and returns the selected item, or `null` if cancelled.
+     */
     override fun showDialog(textGUI: WindowBasedTextGUI): T? {
         result = null
         super.showDialog(textGUI)
@@ -112,10 +115,16 @@ class ListSelectDialog<T> internal constructor(
     }
 
     companion object {
+        /**
+         * Convenience helper creating and showing a [ListSelectDialog] with automatic list-box sizing.
+         */
         fun <T> showDialog(textGUI: WindowBasedTextGUI, title: String?, description: String?, vararg items: T): T? {
             return showDialog(textGUI, title, description, null, *items)
         }
 
+        /**
+         * Convenience helper creating and showing a [ListSelectDialog] with explicit list-box height.
+         */
         fun <T> showDialog(
             textGUI: WindowBasedTextGUI,
             title: String?,
@@ -131,6 +140,9 @@ class ListSelectDialog<T> internal constructor(
             return showDialog(textGUI, title, description, TerminalSize(width, listBoxHeight), *items)
         }
 
+        /**
+         * Convenience helper creating and showing a [ListSelectDialog] with explicit list-box size.
+         */
         fun <T> showDialog(
             textGUI: WindowBasedTextGUI,
             title: String?,

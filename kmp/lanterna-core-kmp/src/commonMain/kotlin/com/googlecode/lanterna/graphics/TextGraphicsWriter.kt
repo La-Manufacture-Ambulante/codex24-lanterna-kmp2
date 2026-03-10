@@ -241,26 +241,41 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
         backend.setStyleFrom(this)
     }
 
+    /**
+     * Sets writer foreground color.
+     */
     override fun setForegroundColor(foregroundColor: TextColor?): TextGraphicsWriter {
         this.foregroundColor = foregroundColor
         return this
     }
 
+    /**
+     * Sets writer background color.
+     */
     override fun setBackgroundColor(backgroundColor: TextColor?): TextGraphicsWriter {
         this.backgroundColor = backgroundColor
         return this
     }
 
+    /**
+     * Enables one or more SGR modifiers.
+     */
     override fun enableModifiers(vararg modifiers: SGR?): TextGraphicsWriter {
         style.addAll(Arrays.asList(*modifiers).filterNotNull())
         return this
     }
 
+    /**
+     * Disables one or more SGR modifiers.
+     */
     override fun disableModifiers(vararg modifiers: SGR?): TextGraphicsWriter {
         style.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
         return this
     }
 
+    /**
+     * Replaces active SGR modifier set.
+     */
     override fun setModifiers(modifiers: EnumSet<SGR>?): TextGraphicsWriter {
         style.clear()
         if (modifiers != null) {

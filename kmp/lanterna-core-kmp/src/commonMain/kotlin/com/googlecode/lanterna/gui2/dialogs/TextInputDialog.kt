@@ -113,6 +113,9 @@ class TextInputDialog internal constructor(
         close()
     }
 
+    /**
+     * Opens the dialog and returns entered text, or `null` if cancelled.
+     */
     override fun showDialog(textGUI: WindowBasedTextGUI): String? {
         result = null
         super.showDialog(textGUI)
@@ -120,6 +123,9 @@ class TextInputDialog internal constructor(
     }
 
     companion object {
+        /**
+         * Shows a plain text-input dialog.
+         */
         fun showDialog(
             textGUI: WindowBasedTextGUI,
             title: String?,
@@ -134,6 +140,9 @@ class TextInputDialog internal constructor(
             return textInputDialog.showDialog(textGUI)
         }
 
+        /**
+         * Shows a number-only text-input dialog and returns parsed value.
+         */
         fun showNumberDialog(
             textGUI: WindowBasedTextGUI,
             title: String?,
@@ -150,6 +159,9 @@ class TextInputDialog internal constructor(
             return if (numberString != null) BigInteger(numberString) else null
         }
 
+        /**
+         * Shows a password-style text-input dialog (masked input).
+         */
         fun showPasswordDialog(
             textGUI: WindowBasedTextGUI,
             title: String?,
