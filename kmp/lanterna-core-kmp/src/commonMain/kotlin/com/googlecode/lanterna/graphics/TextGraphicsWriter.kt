@@ -32,6 +32,7 @@ import java.util.EnumSet
 /**
  * Helper writer that forwards text operations to a [TextGraphics] backend while tracking cursor position, wrapping,
  * and ANSI style state.
+ * @param backend Text graphics backend to write to
  */
 class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraphicsWriter?>, ScreenTranslator {
     /**
@@ -145,6 +146,7 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
 
                         else -> {
                             if (wrapBehaviour.keepWords()) {
+                                // If a word is longer than a full line starting at column 0, this still does not split it.
                                 wordPart.append(ch)
                                 wordLen++
                             } else {
@@ -172,9 +174,11 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
         if (wrapBehaviour.allowLineFeed()) {
             val wantWrap = curCol > 0 && lenToFit > spaceLeft
             if (lenToFit < 0 || (wantWrap && wrapBehaviour.autoWrap())) {
+                // TODO: Clear to end of current line?
                 cursorPosition = requireNotNull(cursorPosition.withColumn(0)?.withRelativeRow(1))
             }
         } else if (lenToFit < 0) {
+            // Encode explicit line feed.
             putControlChar('\n')
         }
     }
@@ -219,6 +223,7 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
         if (word.isNotEmpty()) {
             val chunk = WordPart(word.toString(), wordLen, StyleSet.Set(this))
             chunkQueue.add(chunk)
+            // Reset builder for the next word part.
             word.setLength(0)
         }
     }
@@ -237,6 +242,7 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
             offset = chunk.wordLen
         }
         chunkQueue.clear()
+        // Place the cursor immediately behind the written word.
         cursorPosition = requireNotNull(cursorPosition.withColumn(col + offset))
         backend.setStyleFrom(this)
     }
