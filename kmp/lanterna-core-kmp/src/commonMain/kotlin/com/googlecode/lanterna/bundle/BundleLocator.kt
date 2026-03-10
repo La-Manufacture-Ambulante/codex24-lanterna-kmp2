@@ -33,100 +33,86 @@ import java.util.ResourceBundle
  * This class permits to deal easily with bundles.
  * @author silveryocha
  */
-abstract class BundleLocator/**
- * Hidden constructor.
- * @param bundleName the name of the bundle.
- */
-     protected constructor(private val bundleName:String?) {
+abstract class BundleLocator protected constructor(private val bundleName: String?) {
 
-/**
- * Method that centralizes the way to get the value associated to a bundle key.
- * @param locale the locale.
- * @param key the key searched for.
- * @param parameters the parameters to apply to the value associated to the key.
- * @return the formatted value associated to the given key. Empty string if no value exists for
- * the given key.
- */
-    protected fun getBundleKeyValue(locale:Locale?, key:String?, vararg parameters:Any?):String? {
-var value:String? = null
-try
-{
-value = getBundle(locale)!!.getString(key)
-}
-catch (ignore:Exception) {}
+    /**
+     * Method that centralizes the way to get the value associated to a bundle key.
+     * @param locale the locale
+     * @param key the key searched for
+     * @param parameters the parameters to apply to the value associated to the key
+     * @return the formatted value associated to the given key; null if no value exists for the given key
+     */
+    protected fun getBundleKeyValue(locale: Locale?, key: String?, vararg parameters: Any?): String? {
+        var value: String? = null
+        try {
+            value = getBundle(locale).getString(key)
+        } catch (_: Exception) {
+        }
+        return if (value != null) MessageFormat.format(value, *parameters) else null
+    }
 
-return if (value != null) MessageFormat.format(value, *parameters) else null
-}
-
-/**
- * Gets the right bundle.<br></br>
- * A cache is handled as well as the concurrent accesses.
- * @param locale the locale.
- * @return the instance of the bundle.
- */
-    private fun getBundle(locale:Locale?):ResourceBundle? {
-try
-{
-return ResourceBundle.getBundle(bundleName, locale, loader, UTF8Control())
-}
-catch (e:UnsupportedOperationException) {
- /*
+    /**
+     * Gets the right bundle.
+     * A cache is handled as well as concurrent accesses.
+     * @param locale the locale
+     * @return the instance of the bundle
+     */
+    private fun getBundle(locale: Locale?): ResourceBundle {
+        return try {
+            ResourceBundle.getBundle(bundleName, locale, loader, UTF8Control())
+        } catch (_: UnsupportedOperationException) {
+            /*
              * Custom Control implementations aren't supported with named modules. Since
-             * java 9 property bundles use utf-8 as default encoding so we can just load the
+             * Java 9 property bundles use UTF-8 as default encoding, we can just load the
              * bundle with the default Control.
              */
-            return ResourceBundle.getBundle(bundleName, locale, loader)
-}
+            ResourceBundle.getBundle(bundleName, locale, loader)
+        }
+    }
 
-}
-
- // Taken from:
+    // Taken from:
     // http://stackoverflow.com/questions/4659929/how-to-use-utf-8-in-resource-properties-with-resourcebundle
-    // I politely refuse to use ISO-8859-1 in these *multi-lingual* property files
+    // I politely refuse to use ISO-8859-1 in these *multi-lingual* property files.
     // All credits to poster BalusC (http://stackoverflow.com/users/157882/balusc)
-    private class UTF8Control:ResourceBundle.Control() {
-@Throws(IOException::class)
- override fun newBundle(baseName:String?, locale:Locale?, format:String?, loader:ClassLoader?, reload:Boolean):ResourceBundle? {
- // The below is a copy of the default implementation.
+    private class UTF8Control : ResourceBundle.Control() {
+        @Throws(IOException::class)
+        override fun newBundle(
+            baseName: String?,
+            locale: Locale?,
+            format: String?,
+            loader: ClassLoader?,
+            reload: Boolean,
+        ): ResourceBundle? {
+            // The below is a copy of the default implementation.
             val bundleName = toBundleName(baseName, locale)
-val resourceName = toResourceName(bundleName, "properties")
-var bundle:ResourceBundle? = null
-var stream:InputStream? = null
-if (reload)
-{
-val url = loader!!.getResource(resourceName)
-if (url != null)
-{
-val connection = url!!.openConnection()
-if (connection != null)
-{
-connection!!.setUseCaches(false)
-stream = connection!!.getInputStream()
-}
-}
-}
-else
-{
-stream = loader!!.getResourceAsStream(resourceName)
-}
-if (stream != null)
-{
-try
-{
- // Only this line is changed to make it to read properties files as UTF-8.
+            val resourceName = toResourceName(bundleName, "properties")
+            var bundle: ResourceBundle? = null
+            var stream: InputStream? = null
+            if (reload) {
+                val url: URL? = loader?.getResource(resourceName)
+                if (url != null) {
+                    val connection: URLConnection? = url.openConnection()
+                    if (connection != null) {
+                        connection.useCaches = false
+                        stream = connection.getInputStream()
+                    }
+                }
+            } else {
+                stream = loader?.getResourceAsStream(resourceName)
+            }
+            if (stream != null) {
+                try {
+                    // Only this line is changed to make it read properties files as UTF-8.
                     bundle = PropertyResourceBundle(InputStreamReader(stream, StandardCharsets.UTF_8))
-}
+                } finally {
+                    stream.close()
+                }
+            }
+            return bundle
+        }
+    }
 
-finally
-{
-stream!!.close()
-}
-}
-return bundle
-}
-}
-
-companion object {
-private val loader = BundleLocator::class.java!!.getClassLoader()
-}
+    companion object {
+        private val loader = BundleLocator::class.java.classLoader
+    }
 }
