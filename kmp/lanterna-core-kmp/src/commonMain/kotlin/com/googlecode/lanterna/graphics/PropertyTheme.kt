@@ -36,8 +36,8 @@ import java.util.Properties
  * com.mypackage.mycomponent.MyClass.background[ACTIVE] = black
  * com.mypackage.mycomponent.MyClass.sgr[ACTIVE] = bold
  * ...
-</pre> * 
- * 
+ * </pre>
+ *
  * See the documentation on [Theme] for further information about different style categories that can be assigned.
  * The foreground, background and sgr entries without a class specifier will be tied to the global fallback and is used
  * if the libraries tries to apply a theme style that isn't specified in the Properties object and there is no other
@@ -89,8 +89,4 @@ else
 return propertyName.substring(propertyName.lastIndexOf(".") + 1)
 }
 }
-}/**
- * Creates a new `PropertyTheme` that is initialized by the properties passed in. If the properties refer to
- * a class that cannot be resolved, it will throw `IllegalArgumentException`.
- * @param properties Properties to initialize this theme with
- */
+}

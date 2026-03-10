@@ -23,7 +23,11 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 
 /**
- * Wraps another TextGraphics and prints each character twice horizontally.
+ * This TextGraphics implementation wraps another TextGraphics and forwards all operations to it, but with a few
+ * differences. First, each individual character being printed is printed twice. Second, [size] returns a width that is
+ * half of the underlying [TextGraphics], giving a view that is closer to square proportions.
+ *
+ * Creates a new [DoublePrintingTextGraphics] on top of [underlyingTextGraphics].
  */
 class DoublePrintingTextGraphics(private val underlyingTextGraphics: TextGraphics) : AbstractTextGraphics() {
     override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
@@ -38,14 +42,14 @@ class DoublePrintingTextGraphics(private val underlyingTextGraphics: TextGraphic
         return underlyingTextGraphics.getCharacter(adjustedColumn, rowIndex)
     }
 
-    override val size: TerminalSize
+    override val size: TerminalSize?
         get() {
-            val innerSize = underlyingTextGraphics.size ?: TerminalSize(0, 0)
-            return requireNotNull(innerSize.withColumns(innerSize.columns / 2))
+            val innerSize = underlyingTextGraphics.size ?: return null
+            return innerSize.withColumns(innerSize.columns / 2)
         }
 
     override fun toScreenPosition(pos: TerminalPosition?): TerminalPosition? {
-        val position = pos ?: TerminalPosition.TOP_LEFT_CORNER
+        val position = pos ?: return null
         return underlyingTextGraphics.toScreenPosition(position.multiply(MULTIPLIER))
     }
 

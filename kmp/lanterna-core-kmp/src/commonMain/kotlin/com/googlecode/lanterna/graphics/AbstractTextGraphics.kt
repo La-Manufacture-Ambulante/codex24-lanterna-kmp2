@@ -335,6 +335,7 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
             val controlSequence = TerminalTextUtils.getANSIControlSequenceAt(prepared, i)
             if (controlSequence != null) {
                 TerminalTextUtils.updateModifiersFromCSICode(controlSequence, this, original)
+                // Skip the control sequence bytes and continue scanning from the next visible character.
                 i += controlSequence.length
                 continue
             }
@@ -402,6 +403,7 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
     }
 
     private fun getOffsetToNextCharacter(character: Char): Int {
+        // CJK full-width glyphs consume two columns; regular glyphs consume one.
         return if (TerminalTextUtils.isCharDoubleWidth(character)) 2 else 1
     }
 

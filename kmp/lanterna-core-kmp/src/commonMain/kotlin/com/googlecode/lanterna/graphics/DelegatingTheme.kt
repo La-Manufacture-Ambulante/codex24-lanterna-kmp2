@@ -22,7 +22,15 @@ import com.googlecode.lanterna.gui2.WindowDecorationRenderer
 import com.googlecode.lanterna.gui2.WindowPostRenderer
 
 /**
- * Allows you to more easily wrap an existing theme and alter the behaviour in some special cases.
+ * Allows you to more easily wrap an existing theme and alter the behaviour in some special cases. You normally create a
+ * new class that extends from this and override some of the methods to divert the call depending on what you are trying
+ * to do.
+ *
+ * Creates a new [DelegatingTheme] with a default implementation that will forward all calls to [theme].
+ *
+ * @see DelegatingThemeDefinition
+ * @see DefaultMutableThemeStyle
+ * @see Theme
  */
 open class DelegatingTheme(private val theme: Theme) : Theme {
     override val defaultDefinition: ThemeDefinition?
