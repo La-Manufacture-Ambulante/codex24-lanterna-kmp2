@@ -25,7 +25,13 @@ import java.util.ArrayList
 import java.util.Collections
 
 /**
- * Standard multi-child [Container] implementation.
+ * This class is the basic building block for creating user interfaces, being the standard implementation of
+ * `Container` that supports multiple children. A `Panel` is a component that can contain one or more
+ * other components, including nested panels. The panel itself doesn't have any particular appearance and isn't
+ * interactable by itself, although you can set a border for the panel and interactable components inside the panel will
+ * receive input focus as expected.
+ *
+ * @author Martin
  */
 open class Panel @JvmOverloads constructor(layoutManager: LayoutManager? = LinearLayout()) :
     AbstractComponent<Panel?>(),
@@ -34,6 +40,15 @@ open class Panel @JvmOverloads constructor(layoutManager: LayoutManager? = Linea
     private var layoutManager: LayoutManager = layoutManager ?: AbsoluteLayout()
     private var cachedPreferredSize: TerminalSize? = null
 
+    /**
+     * Returns the color used to override the default background color from the theme, if set. Otherwise `null` is
+     * returned and whatever theme is assigned will be used to derive the fill color.
+     *
+     * Sets an override color to be used instead of the theme's color for Panels when drawing unused space. If called
+     * with `null`, it will reset back to the theme's color.
+     *
+     * @return The color, if any, used to fill the panel's unused space instead of the theme's color
+     */
     var fillColorOverride: TextColor? = null
 
     override val childCount: Int
@@ -57,10 +72,25 @@ open class Panel @JvmOverloads constructor(layoutManager: LayoutManager? = Linea
             return super.isInvalid || layoutManager.hasChanged()
         }
 
+    /**
+     * Adds a new child component to the panel. Where within the panel the child will be displayed is up to the layout
+     * manager assigned to this panel. If the component has already been added to another panel, it will first be
+     * removed from that panel before added to this one.
+     * @param component Child component to add to this panel
+     * @return Itself
+     */
     fun addComponent(component: Component?): Panel {
         return addComponent(Int.MAX_VALUE, component)
     }
 
+    /**
+     * Adds a new child component to the panel. Where within the panel the child will be displayed is up to the layout
+     * manager assigned to this panel. If the component has already been added to another panel, it will first be
+     * removed from that panel before added to this one.
+     * @param component Child component to add to this panel
+     * @param index At what index to add the component among the existing components
+     * @return Itself
+     */
     fun addComponent(index: Int, component: Component?): Panel {
         requireNotNull(component) { "Cannot add null component" }
 
@@ -82,6 +112,13 @@ open class Panel @JvmOverloads constructor(layoutManager: LayoutManager? = Linea
         return this
     }
 
+    /**
+     * This method is a shortcut for calling:
+     * `component.setLayoutData(layoutData); panel.addComponent(component);`
+     * @param component Component to add to the panel
+     * @param layoutData Layout data to assign to the component
+     * @return Itself
+     */
     fun addComponent(component: Component?, layoutData: LayoutData?): Panel {
         if (component != null) {
             component.setLayoutData(layoutData)
@@ -112,6 +149,10 @@ open class Panel @JvmOverloads constructor(layoutManager: LayoutManager? = Linea
         return true
     }
 
+    /**
+     * Removes all child components from this panel.
+     * @return Itself
+     */
     fun removeAllComponents(): Panel {
         synchronized(components) {
             for (component in ArrayList(components)) {
@@ -122,12 +163,23 @@ open class Panel @JvmOverloads constructor(layoutManager: LayoutManager? = Linea
     }
 
     @Synchronized
+    /**
+     * Assigns a new layout manager to this panel, replacing the previous layout manager assigned. Please note that if
+     * the panel is not empty at the time you assign a new layout manager, the existing components might not show up
+     * where you expect them and their layout data property might need to be re-assigned.
+     * @param layoutManager New layout manager this panel should be using
+     * @return Itself
+     */
     fun setLayoutManager(layoutManager: LayoutManager?): Panel {
         this.layoutManager = layoutManager ?: AbsoluteLayout()
         invalidate()
         return this
     }
 
+    /**
+     * Returns the layout manager assigned to this panel.
+     * @return Layout manager assigned to this panel
+     */
     fun getLayoutManager(): LayoutManager {
         return layoutManager
     }
@@ -255,6 +307,11 @@ open class Panel @JvmOverloads constructor(layoutManager: LayoutManager? = Linea
     inner class DefaultPanelRenderer : ComponentRenderer<Panel?> {
         private var fillAreaBeforeDrawingComponents: Boolean = true
 
+        /**
+         * If setting this to `false` (default is `true`), the [Panel] will not reset its drawable
+         * area with the space character `' '` before drawing all the components.
+         * @param fillAreaBeforeDrawingComponents Should the panel area be cleared before drawing components?
+         */
         fun setFillAreaBeforeDrawingComponents(fillAreaBeforeDrawingComponents: Boolean) {
             this.fillAreaBeforeDrawingComponents = fillAreaBeforeDrawingComponents
         }
