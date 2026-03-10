@@ -344,8 +344,7 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
     }
 
     @Synchronized
-    override fun addWindow(window: Window?): WindowBasedTextGUI {
-        requireNotNull(window) { "Cannot add null window" }
+    override fun addWindow(window: Window): WindowBasedTextGUI {
         if (window.component == null) {
             window.component = EmptySpace(TerminalSize.ONE)
         }
@@ -357,26 +356,25 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         return this
     }
 
-    override fun addWindowAndWait(window: Window?): WindowBasedTextGUI {
-        requireNotNull(window) { "Cannot add null window" }
+    override fun addWindowAndWait(window: Window): WindowBasedTextGUI {
         addWindow(window)
         window.waitUntilClosed()
         return this
     }
 
     @Synchronized
-    override fun removeWindow(window: Window?): WindowBasedTextGUI {
+    override fun removeWindow(window: Window): WindowBasedTextGUI {
         if (!windowList.removeWindow(window)) {
             return this
         }
-        window?.textGUI = null
+        window.textGUI = null
         windowManager.onRemoved(this, window, windowList.windowsInStableOrder)
         invalidate()
         return this
     }
 
-    override fun waitForWindowToClose(abstractWindow: Window?) {
-        val window = abstractWindow ?: return
+    override fun waitForWindowToClose(abstractWindow: Window) {
+        val window = abstractWindow
         while (window.textGUI != null) {
             var sleep = true
             val guiThread = guiThread
@@ -400,13 +398,13 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
     }
 
     @Synchronized
-    override fun setActiveWindow(activeWindow: Window?): MultiWindowTextGUI {
+    override fun setActiveWindow(activeWindow: Window): MultiWindowTextGUI {
         windowList.activeWindow = activeWindow
         return this
     }
 
     @Synchronized
-    override fun moveToTop(window: Window?): WindowBasedTextGUI {
+    override fun moveToTop(window: Window): WindowBasedTextGUI {
         windowList.moveToTop(window)
         invalidate()
         return this
