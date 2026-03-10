@@ -78,13 +78,16 @@ actual class PlatformCountdownLatch actual constructor(
 
 @OptIn(ExperimentalForeignApi::class)
 actual class PlatformThreadToken internal constructor(
-    private val threadId: pthread_t,
+    private val threadId: pthread_t?,
 ) {
     override fun equals(other: Any?): Boolean {
-        return other is PlatformThreadToken && pthread_equal(threadId, other.threadId) != 0
+        val otherToken = other as? PlatformThreadToken ?: return false
+        val thisThread = threadId ?: return false
+        val otherThread = otherToken.threadId ?: return false
+        return pthread_equal(thisThread, otherThread) != 0
     }
 
-    override fun hashCode(): Int = threadId.hashCode()
+    override fun hashCode(): Int = threadId?.hashCode() ?: 0
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -139,7 +142,10 @@ actual fun sleepCurrentThread(millis: Long) {
 
 @OptIn(ExperimentalForeignApi::class)
 private val THREAD_ENTRY = staticCFunction<COpaquePointer?, COpaquePointer?> { argument ->
-    pthread_detach(pthread_self())
+    val selfThread = pthread_self()
+    if (selfThread != null) {
+        pthread_detach(selfThread)
+    }
     if (argument == null) {
         return@staticCFunction null
     }
