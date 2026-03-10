@@ -30,6 +30,7 @@ import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 
 /**
  * Dialog containing a multiple item action list box.
+ * @author Martin
  */
 class ActionListDialog internal constructor(
     title: String?,
@@ -107,6 +108,10 @@ class ActionListDialog internal constructor(
     companion object {
         /**
          * Helper method for immediately displaying an [ActionListDialog]. The method returns when the dialog closes.
+         * @param textGUI Text GUI the dialog should be added to
+         * @param title Title of the dialog
+         * @param description Description of the dialog
+         * @param items Items in the [ActionListBox], labels are taken from `toString()` on each runnable
          */
         fun showDialog(textGUI: WindowBasedTextGUI, title: String?, description: String?, vararg items: Runnable) {
             val actionListDialog = ActionListDialogBuilder()

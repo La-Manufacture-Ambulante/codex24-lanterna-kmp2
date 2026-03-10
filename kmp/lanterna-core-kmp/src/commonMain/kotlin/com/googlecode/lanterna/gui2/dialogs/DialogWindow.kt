@@ -35,6 +35,8 @@ abstract class DialogWindow protected constructor(title: String?) : AbstractWind
 
     /**
      * Opens the dialog by showing it on the GUI and does not return until the dialog has been closed.
+     * @param textGUI Text GUI to add the dialog to
+     * @return Depending on the [DialogWindow] implementation, by default `null`
      */
     open fun showDialog(textGUI: WindowBasedTextGUI): Any? {
         textGUI.addWindow(this)

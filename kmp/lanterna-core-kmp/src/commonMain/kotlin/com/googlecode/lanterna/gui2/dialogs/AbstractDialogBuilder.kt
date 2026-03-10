@@ -24,6 +24,9 @@ import java.util.HashSet
 
 /**
  * Abstract class for dialog building, containing much shared code between different kinds of dialogs.
+ * @param B The real type of the builder class
+ * @param T Type of dialog this builder is building
+ * @author Martin
  */
 abstract class AbstractDialogBuilder<B, T : DialogWindow>(initialTitle: String?) {
     private var dialogTitle: String? = initialTitle
@@ -69,8 +72,14 @@ abstract class AbstractDialogBuilder<B, T : DialogWindow>(initialTitle: String?)
      */
     fun getExtraWindowHints(): Set<Window.Hint?> = dialogExtraWindowHints
 
+    /**
+     * Helper method for casting this to type parameter [B].
+     */
     protected abstract fun self(): B
 
+    /**
+     * Builds the dialog according to the builder implementation.
+     */
     protected abstract fun buildDialog(): T
 
     /**
