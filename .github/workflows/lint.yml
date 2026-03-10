@@ -1,0 +1,49 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - codex/**
+
+permissions:
+  contents: read
+
+jobs:
+  kotlin-lint:
+    name: Kotlin Lint and Static Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Run ktlint (advisory)
+        continue-on-error: true
+        run: |
+          curl -sSLo ktlint https://github.com/pinterest/ktlint/releases/download/1.2.1/ktlint
+          chmod +x ktlint
+          ./ktlint "kmp/**/*.kt" --reporter=plain --reporter=checkstyle,output=ktlint-report.xml
+
+      - name: Run detekt (advisory)
+        continue-on-error: true
+        run: |
+          curl -sSLo detekt-cli.jar https://github.com/detekt/detekt/releases/download/v1.23.6/detekt-cli-1.23.6-all.jar
+          java -jar detekt-cli.jar --input kmp --report txt:detekt-report.txt --report sarif:detekt-report.sarif
+
+      - name: Upload lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-reports
+          path: |
+            ktlint-report.xml
+            detekt-report.txt
+            detekt-report.sarif
