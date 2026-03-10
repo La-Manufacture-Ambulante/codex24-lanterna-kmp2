@@ -24,7 +24,21 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
- * Default implementation of [TextGUIThread] that runs the GUI loop on a dedicated thread.
+ * Default implementation of TextGUIThread, this class runs the GUI event processing on a dedicated thread. The GUI
+ * needs to be explicitly started in order for the event processing loop to begin, so you must call `start()`
+ * for this. The GUI thread will stop if `stop()` is called, the input stream returns EOF or an exception is
+ * thrown from inside the event handling loop.
+ * <p>
+ * Here is an example of how to use this `TextGUIThread`:
+ * <pre>
+ *     `MultiWindowTextGUI textGUI = new MultiWindowTextGUI(new SeparateTextGUIThread.Factory(), screen);
+ *     // ... add components ...
+ *     ((AsynchronousTextGUIThread)textGUI.getGUIThread()).start();
+ *     // ... this thread will continue while the GUI runs on a separate thread ...`
+ * </pre>
+ * @see TextGUIThread
+ * @see SameTextGUIThread
+ * @author Martin
  */
 class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
     AbstractTextGUIThread(textGUI),
@@ -120,7 +134,7 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
 
     class Factory : TextGUIThreadFactory {
         override fun createTextGUIThread(textGUI: TextGUI?): TextGUIThread? {
-            return textGUI?.let { SeparateTextGUIThread(it) }
+            return SeparateTextGUIThread(textGUI!!)
         }
     }
 }
