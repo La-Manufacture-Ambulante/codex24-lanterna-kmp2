@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   kotlin-lint:
@@ -47,3 +48,79 @@ jobs:
             ktlint-report.xml
             detekt-report.txt
             detekt-report.sarif
+
+      - name: Build lint summary
+        id: lint-summary
+        if: always()
+        shell: bash
+        run: |
+          ktlint_count=0
+          detekt_count=0
+          detekt_sarif_count=0
+
+          if [ -f ktlint-report.xml ]; then
+            ktlint_count=$(grep -o "<error " ktlint-report.xml | wc -l | tr -d ' ')
+          fi
+          if [ -f detekt-report.txt ]; then
+            detekt_count=$(wc -l < detekt-report.txt | tr -d ' ')
+          fi
+          if [ -f detekt-report.sarif ]; then
+            detekt_sarif_count=$(grep -o "\"ruleId\":" detekt-report.sarif | wc -l | tr -d ' ')
+          fi
+
+          echo "ktlint_count=$ktlint_count" >> "$GITHUB_OUTPUT"
+          echo "detekt_count=$detekt_count" >> "$GITHUB_OUTPUT"
+          echo "detekt_sarif_count=$detekt_sarif_count" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Lint Summary"
+            echo "- ktlint findings: $ktlint_count"
+            echo "- detekt findings: $detekt_count"
+            echo "- detekt sarif results: $detekt_sarif_count"
+            echo "- reports artifact: lint-reports"
+            echo "- run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment lint summary on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          KTLINT_COUNT: ${{ steps.lint-summary.outputs.ktlint_count }}
+          DETEKT_COUNT: ${{ steps.lint-summary.outputs.detekt_count }}
+          DETEKT_SARIF_COUNT: ${{ steps.lint-summary.outputs.detekt_sarif_count }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            const marker = '<!-- pr3-lint-summary -->';
+            const body = `${marker}
+            ### Lint Summary
+            - ktlint findings: ${process.env.KTLINT_COUNT}
+            - detekt findings: ${process.env.DETEKT_COUNT}
+            - detekt sarif results: ${process.env.DETEKT_SARIF_COUNT}
+            - reports artifact: \`lint-reports\`
+            - run: ${process.env.RUN_URL}`;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100
+            });
+            const existing = comments.find((c) => c.user?.type === 'Bot' && c.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body
+              });
+            }

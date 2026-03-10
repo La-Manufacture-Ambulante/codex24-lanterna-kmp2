@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   maven-jacoco:
@@ -29,11 +30,103 @@ jobs:
       - name: Generate coverage
         run: mvn -B -ntp verify
 
+      - name: Build coverage summary
+        id: coverage-summary
+        if: always()
+        shell: bash
+        run: |
+          jacoco_exec_present=no
+          jacoco_xml_present=no
+          jacoco_html_present=no
+          jacoco_files=0
+
+          if [ -f target/jacoco.exec ]; then
+            jacoco_exec_present=yes
+          fi
+          if [ -f target/site/jacoco/jacoco.xml ]; then
+            jacoco_xml_present=yes
+          fi
+          if [ -f target/site/jacoco/index.html ]; then
+            jacoco_html_present=yes
+          fi
+          if [ -d target/site/jacoco ]; then
+            jacoco_files=$(find target/site/jacoco -type f | wc -l | tr -d ' ')
+          fi
+
+          {
+            echo "JaCoCo summary"
+            echo "jacoco_exec_present=$jacoco_exec_present"
+            echo "jacoco_xml_present=$jacoco_xml_present"
+            echo "jacoco_html_present=$jacoco_html_present"
+            echo "jacoco_files=$jacoco_files"
+            echo "run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          } > coverage-summary.txt
+
+          echo "jacoco_exec_present=$jacoco_exec_present" >> "$GITHUB_OUTPUT"
+          echo "jacoco_xml_present=$jacoco_xml_present" >> "$GITHUB_OUTPUT"
+          echo "jacoco_html_present=$jacoco_html_present" >> "$GITHUB_OUTPUT"
+          echo "jacoco_files=$jacoco_files" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Coverage Summary"
+            echo "- jacoco.exec present: $jacoco_exec_present"
+            echo "- jacoco.xml present: $jacoco_xml_present"
+            echo "- jacoco html present: $jacoco_html_present"
+            echo "- jacoco report files: $jacoco_files"
+            echo "- run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload JaCoCo reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
-          if-no-files-found: warn
           path: |
             target/site/jacoco/**
+            coverage-summary.txt
+
+      - name: Comment coverage summary on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          JACOCO_EXEC_PRESENT: ${{ steps.coverage-summary.outputs.jacoco_exec_present }}
+          JACOCO_XML_PRESENT: ${{ steps.coverage-summary.outputs.jacoco_xml_present }}
+          JACOCO_HTML_PRESENT: ${{ steps.coverage-summary.outputs.jacoco_html_present }}
+          JACOCO_FILES: ${{ steps.coverage-summary.outputs.jacoco_files }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            const marker = '<!-- pr3-coverage-summary -->';
+            const body = `${marker}
+            ### Coverage Summary
+            - jacoco.exec present: ${process.env.JACOCO_EXEC_PRESENT}
+            - jacoco.xml present: ${process.env.JACOCO_XML_PRESENT}
+            - jacoco html present: ${process.env.JACOCO_HTML_PRESENT}
+            - jacoco report files: ${process.env.JACOCO_FILES}
+            - reports artifact: \`jacoco-report\`
+            - run: ${process.env.RUN_URL}`;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100
+            });
+            const existing = comments.find((c) => c.user?.type === 'Bot' && c.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body
+              });
+            }
