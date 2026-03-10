@@ -32,6 +32,7 @@ import com.googlecode.lanterna.gui2.TextGUIGraphics
 import com.googlecode.lanterna.input.KeyStroke
 import kotlin.collections.ArrayList
 import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
+import com.googlecode.lanterna.internal.concurrency.PlatformMutex
 
 /**
  * A menu bar offering drop-down menus.
@@ -43,6 +44,7 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
     }
 
     private val menus: MutableList<Menu> = CopyOnWriteArrayList()
+    private val stateLock = PlatformMutex()
 
     fun add(menu: Menu): MenuBar {
         menus.add(menu)
@@ -64,7 +66,9 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
     }
 
     override fun removeComponent(component: Component?): Boolean {
-        val hadMenu = menus.remove(component)
+        val hadMenu = stateLock.withLock {
+            menus.remove(component)
+        }
         if (hadMenu) {
             component?.onRemoved(this)
         }
@@ -72,14 +76,16 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
     }
 
     override fun nextFocus(fromThis: Interactable?): Interactable? {
-        if (menus.isEmpty()) {
-            return null
-        } else if (fromThis == null) {
-            return menus[0]
-        } else if (!menus.contains(fromThis) || menus.indexOf(fromThis) == menus.size - 1) {
-            return null
+        return stateLock.withLock {
+            if (menus.isEmpty()) {
+                return@withLock null
+            } else if (fromThis == null) {
+                return@withLock menus[0]
+            } else if (!menus.contains(fromThis) || menus.indexOf(fromThis) == menus.size - 1) {
+                return@withLock null
+            }
+            menus[menus.indexOf(fromThis) + 1]
         }
-        return menus[menus.indexOf(fromThis) + 1]
     }
 
     override fun previousFocus(fromThis: Interactable?): Interactable? {
@@ -115,8 +121,10 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
     }
 
     override fun updateLookupMap(interactableLookupMap: InteractableLookupMap?) {
-        for (menu in menus) {
-            interactableLookupMap?.add(menu)
+        stateLock.withLock {
+            for (menu in menus) {
+                interactableLookupMap?.add(menu)
+            }
         }
     }
 

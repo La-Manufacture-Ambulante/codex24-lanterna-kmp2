@@ -22,30 +22,59 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 
 /**
- * BorderLayout imitates AWT BorderLayout.
+ * BorderLayout imitates the BorderLayout class from AWT, allowing you to add a center component with optional
+ * components around it in top, bottom, left and right locations.
+ *
+ * The edge components are sized to their preferred sizes and the center component takes the remaining space.
  */
 class BorderLayout : LayoutManager {
+    /**
+     * Layout data used by [BorderLayout] to place components in the container.
+     */
     enum class Location : LayoutData {
+        /**
+         * Occupies the center space after edge components have been allocated.
+         */
         CENTER,
+        /**
+         * Occupies the left side, requesting preferred width.
+         */
         LEFT,
+        /**
+         * Occupies the right side, requesting preferred width.
+         */
         RIGHT,
+        /**
+         * Occupies the top side, requesting preferred height.
+         */
         TOP,
+        /**
+         * Occupies the bottom side, requesting preferred height.
+         */
         BOTTOM,
     }
 
     override fun getPreferredSize(components: List<Component?>?): TerminalSize {
         val layout = makeLookupMap(components ?: emptyList())
-        fun row(location: Location): Int = layout[location]?.preferredSize?.rows ?: 0
-        fun col(location: Location): Int = layout[location]?.preferredSize?.columns ?: 0
-
         val preferredHeight =
-            row(Location.TOP) +
-                maxOf(row(Location.LEFT), maxOf(row(Location.CENTER), row(Location.RIGHT))) +
-                row(Location.BOTTOM)
+            (if (layout.containsKey(Location.TOP)) layout[Location.TOP]?.preferredSize?.rows ?: 0 else 0) +
+                maxOf(
+                    if (layout.containsKey(Location.LEFT)) layout[Location.LEFT]?.preferredSize?.rows ?: 0 else 0,
+                    maxOf(
+                        if (layout.containsKey(Location.CENTER)) layout[Location.CENTER]?.preferredSize?.rows ?: 0 else 0,
+                        if (layout.containsKey(Location.RIGHT)) layout[Location.RIGHT]?.preferredSize?.rows ?: 0 else 0,
+                    ),
+                ) +
+                (if (layout.containsKey(Location.BOTTOM)) layout[Location.BOTTOM]?.preferredSize?.rows ?: 0 else 0)
 
         val preferredWidth = maxOf(
-            col(Location.LEFT) + col(Location.CENTER) + col(Location.RIGHT),
-            maxOf(col(Location.TOP), col(Location.BOTTOM)),
+            (if (layout.containsKey(Location.LEFT)) layout[Location.LEFT]?.preferredSize?.columns ?: 0 else 0) +
+                (if (layout.containsKey(Location.CENTER)) layout[Location.CENTER]?.preferredSize?.columns ?: 0 else 0) +
+                (if (layout.containsKey(Location.RIGHT)) layout[Location.RIGHT]?.preferredSize?.columns ?: 0 else 0),
+            maxOf(
+                if (layout.containsKey(Location.TOP)) layout[Location.TOP]?.preferredSize?.columns ?: 0 else 0,
+                if (layout.containsKey(Location.BOTTOM)) layout[Location.BOTTOM]?.preferredSize?.columns ?: 0 else 0,
+            ),
         )
         return TerminalSize(preferredWidth, preferredHeight)
     }
