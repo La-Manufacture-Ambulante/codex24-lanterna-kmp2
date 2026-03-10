@@ -5,3 +5,12 @@
 nb-configuration.xml
 target/
 *.iml
+.DS_Store
+**/.DS_Store
+.DS_STORE
+**/.DS_STORE
+@eaDir/
+**/@eaDir/
+.gradle/
+.kotlin/
+**/build/
