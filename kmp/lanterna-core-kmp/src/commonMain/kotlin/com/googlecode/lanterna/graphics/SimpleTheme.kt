@@ -39,7 +39,6 @@ import com.googlecode.lanterna.gui2.WindowShadowRenderer
 import com.googlecode.lanterna.gui2.table.Table
 import java.util.EnumSet
 import java.util.HashMap
-import java.util.Map
 import java.util.Properties
 
 /**
@@ -55,7 +54,7 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
     @get:Synchronized
     override val defaultDefinition: Definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
 
-    private val overrideDefinitions: MutableMap<Class<*>, Definition> = HashMap()
+    private val overrideDefinitions: MutableMap<Class<*>?, Definition> = HashMap()
 
     @get:Synchronized
     @set:Synchronized
@@ -67,7 +66,7 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
 
     @Synchronized
     override fun getDefinition(clazz: Class<*>?): Definition {
-        val resolved = if (clazz != null) overrideDefinitions[clazz] else null
+        val resolved = overrideDefinitions[clazz]
         return resolved ?: defaultDefinition
     }
 
@@ -77,9 +76,7 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
     @Synchronized
     fun addOverride(clazz: Class<*>?, foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
         val definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
-        if (clazz != null) {
-            overrideDefinitions[clazz] = definition
-        }
+        overrideDefinitions[clazz] = definition
         return definition
     }
 
@@ -110,7 +107,7 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         private val customStyles: MutableMap<String?, ThemeStyle?> = HashMap()
         private val properties = Properties()
         private val characterMap: MutableMap<String?, Char> = HashMap()
-        private val componentRendererMap: MutableMap<Class<*>, RendererProvider<*>> = HashMap()
+        private val componentRendererMap: MutableMap<Class<*>?, RendererProvider<*>?> = HashMap()
         private var cursorVisible: Boolean = true
 
         @get:Synchronized
@@ -242,9 +239,6 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         @Suppress("UNCHECKED_CAST")
         @Synchronized
         override fun <T : Component?> getRenderer(type: Class<T?>?): ComponentRenderer<T?>? {
-            if (type == null) {
-                return null
-            }
             val rendererProvider = componentRendererMap[type] as RendererProvider<T?>?
             return rendererProvider?.getRenderer(type)
         }
@@ -254,9 +248,6 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
          */
         @Synchronized
         fun <T : Component?> setRenderer(type: Class<T?>?, rendererProvider: RendererProvider<T?>?): Definition {
-            if (type == null) {
-                return this
-            }
             if (rendererProvider == null) {
                 componentRendererMap.remove(type)
             } else {
