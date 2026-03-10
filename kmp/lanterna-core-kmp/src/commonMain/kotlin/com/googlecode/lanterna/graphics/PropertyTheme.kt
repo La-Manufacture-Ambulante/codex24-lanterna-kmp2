@@ -51,7 +51,7 @@ import java.util.Properties
  * @param ignoreUnknownClasses If `true`, will not throw an exception if there is an invalid entry in the
  * properties object
  */
-     @JvmOverloads  constructor(properties:Properties, ignoreUnknownClasses:Boolean = false):AbstractTheme(instanceByClassName(properties.getProperty("postrenderer", "")) as WindowPostRenderer, instanceByClassName(properties.getProperty("windowdecoration", "")) as WindowDecorationRenderer) {
+     constructor(properties:Properties, ignoreUnknownClasses:Boolean = false):AbstractTheme(instanceByClassName(properties.getProperty("postrenderer", "")) as WindowPostRenderer, instanceByClassName(properties.getProperty("windowdecoration", "")) as WindowDecorationRenderer) {
 
 init{
 

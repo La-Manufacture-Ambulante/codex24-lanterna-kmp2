@@ -21,7 +21,7 @@ package com.googlecode.lanterna.input
 import com.googlecode.lanterna.input.CharacterPattern.Matching
 
 import java.io.BufferedReader
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 import java.io.Reader
 import java.util.*
 
@@ -46,7 +46,7 @@ private var timeoutUnits:Int = 0
  * @return Collection of patterns in the InputDecoder
  */
      val patterns:Collection<CharacterPattern>
-@Synchronized get() {
+get() {
 synchronized (bytePatterns) {
 return ArrayList(bytePatterns)
 }
@@ -117,7 +117,7 @@ return timeoutUnits
  * @return Key stroke read from the input stream, or `null` if none
  * @throws IOException If there was an I/O error when reading from the input stream
  */
-    @Synchronized @Throws(IOException::class)
+    @Throws(IOException::class)
  fun getNextCharacter(blockingIO:Boolean):KeyStroke? {
 
 var bestMatch:KeyStroke? = null

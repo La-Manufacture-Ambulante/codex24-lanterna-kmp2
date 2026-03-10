@@ -28,12 +28,12 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.terminal.Terminal
 import com.googlecode.lanterna.terminal.TerminalResizeListener
-import java.io.IOException
-import java.util.Comparator
+import com.googlecode.lanterna.internal.io.IOException
+import kotlin.Comparator
 import java.util.EnumSet
 import java.util.TreeMap
 
-class TerminalScreen @JvmOverloads constructor(
+class TerminalScreen constructor(
     val terminal: Terminal,
     defaultCharacter: TextCharacter? = Screen.DEFAULT_CHARACTER,
 ) : AbstractScreen(terminal.terminalSize, defaultCharacter) {
@@ -51,7 +51,6 @@ class TerminalScreen @JvmOverloads constructor(
         terminal.close()
     }
 
-    @Synchronized
     @Throws(IOException::class)
     override fun startScreen() {
         if (isStarted) {
@@ -76,7 +75,6 @@ class TerminalScreen @JvmOverloads constructor(
         stopScreen(true)
     }
 
-    @Synchronized
     @Throws(IOException::class)
     fun stopScreen(flushInput: Boolean) {
         if (!isStarted) {
@@ -92,7 +90,6 @@ class TerminalScreen @JvmOverloads constructor(
         isStarted = false
     }
 
-    @Synchronized
     @Throws(IOException::class)
     override fun refresh(refreshType: Screen.RefreshType?) {
         if (!isStarted) {
@@ -281,14 +278,12 @@ class TerminalScreen @JvmOverloads constructor(
     @Throws(IOException::class)
     override fun pollInput(): KeyStroke? = terminal.pollInput()
 
-    @Synchronized
     override fun clear() {
         super.clear()
         fullRedrawHint = true
         scrollHint = ScrollHint.INVALID
     }
 
-    @Synchronized
     override fun doResizeIfNecessary(): TerminalSize? {
         val newSize = super.doResizeIfNecessary()
         if (newSize != null) {

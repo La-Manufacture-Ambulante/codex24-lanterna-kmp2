@@ -18,7 +18,7 @@
  */
 package com.googlecode.lanterna.graphics
 
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 
 /**
  * Describes an area that can be 'scrolled', by moving a range of lines up or down. Certain terminals will implement

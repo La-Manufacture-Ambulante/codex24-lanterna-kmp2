@@ -30,7 +30,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 /**
  * The list box will display a number of items, of which one and only one can be marked as selected.
  */
-class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = null) :
+class RadioBoxList<V> constructor(preferredSize: TerminalSize? = null) :
     AbstractListBox<V, RadioBoxList<V>>(preferredSize) {
 
     interface Listener {
@@ -42,7 +42,7 @@ class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
 
     var checkedItemIndex: Int
         get() = checkedIndex
-        @Synchronized set(index) {
+        set(index) {
             if (index < -1 || index >= itemCount) {
                 return
             }
@@ -50,13 +50,13 @@ class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         }
 
     var checkedItem: V?
-        @Synchronized get() {
+        get() {
             if (checkedIndex == -1 || checkedIndex >= itemCount) {
                 return null
             }
             return getItemAt(checkedIndex)
         }
-        @Synchronized set(item) {
+        set(item) {
             if (item == null) {
                 setCheckedIndex(-1)
             } else {
@@ -68,7 +68,6 @@ class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return RadioBoxListItemRenderer()
     }
 
-    @Synchronized
     override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
         if (isKeyboardActivationStroke(keyStroke)) {
             setCheckedIndex(getSelectedIndex())
@@ -100,7 +99,6 @@ class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return super.handleKeyStroke(keyStroke)
     }
 
-    @Synchronized
     override fun removeItem(index: Int): V {
         val item = super.removeItem(index)
         if (index < checkedIndex) {
@@ -112,13 +110,11 @@ class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return item
     }
 
-    @Synchronized
     override fun clearItems(): RadioBoxList<V>? {
         setCheckedIndex(-1)
         return super.clearItems()
     }
 
-    @Synchronized
     fun isChecked(item: V?): Boolean? {
         if (item == null) {
             return null
@@ -129,7 +125,6 @@ class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return checkedIndex == indexOf(item)
     }
 
-    @Synchronized
     fun isChecked(index: Int): Boolean {
         if (index < 0 || index >= itemCount) {
             return false
@@ -137,7 +132,6 @@ class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return checkedIndex == index
     }
 
-    @Synchronized
     fun clearSelection() {
         setCheckedIndex(-1)
     }

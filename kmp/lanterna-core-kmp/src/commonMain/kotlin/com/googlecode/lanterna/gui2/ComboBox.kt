@@ -73,7 +73,6 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         this.text = if (selectedIndex != -1) this.items[selectedIndex].toString() else ""
     }
 
-    @Synchronized
     fun addItem(item: V?): ComboBox<V> {
         if (item == null) {
             throw IllegalArgumentException("Cannot add null elements to a ComboBox")
@@ -86,7 +85,6 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return this
     }
 
-    @Synchronized
     fun addItem(index: Int, item: V?): ComboBox<V> {
         if (item == null) {
             throw IllegalArgumentException("Cannot add null elements to a ComboBox")
@@ -99,7 +97,6 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return this
     }
 
-    @Synchronized
     fun clearItems(): ComboBox<V> {
         items.clear()
         setSelectedIndex(-1)
@@ -107,7 +104,6 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return this
     }
 
-    @Synchronized
     fun removeItem(item: V?): ComboBox<V> {
         val index = items.indexOf(item)
         if (index == -1) {
@@ -116,7 +112,6 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return removeItem(index)
     }
 
-    @Synchronized
     fun removeItem(index: Int): ComboBox<V> {
         items.removeAt(index)
         if (index < selectedIndex) {
@@ -128,7 +123,6 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return this
     }
 
-    @Synchronized
     fun setItem(index: Int, item: V?): ComboBox<V> {
         if (item == null) {
             throw IllegalArgumentException("Cannot add null elements to a ComboBox")
@@ -138,17 +132,14 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return this
     }
 
-    @Synchronized
     fun getItemCount(): Int {
         return items.size
     }
 
-    @Synchronized
     fun getItem(index: Int): V {
         return items[index]
     }
 
-    @Synchronized
     fun setReadOnly(readOnly: Boolean): ComboBox<V> {
         this.readOnly = readOnly
         if (readOnly) {
@@ -169,7 +160,6 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         setSelectedIndex(selectedIndex, false)
     }
 
-    @Synchronized
     private fun setSelectedIndex(selectedIndex: Int, changedByUserInteraction: Boolean) {
         if (items.size <= selectedIndex || selectedIndex < -1) {
             throw IndexOutOfBoundsException("Illegal argument to ComboBox.setSelectedIndex: $selectedIndex")
@@ -191,7 +181,6 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         invalidate()
     }
 
-    @Synchronized
     fun setSelectedItem(item: V?) {
         if (item == null) {
             setSelectedIndex(-1)
@@ -216,7 +205,6 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return selectedIndex
     }
 
-    @Synchronized
     fun getSelectedItem(): V? {
         return if (getSelectedIndex() > -1) getItem(getSelectedIndex()) else null
     }
@@ -240,7 +228,6 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         }
     }
 
-    @Synchronized
     override fun afterLeaveFocus(direction: Interactable.FocusChangeDirection?, nextInFocus: Interactable?) {
         popupWindow?.close()
     }
@@ -249,7 +236,6 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return DefaultComboBoxRenderer()
     }
 
-    @Synchronized
     override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
         return if (isReadOnly()) {
             handleReadOnlyCBKeyStroke(keyStroke)
@@ -397,7 +383,6 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
             popupWindow = null
         }
 
-        @Synchronized
         override fun handleInput(keyStroke: KeyStroke?): Boolean {
             if (keyStroke?.keyType == KeyType.ESCAPE) {
                 close()

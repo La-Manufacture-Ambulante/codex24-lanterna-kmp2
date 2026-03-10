@@ -64,7 +64,6 @@ import com.googlecode.lanterna.gui2.TextGUIGraphics
  * @param allowPartialColumn when not all columns fit on the screen, whether to render part of a column, or skip rendering that column entirely
  */
      var allowPartialColumn:Boolean
-@Override
  override fun drawComponent(graphics:TextGUIGraphics?, component:Table<V?>?) 
 
  override fun getPreferredSize(component:Table<V?>?):TerminalSize? 

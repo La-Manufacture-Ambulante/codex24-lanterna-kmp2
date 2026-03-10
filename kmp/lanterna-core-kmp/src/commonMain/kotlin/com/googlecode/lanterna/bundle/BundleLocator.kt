@@ -18,7 +18,7 @@
  */
 package com.googlecode.lanterna.bundle
 
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URL

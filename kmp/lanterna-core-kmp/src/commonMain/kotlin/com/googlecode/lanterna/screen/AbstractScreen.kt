@@ -23,7 +23,7 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.graphics.TextImage
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 
 abstract class AbstractScreen(
     initialSize: TerminalSize?,
@@ -103,7 +103,6 @@ abstract class AbstractScreen(
         }
     }
 
-    @Synchronized
     override fun setCharacter(column: Int, row: Int, screenCharacter: TextCharacter?) {
         var character = screenCharacter ?: return
         if (character.`is`('\t')) {
@@ -139,12 +138,10 @@ abstract class AbstractScreen(
         stopScreen()
     }
 
-    @Synchronized
     override fun clear() {
         backBuffer.setAll(defaultCharacter)
     }
 
-    @Synchronized
     override fun doResizeIfNecessary(): TerminalSize? {
         val pendingResize = getAndClearPendingResize() ?: return null
         backBuffer = backBuffer.resize(pendingResize, defaultCharacter)
@@ -156,7 +153,6 @@ abstract class AbstractScreen(
         latestResizeRequest = newSize
     }
 
-    @Synchronized
     private fun getAndClearPendingResize(): TerminalSize? {
         if (latestResizeRequest != null) {
             terminalSizeBacking = latestResizeRequest

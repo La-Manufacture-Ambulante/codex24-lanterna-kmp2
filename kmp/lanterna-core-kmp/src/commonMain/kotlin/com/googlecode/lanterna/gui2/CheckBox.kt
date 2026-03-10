@@ -47,7 +47,6 @@ class CheckBox(label: String) : AbstractInteractableComponent<CheckBox?>() {
         this.checked = false
     }
 
-    @Synchronized
     fun setChecked(checked: Boolean): CheckBox {
         this.checked = checked
         runOnGUIThreadIfExistsOtherwiseRunDirect(
@@ -77,7 +76,6 @@ class CheckBox(label: String) : AbstractInteractableComponent<CheckBox?>() {
         return super.handleKeyStroke(keyStroke)
     }
 
-    @Synchronized
     fun setLabel(label: String?): CheckBox {
         if (label == null) {
             throw IllegalArgumentException("Cannot set CheckBox label to null")

@@ -18,11 +18,14 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.internal.concurrency.PlatformThreadToken
+import com.googlecode.lanterna.internal.concurrency.currentThreadToken
+
 /**
  * [TextGUIThread] implementation that reuses the current thread as the GUI thread.
  */
 class SameTextGUIThread private constructor(textGUI: TextGUI) : AbstractTextGUIThread(textGUI) {
-    override val thread: Thread = Thread.currentThread()
+    override val ownerThreadToken: PlatformThreadToken = currentThreadToken()
 
     init {
         // Match Java behavior: same-thread mode rethrows loop exceptions by default.

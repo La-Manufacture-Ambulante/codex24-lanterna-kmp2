@@ -24,8 +24,8 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.graphics.AbstractTextGraphics
 import com.googlecode.lanterna.graphics.TextGraphics
-import java.io.IOException
-import java.util.HashMap
+import com.googlecode.lanterna.internal.io.IOException
+import kotlin.collections.HashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 internal class TerminalTextGraphics @Throws(IOException::class) constructor(
@@ -42,7 +42,6 @@ internal class TerminalTextGraphics @Throws(IOException::class) constructor(
         return setCharacter(TerminalPosition(columnIndex, rowIndex), textCharacter)
     }
 
-    @Synchronized
     override fun setCharacter(position: TerminalPosition?, textCharacter: TextCharacter?): TextGraphics {
         val safePosition = position ?: return this
         val safeCharacter = textCharacter ?: return this
@@ -75,7 +74,6 @@ internal class TerminalTextGraphics @Throws(IOException::class) constructor(
         return getCharacter(TerminalPosition(column, row))
     }
 
-    @Synchronized
     override fun getCharacter(position: TerminalPosition?): TextCharacter? {
         return if (position == null) null else writeHistory[position]
     }
@@ -90,7 +88,6 @@ internal class TerminalTextGraphics @Throws(IOException::class) constructor(
         }
     }
 
-    @Synchronized
     override fun drawLine(fromPoint: TerminalPosition?, toPoint: TerminalPosition?, character: Char): TextGraphics {
         try {
             enterAtomic()
@@ -101,7 +98,6 @@ internal class TerminalTextGraphics @Throws(IOException::class) constructor(
         }
     }
 
-    @Synchronized
     override fun drawTriangle(
         p1: TerminalPosition?,
         p2: TerminalPosition?,
@@ -117,7 +113,6 @@ internal class TerminalTextGraphics @Throws(IOException::class) constructor(
         }
     }
 
-    @Synchronized
     override fun fillTriangle(
         p1: TerminalPosition?,
         p2: TerminalPosition?,
@@ -133,7 +128,6 @@ internal class TerminalTextGraphics @Throws(IOException::class) constructor(
         }
     }
 
-    @Synchronized
     override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGraphics {
         try {
             enterAtomic()
@@ -144,7 +138,6 @@ internal class TerminalTextGraphics @Throws(IOException::class) constructor(
         }
     }
 
-    @Synchronized
     override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGraphics {
         try {
             enterAtomic()
@@ -155,7 +148,6 @@ internal class TerminalTextGraphics @Throws(IOException::class) constructor(
         }
     }
 
-    @Synchronized
     override fun putString(column: Int, row: Int, string: String?): TextGraphics {
         try {
             enterAtomic()

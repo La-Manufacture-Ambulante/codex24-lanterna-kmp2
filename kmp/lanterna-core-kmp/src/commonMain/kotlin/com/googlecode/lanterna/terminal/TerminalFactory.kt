@@ -18,7 +18,7 @@
  */
 package com.googlecode.lanterna.terminal
 
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 
 /**
  * This interface is for abstracting the creation of your Terminal object. The bundled implementation is

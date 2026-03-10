@@ -79,13 +79,13 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
         }
 
     override var theme: Theme?
-        @Synchronized get() {
+        get() {
             if (themeOverride != null) {
                 return themeOverride
             }
             return textGUI?.theme
         }
-        @Synchronized set(value) {
+        set(value) {
             themeOverride = value
             invalidate()
         }

@@ -25,12 +25,12 @@ import com.googlecode.lanterna.gui2.menu.MenuBar
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import java.util.Collections
-import java.util.HashSet
+import kotlin.collections.HashSet
 
 /**
  * Abstract [Window] implementation with shared behavior.
  */
-abstract class AbstractWindow @JvmOverloads protected constructor(initialTitle: String? = "") : AbstractBasePane<Window?>(), Window {
+abstract class AbstractWindow protected constructor(initialTitle: String? = "") : AbstractBasePane<Window?>(), Window {
     override var textGUI: WindowBasedTextGUI? = null
     override var isVisible: Boolean = true
     override var title: String? = initialTitle

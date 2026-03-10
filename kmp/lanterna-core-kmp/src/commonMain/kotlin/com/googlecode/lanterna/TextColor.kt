@@ -102,13 +102,11 @@ private val foregroundSGR:ByteArray?
 private val backgroundSGR:ByteArray?
 
 public override val foregroundSGRSequence:ByteArray?
-@Override
 get() {
 return foregroundSGR!!.clone()
 }
 
 public override val backgroundSGRSequence:ByteArray?
-@Override
 get() {
 return backgroundSGR!!.clone()
 }
@@ -120,7 +118,6 @@ foregroundSGR = String.format("%d%d", if (isBright) 9 else 3, index).toByteArray
 backgroundSGR = String.format("%d%d", if (isBright) 10 else 4, index).toByteArray()
 }
 
-@Override
 public override fun toColor():Color {
 return Color(red, green, blue)
 }
@@ -152,31 +149,26 @@ return Color(red, green, blue)
         (private val colorIndex:Int):TextColor {
 
 public override val foregroundSGRSequence:ByteArray?
-@Override
 get() {
 return ("38;5;" + colorIndex).toByteArray()
 }
 
 public override val backgroundSGRSequence:ByteArray?
-@Override
 get() {
 return ("48;5;" + colorIndex).toByteArray()
 }
 
 public override val red:Int
-@Override
 get() {
 return COLOR_TABLE[colorIndex][0].toInt() and 0x000000ff
 }
 
 public override val green:Int
-@Override
 get() {
 return COLOR_TABLE[colorIndex][1].toInt() and 0x000000ff
 }
 
 public override val blue:Int
-@Override
 get() {
 return COLOR_TABLE[colorIndex][2].toInt() and 0x000000ff
 }
@@ -189,24 +181,20 @@ throw IllegalArgumentException(("Cannot create a Color.Indexed with a color inde
 }
 }
 
-@Override
 public override fun toColor():Color? {
 return Color(red, green, blue)
 }
 
-@Override
  override fun toString():String {
 return "{IndexedColor:" + colorIndex + "}"
 }
 
-@Override
  override fun hashCode():Int {
 var hash = 3
 hash = 43 * hash + this.colorIndex
 return hash
 }
 
-@Override
  override fun equals(obj:Any?):Boolean {
 if (obj == null)
 {
@@ -313,13 +301,11 @@ public override val green:Int, @get:Override
 public override val blue:Int):TextColor {
 
 public override val foregroundSGRSequence:ByteArray?
-@Override
 get() {
 return ("38;2;" + red + ";" + green + ";" + blue).toByteArray()
 }
 
 public override val backgroundSGRSequence:ByteArray?
-@Override
 get() {
 return ("48;2;" + red + ";" + green + ";" + blue).toByteArray()
 }
@@ -339,17 +325,14 @@ throw IllegalArgumentException("RGB: b is outside of valid range (0-255)")
 }
 }
 
-@Override
 public override fun toColor():Color? {
 return Color(red, green, blue)
 }
 
-@Override
  override fun toString():String {
 return "{RGB:" + red + "," + green + "," + blue + "}"
 }
 
-@Override
  override fun hashCode():Int {
 var hash = 7
 hash = 29 * hash + red
@@ -358,7 +341,6 @@ hash = 29 * hash + blue
 return hash
 }
 
-@Override
  override fun equals(obj:Any?):Boolean {
 if (obj == null)
 {

@@ -20,7 +20,7 @@ package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.IdentityHashMap
 import java.util.LinkedList
 import java.util.Queue
@@ -597,8 +597,7 @@ class GridLayout(private val numberOfColumns: Int) : LayoutManager {
             1,
         )
 
-        @JvmOverloads
-        fun createLayoutData(
+                fun createLayoutData(
             horizontalAlignment: Alignment,
             verticalAlignment: Alignment,
             grabExtraHorizontalSpace: Boolean = false,

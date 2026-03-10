@@ -26,7 +26,7 @@ import com.googlecode.lanterna.graphics.ThemeDefinition
 import com.googlecode.lanterna.gui2.Direction
 import com.googlecode.lanterna.gui2.ScrollBar
 import com.googlecode.lanterna.gui2.TextGUIGraphics
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.TreeSet
 
 /**
@@ -59,27 +59,22 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         get() = headerHorizontalBorderStyle != TableCellBorderStyle.NONE ||
             cellHorizontalBorderStyle != TableCellBorderStyle.NONE
 
-    @Synchronized
     fun setHeaderVerticalBorderStyle(headerVerticalBorderStyle: TableCellBorderStyle?) {
         this.headerVerticalBorderStyle = headerVerticalBorderStyle ?: TableCellBorderStyle.NONE
     }
 
-    @Synchronized
     fun setHeaderHorizontalBorderStyle(headerHorizontalBorderStyle: TableCellBorderStyle?) {
         this.headerHorizontalBorderStyle = headerHorizontalBorderStyle ?: TableCellBorderStyle.NONE
     }
 
-    @Synchronized
     fun setCellVerticalBorderStyle(cellVerticalBorderStyle: TableCellBorderStyle?) {
         this.cellVerticalBorderStyle = cellVerticalBorderStyle ?: TableCellBorderStyle.NONE
     }
 
-    @Synchronized
     fun setCellHorizontalBorderStyle(cellHorizontalBorderStyle: TableCellBorderStyle?) {
         this.cellHorizontalBorderStyle = cellHorizontalBorderStyle ?: TableCellBorderStyle.NONE
     }
 
-    @Synchronized
     fun setExpandableColumns(expandableColumns: Collection<Int>?) {
         this.expandableColumns.clear()
         if (expandableColumns != null) {
@@ -87,7 +82,6 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         }
     }
 
-    @Synchronized
     override fun getPreferredSize(component: Table<V?>?): TerminalSize {
         val table = component ?: return TerminalSize.ZERO
         if (!table.isInvalid && cachedSize != null) {
@@ -235,7 +229,6 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         return null
     }
 
-    @Synchronized
     override fun drawComponent(graphics: TextGUIGraphics?, component: Table<V?>?) {
         var activeGraphics = graphics ?: return
         val table = component ?: return

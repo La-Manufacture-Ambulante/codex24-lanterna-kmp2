@@ -21,7 +21,7 @@ package com.googlecode.lanterna.gui2
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import java.util.Arrays
-import java.util.HashSet
+import kotlin.collections.HashSet
 
 /**
  * This class is used to keep a 'map' of the usable area and note where all the interact:ables are. It can then be used
@@ -53,7 +53,6 @@ class InteractableLookupMap internal constructor(size: TerminalSize) {
         }
     }
 
-    @Synchronized
     fun add(interactable: Interactable) {
         val topLeft = interactable.toBasePane(TerminalPosition.TOP_LEFT_CORNER)!!
         val componentSize = interactable.size!!
@@ -68,7 +67,6 @@ class InteractableLookupMap internal constructor(size: TerminalSize) {
         }
     }
 
-    @Synchronized
     fun getInteractableAt(position: TerminalPosition): Interactable? {
         if (position.row < 0 || position.column < 0) {
             return null
@@ -85,12 +83,10 @@ class InteractableLookupMap internal constructor(size: TerminalSize) {
         return interactables[lookupMap[position.row][position.column]]
     }
 
-    @Synchronized
     fun findNextUp(interactable: Interactable?): Interactable? {
         return findNextUpOrDown(interactable!!, false)
     }
 
-    @Synchronized
     fun findNextDown(interactable: Interactable?): Interactable? {
         return findNextUpOrDown(interactable!!, true)
     }
@@ -146,12 +142,10 @@ class InteractableLookupMap internal constructor(size: TerminalSize) {
         return null
     }
 
-    @Synchronized
     fun findNextLeft(interactable: Interactable?): Interactable? {
         return findNextLeftOrRight(interactable!!, false)
     }
 
-    @Synchronized
     fun findNextRight(interactable: Interactable?): Interactable? {
         return findNextLeftOrRight(interactable!!, true)
     }

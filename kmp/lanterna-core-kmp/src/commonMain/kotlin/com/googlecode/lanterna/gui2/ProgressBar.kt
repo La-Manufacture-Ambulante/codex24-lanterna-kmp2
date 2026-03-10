@@ -23,7 +23,7 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.graphics.ThemeDefinition
 
-class ProgressBar @JvmOverloads constructor(min: Int = 0, max: Int = 100, preferredWidth: Int = 0) :
+class ProgressBar constructor(min: Int = 0, max: Int = 100, preferredWidth: Int = 0) :
     AbstractComponent<ProgressBar?>() {
     private var min: Int
     private var max: Int
@@ -32,10 +32,10 @@ class ProgressBar @JvmOverloads constructor(min: Int = 0, max: Int = 100, prefer
     private var labelFormat: String? = "%2.0f%%"
 
     val progress: Float
-        @Synchronized get() = (value - min).toFloat() / max.toFloat()
+        get() = (value - min).toFloat() / max.toFloat()
 
     val formattedLabel: String
-        @Synchronized get() {
+        get() {
             val format = labelFormat ?: return ""
             return String.format(format, progress * 100.0f)
         }
@@ -58,7 +58,6 @@ class ProgressBar @JvmOverloads constructor(min: Int = 0, max: Int = 100, prefer
 
     fun getMin(): Int = min
 
-    @Synchronized
     fun setMin(min: Int): ProgressBar {
         if (min > max) {
             setMax(min)
@@ -75,7 +74,6 @@ class ProgressBar @JvmOverloads constructor(min: Int = 0, max: Int = 100, prefer
 
     fun getMax(): Int = max
 
-    @Synchronized
     fun setMax(max: Int): ProgressBar {
         if (max < min) {
             setMin(max)
@@ -92,7 +90,6 @@ class ProgressBar @JvmOverloads constructor(min: Int = 0, max: Int = 100, prefer
 
     fun getValue(): Int = value
 
-    @Synchronized
     fun setValue(value: Int): ProgressBar {
         var adjustedValue = value
         if (adjustedValue < min) {
@@ -110,7 +107,6 @@ class ProgressBar @JvmOverloads constructor(min: Int = 0, max: Int = 100, prefer
 
     fun getLabelFormat(): String? = labelFormat
 
-    @Synchronized
     fun setLabelFormat(labelFormat: String?): ProgressBar {
         this.labelFormat = labelFormat
         invalidate()

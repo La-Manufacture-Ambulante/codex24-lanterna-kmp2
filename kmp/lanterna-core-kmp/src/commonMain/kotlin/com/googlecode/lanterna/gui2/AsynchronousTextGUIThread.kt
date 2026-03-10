@@ -18,19 +18,16 @@
  */
 package com.googlecode.lanterna.gui2
 
-import java.util.concurrent.TimeUnit
-
 interface AsynchronousTextGUIThread : TextGUIThread {
     fun start()
+
     fun stop()
 
-    @Throws(InterruptedException::class)
     fun waitForStop()
 
-    @Throws(InterruptedException::class)
-    fun waitForStop(time: Long, unit: TimeUnit?)
+    fun waitForStop(timeoutMillis: Long): Boolean
 
-    val state: State?
+    val state: State
 
     enum class State {
         CREATED,

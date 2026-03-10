@@ -18,7 +18,7 @@
  */
 package com.googlecode.lanterna.input
 
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 
 /**
  * Objects implementing this interface can read character streams and transform them into `Key` objects which can

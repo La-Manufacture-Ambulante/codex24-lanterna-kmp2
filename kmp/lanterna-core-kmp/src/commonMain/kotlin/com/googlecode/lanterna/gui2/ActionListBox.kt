@@ -28,7 +28,7 @@ import com.googlecode.lanterna.input.MouseActionType
 /**
  * List box where each item is a runnable action.
  */
-class ActionListBox @JvmOverloads constructor(preferredSize: TerminalSize? = null) :
+class ActionListBox constructor(preferredSize: TerminalSize? = null) :
     AbstractListBox<Runnable, ActionListBox>(preferredSize) {
 
     override fun addItem(item: Runnable?): ActionListBox? {

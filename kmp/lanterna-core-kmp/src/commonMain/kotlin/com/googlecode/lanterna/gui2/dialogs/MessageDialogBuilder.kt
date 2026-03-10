@@ -1,8 +1,8 @@
 package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.gui2.Window
-import java.util.ArrayList
-import java.util.HashSet
+import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 
 /**
  * Dialog builder for the [MessageDialog] class.

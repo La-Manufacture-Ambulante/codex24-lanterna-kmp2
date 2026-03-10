@@ -30,7 +30,7 @@ import com.googlecode.lanterna.gui2.Interactable
 import com.googlecode.lanterna.gui2.InteractableLookupMap
 import com.googlecode.lanterna.gui2.TextGUIGraphics
 import com.googlecode.lanterna.input.KeyStroke
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -63,7 +63,6 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
         return menus.contains(component)
     }
 
-    @Synchronized
     override fun removeComponent(component: Component?): Boolean {
         val hadMenu = menus.remove(component)
         if (hadMenu) {
@@ -72,7 +71,6 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
         return hadMenu
     }
 
-    @Synchronized
     override fun nextFocus(fromThis: Interactable?): Interactable? {
         if (menus.isEmpty()) {
             return null
@@ -116,7 +114,6 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
         return DefaultMenuBarRenderer()
     }
 
-    @Synchronized
     override fun updateLookupMap(interactableLookupMap: InteractableLookupMap?) {
         for (menu in menus) {
             interactableLookupMap?.add(menu)

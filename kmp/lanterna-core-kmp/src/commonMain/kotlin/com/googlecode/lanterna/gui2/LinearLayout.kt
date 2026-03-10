@@ -20,14 +20,14 @@ package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.Collections
 import java.util.IdentityHashMap
 
 /**
  * Simple layout manager the puts all components on a single line, either horizontally or vertically.
  */
-class LinearLayout @JvmOverloads constructor(
+class LinearLayout constructor(
     private val direction: Direction = Direction.VERTICAL,
 ) : LayoutManager {
     enum class Alignment {

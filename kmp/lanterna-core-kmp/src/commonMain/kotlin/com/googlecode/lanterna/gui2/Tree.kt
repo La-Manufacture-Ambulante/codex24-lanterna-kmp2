@@ -239,7 +239,6 @@ class Tree<V>(
         this.nodeSelectedConsumer = nodeSelectedConsumer
     }
 
-    @Synchronized
     fun addListener(listener: Listener<V>?): Tree<V> {
         if (listener != null && !listeners.contains(listener)) {
             listeners.add(listener)

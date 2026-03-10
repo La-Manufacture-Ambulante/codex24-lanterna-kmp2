@@ -39,14 +39,12 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
         setText(text ?: "")
     }
 
-    @Synchronized
     fun setText(text: String) {
         lines = splitIntoMultipleLines(text)
         this.labelSize = getBounds(lines, labelSize)
         invalidate()
     }
 
-    @Synchronized
     fun getText(): String {
         if (lines.isEmpty()) {
             return ""
@@ -82,7 +80,6 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
         return bounds
     }
 
-    @Synchronized
     fun setForegroundColor(foregroundColor: TextColor?): Label {
         this.foregroundColor = foregroundColor
         return this
@@ -92,7 +89,6 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
         return foregroundColor
     }
 
-    @Synchronized
     fun setBackgroundColor(backgroundColor: TextColor?): Label {
         this.backgroundColor = backgroundColor
         return this
@@ -102,19 +98,16 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
         return backgroundColor
     }
 
-    @Synchronized
     fun addStyle(sgr: SGR): Label {
         additionalStyles.add(sgr)
         return this
     }
 
-    @Synchronized
     fun removeStyle(sgr: SGR): Label {
         additionalStyles.remove(sgr)
         return this
     }
 
-    @Synchronized
     fun setLabelWidth(labelWidth: Int?): Label {
         this.labelWidth = labelWidth
         return this

@@ -20,7 +20,7 @@ package com.googlecode.lanterna
 
 import com.googlecode.lanterna.graphics.StyleSet
 import com.googlecode.lanterna.screen.TabBehaviour
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.LinkedList
 
 /**
@@ -90,8 +90,7 @@ object TerminalTextUtils {
     fun getColumnWidth(s: String?): Int = getColumnIndex(s, s!!.length)
 
     @Throws(StringIndexOutOfBoundsException::class)
-    @JvmOverloads
-    fun getColumnIndex(
+        fun getColumnIndex(
         s: String?,
         stringCharacterIndex: Int,
         tabBehaviour: TabBehaviour? = TabBehaviour.CONVERT_TO_FOUR_SPACES,

@@ -14,7 +14,7 @@ import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 import com.googlecode.lanterna.input.KeyStroke
 import java.io.File
 import java.util.Arrays
-import java.util.Comparator
+import kotlin.Comparator
 
 /**
  * Dialog that allows the user to iterate the file system and pick directory.

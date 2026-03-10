@@ -28,7 +28,7 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.regex.Pattern
 
 /**
@@ -99,7 +99,7 @@ open class TextBox constructor(
 
     var validationRegex: Pattern?
         get() = validationPattern
-        @Synchronized set(value) {
+        set(value) {
             if (value != null) {
                 for (line in lines) {
                     if (!validated(line)) {
@@ -110,19 +110,16 @@ open class TextBox constructor(
             validationPattern = value
         }
 
-    @Synchronized
     fun setValidationPattern(validationPattern: Pattern?): TextBox {
         validationRegex = validationPattern
         return this
     }
 
-    @Synchronized
     fun setTextChangeListener(textChangeListener: TextChangeListener?): TextBox {
         this.textChangeListener = textChangeListener
         return this
     }
 
-    @Synchronized
     fun setText(text: String): TextBox {
         var split = text.split("\n")
         if (split.isEmpty()) {
@@ -146,7 +143,6 @@ open class TextBox constructor(
     override val renderer: TextBoxRenderer?
         get() = super.renderer as TextBoxRenderer?
 
-    @Synchronized
     fun addLine(line: String): TextBox {
         val bob = StringBuilder()
         for (i in line.indices) {
@@ -180,7 +176,6 @@ open class TextBox constructor(
         return this
     }
 
-    @Synchronized
     fun removeLine(lineIndex: Int): TextBox {
         if (style == Style.SINGLE_LINE) {
             if (lineIndex == 0) {
@@ -211,12 +206,10 @@ open class TextBox constructor(
 
     fun getCaretPosition(): TerminalPosition = caretPosition
 
-    @Synchronized
     fun setCaretPosition(column: Int): TextBox {
         return setCaretPosition(caretPosition.row, column)
     }
 
-    @Synchronized
     fun setCaretPosition(line: Int, column: Int): TextBox {
         var resolvedLine = line
         var resolvedColumn = column
@@ -235,7 +228,7 @@ open class TextBox constructor(
     }
 
     val text: String
-        @Synchronized get() {
+        get() {
             val bob = StringBuilder(lines[0])
             for (i in 1 until lines.size) {
                 bob.append("\n").append(lines[i])
@@ -281,17 +274,14 @@ open class TextBox constructor(
         return this
     }
 
-    @Synchronized
     fun getLine(index: Int): String = lines[index]
 
-    @Synchronized
     fun getLineCount(): Int = lines.size
 
     override fun createDefaultRenderer(): TextBoxRenderer {
         return DefaultTextBoxRenderer()
     }
 
-    @Synchronized
     override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
         if (readOnly) {
             return handleKeyStrokeReadOnly(keyStroke)

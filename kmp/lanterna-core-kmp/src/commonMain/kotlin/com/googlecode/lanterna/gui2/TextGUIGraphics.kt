@@ -29,7 +29,7 @@ import com.googlecode.lanterna.graphics.ThemeStyle
 import com.googlecode.lanterna.graphics.ThemedTextGraphics
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.screen.TabBehaviour
-import java.util.Collection
+import kotlin.collections.Collection
 import java.util.EnumSet
 
 /**

@@ -2,7 +2,7 @@ package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.gui2.Window
 import java.util.Collections
-import java.util.HashSet
+import kotlin.collections.HashSet
 
 /**
  * Abstract class for dialog building, containing much shared code between different kinds of dialogs.

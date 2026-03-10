@@ -56,7 +56,6 @@ class Button(label: String?) : AbstractInteractableComponent<Button?>() {
     }
 
     override val cursorLocation: TerminalPosition?
-        @Synchronized
         get() = renderer?.getCursorLocation(this)
 
     public override fun setAccelerator(keyStroke: KeyStroke?): Button? {
@@ -67,7 +66,6 @@ class Button(label: String?) : AbstractInteractableComponent<Button?>() {
         return super.getAccelerator()
     }
 
-    @Synchronized
     override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
         if (isActivationStroke(keyStroke) || isKeyboardAcceleratorStroke(keyStroke)) {
             basePane?.focusedInteractable = this
@@ -77,14 +75,12 @@ class Button(label: String?) : AbstractInteractableComponent<Button?>() {
         return super.handleKeyStroke(keyStroke)
     }
 
-    @Synchronized
     protected fun triggerActions() {
         for (listener in listeners) {
             listener.onTriggered(this)
         }
     }
 
-    @Synchronized
     fun setLabel(label: String?) {
         var value = label
         if (value == null) {

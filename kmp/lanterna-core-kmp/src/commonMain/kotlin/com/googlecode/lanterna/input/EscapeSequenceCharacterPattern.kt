@@ -18,7 +18,7 @@
  */
 package com.googlecode.lanterna.input
 
-import java.util.HashMap
+import kotlin.collections.HashMap
 
 /**
  * Matches terminal escape sequences representing special keys and key modifiers.

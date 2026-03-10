@@ -27,12 +27,11 @@ import com.googlecode.lanterna.graphics.TextImage
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
+import com.googlecode.lanterna.internal.concurrency.sleepCurrentThread
 import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.VirtualScreen
-import java.io.EOFException
-import java.io.IOException
-import java.util.ArrayList
-import java.util.HashSet
+import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -53,7 +52,7 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
     private var dragStart: TerminalPosition? = null
 
     override val isPendingUpdate: Boolean
-        @Synchronized get() {
+        get() {
             for (window in windows.orEmpty()) {
                 if (window != null && window.isVisible && window.isInvalid) {
                     return true
@@ -63,7 +62,7 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         }
 
     override val cursorPosition: TerminalPosition?
-        @Synchronized get() {
+        get() {
             val activeWindow = activeWindow
             return if (activeWindow != null) {
                 activeWindow.toGlobal(activeWindow.cursorPosition)
@@ -73,7 +72,7 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         }
 
     override val focusedInteractable: Interactable?
-        @Synchronized get() {
+        get() {
             val activeWindow = activeWindow
             return if (activeWindow != null) {
                 activeWindow.focusedInteractable
@@ -83,10 +82,10 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         }
 
     override val windows: Collection<Window?>
-        @Synchronized get() = windowList.windowsInZOrder ?: emptyList()
+        get() = windowList.windowsInZOrder ?: emptyList()
 
     override val activeWindow: Window?
-        @Synchronized get() = windowList.activeWindow
+        get() = windowList.activeWindow
 
     constructor(screen: Screen?) : this(SameTextGUIThread.Factory(), screen)
 
@@ -153,8 +152,6 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         backgroundPane.component = background ?: GUIBackdrop()
     }
 
-    @Synchronized
-    @Throws(IOException::class)
     override fun updateScreen() {
         val screen = screen
         if (screen is VirtualScreen) {
@@ -184,8 +181,6 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         super.updateScreen()
     }
 
-    @Throws(IOException::class)
-    @Synchronized
     override fun readKeyStroke(): KeyStroke? {
         val keyStroke = super.pollInput()
         return when {
@@ -196,7 +191,6 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         }
     }
 
-    @Synchronized
     override fun drawGUI(graphics: TextGUIGraphics?) {
         val targetGraphics = graphics ?: return
         drawBackgroundPane(targetGraphics)
@@ -251,7 +245,6 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         // no-op
     }
 
-    @Synchronized
     override fun handleInput(keyStroke: KeyStroke?): Boolean {
         ifMouseDownPossiblyChangeActiveWindow(keyStroke)
         ifMouseDownPossiblyStartTitleDrag(keyStroke)
@@ -265,7 +258,6 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         }
     }
 
-    @Synchronized
     protected fun ifMouseDownPossiblyChangeActiveWindow(keyStroke: KeyStroke?) {
         val mouse = keyStroke as? MouseAction ?: return
         if (!mouse.isMouseDown) {
@@ -343,7 +335,6 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         draggedWindow.setHints(hints)
     }
 
-    @Synchronized
     override fun addWindow(window: Window?): WindowBasedTextGUI {
         requireNotNull(window) { "Cannot add null window" }
         if (window.component == null) {
@@ -364,7 +355,6 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         return this
     }
 
-    @Synchronized
     override fun removeWindow(window: Window?): WindowBasedTextGUI {
         if (!windowList.removeWindow(window)) {
             return this
@@ -380,46 +370,36 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         while (window.textGUI != null) {
             var sleep = true
             val guiThread = guiThread
-            if (Thread.currentThread() === guiThread?.thread) {
+            if (guiThread?.isCallingThread() == true) {
                 try {
                     sleep = !(guiThread.processEventsAndUpdate())
-                } catch (_: EOFException) {
+                } catch (_: Throwable) {
                     break
-                } catch (e: IOException) {
-                    throw RuntimeException("Unexpected IOException while waiting for window to close", e)
                 }
             }
             if (sleep) {
-                try {
-                    Thread.sleep(1)
-                } catch (_: InterruptedException) {
-                    // ignored
-                }
+                sleepCurrentThread(1)
             }
         }
     }
 
-    @Synchronized
     override fun setActiveWindow(activeWindow: Window?): MultiWindowTextGUI {
         windowList.activeWindow = activeWindow
         return this
     }
 
-    @Synchronized
     override fun moveToTop(window: Window?): WindowBasedTextGUI {
         windowList.moveToTop(window)
         invalidate()
         return this
     }
 
-    @Synchronized
     fun moveToBottom(window: Window?): WindowBasedTextGUI {
         windowList.moveToBottom(window)
         invalidate()
         return this
     }
 
-    @Synchronized
     override fun cycleActiveWindow(reverse: Boolean): WindowBasedTextGUI {
         windowList.cycleActiveWindow(reverse)
         return this

@@ -4,7 +4,7 @@ import com.googlecode.lanterna.gui2.AbstractWindow
 import com.googlecode.lanterna.gui2.Window
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 import java.util.Collections
-import java.util.HashSet
+import kotlin.collections.HashSet
 
 /**
  * Thin layer on top of the [AbstractWindow] class that makes it act more like a modal dialog.

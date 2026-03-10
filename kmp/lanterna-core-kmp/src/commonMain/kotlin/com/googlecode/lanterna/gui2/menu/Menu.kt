@@ -28,7 +28,7 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**

@@ -21,13 +21,13 @@ package com.googlecode.lanterna.gui2
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyStroke
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.Collections
 
 /**
  * Standard multi-child [Container] implementation.
  */
-open class Panel @JvmOverloads constructor(layoutManager: LayoutManager? = LinearLayout()) :
+open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
     AbstractComponent<Panel?>(),
     Container {
     private val components: MutableList<Component> = ArrayList()
@@ -121,7 +121,6 @@ open class Panel @JvmOverloads constructor(layoutManager: LayoutManager? = Linea
         return this
     }
 
-    @Synchronized
     fun setLayoutManager(layoutManager: LayoutManager?): Panel {
         this.layoutManager = layoutManager ?: AbsoluteLayout()
         invalidate()

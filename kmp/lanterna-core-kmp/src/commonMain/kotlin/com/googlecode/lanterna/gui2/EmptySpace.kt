@@ -27,7 +27,7 @@ import com.googlecode.lanterna.TextColor
  *
  * @author Martin
  */
-open class EmptySpace @JvmOverloads constructor(
+open class EmptySpace constructor(
     private var color: TextColor? = null,
     private val requestedSize: TerminalSize? = TerminalSize.ONE,
 ) : AbstractComponent<EmptySpace?>() {

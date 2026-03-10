@@ -37,33 +37,27 @@ object Borders {
         ReverseBevel,
     }
 
-    @JvmOverloads
-    fun singleLine(title: String = ""): Border {
+        fun singleLine(title: String = ""): Border {
         return SingleLine(title, BorderStyle.Solid)
     }
 
-    @JvmOverloads
-    fun singleLineBevel(title: String = ""): Border {
+        fun singleLineBevel(title: String = ""): Border {
         return SingleLine(title, BorderStyle.Bevel)
     }
 
-    @JvmOverloads
-    fun singleLineReverseBevel(title: String = ""): Border {
+        fun singleLineReverseBevel(title: String = ""): Border {
         return SingleLine(title, BorderStyle.ReverseBevel)
     }
 
-    @JvmOverloads
-    fun doubleLine(title: String = ""): Border {
+        fun doubleLine(title: String = ""): Border {
         return DoubleLine(title, BorderStyle.Solid)
     }
 
-    @JvmOverloads
-    fun doubleLineBevel(title: String = ""): Border {
+        fun doubleLineBevel(title: String = ""): Border {
         return DoubleLine(title, BorderStyle.Bevel)
     }
 
-    @JvmOverloads
-    fun doubleLineReverseBevel(title: String = ""): Border {
+        fun doubleLineReverseBevel(title: String = ""): Border {
         return DoubleLine(title, BorderStyle.ReverseBevel)
     }
 

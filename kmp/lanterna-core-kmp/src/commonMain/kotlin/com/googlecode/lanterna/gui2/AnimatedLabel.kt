@@ -39,12 +39,10 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
         ensurePreferredSize(lines)
     }
 
-    @Synchronized
     override fun calculatePreferredSize(): TerminalSize {
         return (super.calculatePreferredSize() ?: TerminalSize.ZERO).max(combinedMaximumPreferredSize) ?: TerminalSize.ZERO
     }
 
-    @Synchronized
     fun addFrame(text: String?): AnimatedLabel {
         val lines = splitIntoMultipleLines(text ?: "")
         frames.add(lines)
@@ -57,7 +55,6 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
             combinedMaximumPreferredSize.max(getBounds(lines, combinedMaximumPreferredSize)!!) ?: combinedMaximumPreferredSize
     }
 
-    @Synchronized
     fun nextFrame() {
         currentFrame++
         if (currentFrame >= frames.size) {
@@ -71,7 +68,6 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
         stopAnimation()
     }
 
-    @Synchronized
     fun startAnimation(millisecondsPerFrame: Long): AnimatedLabel {
         if (TIMER == null) {
             TIMER = Timer("AnimatedLabel")
@@ -82,7 +78,6 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
         return this
     }
 
-    @Synchronized
     fun stopAnimation(): AnimatedLabel {
         removeTaskFromTimer(this)
         return this
@@ -110,8 +105,7 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
         private var TIMER: Timer? = null
         private val SCHEDULED_TASKS: WeakHashMap<AnimatedLabel, TimerTask> = WeakHashMap()
 
-        @JvmOverloads
-        fun createClassicSpinningLine(speed: Int = 150): AnimatedLabel {
+                fun createClassicSpinningLine(speed: Int = 150): AnimatedLabel {
             val animatedLabel = AnimatedLabel("-")
             animatedLabel.addFrame("\\")
             animatedLabel.addFrame("|")
@@ -120,14 +114,12 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
             return animatedLabel
         }
 
-        @Synchronized
         private fun removeTaskFromTimer(animatedLabel: AnimatedLabel) {
             SCHEDULED_TASKS[animatedLabel]?.cancel()
             SCHEDULED_TASKS.remove(animatedLabel)
             canCloseTimer()
         }
 
-        @Synchronized
         private fun canCloseTimer() {
             if (SCHEDULED_TASKS.isEmpty()) {
                 TIMER?.cancel()

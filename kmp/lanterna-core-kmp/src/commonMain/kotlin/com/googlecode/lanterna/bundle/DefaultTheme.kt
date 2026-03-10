@@ -2,7 +2,7 @@ package com.googlecode.lanterna.bundle
 
 import com.googlecode.lanterna.graphics.PropertyTheme
 
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 import java.io.StringReader
 import java.util.Properties
 

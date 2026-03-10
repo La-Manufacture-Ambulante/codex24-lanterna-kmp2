@@ -5,7 +5,7 @@ import com.googlecode.lanterna.TerminalTextUtils
 /**
  * Model node used by [Tree] to represent hierarchical data.
  */
-class TreeNode<V> @JvmOverloads constructor(
+class TreeNode<V> constructor(
     val value: V,
     expanded: Boolean = true,
 ) {

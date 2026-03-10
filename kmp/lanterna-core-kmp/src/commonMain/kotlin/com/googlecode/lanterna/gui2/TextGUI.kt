@@ -21,7 +21,7 @@ package com.googlecode.lanterna.gui2
 import com.googlecode.lanterna.graphics.Theme
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.screen.Screen
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 
 /**
  * Base interface for advanced text GUIs supported in Lanterna.

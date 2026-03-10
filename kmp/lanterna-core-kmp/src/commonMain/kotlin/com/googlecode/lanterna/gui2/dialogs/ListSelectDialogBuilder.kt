@@ -1,7 +1,7 @@
 package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.TerminalSize
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.Arrays
 
 /**

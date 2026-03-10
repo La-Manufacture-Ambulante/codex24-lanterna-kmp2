@@ -22,8 +22,8 @@ import com.googlecode.lanterna.graphics.PropertyTheme
 import com.googlecode.lanterna.graphics.Theme
 import com.googlecode.lanterna.gui2.AbstractTextGUI
 import java.io.FileInputStream
-import java.io.IOException
-import java.util.ArrayList
+import com.googlecode.lanterna.internal.io.IOException
+import kotlin.collections.ArrayList
 import java.util.Properties
 import java.util.concurrent.ConcurrentHashMap
 

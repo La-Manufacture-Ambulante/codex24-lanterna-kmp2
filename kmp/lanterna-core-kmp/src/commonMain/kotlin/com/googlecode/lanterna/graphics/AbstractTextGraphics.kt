@@ -324,7 +324,6 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
         return this
     }
 
-    @Synchronized
     override fun putCSIStyledString(column: Int, row: Int, string: String?): TextGraphics? {
         val original = StyleSet.Set(this)
         val prepared = prepareStringForPut(column, string ?: "")

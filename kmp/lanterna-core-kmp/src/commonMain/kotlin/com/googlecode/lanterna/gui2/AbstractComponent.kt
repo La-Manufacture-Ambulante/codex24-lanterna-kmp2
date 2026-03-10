@@ -48,7 +48,7 @@ abstract class AbstractComponent<T : Component?> : Component {
     private var invalidBacking: Boolean = true
 
     override open val renderer: ComponentRenderer<T?>?
-        @Synchronized get() {
+        get() {
             if (overrideRenderer != null) {
                 return overrideRenderer
             }
@@ -97,7 +97,7 @@ abstract class AbstractComponent<T : Component?> : Component {
         get() = parent?.textGUI
 
     override open val theme: Theme?
-        @Synchronized get() {
+        get() {
             if (themeOverride != null) {
                 return themeOverride
             }
@@ -121,7 +121,7 @@ abstract class AbstractComponent<T : Component?> : Component {
     protected fun runOnGUIThreadIfExistsOtherwiseRunDirect(runnable: Runnable?) {
         val guiThread = textGUI?.guiThread
         if (guiThread != null) {
-            guiThread.invokeLater(runnable)
+            guiThread.invokeLater { runnable?.run() }
         } else {
             runnable?.run()
         }
@@ -136,13 +136,11 @@ abstract class AbstractComponent<T : Component?> : Component {
         invalidBacking = true
     }
 
-    @Synchronized
     override open fun setSize(size: TerminalSize?): T? {
         sizeBacking = size
         return self()
     }
 
-    @Synchronized
     override fun setPreferredSize(explicitPreferredSize: TerminalSize?): T? {
         this.explicitPreferredSize = explicitPreferredSize
         return self()
@@ -160,18 +158,15 @@ abstract class AbstractComponent<T : Component?> : Component {
         return self()
     }
 
-    @Synchronized
     protected open fun calculatePreferredSize(): TerminalSize? {
         return renderer?.getPreferredSize(self())
     }
 
-    @Synchronized
     override open fun setPosition(position: TerminalPosition?): T? {
         positionBacking = position
         return self()
     }
 
-    @Synchronized
     final override fun draw(graphics: TextGUIGraphics?) {
         if (graphics == null) {
             return
@@ -192,7 +187,6 @@ abstract class AbstractComponent<T : Component?> : Component {
         // No operation by default
     }
 
-    @Synchronized
     override open fun setLayoutData(data: LayoutData?): T? {
         if (layoutDataBacking !== data) {
             layoutDataBacking = data
@@ -212,7 +206,6 @@ abstract class AbstractComponent<T : Component?> : Component {
         return false
     }
 
-    @Synchronized
     override open fun setTheme(theme: Theme?): Component? {
         themeOverride = theme
         invalidate()
@@ -246,19 +239,16 @@ abstract class AbstractComponent<T : Component?> : Component {
         return parent?.toGlobal(localPosition.withRelative(position))
     }
 
-    @Synchronized
     override open fun withBorder(border: Border?): Border? {
         border?.component = this
         return border
     }
 
-    @Synchronized
     override open fun addTo(panel: Panel?): T? {
         panel?.addComponent(this)
         return self()
     }
 
-    @Synchronized
     override open fun onAdded(container: Container?) {
         if (parent !== container && parent != null) {
             parent?.removeComponent(this)
@@ -266,7 +256,6 @@ abstract class AbstractComponent<T : Component?> : Component {
         parent = container
     }
 
-    @Synchronized
     override open fun onRemoved(container: Container?) {
         if (parent === container) {
             parent = null

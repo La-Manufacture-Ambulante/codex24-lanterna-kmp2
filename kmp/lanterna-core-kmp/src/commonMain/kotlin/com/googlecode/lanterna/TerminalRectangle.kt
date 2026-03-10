@@ -86,12 +86,10 @@ return false
 }
 
 
-@Override
  override fun toString():String {
 return "{x: " + x + ", y: " + y + ", width: " + columns + ", height: " + rows + "}"
 }
 
-@Override
  override fun equals(obj:Any?):Boolean {
 return (obj != null
 && this::class == obj::class
@@ -99,7 +97,6 @@ return (obj != null
 && Objects.equals(size, (obj as TerminalRectangle).size))
 }
 
-@Override
  override fun hashCode():Int {
 return Objects.hash(position, size)
 }

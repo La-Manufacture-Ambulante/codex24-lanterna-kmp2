@@ -27,7 +27,7 @@ class SimpleTerminalResizeListener(initialSize: TerminalSize?) : TerminalResizeL
         internal set
 
     val isTerminalResized: Boolean
-        @Synchronized get() {
+        get() {
             if (wasResized) {
                 wasResized = false
                 return true
@@ -35,7 +35,6 @@ class SimpleTerminalResizeListener(initialSize: TerminalSize?) : TerminalResizeL
             return false
         }
 
-    @Synchronized
     override fun onResized(terminal: Terminal?, newSize: TerminalSize?) {
         wasResized = true
         lastKnownSize = newSize

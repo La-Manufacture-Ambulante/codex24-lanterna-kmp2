@@ -26,10 +26,10 @@ import com.googlecode.lanterna.gui2.ComponentRenderer
 import com.googlecode.lanterna.gui2.WindowDecorationRenderer
 import com.googlecode.lanterna.gui2.WindowPostRenderer
 import com.googlecode.lanterna.gui2.WindowShadowRenderer
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.Arrays
 import java.util.EnumSet
-import java.util.HashMap
+import kotlin.collections.HashMap
 import java.util.LinkedList
 import java.util.regex.Pattern
 

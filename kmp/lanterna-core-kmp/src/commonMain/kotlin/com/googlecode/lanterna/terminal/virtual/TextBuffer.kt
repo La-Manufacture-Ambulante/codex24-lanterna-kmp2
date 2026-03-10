@@ -19,9 +19,9 @@
 package com.googlecode.lanterna.terminal.virtual
 
 import com.googlecode.lanterna.TextCharacter
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.LinkedList
-import java.util.ListIterator
+import kotlin.collections.ListIterator
 
 /**
  * This class is used to store lines of text inside of a terminal emulator. As used by [DefaultVirtualTerminal], it keeps
@@ -31,25 +31,22 @@ internal class TextBuffer {
     private val lines: LinkedList<MutableList<TextCharacter>> = LinkedList()
 
     val lineCount: Int
-        @Synchronized get() = lines.size
+        get() = lines.size
 
     init {
         newLine()
     }
 
-    @Synchronized
     fun newLine() {
         lines.add(ArrayList(200))
     }
 
-    @Synchronized
     fun removeTopLines(numberOfLinesToRemove: Int) {
         repeat(numberOfLinesToRemove) {
             lines.removeFirst()
         }
     }
 
-    @Synchronized
     fun clear() {
         lines.clear()
         newLine()
@@ -57,7 +54,6 @@ internal class TextBuffer {
 
     fun getLinesFrom(rowNumber: Int): MutableListIterator<MutableList<TextCharacter>> = lines.listIterator(rowNumber)
 
-    @Synchronized
     fun setCharacter(lineNumber: Int, columnIndex: Int, textCharacter: TextCharacter?): Int {
         if (lineNumber < 0 || columnIndex < 0) {
             throw IllegalArgumentException(
@@ -89,7 +85,6 @@ internal class TextBuffer {
         return returnStyle
     }
 
-    @Synchronized
     fun getCharacter(lineNumber: Int, columnIndex: Int): TextCharacter {
         if (lineNumber < 0 || columnIndex < 0) {
             throw IllegalArgumentException(

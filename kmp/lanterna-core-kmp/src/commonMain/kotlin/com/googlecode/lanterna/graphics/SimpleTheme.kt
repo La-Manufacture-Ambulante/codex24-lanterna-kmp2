@@ -38,34 +38,27 @@ import com.googlecode.lanterna.gui2.WindowPostRenderer
 import com.googlecode.lanterna.gui2.WindowShadowRenderer
 import com.googlecode.lanterna.gui2.table.Table
 import java.util.EnumSet
-import java.util.HashMap
-import java.util.Map
+import kotlin.collections.HashMap
+import kotlin.collections.Map
 import java.util.Properties
 
 /**
  * Very basic implementation of [Theme].
  */
 class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles: SGR?) : Theme {
-    @get:Synchronized
-    override val defaultDefinition: Definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
+        override val defaultDefinition: Definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
 
     private val overrideDefinitions: MutableMap<Class<*>, Definition> = HashMap()
 
-    @get:Synchronized
-    @set:Synchronized
-    override var windowPostRenderer: WindowPostRenderer? = null
+            override var windowPostRenderer: WindowPostRenderer? = null
 
-    @get:Synchronized
-    @set:Synchronized
-    override var windowDecorationRenderer: WindowDecorationRenderer? = null
+            override var windowDecorationRenderer: WindowDecorationRenderer? = null
 
-    @Synchronized
     override fun getDefinition(clazz: Class<*>?): Definition {
         val resolved = if (clazz != null) overrideDefinitions[clazz] else null
         return resolved ?: defaultDefinition
     }
 
-    @Synchronized
     fun addOverride(clazz: Class<*>?, foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
         val definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
         if (clazz != null) {
@@ -74,13 +67,11 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         return definition
     }
 
-    @Synchronized
     fun setWindowPostRenderer(windowPostRenderer: WindowPostRenderer?): SimpleTheme {
         this.windowPostRenderer = windowPostRenderer
         return this
     }
 
-    @Synchronized
     fun setWindowDecorationRenderer(windowDecorationRenderer: WindowDecorationRenderer?): SimpleTheme {
         this.windowDecorationRenderer = windowDecorationRenderer
         return this
@@ -101,107 +92,87 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         private val componentRendererMap: MutableMap<Class<*>, RendererProvider<*>> = HashMap()
         private var cursorVisible: Boolean = true
 
-        @get:Synchronized
-        override val preLight: ThemeStyle?
+                override val preLight: ThemeStyle?
             get() = preLightBacking ?: normal
 
-        @Synchronized
         fun setPreLight(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             preLightBacking = DefaultMutableThemeStyle(foreground, background, *styles)
             return this
         }
 
-        @get:Synchronized
-        override val selected: ThemeStyle?
+                override val selected: ThemeStyle?
             get() = selectedBacking ?: normal
 
-        @Synchronized
         fun setSelected(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             selectedBacking = DefaultMutableThemeStyle(foreground, background, *styles)
             return this
         }
 
-        @get:Synchronized
-        override val active: ThemeStyle?
+                override val active: ThemeStyle?
             get() = activeBacking ?: normal
 
-        @Synchronized
         fun setActive(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             activeBacking = DefaultMutableThemeStyle(foreground, background, *styles)
             return this
         }
 
-        @get:Synchronized
-        override val insensitive: ThemeStyle?
+                override val insensitive: ThemeStyle?
             get() = insensitiveBacking ?: normal
 
-        @Synchronized
         fun setInsensitive(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             insensitiveBacking = DefaultMutableThemeStyle(foreground, background, *styles)
             return this
         }
 
-        @Synchronized
         override fun getCustom(name: String?): ThemeStyle? {
             return customStyles[name]
         }
 
-        @Synchronized
         override fun getCustom(name: String?, defaultValue: ThemeStyle?): ThemeStyle? {
             return customStyles[name] ?: defaultValue
         }
 
-        @Synchronized
         fun setCustom(name: String?, foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             customStyles[name] = DefaultMutableThemeStyle(foreground, background, *styles)
             return this
         }
 
-        @Synchronized
         override fun getIntegerProperty(name: String?, defaultValue: Int): Int {
             return Integer.parseInt(properties.getProperty(name, Integer.toString(defaultValue)))
         }
 
-        @Synchronized
         fun setIntegerProperty(name: String?, value: Int): Definition {
             properties.setProperty(name, Integer.toString(value))
             return this
         }
 
-        @Synchronized
         override fun getBooleanProperty(name: String?, defaultValue: Boolean): Boolean {
             return java.lang.Boolean.parseBoolean(properties.getProperty(name, java.lang.Boolean.toString(defaultValue)))
         }
 
-        @Synchronized
         fun setBooleanProperty(name: String?, value: Boolean): Definition {
             properties.setProperty(name, java.lang.Boolean.toString(value))
             return this
         }
 
-        @get:Synchronized
-        override val isCursorVisible: Boolean
+                override val isCursorVisible: Boolean
             get() = cursorVisible
 
-        @Synchronized
         fun setCursorVisible(cursorVisible: Boolean): Definition {
             this.cursorVisible = cursorVisible
             return this
         }
 
-        @Synchronized
         override fun getCharacter(name: String?, fallback: Char): Char {
             return characterMap[name] ?: fallback
         }
 
-        @Synchronized
         fun setCharacter(name: String?, character: Char): Definition {
             characterMap[name] = character
             return this
         }
 
         @Suppress("UNCHECKED_CAST")
-        @Synchronized
         override fun <T : Component?> getRenderer(type: Class<T?>?): ComponentRenderer<T?>? {
             if (type == null) {
                 return null
@@ -210,7 +181,6 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             return rendererProvider?.getRenderer(type)
         }
 
-        @Synchronized
         fun <T : Component?> setRenderer(type: Class<T?>?, rendererProvider: RendererProvider<T?>?): Definition {
             if (type == null) {
                 return this

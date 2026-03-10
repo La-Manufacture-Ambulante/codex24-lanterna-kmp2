@@ -85,7 +85,6 @@ public override var backgroundColor:TextColor? = null
 private set
 private val style = EnumSet.noneOf(SGR::class.java)
 public override val activeModifiers:EnumSet<SGR>?
-@Override
 get() {
 return EnumSet.copyOf(style)
 }
@@ -94,27 +93,22 @@ return EnumSet.copyOf(style)
  constructor(source:StyleSet<*>?) {
 setStyleFrom(source!!)
 }
-@Override
 public override fun setBackgroundColor(backgroundColor:TextColor?):Set {
 this.backgroundColor = backgroundColor
 return this
 }
-@Override
 public override fun setForegroundColor(foregroundColor:TextColor?):Set {
 this.foregroundColor = foregroundColor
 return this
 }
-@Override
 public override fun enableModifiers(vararg modifiers:SGR?):Set {
 style.addAll(Arrays.asList(*modifiers).filterNotNull())
 return this
 }
-@Override
 public override fun disableModifiers(vararg modifiers:SGR?):Set {
 style.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
 return this
 }
-@Override
 public override fun setModifiers(modifiers:EnumSet<SGR>?):Set {
 style.clear()
 if (modifiers != null) {
@@ -122,13 +116,11 @@ if (modifiers != null) {
 }
 return this
 }
-@Override
 public override fun clearModifiers():Set {
 style.clear()
 return this
 }
 
-@Override
 public override fun setStyleFrom(source:StyleSet<*>?):Set {
 if (source != null) {
 setBackgroundColor(source.backgroundColor)

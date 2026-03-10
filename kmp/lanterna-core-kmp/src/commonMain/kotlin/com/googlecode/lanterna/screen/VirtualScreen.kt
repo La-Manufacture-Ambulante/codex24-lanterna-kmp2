@@ -26,7 +26,7 @@ import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 
 class VirtualScreen(private val realScreen: Screen) : AbstractScreen(realScreen.terminalSize) {
     private val frameRenderer: FrameRenderer = DefaultFrameRenderer()
@@ -102,7 +102,6 @@ class VirtualScreen(private val realScreen: Screen) : AbstractScreen(realScreen.
             }
         }
 
-    @Synchronized
     override fun doResizeIfNecessary(): TerminalSize? {
         val underlyingSize = realScreen.doResizeIfNecessary() ?: return null
         val newVirtualSize = calculateViewport(underlyingSize)

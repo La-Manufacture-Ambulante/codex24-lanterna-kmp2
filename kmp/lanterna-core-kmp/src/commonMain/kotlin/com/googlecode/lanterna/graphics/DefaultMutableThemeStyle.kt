@@ -40,7 +40,6 @@ override var background:TextColor? = null
 private var sgrs:EnumSet<SGR>? = null
 
  override val sgRs:EnumSet<SGR>?
-@Override
 get() {
 return if (sgrs == null) EnumSet.noneOf(SGR::class.java) else EnumSet.copyOf(sgrs)
 }

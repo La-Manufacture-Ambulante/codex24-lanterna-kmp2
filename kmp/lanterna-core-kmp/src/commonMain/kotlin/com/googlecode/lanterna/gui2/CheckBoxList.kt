@@ -24,13 +24,13 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * List box where each item has its own checked state.
  */
-class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = null) :
+class CheckBoxList<V> constructor(preferredSize: TerminalSize? = null) :
     AbstractListBox<V, CheckBoxList<V>>(preferredSize) {
 
     interface Listener {
@@ -48,7 +48,6 @@ class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return CheckBoxListItemRenderer()
     }
 
-    @Synchronized
     override fun clearItems(): CheckBoxList<V>? {
         itemStatus.clear()
         return super.clearItems()
@@ -58,20 +57,17 @@ class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return addItem(item, false)
     }
 
-    @Synchronized
     override fun removeItem(index: Int): V {
         val item = super.removeItem(index)
         itemStatus.removeAt(index)
         return item
     }
 
-    @Synchronized
     fun addItem(item: V?, checkedState: Boolean): CheckBoxList<V>? {
         itemStatus.add(checkedState)
         return super.addItem(item)
     }
 
-    @Synchronized
     fun isChecked(item: V?): Boolean? {
         val index = indexOf(item)
         if (index == -1) {
@@ -80,7 +76,6 @@ class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return itemStatus[index]
     }
 
-    @Synchronized
     fun isChecked(index: Int): Boolean? {
         if (index < 0 || index >= itemStatus.size) {
             return null
@@ -88,13 +83,11 @@ class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return itemStatus[index]
     }
 
-    @Synchronized
     fun toggleChecked(index: Int): CheckBoxList<V>? {
         setChecked(index, !(isChecked(index) ?: false))
         return self()
     }
 
-    @Synchronized
     fun setChecked(item: V?, checked: Boolean): CheckBoxList<V>? {
         val index = indexOf(item)
         if (index != -1) {
@@ -117,7 +110,6 @@ class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         )
     }
 
-    @Synchronized
     fun getCheckedItems(): List<V> {
         val result: MutableList<V> = ArrayList()
         for (i in 0 until itemStatus.size) {
@@ -128,7 +120,6 @@ class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return result
     }
 
-    @Synchronized
     fun addListener(listener: Listener?): CheckBoxList<V> {
         if (listener != null && !listeners.contains(listener)) {
             listeners.add(listener)
@@ -141,7 +132,6 @@ class CheckBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = n
         return this
     }
 
-    @Synchronized
     override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
         if (isKeyboardActivationStroke(keyStroke)) {
             toggleChecked(getSelectedIndex())

@@ -32,7 +32,7 @@ import com.googlecode.lanterna.input.KeyStroke
 /**
  * This class is a single item that appears in a [Menu] with an optional action attached to it.
  */
-open class MenuItem @JvmOverloads constructor(
+open class MenuItem constructor(
     label: String?,
     private val action: Runnable = Runnable {},
 ) : AbstractInteractableComponent<MenuItem?>() {

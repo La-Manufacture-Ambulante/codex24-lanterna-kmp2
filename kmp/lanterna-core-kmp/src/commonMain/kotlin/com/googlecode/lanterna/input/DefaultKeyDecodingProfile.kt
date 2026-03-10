@@ -18,7 +18,7 @@
  */
 package com.googlecode.lanterna.input
 
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 
 /**
  * Default collection of character patterns used to decode keystrokes.

@@ -25,7 +25,7 @@ import com.googlecode.lanterna.graphics.Scrollable
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.InputProvider
 import java.io.Closeable
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 
 interface Screen : InputProvider, Scrollable, Closeable {
     var cursorPosition: TerminalPosition?

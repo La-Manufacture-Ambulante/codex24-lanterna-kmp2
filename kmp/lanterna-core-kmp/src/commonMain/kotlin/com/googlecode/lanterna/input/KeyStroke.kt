@@ -18,7 +18,7 @@
  */
 package com.googlecode.lanterna.input
 
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 import java.util.Arrays
 import java.util.Objects
 

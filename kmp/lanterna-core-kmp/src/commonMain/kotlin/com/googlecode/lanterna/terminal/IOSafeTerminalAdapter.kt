@@ -24,7 +24,7 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 import java.util.concurrent.TimeUnit
 
 open class IOSafeTerminalAdapter internal constructor(
