@@ -27,6 +27,18 @@ import com.googlecode.lanterna.input.InputProvider
 import java.io.Closeable
 import java.io.IOException
 
+/**
+ * Screen is a fundamental layer in Lanterna, presenting the terminal as a bitmap-like surface where you can perform
+ * smaller in-memory operations to a back-buffer, effectively painting out the terminal as you'd like it, and then call
+ * `refresh` to have the screen automatically apply the changes in the back-buffer to the real terminal. The
+ * screen tracks what's visible through a front-buffer, but this is completely managed internally and cannot be expected
+ * to know what the terminal looks like if it's being modified externally.
+ * <p>
+ * If you want to do more complicated drawing operations, please see the class `DefaultScreenWriter` which has many
+ * utility methods that works on Screens.
+ *
+ * @author Martin
+ */
 interface Screen : InputProvider, Scrollable, Closeable {
     var cursorPosition: TerminalPosition?
     var tabBehaviour: TabBehaviour?
@@ -74,6 +86,10 @@ interface Screen : InputProvider, Scrollable, Closeable {
     }
 
     companion object {
+        /**
+         * This is the character Screen implementations should use as a filler is there are areas not set to any
+         * particular character.
+         */
         val DEFAULT_CHARACTER = TextCharacter(' ')
     }
 }
