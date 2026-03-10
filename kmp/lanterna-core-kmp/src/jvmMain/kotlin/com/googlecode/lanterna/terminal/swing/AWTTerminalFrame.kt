@@ -32,7 +32,7 @@ import java.awt.Color
 import java.awt.Frame
 import java.awt.HeadlessException
 import java.util.EnumSet
-import java.util.concurrent.TimeUnit
+import com.googlecode.lanterna.internal.compat.TimeUnit
 
 @Suppress("serial")
 open class AWTTerminalFrame : Frame, IOSafeTerminal {

@@ -30,7 +30,7 @@ import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder
 import java.io.IOException
 import java.math.BigInteger
 import java.util.Random
-import java.util.regex.Pattern
+import com.googlecode.lanterna.internal.compat.Pattern
 
  class DynamicGridLayoutTest:TestBase() {
 

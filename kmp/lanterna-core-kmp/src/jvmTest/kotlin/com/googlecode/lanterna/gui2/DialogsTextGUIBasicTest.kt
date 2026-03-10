@@ -27,7 +27,7 @@ import com.googlecode.lanterna.screen.Screen
 
 import java.io.File
 import java.io.IOException
-import java.util.regex.Pattern
+import com.googlecode.lanterna.internal.compat.Pattern
 
 /**
  * 

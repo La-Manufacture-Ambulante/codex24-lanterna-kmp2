@@ -31,7 +31,7 @@ import com.googlecode.lanterna.gui2.table.TableCellBorderStyle
 import java.io.IOException
 import java.util.ArrayList
 import java.util.Collections
-import java.util.regex.Pattern
+import com.googlecode.lanterna.internal.compat.Pattern
 
 /**
  * Test for the Table component

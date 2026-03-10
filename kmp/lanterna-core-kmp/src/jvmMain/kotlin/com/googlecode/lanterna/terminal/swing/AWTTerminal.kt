@@ -34,7 +34,7 @@ import java.awt.event.InputMethodEvent
 import java.awt.event.InputMethodListener
 import java.awt.im.InputMethodRequests
 import java.text.AttributedCharacterIterator
-import java.util.concurrent.TimeUnit
+import com.googlecode.lanterna.internal.compat.TimeUnit
 
 @Suppress("serial")
 class AWTTerminal : Panel, IOSafeTerminal {

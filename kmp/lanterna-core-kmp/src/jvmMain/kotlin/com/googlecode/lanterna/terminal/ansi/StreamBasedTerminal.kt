@@ -24,6 +24,8 @@ import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.input.InputDecoder
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.ScreenInfoCharacterPattern
+import com.googlecode.lanterna.internal.compat.LambdaReader
+import com.googlecode.lanterna.internal.compat.TimeUnit
 import com.googlecode.lanterna.terminal.AbstractTerminal
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -34,7 +36,6 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.util.LinkedList
 import java.util.Queue
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
@@ -50,7 +51,15 @@ abstract class StreamBasedTerminal @Suppress("WeakerAccess") constructor(
     }
 
     private val terminalCharset: Charset = terminalCharset ?: Charset.defaultCharset()
-    val inputDecoder: InputDecoder = InputDecoder(InputStreamReader(terminalInput, this.terminalCharset))
+    private val terminalReader = terminalInput?.let { InputStreamReader(it, this.terminalCharset) }
+    val inputDecoder: InputDecoder = InputDecoder(
+        terminalReader?.let { reader ->
+            LambdaReader(
+                onRead = { reader.read() },
+                onReady = { reader.ready() },
+            )
+        },
+    )
     private val keyQueue: Queue<KeyStroke> = LinkedList()
     private val readLock: Lock = ReentrantLock()
 

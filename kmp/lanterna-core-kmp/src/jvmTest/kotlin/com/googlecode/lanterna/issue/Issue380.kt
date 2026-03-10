@@ -72,7 +72,7 @@ return panel
 }
 
 private fun buildButtonBar():Component {
-return Button("Close", Runnable({ this.close() }))
+return Button("Close", com.googlecode.lanterna.Runnable({ this.close() }))
 }
 }
 }

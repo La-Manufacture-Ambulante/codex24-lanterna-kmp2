@@ -43,7 +43,7 @@ if (color is TextColor.ANSI)
 {
 return colorPalette!!.get(color, isForeground, inBoldContext && useBrightColorsOnBold)
 }
-return color!!.toColor()
+return color?.toColor() as? Color
 }
 
 companion object {

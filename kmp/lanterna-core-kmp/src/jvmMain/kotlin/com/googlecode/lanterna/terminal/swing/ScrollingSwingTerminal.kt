@@ -29,7 +29,7 @@ import com.googlecode.lanterna.terminal.TerminalResizeListener
 import java.awt.BorderLayout
 import java.awt.event.AdjustmentEvent
 import java.awt.event.AdjustmentListener
-import java.util.concurrent.TimeUnit
+import com.googlecode.lanterna.internal.compat.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JScrollBar
 import javax.swing.SwingUtilities

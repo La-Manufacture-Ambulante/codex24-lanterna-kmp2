@@ -1,42 +1,21 @@
-/*
- * This file is part of lanterna (https://github.com/mabe02/lanterna).
- *
- * lanterna is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2010-2024 Martin Berglund
- */
 package com.googlecode.lanterna
 
-import java.io.Serializable
-import java.text.BreakIterator
+import com.googlecode.lanterna.internal.compat.Character
+import com.googlecode.lanterna.internal.compat.EnumSet
 import kotlin.collections.ArrayList
-import java.util.Arrays
-import java.util.EnumSet
 
 /**
- * Represents a single character with additional metadata such as colors and modifiers.
+ * Represents one rendered character plus style metadata.
  */
 class TextCharacter private constructor(
     val characterString: String,
     val foregroundColor: TextColor,
     val backgroundColor: TextColor,
     private val modifiers: EnumSet<SGR>,
-) : Serializable {
-
+) {
     @Deprecated("This won't work with advanced characters like emoji")
     val character: Char
-        get() = characterString[0]
+        get() = characterString.first()
 
     val isBold: Boolean
         get() = modifiers.contains(SGR.BOLD)
@@ -61,17 +40,16 @@ class TextCharacter private constructor(
 
     val isDoubleWidth: Boolean
         get() = (
-            TerminalTextUtils.isCharDoubleWidth(characterString[0]) ||
-                isEmoji(characterString) ||
-                (characterString.length > 1 && !TerminalTextUtils.isCharThai(characterString[0]))
+            TerminalTextUtils.isCharDoubleWidth(characterString.first()) ||
+                (characterString.length > 1 && !TerminalTextUtils.isCharThai(characterString.first()))
             )
 
     @Deprecated("Use fromCharacter instead")
     constructor(character: Char) : this(
-        Character.toString(character),
+        com.googlecode.lanterna.internal.compat.Character.toString(character),
         TextColor.ANSI.DEFAULT,
         TextColor.ANSI.DEFAULT,
-        EnumSet.noneOf(SGR::class.java),
+        EnumSet.noneOf(SGR::class),
     )
 
     @Deprecated("TextCharacters are immutable so you shouldn't need to call this")
@@ -89,7 +67,7 @@ class TextCharacter private constructor(
         backgroundColor: TextColor?,
         vararg styles: SGR?,
     ) : this(
-        Character.toString(character),
+        com.googlecode.lanterna.internal.compat.Character.toString(character),
         foregroundColor ?: TextColor.ANSI.DEFAULT,
         backgroundColor ?: TextColor.ANSI.DEFAULT,
         toEnumSet(*styles),
@@ -102,108 +80,79 @@ class TextCharacter private constructor(
         backgroundColor: TextColor?,
         modifiers: EnumSet<SGR>?,
     ) : this(
-        Character.toString(character),
+        com.googlecode.lanterna.internal.compat.Character.toString(character),
         foregroundColor ?: TextColor.ANSI.DEFAULT,
         backgroundColor ?: TextColor.ANSI.DEFAULT,
-        modifiers?.let { EnumSet.copyOf(it) } ?: EnumSet.noneOf(SGR::class.java),
+        modifiers?.let { EnumSet.copyOf(it) } ?: EnumSet.noneOf(SGR::class),
     )
 
     init {
-        if (characterString.isEmpty()) {
-            throw IllegalArgumentException("Cannot create TextCharacter from an empty string")
-        }
-        validateSingleCharacter(characterString)
-
-        val firstCharacter = characterString[0]
-        if (TerminalTextUtils.isControlCharacter(firstCharacter) && firstCharacter != '\t') {
-            throw IllegalArgumentException(
-                "Cannot create a TextCharacter from a control character (0x${firstCharacter.code.toString(16)})",
-            )
-        }
-    }
-
-    private fun validateSingleCharacter(character: String) {
-        val breakIterator = BreakIterator.getCharacterInstance()
-        breakIterator.setText(character)
-        var seen = false
-        var begin = 0
-        var end = breakIterator.next()
-        while (end != BreakIterator.DONE) {
-            if (seen) {
-                throw IllegalArgumentException("Invalid String for TextCharacter, can only have one logical character")
-            }
-            seen = true
-            begin = end
-            end = breakIterator.next()
-        }
-        if (!seen) {
-            throw IllegalArgumentException("Invalid String for TextCharacter, can only have one logical character")
+        require(characterString.isNotEmpty()) { "Cannot create TextCharacter from an empty string" }
+        val first = characterString.first()
+        require(!TerminalTextUtils.isControlCharacter(first) || first == '\t') {
+            "Cannot create TextCharacter from control character 0x${first.code.toString(16)}"
         }
     }
 
     fun `is`(otherCharacter: Char): Boolean {
-        return otherCharacter == characterString[0] && characterString.length == 1
+        return characterString.length == 1 && characterString[0] == otherCharacter
     }
 
     fun getModifiers(): EnumSet<SGR> = EnumSet.copyOf(modifiers)
 
     fun withCharacter(character: Char): TextCharacter {
-        if (characterString == Character.toString(character)) {
+        val resolved = com.googlecode.lanterna.internal.compat.Character.toString(character)
+        if (characterString == resolved) {
             return this
         }
-        return TextCharacter(Character.toString(character), foregroundColor, backgroundColor, EnumSet.copyOf(modifiers))
+        return TextCharacter(resolved, foregroundColor, backgroundColor, EnumSet.copyOf(modifiers))
     }
 
     fun withForegroundColor(foregroundColor: TextColor?): TextCharacter {
-        val fg = foregroundColor ?: TextColor.ANSI.DEFAULT
-        if (this.foregroundColor == fg) {
+        val resolved = foregroundColor ?: TextColor.ANSI.DEFAULT
+        if (this.foregroundColor == resolved) {
             return this
         }
-        return TextCharacter(characterString, fg, backgroundColor, EnumSet.copyOf(modifiers))
+        return TextCharacter(characterString, resolved, backgroundColor, EnumSet.copyOf(modifiers))
     }
 
     fun withBackgroundColor(backgroundColor: TextColor?): TextCharacter {
-        val bg = backgroundColor ?: TextColor.ANSI.DEFAULT
-        if (this.backgroundColor == bg) {
+        val resolved = backgroundColor ?: TextColor.ANSI.DEFAULT
+        if (this.backgroundColor == resolved) {
             return this
         }
-        return TextCharacter(characterString, foregroundColor, bg, EnumSet.copyOf(modifiers))
+        return TextCharacter(characterString, foregroundColor, resolved, EnumSet.copyOf(modifiers))
     }
 
     fun withModifiers(modifiers: Collection<SGR?>?): TextCharacter {
-        val newSet = toEnumSetFromCollection(modifiers)
-        if (this.modifiers == newSet) {
+        val resolved = toEnumSetFromCollection(modifiers)
+        if (this.modifiers == resolved) {
             return this
         }
-        return TextCharacter(characterString, foregroundColor, backgroundColor, newSet)
+        return TextCharacter(characterString, foregroundColor, backgroundColor, resolved)
     }
 
     fun withModifier(modifier: SGR?): TextCharacter {
         if (modifier == null || modifiers.contains(modifier)) {
             return this
         }
-        val newSet = EnumSet.copyOf(modifiers)
-        newSet.add(modifier)
-        return TextCharacter(characterString, foregroundColor, backgroundColor, newSet)
+        val resolved = EnumSet.copyOf(modifiers)
+        resolved.add(modifier)
+        return TextCharacter(characterString, foregroundColor, backgroundColor, resolved)
     }
 
     fun withoutModifier(modifier: SGR?): TextCharacter {
         if (modifier == null || !modifiers.contains(modifier)) {
             return this
         }
-        val newSet = EnumSet.copyOf(modifiers)
-        newSet.remove(modifier)
-        return TextCharacter(characterString, foregroundColor, backgroundColor, newSet)
+        val resolved = EnumSet.copyOf(modifiers)
+        resolved.remove(modifier)
+        return TextCharacter(characterString, foregroundColor, backgroundColor, resolved)
     }
 
     override fun equals(other: Any?): Boolean {
-        if (this === other) {
-            return true
-        }
-        if (other !is TextCharacter) {
-            return false
-        }
-        return characterString == other.characterString &&
+        return other is TextCharacter &&
+            characterString == other.characterString &&
             foregroundColor == other.foregroundColor &&
             backgroundColor == other.backgroundColor &&
             modifiers == other.modifiers
@@ -223,33 +172,15 @@ class TextCharacter private constructor(
     }
 
     companion object {
-        private fun toEnumSet(vararg modifiers: SGR?): EnumSet<SGR> {
-            val result = EnumSet.noneOf(SGR::class.java)
-            for (modifier in modifiers) {
-                if (modifier != null) {
-                    result.add(modifier)
-                }
-            }
-            return result
-        }
-
-        private fun toEnumSetFromCollection(modifiers: Collection<SGR?>?): EnumSet<SGR> {
-            val result = EnumSet.noneOf(SGR::class.java)
-            if (modifiers != null) {
-                for (modifier in modifiers) {
-                    if (modifier != null) {
-                        result.add(modifier)
-                    }
-                }
-            }
-            return result
-        }
-
         val DEFAULT_CHARACTER = TextCharacter(' ', TextColor.ANSI.DEFAULT, TextColor.ANSI.DEFAULT)
 
-        fun fromCharacter(c: Char): Array<TextCharacter?>? = fromString(Character.toString(c))
+        fun fromCharacter(c: Char): Array<TextCharacter?>? {
+            return fromString(com.googlecode.lanterna.internal.compat.Character.toString(c))
+        }
 
-        fun fromString(string: String?): Array<TextCharacter?>? = fromString(string, TextColor.ANSI.DEFAULT, TextColor.ANSI.DEFAULT)
+        fun fromString(string: String?): Array<TextCharacter?>? {
+            return fromString(string, TextColor.ANSI.DEFAULT, TextColor.ANSI.DEFAULT)
+        }
 
         fun fromCharacter(
             c: Char,
@@ -257,7 +188,7 @@ class TextCharacter private constructor(
             backgroundColor: TextColor?,
             vararg modifiers: SGR?,
         ): TextCharacter? {
-            return fromString(Character.toString(c), foregroundColor, backgroundColor, *modifiers)?.get(0)
+            return fromString(com.googlecode.lanterna.internal.compat.Character.toString(c), foregroundColor, backgroundColor, *modifiers)?.firstOrNull()
         }
 
         fun fromString(
@@ -278,33 +209,121 @@ class TextCharacter private constructor(
             val text = string ?: return emptyArray()
             val fg = foregroundColor ?: TextColor.ANSI.DEFAULT
             val bg = backgroundColor ?: TextColor.ANSI.DEFAULT
-            val mods = modifiers?.let { EnumSet.copyOf(it) } ?: EnumSet.noneOf(SGR::class.java)
+            val sgr = modifiers?.let { EnumSet.copyOf(it) } ?: EnumSet.noneOf(SGR::class)
 
-            val breakIterator = BreakIterator.getCharacterInstance()
-            breakIterator.setText(text)
             val result = ArrayList<TextCharacter?>()
-            var begin = 0
-            var end = breakIterator.next()
-            while (end != BreakIterator.DONE) {
-                result.add(TextCharacter(text.substring(begin, end), fg, bg, EnumSet.copyOf(mods)))
-                begin = end
-                end = breakIterator.next()
+            for (cluster in splitDisplayClusters(text)) {
+                result.add(TextCharacter(cluster, fg, bg, EnumSet.copyOf(sgr)))
             }
             return result.toTypedArray()
         }
 
-        private fun isEmoji(s: String): Boolean {
-            val firstCharacter = s[0]
-            return (
-                s.length > 1 ||
-                    !(
-                        TerminalTextUtils.isCharCJK(firstCharacter) ||
-                            TerminalTextUtils.isPrintableCharacter(firstCharacter) ||
-                            TerminalTextUtils.isCharThai(firstCharacter) ||
-                            TerminalTextUtils.isCharCJK(firstCharacter) ||
-                            TerminalTextUtils.isControlCharacter(firstCharacter)
-                        )
-                )
+        private fun splitDisplayClusters(text: String): List<String> {
+            if (text.isEmpty()) {
+                return emptyList()
+            }
+            val result = ArrayList<String>()
+            var index = 0
+            while (index < text.length) {
+                val cluster = StringBuilder()
+                var slice = readCodePointSlice(text, index)
+                cluster.append(slice.value)
+                index = slice.nextIndex
+                while (index < text.length) {
+                    val nextCodePoint = peekCodePoint(text, index)
+                    if (nextCodePoint == null || !shouldJoinCluster(nextCodePoint)) {
+                        break
+                    }
+                    if (nextCodePoint == 0x200D) {
+                        slice = readCodePointSlice(text, index)
+                        cluster.append(slice.value)
+                        index = slice.nextIndex
+                        if (index < text.length) {
+                            slice = readCodePointSlice(text, index)
+                            cluster.append(slice.value)
+                            index = slice.nextIndex
+                        }
+                        continue
+                    }
+                    slice = readCodePointSlice(text, index)
+                    cluster.append(slice.value)
+                    index = slice.nextIndex
+                }
+                result.add(cluster.toString())
+            }
+            return result
+        }
+
+        private fun shouldJoinCluster(codePoint: Int): Boolean {
+            if (codePoint == 0x200D) {
+                return true
+            }
+            if (codePoint in 0x1F3FB..0x1F3FF) {
+                return true // emoji skin tone modifiers
+            }
+            if (codePoint in 0xFE00..0xFE0F) {
+                return true // variation selectors
+            }
+            if (codePoint in 0x0300..0x036F ||
+                codePoint in 0x1AB0..0x1AFF ||
+                codePoint in 0x1DC0..0x1DFF ||
+                codePoint in 0x20D0..0x20FF ||
+                codePoint in 0xFE20..0xFE2F ||
+                codePoint in 0x0E31..0x0E4E
+            ) {
+                return true // combining marks (including Thai mark range used by existing tests)
+            }
+            return false
+        }
+
+        private fun peekCodePoint(text: String, index: Int): Int? {
+            if (index >= text.length) {
+                return null
+            }
+            val first = text[index]
+            if (first.isHighSurrogate() && index + 1 < text.length) {
+                val second = text[index + 1]
+                if (second.isLowSurrogate()) {
+                    val high = first.code - 0xD800
+                    val low = second.code - 0xDC00
+                    return 0x10000 + (high shl 10) + low
+                }
+            }
+            return first.code
+        }
+
+        private data class CodePointSlice(
+            val value: String,
+            val nextIndex: Int,
+        )
+
+        private fun readCodePointSlice(text: String, index: Int): CodePointSlice {
+            if (index >= text.length) {
+                return CodePointSlice("", index)
+            }
+            val first = text[index]
+            if (first.isHighSurrogate() && index + 1 < text.length) {
+                val second = text[index + 1]
+                if (second.isLowSurrogate()) {
+                    return CodePointSlice(buildString(2) {
+                        append(first)
+                        append(second)
+                    }, index + 2)
+                }
+            }
+            return CodePointSlice(first.toString(), index + 1)
+        }
+
+        private fun toEnumSet(vararg modifiers: SGR?): EnumSet<SGR> {
+            val resolved = EnumSet.noneOf(SGR::class)
+            modifiers.filterNotNull().forEach { resolved.add(it) }
+            return resolved
+        }
+
+        private fun toEnumSetFromCollection(modifiers: Collection<SGR?>?): EnumSet<SGR> {
+            val resolved = EnumSet.noneOf(SGR::class)
+            modifiers.orEmpty().filterNotNull().forEach { resolved.add(it) }
+            return resolved
         }
     }
 }

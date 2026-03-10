@@ -30,6 +30,8 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
+import com.googlecode.lanterna.internal.compat.StringReader
+import com.googlecode.lanterna.internal.compat.TimeUnit
 import com.googlecode.lanterna.terminal.IOSafeTerminal
 import com.googlecode.lanterna.terminal.MouseCaptureMode
 import com.googlecode.lanterna.terminal.TerminalResizeListener
@@ -53,7 +55,6 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import java.awt.image.BufferedImage
 import java.io.IOException
-import java.io.StringReader
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.BitSet
@@ -61,10 +62,8 @@ import java.util.HashSet
 import java.util.LinkedList
 import java.util.Timer
 import java.util.TimerTask
-import java.util.TreeSet
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal abstract class GraphicalTerminalImplementation(
@@ -389,7 +388,7 @@ internal abstract class GraphicalTerminalImplementation(
             dirtyCellsLookupTable.setDirty(previousCursorPosition)
         }
 
-        val dirtyCells: TreeSet<TerminalPosition> = virtualTerminal.andResetDirtyCells
+        val dirtyCells = virtualTerminal.andResetDirtyCells
         for (position in dirtyCells) {
             dirtyCellsLookupTable.setDirty(position)
         }

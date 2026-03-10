@@ -57,15 +57,15 @@ checkBoxList.addItem(i.toString())
 return Panels.vertical(
 Button("Open Dialog (and crush stuff)", openDialog(gui, window, nextCounter)), 
 checkBoxList, 
-Button("Quit", Runnable({ window.close() }))
+Button("Quit", com.googlecode.lanterna.Runnable({ window.close() }))
 )
 }
 
-private fun openDialog(gui:WindowBasedTextGUI, window:BasicWindow, counter:Int):Runnable {
-return Runnable { ActionListDialogBuilder().setCanCancel(true).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui) }
+private fun openDialog(gui:WindowBasedTextGUI, window:BasicWindow, counter:Int):com.googlecode.lanterna.Runnable {
+return com.googlecode.lanterna.Runnable { ActionListDialogBuilder().setCanCancel(true).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui) }
 }
 
-private fun setupUI(gui:WindowBasedTextGUI, window:BasicWindow, counter:Int):Runnable {
-return Runnable { window.setComponent(createUi(gui, window, counter)) }
+private fun setupUI(gui:WindowBasedTextGUI, window:BasicWindow, counter:Int):com.googlecode.lanterna.Runnable {
+return com.googlecode.lanterna.Runnable { window.setComponent(createUi(gui, window, counter)) }
 }
 }

@@ -32,7 +32,7 @@ import java.awt.EventQueue
 import java.awt.Scrollbar
 import java.awt.event.AdjustmentEvent
 import java.awt.event.AdjustmentListener
-import java.util.concurrent.TimeUnit
+import com.googlecode.lanterna.internal.compat.TimeUnit
 
 @Suppress("serial")
 class ScrollingAWTTerminal(
