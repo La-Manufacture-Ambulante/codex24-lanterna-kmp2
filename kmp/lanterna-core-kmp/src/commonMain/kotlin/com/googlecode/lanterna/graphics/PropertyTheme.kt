@@ -21,7 +21,7 @@ package com.googlecode.lanterna.graphics
 import com.googlecode.lanterna.gui2.WindowDecorationRenderer
 import com.googlecode.lanterna.gui2.WindowPostRenderer
 
-import java.util.Properties
+import com.googlecode.lanterna.internal.compat.Properties
 
 /**
  * [Theme] implementation that stores the theme definition in a regular java Properties object. The format is:

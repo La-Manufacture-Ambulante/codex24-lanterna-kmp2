@@ -1,132 +1,47 @@
-/*
- * This file is part of lanterna (https://github.com/mabe02/lanterna).
- *
- * lanterna is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2010-2020 Martin Berglund
- */
 package com.googlecode.lanterna.bundle
 
-import com.googlecode.lanterna.internal.io.IOException
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.net.URL
-import java.net.URLConnection
-import java.nio.charset.StandardCharsets
-import java.text.MessageFormat
-import java.util.Locale
-import java.util.PropertyResourceBundle
-import java.util.ResourceBundle
+import com.googlecode.lanterna.internal.compat.Locale
 
 /**
- * This class permits to deal easily with bundles.
- * @author silveryocha
+ * Minimal cross-platform bundle locator used by localized UI labels.
+ * JVM keeps richer resource handling in later slices; this common version stays compile-safe.
  */
-abstract class BundleLocator/**
- * Hidden constructor.
- * @param bundleName the name of the bundle.
- */
-     protected constructor(private val bundleName:String?) {
+abstract class BundleLocator protected constructor(
+    private val bundleName: String?,
+) {
+    protected fun getBundleKeyValue(
+        locale: Locale?,
+        key: String?,
+        vararg parameters: Any?,
+    ): String? {
+        val safeBundle = bundleName ?: return null
+        val safeKey = key ?: return null
+        val localized = bundles[safeBundle]?.get(locale?.language)?.get(safeKey)
+            ?: bundles[safeBundle]?.get(DEFAULT_LANGUAGE)?.get(safeKey)
+            ?: return null
+        return applyParameters(localized, parameters)
+    }
 
-/**
- * Method that centralizes the way to get the value associated to a bundle key.
- * @param locale the locale.
- * @param key the key searched for.
- * @param parameters the parameters to apply to the value associated to the key.
- * @return the formatted value associated to the given key. Empty string if no value exists for
- * the given key.
- */
-    protected fun getBundleKeyValue(locale:Locale?, key:String?, vararg parameters:Any?):String? {
-var value:String? = null
-try
-{
-value = getBundle(locale)!!.getString(key)
-}
-catch (ignore:Exception) {}
+    companion object {
+        private const val DEFAULT_LANGUAGE = "en"
+        private val bundles: MutableMap<String, MutableMap<String, MutableMap<String, String>>> = linkedMapOf()
 
-return if (value != null) MessageFormat.format(value, *parameters) else null
-}
+        fun register(
+            bundleName: String,
+            language: String,
+            entries: Map<String, String>,
+        ) {
+            val languageMap = bundles.getOrPut(bundleName) { linkedMapOf() }
+            val keyMap = languageMap.getOrPut(language) { linkedMapOf() }
+            keyMap.putAll(entries)
+        }
 
-/**
- * Gets the right bundle.<br></br>
- * A cache is handled as well as the concurrent accesses.
- * @param locale the locale.
- * @return the instance of the bundle.
- */
-    private fun getBundle(locale:Locale?):ResourceBundle? {
-try
-{
-return ResourceBundle.getBundle(bundleName, locale, loader, UTF8Control())
-}
-catch (e:UnsupportedOperationException) {
- /*
-             * Custom Control implementations aren't supported with named modules. Since
-             * java 9 property bundles use utf-8 as default encoding so we can just load the
-             * bundle with the default Control.
-             */
-            return ResourceBundle.getBundle(bundleName, locale, loader)
-}
-
-}
-
- // Taken from:
-    // http://stackoverflow.com/questions/4659929/how-to-use-utf-8-in-resource-properties-with-resourcebundle
-    // I politely refuse to use ISO-8859-1 in these *multi-lingual* property files
-    // All credits to poster BalusC (http://stackoverflow.com/users/157882/balusc)
-    private class UTF8Control:ResourceBundle.Control() {
-@Throws(IOException::class)
- override fun newBundle(baseName:String?, locale:Locale?, format:String?, loader:ClassLoader?, reload:Boolean):ResourceBundle? {
- // The below is a copy of the default implementation.
-            val bundleName = toBundleName(baseName, locale)
-val resourceName = toResourceName(bundleName, "properties")
-var bundle:ResourceBundle? = null
-var stream:InputStream? = null
-if (reload)
-{
-val url = loader!!.getResource(resourceName)
-if (url != null)
-{
-val connection = url!!.openConnection()
-if (connection != null)
-{
-connection!!.setUseCaches(false)
-stream = connection!!.getInputStream()
-}
-}
-}
-else
-{
-stream = loader!!.getResourceAsStream(resourceName)
-}
-if (stream != null)
-{
-try
-{
- // Only this line is changed to make it to read properties files as UTF-8.
-                    bundle = PropertyResourceBundle(InputStreamReader(stream, StandardCharsets.UTF_8))
-}
-
-finally
-{
-stream!!.close()
-}
-}
-return bundle
-}
-}
-
-companion object {
-private val loader = BundleLocator::class.java!!.getClassLoader()
-}
+        private fun applyParameters(template: String, parameters: Array<out Any?>): String {
+            var resolved = template
+            parameters.forEachIndexed { index, value ->
+                resolved = resolved.replace("{$index}", value?.toString() ?: "")
+            }
+            return resolved
+        }
+    }
 }

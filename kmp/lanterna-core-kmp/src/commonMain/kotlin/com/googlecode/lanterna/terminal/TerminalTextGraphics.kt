@@ -26,7 +26,7 @@ import com.googlecode.lanterna.graphics.AbstractTextGraphics
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.internal.io.IOException
 import kotlin.collections.HashMap
-import java.util.concurrent.atomic.AtomicInteger
+import com.googlecode.lanterna.internal.compat.AtomicInteger
 
 internal class TerminalTextGraphics @Throws(IOException::class) constructor(
     private val terminal: Terminal,

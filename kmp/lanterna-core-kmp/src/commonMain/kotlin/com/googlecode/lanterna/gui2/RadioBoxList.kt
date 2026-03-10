@@ -25,7 +25,7 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
-import java.util.concurrent.CopyOnWriteArrayList
+import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
 
 /**
  * The list box will display a number of items, of which one and only one can be marked as selected.
@@ -189,7 +189,7 @@ class RadioBoxList<V> constructor(preferredSize: TerminalSize? = null) :
             val activeGraphics = graphics ?: return
             val activeListBox = listBox ?: return
             val themeDefinition: ThemeDefinition =
-                activeListBox.theme?.getDefinition(RadioBoxList::class.java) ?: return
+                activeListBox.theme?.getDefinition(RadioBoxList::class) ?: return
             val itemStyle: ThemeStyle =
                 when {
                     selected && !focused -> themeDefinition.selected

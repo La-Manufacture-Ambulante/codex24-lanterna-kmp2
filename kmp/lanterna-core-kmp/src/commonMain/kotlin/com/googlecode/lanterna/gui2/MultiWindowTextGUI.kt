@@ -32,8 +32,8 @@ import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.VirtualScreen
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
-import java.util.IdentityHashMap
-import java.util.concurrent.atomic.AtomicBoolean
+import com.googlecode.lanterna.internal.compat.IdentityHashMap
+import com.googlecode.lanterna.internal.compat.AtomicBoolean
 
 /**
  * Default window-based text GUI implementation.

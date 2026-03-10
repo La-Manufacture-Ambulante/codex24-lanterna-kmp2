@@ -1,7 +1,7 @@
 package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.TerminalSize
-import java.util.regex.Pattern
+import com.googlecode.lanterna.internal.compat.Pattern
 
 /**
  * Dialog builder for the [TextInputDialog] class.

@@ -21,8 +21,8 @@ package com.googlecode.lanterna.graphics
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TextColor
 
-import java.util.Arrays
-import java.util.EnumSet
+import com.googlecode.lanterna.internal.compat.Arrays
+import com.googlecode.lanterna.internal.compat.EnumSet
 
 /**
  * This basic implementation of ThemeStyle keeps the styles in its internal state and allows you to mutate them. It can
@@ -41,7 +41,8 @@ private var sgrs:EnumSet<SGR>? = null
 
  override val sgRs:EnumSet<SGR>?
 get() {
-return if (sgrs == null) EnumSet.noneOf(SGR::class.java) else EnumSet.copyOf(sgrs)
+val current = sgrs
+return if (current == null) EnumSet.noneOf(SGR::class) else EnumSet.copyOf(current)
 }
 
 /**
@@ -59,7 +60,7 @@ themeStyleToCopy.sgRs) {}
  * @param background Background color of the text with this style
  * @param sgrs Modifiers to apply to the text with this style
  */
-     constructor(foreground:TextColor?, background:TextColor?, vararg sgrs:SGR?) : this(foreground, background, if (sgrs.size > 0) EnumSet.copyOf(Arrays.asList(*sgrs).filterNotNull()) else EnumSet.noneOf(SGR::class.java)) {}
+     constructor(foreground:TextColor?, background:TextColor?, vararg sgrs:SGR?) : this(foreground, background, if (sgrs.size > 0) EnumSet.copyOf(Arrays.asList(*sgrs).filterNotNull()) else EnumSet.noneOf(SGR::class)) {}
 
 private constructor(foreground:TextColor?, background:TextColor?, sgrs:EnumSet<SGR>?) {
 if (foreground == null)
@@ -72,7 +73,7 @@ throw IllegalArgumentException("Cannot set SimpleTheme's style background to nul
 }
 this.foreground = foreground
 this.background = background
-this.sgrs = if (sgrs == null) EnumSet.noneOf(SGR::class.java) else EnumSet.copyOf(sgrs)
+this.sgrs = if (sgrs == null) EnumSet.noneOf(SGR::class) else EnumSet.copyOf(sgrs)
 }
 
 /**
@@ -101,7 +102,7 @@ return this
  * @return Itself
  */
      fun setSGRs(sgrs:EnumSet<SGR>?):DefaultMutableThemeStyle {
-this.sgrs = if (sgrs == null) EnumSet.noneOf(SGR::class.java) else EnumSet.copyOf(sgrs)
+this.sgrs = if (sgrs == null) EnumSet.noneOf(SGR::class) else EnumSet.copyOf(sgrs)
 return this
 }
 }

@@ -30,7 +30,7 @@ import com.googlecode.lanterna.graphics.ThemedTextGraphics
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.screen.TabBehaviour
 import kotlin.collections.Collection
-import java.util.EnumSet
+import com.googlecode.lanterna.internal.compat.EnumSet
 
 /**
  * TextGraphics implementation used by TextGUI when doing drawing operations.

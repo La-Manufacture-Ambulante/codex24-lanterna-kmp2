@@ -18,7 +18,7 @@
  */
 package com.googlecode.lanterna
 
-import java.util.Objects
+import com.googlecode.lanterna.internal.compat.Objects
 
 /**
  * This class is immutable and cannot change its internal state after creation.

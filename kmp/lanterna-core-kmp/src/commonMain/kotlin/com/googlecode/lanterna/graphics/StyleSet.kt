@@ -1,7 +1,7 @@
 package com.googlecode.lanterna.graphics
 
-import java.util.Arrays
-import java.util.EnumSet
+import com.googlecode.lanterna.internal.compat.Arrays
+import com.googlecode.lanterna.internal.compat.EnumSet
 
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TextColor
@@ -77,13 +77,11 @@ import com.googlecode.lanterna.TextColor
 
 
  class Set:StyleSet<Set?> {
-@get:Override
 public override var foregroundColor:TextColor? = null
 private set
-@get:Override
 public override var backgroundColor:TextColor? = null
 private set
-private val style = EnumSet.noneOf(SGR::class.java)
+private val style = EnumSet.noneOf(SGR::class)
 public override val activeModifiers:EnumSet<SGR>?
 get() {
 return EnumSet.copyOf(style)

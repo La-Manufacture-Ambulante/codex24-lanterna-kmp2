@@ -20,6 +20,7 @@ package com.googlecode.lanterna.graphics
 
 import com.googlecode.lanterna.gui2.Component
 import com.googlecode.lanterna.gui2.ComponentRenderer
+import kotlin.reflect.KClass
 
 /**
  * A ThemeDefinition contains a collection of ThemeStyle:s, which defines on a lower level which colors and SGRs to
@@ -127,5 +128,5 @@ import com.googlecode.lanterna.gui2.ComponentRenderer
  * @return Renderer to use for the `type` component or `null` to use the default
  * @param <T> Type of component
 </T> */
-     fun <T : Component?> getRenderer(type:Class<T?>?):ComponentRenderer<T?>? 
+     fun <T : Component> getRenderer(type: KClass<T>?):ComponentRenderer<T?>? 
 }

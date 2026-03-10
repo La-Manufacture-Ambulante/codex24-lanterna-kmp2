@@ -19,10 +19,10 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalSize
-import java.lang.ref.WeakReference
-import java.util.Timer
-import java.util.TimerTask
-import java.util.WeakHashMap
+import com.googlecode.lanterna.internal.compat.WeakReference
+import com.googlecode.lanterna.internal.compat.Timer
+import com.googlecode.lanterna.internal.compat.TimerTask
+import com.googlecode.lanterna.internal.compat.WeakHashMap
 
 /**
  * This is a special label that contains not just a single text to display but a number of frames that are cycled

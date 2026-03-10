@@ -25,7 +25,7 @@ import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
 import kotlin.collections.ArrayList
-import java.util.concurrent.CopyOnWriteArrayList
+import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
 
 /**
  * List box where each item has its own checked state.
@@ -193,7 +193,7 @@ class CheckBoxList<V> constructor(preferredSize: TerminalSize? = null) :
         ) {
             val g = graphics ?: return
             val lb = listBox ?: return
-            val themeDefinition = lb.theme?.getDefinition(CheckBoxList::class.java) ?: return
+            val themeDefinition = lb.theme?.getDefinition(CheckBoxList::class) ?: return
             val itemStyle: ThemeStyle = if (selected && !focused) {
                 themeDefinition.selected ?: themeDefinition.normal ?: return
             } else if (selected) {

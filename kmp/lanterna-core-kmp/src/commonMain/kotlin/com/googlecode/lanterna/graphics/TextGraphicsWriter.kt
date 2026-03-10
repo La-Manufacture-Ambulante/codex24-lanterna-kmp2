@@ -8,8 +8,8 @@ import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.screen.ScreenTranslator
 import com.googlecode.lanterna.screen.TabBehaviour
 import com.googlecode.lanterna.screen.WrapBehaviour
-import java.util.Arrays
-import java.util.EnumSet
+import com.googlecode.lanterna.internal.compat.Arrays
+import com.googlecode.lanterna.internal.compat.EnumSet
 
 class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraphicsWriter?>, ScreenTranslator {
     var cursorPosition: TerminalPosition = TerminalPosition(0, 0)
@@ -17,7 +17,7 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
     override var foregroundColor: TextColor? = null
     override var backgroundColor: TextColor? = null
 
-    private val style = EnumSet.noneOf(SGR::class.java)
+    private val style = EnumSet.noneOf(SGR::class)
 
     override val activeModifiers: EnumSet<SGR>
         get() = EnumSet.copyOf(style)
@@ -85,14 +85,14 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
 
                 else -> {
                     when {
-                        Character.isISOControl(ch) -> {
+                        com.googlecode.lanterna.internal.compat.Character.isISOControl(ch) -> {
                             flush(wordPart, wordLen)
                             wordLen = 0
                             linefeed(1)
                             putControlChar(ch)
                         }
 
-                        Character.isWhitespace(ch) -> {
+                        com.googlecode.lanterna.internal.compat.Character.isWhitespace(ch) -> {
                             flush(wordPart, wordLen)
                             wordLen = 0
                             backend.setCharacter(cursorPosition, ch)

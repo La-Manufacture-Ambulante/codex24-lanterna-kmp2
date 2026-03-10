@@ -157,7 +157,7 @@ open class EscapeSequenceCharacterPattern : CharacterPattern {
                 State.NUM1 -> {
                     when {
                         ch == ';' -> state = State.NUM2
-                        Character.isDigit(ch) -> num1 = num1 * 10 + Character.digit(ch, 10)
+                        com.googlecode.lanterna.internal.compat.Character.isDigit(ch) -> num1 = num1 * 10 + com.googlecode.lanterna.internal.compat.Character.digit(ch, 10)
                         else -> {
                             last = ch
                             state = State.DONE
@@ -165,8 +165,8 @@ open class EscapeSequenceCharacterPattern : CharacterPattern {
                     }
                 }
                 State.NUM2 -> {
-                    if (Character.isDigit(ch)) {
-                        num2 = num2 * 10 + Character.digit(ch, 10)
+                    if (com.googlecode.lanterna.internal.compat.Character.isDigit(ch)) {
+                        num2 = num2 * 10 + com.googlecode.lanterna.internal.compat.Character.digit(ch, 10)
                     } else {
                         last = ch
                         state = State.DONE

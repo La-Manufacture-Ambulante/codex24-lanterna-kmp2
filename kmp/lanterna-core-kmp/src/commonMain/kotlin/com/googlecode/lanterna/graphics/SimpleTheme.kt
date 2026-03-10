@@ -37,10 +37,11 @@ import com.googlecode.lanterna.gui2.WindowDecorationRenderer
 import com.googlecode.lanterna.gui2.WindowPostRenderer
 import com.googlecode.lanterna.gui2.WindowShadowRenderer
 import com.googlecode.lanterna.gui2.table.Table
-import java.util.EnumSet
+import com.googlecode.lanterna.internal.compat.EnumSet
 import kotlin.collections.HashMap
 import kotlin.collections.Map
-import java.util.Properties
+import com.googlecode.lanterna.internal.compat.Properties
+import kotlin.reflect.KClass
 
 /**
  * Very basic implementation of [Theme].
@@ -48,18 +49,18 @@ import java.util.Properties
 class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles: SGR?) : Theme {
         override val defaultDefinition: Definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
 
-    private val overrideDefinitions: MutableMap<Class<*>, Definition> = HashMap()
+    private val overrideDefinitions: MutableMap<KClass<*>, Definition> = HashMap()
 
             override var windowPostRenderer: WindowPostRenderer? = null
 
             override var windowDecorationRenderer: WindowDecorationRenderer? = null
 
-    override fun getDefinition(clazz: Class<*>?): Definition {
+    override fun getDefinition(clazz: KClass<*>?): Definition {
         val resolved = if (clazz != null) overrideDefinitions[clazz] else null
         return resolved ?: defaultDefinition
     }
 
-    fun addOverride(clazz: Class<*>?, foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
+    fun addOverride(clazz: KClass<*>?, foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
         val definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
         if (clazz != null) {
             overrideDefinitions[clazz] = definition
@@ -77,8 +78,8 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         return this
     }
 
-    interface RendererProvider<T : Component?> {
-        fun getRenderer(type: Class<T?>?): ComponentRenderer<T?>?
+    interface RendererProvider<T : Component> {
+        fun getRenderer(type: KClass<T>?): ComponentRenderer<T?>?
     }
 
     class Definition constructor(override val normal: ThemeStyle?) : ThemeDefinition {
@@ -89,7 +90,7 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         private val customStyles: MutableMap<String?, ThemeStyle?> = HashMap()
         private val properties = Properties()
         private val characterMap: MutableMap<String?, Char> = HashMap()
-        private val componentRendererMap: MutableMap<Class<*>, RendererProvider<*>> = HashMap()
+        private val componentRendererMap: MutableMap<KClass<*>, RendererProvider<*>> = HashMap()
         private var cursorVisible: Boolean = true
 
                 override val preLight: ThemeStyle?
@@ -138,20 +139,20 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         }
 
         override fun getIntegerProperty(name: String?, defaultValue: Int): Int {
-            return Integer.parseInt(properties.getProperty(name, Integer.toString(defaultValue)))
+            return com.googlecode.lanterna.internal.compat.Integer.parseInt(properties.getProperty(name, com.googlecode.lanterna.internal.compat.Integer.toString(defaultValue)))
         }
 
         fun setIntegerProperty(name: String?, value: Int): Definition {
-            properties.setProperty(name, Integer.toString(value))
+            properties.setProperty(name, com.googlecode.lanterna.internal.compat.Integer.toString(value))
             return this
         }
 
         override fun getBooleanProperty(name: String?, defaultValue: Boolean): Boolean {
-            return java.lang.Boolean.parseBoolean(properties.getProperty(name, java.lang.Boolean.toString(defaultValue)))
+            return com.googlecode.lanterna.internal.compat.JBoolean.parseBoolean(properties.getProperty(name, com.googlecode.lanterna.internal.compat.JBoolean.toString(defaultValue)))
         }
 
         fun setBooleanProperty(name: String?, value: Boolean): Definition {
-            properties.setProperty(name, java.lang.Boolean.toString(value))
+            properties.setProperty(name, com.googlecode.lanterna.internal.compat.JBoolean.toString(value))
             return this
         }
 
@@ -173,15 +174,15 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         }
 
         @Suppress("UNCHECKED_CAST")
-        override fun <T : Component?> getRenderer(type: Class<T?>?): ComponentRenderer<T?>? {
+        override fun <T : Component> getRenderer(type: KClass<T>?): ComponentRenderer<T?>? {
             if (type == null) {
                 return null
             }
-            val rendererProvider = componentRendererMap[type] as RendererProvider<T?>?
+            val rendererProvider = componentRendererMap[type] as RendererProvider<T>?
             return rendererProvider?.getRenderer(type)
         }
 
-        fun <T : Component?> setRenderer(type: Class<T?>?, rendererProvider: RendererProvider<T?>?): Definition {
+        fun <T : Component> setRenderer(type: KClass<T>?, rendererProvider: RendererProvider<T>?): Definition {
             if (type == null) {
                 return this
             }
@@ -212,31 +213,31 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             theme.defaultDefinition.setSelected(baseBackground, baseForeground, *activeStyle)
             theme.defaultDefinition.setActive(selectedForeground, selectedBackground, *activeStyle)
 
-            theme.addOverride(AbstractBorder::class.java, baseForeground, baseBackground)
+            theme.addOverride(AbstractBorder::class, baseForeground, baseBackground)
                 .setSelected(baseForeground, baseBackground, *activeStyle)
-            theme.addOverride(AbstractListBox::class.java, baseForeground, baseBackground)
+            theme.addOverride(AbstractListBox::class, baseForeground, baseBackground)
                 .setSelected(selectedForeground, selectedBackground, *activeStyle)
-            theme.addOverride(Button::class.java, baseForeground, baseBackground)
+            theme.addOverride(Button::class, baseForeground, baseBackground)
                 .setActive(selectedForeground, selectedBackground, *activeStyle)
                 .setSelected(selectedForeground, selectedBackground, *activeStyle)
-            theme.addOverride(CheckBox::class.java, baseForeground, baseBackground)
+            theme.addOverride(CheckBox::class, baseForeground, baseBackground)
                 .setActive(selectedForeground, selectedBackground, *activeStyle)
                 .setPreLight(selectedForeground, selectedBackground, *activeStyle)
                 .setSelected(selectedForeground, selectedBackground, *activeStyle)
-            theme.addOverride(CheckBoxList::class.java, baseForeground, baseBackground)
+            theme.addOverride(CheckBoxList::class, baseForeground, baseBackground)
                 .setActive(selectedForeground, selectedBackground, *activeStyle)
-            theme.addOverride(ComboBox::class.java, baseForeground, baseBackground)
+            theme.addOverride(ComboBox::class, baseForeground, baseBackground)
                 .setActive(editableForeground, editableBackground, *activeStyle)
                 .setPreLight(editableForeground, editableBackground)
-            theme.addOverride(DefaultWindowDecorationRenderer::class.java, baseForeground, baseBackground)
+            theme.addOverride(DefaultWindowDecorationRenderer::class, baseForeground, baseBackground)
                 .setActive(baseForeground, baseBackground, *activeStyle)
-            theme.addOverride(GUIBackdrop::class.java, baseForeground, guiBackground)
-            theme.addOverride(RadioBoxList::class.java, baseForeground, baseBackground)
+            theme.addOverride(GUIBackdrop::class, baseForeground, guiBackground)
+            theme.addOverride(RadioBoxList::class, baseForeground, baseBackground)
                 .setActive(selectedForeground, selectedBackground, *activeStyle)
-            theme.addOverride(Table::class.java, baseForeground, baseBackground)
+            theme.addOverride(Table::class, baseForeground, baseBackground)
                 .setActive(editableForeground, editableBackground, *activeStyle)
                 .setSelected(baseForeground, baseBackground)
-            theme.addOverride(TextBox::class.java, editableForeground, editableBackground)
+            theme.addOverride(TextBox::class, editableForeground, editableBackground)
                 .setActive(editableForeground, editableBackground, *activeStyle)
                 .setSelected(editableForeground, editableBackground, *activeStyle)
 

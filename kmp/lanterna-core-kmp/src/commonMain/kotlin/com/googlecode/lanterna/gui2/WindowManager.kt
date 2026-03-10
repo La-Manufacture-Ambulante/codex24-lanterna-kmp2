@@ -63,7 +63,7 @@ import com.googlecode.lanterna.TerminalSize
  * @param window Window that was removed
  * @param allWindows All windows, excluding the removed window, in the GUI
  */
-    @SuppressWarnings("EmptyMethod")
+    @Suppress("unused")
  fun onRemoved(textGUI:WindowBasedTextGUI?, window:Window?, allWindows:List<Window?>?) 
 
 /**

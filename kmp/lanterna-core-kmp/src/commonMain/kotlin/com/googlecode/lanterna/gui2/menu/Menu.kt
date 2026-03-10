@@ -29,7 +29,8 @@ import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import kotlin.collections.ArrayList
-import java.util.concurrent.atomic.AtomicBoolean
+import com.googlecode.lanterna.internal.compat.AtomicBoolean
+import com.googlecode.lanterna.internal.compat.synchronizedCompat
 
 /**
  * Implementation of a drop-down menu contained in a [MenuBar] and also a sub-menu inside another [Menu].
@@ -41,7 +42,7 @@ class Menu(label: String?) : MenuItem(label) {
         get() = ArrayList(subItems)
 
     fun add(menuItem: MenuItem): Menu {
-        synchronized(subItems) {
+        synchronizedCompat(subItems) {
             subItems.add(menuItem)
         }
         return this

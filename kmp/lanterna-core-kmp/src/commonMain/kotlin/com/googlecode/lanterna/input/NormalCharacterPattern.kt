@@ -47,10 +47,10 @@ return null // nope
  * @return True if this is a 'normal', printable character, false otherwise
  */
     private fun isPrintableChar(c:Char):Boolean {
-if (Character.isISOControl(c)) {
+if (com.googlecode.lanterna.internal.compat.Character.isISOControl(c)) {
 return false
 }
-val block = Character.UnicodeBlock.of(c)
-return block != null && block !== Character.UnicodeBlock.SPECIALS
+val block = com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.of(c)
+return block != null && block !== com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.SPECIALS
 }
 }

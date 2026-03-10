@@ -25,14 +25,14 @@ import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.screen.TabBehaviour
-import java.util.Arrays
-import java.util.EnumSet
+import com.googlecode.lanterna.internal.compat.Arrays
+import com.googlecode.lanterna.internal.compat.EnumSet
 
 /**
  * Default logic for TextGraphics implementations.
  */
 abstract class AbstractTextGraphics protected constructor() : TextGraphics {
-    private val activeModifiersBacking: EnumSet<SGR> = EnumSet.noneOf(SGR::class.java)
+    private val activeModifiersBacking: EnumSet<SGR> = EnumSet.noneOf(SGR::class)
 
     override var foregroundColor: TextColor? = TextColor.ANSI.DEFAULT
     override var backgroundColor: TextColor? = TextColor.ANSI.DEFAULT
@@ -282,7 +282,7 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
             for (i in optionalExtraModifiers.indices) {
                 all[i + 1] = optionalExtraModifiers[i]
             }
-            val set = EnumSet.noneOf(SGR::class.java)
+            val set = EnumSet.noneOf(SGR::class)
             for (modifier in all) {
                 if (modifier != null) {
                     set.add(modifier)
@@ -294,7 +294,7 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
     }
 
     override fun putString(column: Int, row: Int, string: String?, extraModifiers: Collection<SGR?>?): TextGraphics? {
-        val newModifiers = EnumSet.noneOf(SGR::class.java)
+        val newModifiers = EnumSet.noneOf(SGR::class)
         if (extraModifiers != null) {
             for (modifier in extraModifiers) {
                 if (modifier != null && !activeModifiersBacking.contains(modifier)) {

@@ -35,7 +35,7 @@ class DefaultWindowDecorationRenderer : WindowDecorationRenderer {
 
         val title = w.title ?: ""
         val drawableArea = g.size ?: TerminalSize.ZERO
-        val themeDefinition: ThemeDefinition = w.theme?.getDefinition(DefaultWindowDecorationRenderer::class.java) ?: return g
+        val themeDefinition: ThemeDefinition = w.theme?.getDefinition(DefaultWindowDecorationRenderer::class) ?: return g
         val horizontalLine = themeDefinition.getCharacter("HORIZONTAL_LINE", Symbols.SINGLE_LINE_HORIZONTAL)
         val verticalLine = themeDefinition.getCharacter("VERTICAL_LINE", Symbols.SINGLE_LINE_VERTICAL)
         val bottomLeftCorner = themeDefinition.getCharacter("BOTTOM_LEFT_CORNER", Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER)
@@ -114,7 +114,7 @@ class DefaultWindowDecorationRenderer : WindowDecorationRenderer {
     override fun getDecoratedSize(window: Window?, contentAreaSize: TerminalSize?): TerminalSize? {
         val w = window ?: return contentAreaSize
         val content = contentAreaSize ?: TerminalSize.ZERO
-        val themeDefinition = w.theme?.getDefinition(DefaultWindowDecorationRenderer::class.java)
+        val themeDefinition = w.theme?.getDefinition(DefaultWindowDecorationRenderer::class)
         val useTitlePadding = themeDefinition?.getBooleanProperty("TITLE_PADDING", false) == true
 
         val titleWidth = TerminalTextUtils.getColumnWidth(w.title)

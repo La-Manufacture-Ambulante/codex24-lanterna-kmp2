@@ -8,8 +8,8 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.function.Consumer
+import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
+import com.googlecode.lanterna.internal.compat.Consumer
 
 /**
  * Interactive tree component for Lanterna GUI.

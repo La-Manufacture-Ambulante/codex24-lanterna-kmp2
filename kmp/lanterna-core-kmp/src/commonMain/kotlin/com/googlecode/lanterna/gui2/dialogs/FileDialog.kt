@@ -15,8 +15,8 @@ import com.googlecode.lanterna.gui2.Separator
 import com.googlecode.lanterna.gui2.TextBox
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 import com.googlecode.lanterna.input.KeyStroke
-import java.io.File
-import java.util.Arrays
+import com.googlecode.lanterna.internal.compat.File
+import com.googlecode.lanterna.internal.compat.Arrays
 import kotlin.Comparator
 
 /**
@@ -191,7 +191,7 @@ class FileDialog(
         directoryListBox.clearItems()
         fileListBox.clearItems()
         val entries = directory.listFiles() ?: return
-        Arrays.sort(entries, Comparator.comparing { file -> file.name.lowercase() })
+        entries.sortBy { file -> file.name.lowercase() }
         val parent = directory.absoluteFile.parentFile
         if (parent != null) {
             directoryListBox.addItem(

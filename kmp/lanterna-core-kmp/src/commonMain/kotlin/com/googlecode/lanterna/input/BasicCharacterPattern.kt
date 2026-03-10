@@ -18,7 +18,7 @@
  */
 package com.googlecode.lanterna.input
 
-import java.util.Arrays
+import com.googlecode.lanterna.internal.compat.Arrays
 
 /**
  * Simple pattern that matches the input stream against a predefined character sequence.

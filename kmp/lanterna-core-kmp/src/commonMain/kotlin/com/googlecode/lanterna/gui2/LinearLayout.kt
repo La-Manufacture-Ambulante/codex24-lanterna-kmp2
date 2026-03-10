@@ -21,8 +21,8 @@ package com.googlecode.lanterna.gui2
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import kotlin.collections.ArrayList
-import java.util.Collections
-import java.util.IdentityHashMap
+import com.googlecode.lanterna.internal.compat.Collections
+import com.googlecode.lanterna.internal.compat.IdentityHashMap
 
 /**
  * Simple layout manager the puts all components on a single line, either horizontally or vertically.
@@ -104,13 +104,13 @@ class LinearLayout constructor(
         }
         val visibleComponents = components.orEmpty().filter { it?.isVisible == true }.map { it!! }
         if (direction == Direction.VERTICAL) {
-            if (java.lang.Boolean.getBoolean(USE_OLD_NON_FLEX_LAYOUT_PROPERTY)) {
+            if (false) {
                 doVerticalLayout(area, visibleComponents)
             } else {
                 doFlexibleVerticalLayout(area, visibleComponents)
             }
         } else {
-            if (java.lang.Boolean.getBoolean(USE_OLD_NON_FLEX_LAYOUT_PROPERTY)) {
+            if (false) {
                 doHorizontalLayout(area, visibleComponents)
             } else {
                 doFlexibleHorizontalLayout(area, visibleComponents)

@@ -19,8 +19,8 @@
 package com.googlecode.lanterna.input
 
 import kotlin.collections.ArrayList
-import java.util.Arrays
-import java.util.Objects
+import com.googlecode.lanterna.internal.compat.Arrays
+import com.googlecode.lanterna.internal.compat.Objects
 
 /**
  * Represents one decoded keyboard event.
@@ -62,7 +62,7 @@ open class KeyStroke private constructor(
             else -> Unit
         }
         this.character = actualCharacter
-        this.eventTime = System.currentTimeMillis()
+        this.eventTime = com.googlecode.lanterna.internal.compat.System.currentTimeMillis()
     }
 
     /**
@@ -126,7 +126,7 @@ open class KeyStroke private constructor(
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other == null || javaClass != other.javaClass) {
+        if (other == null || this::class != other::class) {
             return false
         }
         other as KeyStroke

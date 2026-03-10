@@ -19,7 +19,7 @@
 package com.googlecode.lanterna.gui2.table
 
 import kotlin.collections.ArrayList
-import java.util.Arrays
+import com.googlecode.lanterna.internal.compat.Arrays
 
 /**
  * A [TableModel] contains the data model behind a table.
@@ -72,7 +72,7 @@ open class TableModel<V>(columnLabels: List<String?>) {
         return columnData
     }
 
-    @SafeVarargs
+    
     final fun addRow(vararg values: V): TableModel<V> {
         addRow(Arrays.asList(*values))
         return this

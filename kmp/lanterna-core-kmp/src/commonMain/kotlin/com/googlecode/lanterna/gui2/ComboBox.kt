@@ -26,7 +26,8 @@ import com.googlecode.lanterna.graphics.Theme
 import com.googlecode.lanterna.graphics.ThemeDefinition
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
-import java.util.concurrent.CopyOnWriteArrayList
+import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
+import com.googlecode.lanterna.internal.compat.synchronizedCompat
 
 /**
  * Simple combo box implementation.
@@ -417,7 +418,7 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
             val cb = comboBox ?: return TerminalSize.ONE
             var size = TerminalSize.ONE.withColumns((if (cb.getItemCount() == 0) TerminalTextUtils.getColumnWidth(cb.text) else 0) + 2)
                 ?: TerminalSize.ONE
-            synchronized(cb) {
+            synchronizedCompat(cb) {
                 for (i in 0 until cb.getItemCount()) {
                     val item = cb.getItem(i)
                     size = size.max(TerminalSize(TerminalTextUtils.getColumnWidth(item.toString()) + 3, 1)) ?: size

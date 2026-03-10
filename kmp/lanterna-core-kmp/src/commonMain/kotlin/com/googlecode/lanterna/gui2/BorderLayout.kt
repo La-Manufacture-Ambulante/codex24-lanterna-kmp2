@@ -20,9 +20,6 @@ package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
-import kotlin.collections.ArrayList
-import java.util.Collections
-import java.util.EnumMap
 
 /**
  * BorderLayout imitates AWT BorderLayout.
@@ -38,25 +35,17 @@ class BorderLayout : LayoutManager {
 
     override fun getPreferredSize(components: List<Component?>?): TerminalSize {
         val layout = makeLookupMap(components ?: emptyList())
+        fun row(location: Location): Int = layout[location]?.preferredSize?.rows ?: 0
+        fun col(location: Location): Int = layout[location]?.preferredSize?.columns ?: 0
+
         val preferredHeight =
-            (if (layout.containsKey(Location.TOP)) layout[Location.TOP]!!.preferredSize?.rows ?: 0 else 0) +
-                maxOf(
-                    if (layout.containsKey(Location.LEFT)) layout[Location.LEFT]!!.preferredSize?.rows ?: 0 else 0,
-                    maxOf(
-                        if (layout.containsKey(Location.CENTER)) layout[Location.CENTER]!!.preferredSize?.rows ?: 0 else 0,
-                        if (layout.containsKey(Location.RIGHT)) layout[Location.RIGHT]!!.preferredSize?.rows ?: 0 else 0,
-                    ),
-                ) +
-                (if (layout.containsKey(Location.BOTTOM)) layout[Location.BOTTOM]!!.preferredSize?.rows ?: 0 else 0)
+            row(Location.TOP) +
+                maxOf(row(Location.LEFT), maxOf(row(Location.CENTER), row(Location.RIGHT))) +
+                row(Location.BOTTOM)
 
         val preferredWidth = maxOf(
-            (if (layout.containsKey(Location.LEFT)) layout[Location.LEFT]!!.preferredSize?.columns ?: 0 else 0) +
-                (if (layout.containsKey(Location.CENTER)) layout[Location.CENTER]!!.preferredSize?.columns ?: 0 else 0) +
-                (if (layout.containsKey(Location.RIGHT)) layout[Location.RIGHT]!!.preferredSize?.columns ?: 0 else 0),
-            maxOf(
-                if (layout.containsKey(Location.TOP)) layout[Location.TOP]!!.preferredSize?.columns ?: 0 else 0,
-                if (layout.containsKey(Location.BOTTOM)) layout[Location.BOTTOM]!!.preferredSize?.columns ?: 0 else 0,
-            ),
+            col(Location.LEFT) + col(Location.CENTER) + col(Location.RIGHT),
+            maxOf(col(Location.TOP), col(Location.BOTTOM)),
         )
         return TerminalSize(preferredWidth, preferredHeight)
     }
@@ -118,9 +107,9 @@ class BorderLayout : LayoutManager {
         }
     }
 
-    private fun makeLookupMap(components: List<Component?>): EnumMap<Location, Component> {
-        val map = EnumMap<Location, Component>(Location::class.java)
-        val unassignedComponents = ArrayList<Component>()
+    private fun makeLookupMap(components: List<Component?>): MutableMap<Location, Component> {
+        val map = linkedMapOf<Location, Component>()
+        val unassignedComponents = mutableListOf<Component>()
         for (component in components) {
             if (component == null || !component.isVisible) {
                 continue
@@ -149,8 +138,12 @@ class BorderLayout : LayoutManager {
     }
 
     companion object {
-        private val AUTO_ASSIGN_ORDER = Collections.unmodifiableList(
-            listOf(Location.CENTER, Location.TOP, Location.BOTTOM, Location.LEFT, Location.RIGHT),
+        private val AUTO_ASSIGN_ORDER = listOf(
+            Location.CENTER,
+            Location.TOP,
+            Location.BOTTOM,
+            Location.LEFT,
+            Location.RIGHT,
         )
     }
 }

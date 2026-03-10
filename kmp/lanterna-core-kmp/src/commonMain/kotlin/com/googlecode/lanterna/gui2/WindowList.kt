@@ -18,8 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
-import java.util.Collections
-import java.util.LinkedList
+import com.googlecode.lanterna.internal.compat.Collections
+import com.googlecode.lanterna.internal.compat.LinkedList
 
 class WindowList {
     private val windows = LinkedList<Window>()

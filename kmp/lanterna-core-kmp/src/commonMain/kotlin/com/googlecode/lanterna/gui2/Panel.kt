@@ -22,7 +22,8 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyStroke
 import kotlin.collections.ArrayList
-import java.util.Collections
+import com.googlecode.lanterna.internal.compat.Collections
+import com.googlecode.lanterna.internal.compat.synchronizedCompat
 
 /**
  * Standard multi-child [Container] implementation.
@@ -37,17 +38,17 @@ open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
     var fillColorOverride: TextColor? = null
 
     override val childCount: Int
-        get() = synchronized(components) { components.size }
+        get() = synchronizedCompat(components) { components.size }
 
     override val children: Collection<Component?>
         get() = childrenList
 
     override val childrenList: List<Component?>
-        get() = synchronized(components) { ArrayList(components) }
+        get() = synchronizedCompat(components) { ArrayList(components) }
 
     override val isInvalid: Boolean
         get() {
-            synchronized(components) {
+            synchronizedCompat(components) {
                 for (component in components) {
                     if (component.isVisible && component.isInvalid) {
                         return true
@@ -65,7 +66,7 @@ open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
         requireNotNull(component) { "Cannot add null component" }
 
         var insertionIndex = index
-        synchronized(components) {
+        synchronizedCompat(components) {
             if (components.contains(component)) {
                 return this
             }
@@ -97,7 +98,7 @@ open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
     override fun removeComponent(component: Component?): Boolean {
         requireNotNull(component) { "Cannot remove null component" }
 
-        synchronized(components) {
+        synchronizedCompat(components) {
             val index = components.indexOf(component)
             if (index == -1) {
                 return false
@@ -113,7 +114,7 @@ open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
     }
 
     fun removeAllComponents(): Panel {
-        synchronized(components) {
+        synchronizedCompat(components) {
             for (component in ArrayList(components)) {
                 removeComponent(component)
             }
@@ -145,7 +146,7 @@ open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
     override fun nextFocus(fromThis: Interactable?): Interactable? {
         var chooseNextAvailable = fromThis == null
 
-        synchronized(components) {
+        synchronizedCompat(components) {
             for (component in components) {
                 if (!component.isVisible) {
                     continue
@@ -182,7 +183,7 @@ open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
 
     override fun previousFocus(fromThis: Interactable?): Interactable? {
         var chooseNextAvailable = fromThis == null
-        val reversedComponents = synchronized(components) { ArrayList(components) }
+        val reversedComponents = synchronizedCompat(components) { ArrayList(components) }
         Collections.reverse(reversedComponents)
 
         for (component in reversedComponents) {
@@ -222,7 +223,7 @@ open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
     override fun handleInput(key: KeyStroke?): Boolean = false
 
     override fun updateLookupMap(interactableLookupMap: InteractableLookupMap?) {
-        synchronized(components) {
+        synchronizedCompat(components) {
             for (component in components) {
                 if (!component.isVisible) {
                     continue
@@ -238,7 +239,7 @@ open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
 
     override fun invalidate() {
         super.invalidate()
-        synchronized(components) {
+        synchronizedCompat(components) {
             for (component in components) {
                 component.invalidate()
             }
@@ -246,7 +247,7 @@ open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
     }
 
     private fun layout(size: TerminalSize?) {
-        synchronized(components) {
+        synchronizedCompat(components) {
             layoutManager.doLayout(size, ArrayList(components))
         }
     }
@@ -259,7 +260,7 @@ open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
         }
 
         override fun getPreferredSize(component: Panel?): TerminalSize? {
-            synchronized(components) {
+            synchronizedCompat(components) {
                 cachedPreferredSize = layoutManager.getPreferredSize(ArrayList(components))
             }
             return cachedPreferredSize
@@ -277,7 +278,7 @@ open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
                 targetGraphics.fill(' ')
             }
 
-            synchronized(components) {
+            synchronizedCompat(components) {
                 for (child in components) {
                     if (!child.isVisible) {
                         continue

@@ -26,8 +26,8 @@ import com.googlecode.lanterna.gui2.menu.MenuBar
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.atomic.AtomicBoolean
+import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
+import com.googlecode.lanterna.internal.compat.AtomicBoolean
 
 /**
  * This abstract implementation of [BasePane] has the common code shared by all different concrete implementations.
@@ -109,7 +109,7 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
             return
         }
 
-        graphics.applyThemeStyle(theme?.getDefinition(Window::class.java)?.normal)
+        graphics.applyThemeStyle(theme?.getDefinition(Window::class)?.normal)
         graphics.fill(' ')
 
         val graphicsSize = graphics.size ?: TerminalSize.ZERO

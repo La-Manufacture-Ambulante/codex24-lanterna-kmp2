@@ -22,7 +22,7 @@ import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.TextColor
-import java.util.EnumSet
+import com.googlecode.lanterna.internal.compat.EnumSet
 
 /**
  * Label is a simple read-only text display component. It supports customized colors and multi-line text.
@@ -33,7 +33,7 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
     private var labelSize: TerminalSize? = TerminalSize.ZERO
     private var foregroundColor: TextColor? = null
     private var backgroundColor: TextColor? = null
-    private val additionalStyles: EnumSet<SGR> = EnumSet.noneOf(SGR::class.java)
+    private val additionalStyles: EnumSet<SGR> = EnumSet.noneOf(SGR::class)
 
     init {
         setText(text ?: "")

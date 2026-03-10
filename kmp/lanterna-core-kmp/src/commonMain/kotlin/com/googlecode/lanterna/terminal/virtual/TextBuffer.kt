@@ -20,7 +20,7 @@ package com.googlecode.lanterna.terminal.virtual
 
 import com.googlecode.lanterna.TextCharacter
 import kotlin.collections.ArrayList
-import java.util.LinkedList
+import com.googlecode.lanterna.internal.compat.LinkedList
 import kotlin.collections.ListIterator
 
 /**

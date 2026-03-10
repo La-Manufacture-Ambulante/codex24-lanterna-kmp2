@@ -1,7 +1,7 @@
 package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.gui2.Window
-import java.util.Collections
+import com.googlecode.lanterna.internal.compat.Collections
 import kotlin.collections.HashSet
 
 /**

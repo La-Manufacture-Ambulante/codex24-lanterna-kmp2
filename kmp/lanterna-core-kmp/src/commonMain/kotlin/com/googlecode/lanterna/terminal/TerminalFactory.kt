@@ -28,7 +28,7 @@ import com.googlecode.lanterna.internal.io.IOException
  * 
  * @author martin
  */
-@SuppressWarnings("WeakerAccess")
+@Suppress("unused")
  interface TerminalFactory {
 /**
  * Instantiates a Terminal according to the factory implementation.

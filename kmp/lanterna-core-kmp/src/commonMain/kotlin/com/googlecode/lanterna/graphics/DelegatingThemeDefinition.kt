@@ -20,6 +20,7 @@ package com.googlecode.lanterna.graphics
 
 import com.googlecode.lanterna.gui2.Component
 import com.googlecode.lanterna.gui2.ComponentRenderer
+import kotlin.reflect.KClass
 
 /**
  * Allows you to more easily wrap an existing theme definition and alter behavior.
@@ -63,7 +64,7 @@ open class DelegatingThemeDefinition(private val themeDefinition: ThemeDefinitio
         return themeDefinition.getCharacter(name, fallback)
     }
 
-    override fun <T : Component?> getRenderer(type: Class<T?>?): ComponentRenderer<T?>? {
+    override fun <T : Component> getRenderer(type: KClass<T>?): ComponentRenderer<T?>? {
         return themeDefinition.getRenderer(type)
     }
 }

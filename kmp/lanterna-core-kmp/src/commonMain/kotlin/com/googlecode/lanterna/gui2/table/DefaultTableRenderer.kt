@@ -27,7 +27,7 @@ import com.googlecode.lanterna.gui2.Direction
 import com.googlecode.lanterna.gui2.ScrollBar
 import com.googlecode.lanterna.gui2.TextGUIGraphics
 import kotlin.collections.ArrayList
-import java.util.TreeSet
+import com.googlecode.lanterna.internal.compat.TreeSet
 
 /**
  * Default implementation of [TableRenderer].
@@ -405,7 +405,7 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
             tableHeaderRenderer.drawHeader(table, label, index, headerGraphics)
             leftPosition += size.columns
             if (headerHorizontalBorderStyle != TableCellBorderStyle.NONE && index < endColumnIndex - 1) {
-                graphics.applyThemeStyle(theme.getDefinition(Table::class.java)?.normal)
+                graphics.applyThemeStyle(theme.getDefinition(Table::class)?.normal)
                 graphics.setCharacter(leftPosition, 0, getVerticalCharacter(headerHorizontalBorderStyle))
                 leftPosition++
             }
@@ -414,7 +414,7 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         if (headerVerticalBorderStyle != TableCellBorderStyle.NONE) {
             leftPosition = 0
             val topPosition = headerSizeInRows
-            graphics.applyThemeStyle(theme.getDefinition(Table::class.java)?.normal)
+            graphics.applyThemeStyle(theme.getDefinition(Table::class)?.normal)
             for (i in localViewLeftColumn until endColumnIndex) {
                 if (i > localViewLeftColumn) {
                     graphics.setCharacter(
@@ -458,7 +458,7 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         needHorizontalScrollBar: Boolean,
     ) {
         val theme = table.theme ?: return
-        val themeDefinition = theme.getDefinition(Table::class.java) ?: return
+        val themeDefinition = theme.getDefinition(Table::class) ?: return
         val area = graphics.size ?: TerminalSize.ZERO
         val tableCellRenderer = table.getTableCellRenderer() ?: return
         val tableModel = table.getTableModel() ?: return

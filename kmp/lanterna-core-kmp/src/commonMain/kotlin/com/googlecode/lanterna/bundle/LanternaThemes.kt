@@ -20,12 +20,9 @@ package com.googlecode.lanterna.bundle
 
 import com.googlecode.lanterna.graphics.PropertyTheme
 import com.googlecode.lanterna.graphics.Theme
-import com.googlecode.lanterna.gui2.AbstractTextGUI
-import java.io.FileInputStream
-import com.googlecode.lanterna.internal.io.IOException
 import kotlin.collections.ArrayList
-import java.util.Properties
-import java.util.concurrent.ConcurrentHashMap
+import com.googlecode.lanterna.internal.compat.Properties
+import com.googlecode.lanterna.internal.compat.ConcurrentHashMap
 
 /**
  * Catalog of available themes, this class will initially contain the themes bundled with Lanterna but it is possible to
@@ -77,17 +74,7 @@ object LanternaThemes {
     }
 
     private fun loadPropTheme(resourceFileName: String): Properties? {
-        val properties = Properties()
-        return try {
-            val classLoader = AbstractTextGUI::class.java.classLoader
-            val resourceAsStream = classLoader.getResourceAsStream(resourceFileName)
-                ?: FileInputStream("src/main/resources/$resourceFileName")
-            resourceAsStream.use { stream ->
-                properties.load(stream)
-            }
-            properties
-        } catch (_: IOException) {
-            null
-        }
+        // Resource loading is provided by platform-specific backends in later slices.
+        return null
     }
 }

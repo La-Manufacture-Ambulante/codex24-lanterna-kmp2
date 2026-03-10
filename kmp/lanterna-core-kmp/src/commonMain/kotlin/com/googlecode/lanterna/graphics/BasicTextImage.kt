@@ -22,11 +22,11 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
-import java.util.Arrays
+import com.googlecode.lanterna.internal.compat.Arrays
 
 /**
  * Simple implementation of TextImage that keeps the content as a two-dimensional TextCharacter array. Copy operations
- * between two BasicTextImage classes are semi-optimized by using System.arraycopy instead of iterating over each
+ * between two BasicTextImage classes are semi-optimized by using com.googlecode.lanterna.internal.compat.System.arraycopy instead of iterating over each
  * character and copying them over one by one.
  * @author martin
  */
@@ -194,7 +194,7 @@ class BasicTextImage private constructor(
             var targetRow = dstRowOffset
             var y = srcStartRow
             while (y < srcStartRow + srcRows && targetRow < targetSize.rows) {
-                System.arraycopy(
+                com.googlecode.lanterna.internal.compat.System.arraycopy(
                     buffer[y],
                     srcStartColumn,
                     target.buffer[targetRow++],

@@ -305,7 +305,7 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?> protected construc
             val activeListBox = listBox ?: return
 
             val themeDefinition: ThemeDefinition =
-                activeListBox.theme?.getDefinition(AbstractListBox::class.java) ?: return
+                activeListBox.theme?.getDefinition(AbstractListBox::class) ?: return
             val componentHeight = activeGraphics.size?.rows ?: 0
             val selectedIndex = activeListBox.getSelectedIndex()
             val items = activeListBox.getItems()
@@ -378,7 +378,7 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?> protected construc
         ) {
             val activeGraphics = graphics ?: return
             val activeListBox = listBox ?: return
-            val themeDefinition = activeListBox.theme?.getDefinition(AbstractListBox::class.java) ?: return
+            val themeDefinition = activeListBox.theme?.getDefinition(AbstractListBox::class) ?: return
             if (selected && focused) {
                 activeGraphics.applyThemeStyle(themeDefinition.selected)
             } else {

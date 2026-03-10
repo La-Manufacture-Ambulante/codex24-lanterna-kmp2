@@ -20,6 +20,7 @@ package com.googlecode.lanterna.graphics
 
 import com.googlecode.lanterna.gui2.WindowDecorationRenderer
 import com.googlecode.lanterna.gui2.WindowPostRenderer
+import kotlin.reflect.KClass
 
 /**
  * The main theme interface, from which you can retrieve theme definitions
@@ -56,5 +57,5 @@ import com.googlecode.lanterna.gui2.WindowPostRenderer
  * @param clazz Class to get the theme definition for
  * @return The ThemeDefinition for the class passed in
  */
-     fun getDefinition(clazz:Class<*>?):ThemeDefinition? 
+     fun getDefinition(clazz: KClass<*>?):ThemeDefinition? 
 }

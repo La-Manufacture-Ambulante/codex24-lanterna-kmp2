@@ -29,11 +29,11 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.screen.TabBehaviour
 import com.googlecode.lanterna.terminal.AbstractTerminal
 import kotlin.collections.ArrayList
-import java.util.EnumSet
-import java.util.TreeSet
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
+import com.googlecode.lanterna.internal.compat.EnumSet
+import com.googlecode.lanterna.internal.compat.TreeSet
+import com.googlecode.lanterna.internal.compat.BlockingQueue
+import com.googlecode.lanterna.internal.compat.LinkedBlockingQueue
+import com.googlecode.lanterna.internal.compat.TimeUnit
 
 class DefaultVirtualTerminal
 constructor(private var internalTerminalSize: TerminalSize? = TerminalSize(80, 24)) : AbstractTerminal(), VirtualTerminal {
@@ -47,7 +47,7 @@ constructor(private var internalTerminalSize: TerminalSize? = TerminalSize(80, 2
     private var backlogSize: Int = 1000
 
     private val inputQueue: BlockingQueue<KeyStroke> = LinkedBlockingQueue()
-    private val activeModifiers: EnumSet<SGR> = EnumSet.noneOf(SGR::class.java)
+    private val activeModifiers: EnumSet<SGR> = EnumSet.noneOf(SGR::class)
     private var activeForegroundColor: TextColor = TextColor.ANSI.DEFAULT
     private var activeBackgroundColor: TextColor = TextColor.ANSI.DEFAULT
 
@@ -186,7 +186,10 @@ constructor(private var internalTerminalSize: TerminalSize? = TerminalSize(80, 2
         activeBackgroundColor = color ?: TextColor.ANSI.DEFAULT
     }
 
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray = javaClass.name.toByteArray()
+    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray {
+        val name = this::class.qualifiedName ?: this::class.simpleName ?: "DefaultVirtualTerminal"
+        return name.encodeToByteArray()
+    }
 
     override fun bell() {
         for (listener in listeners) {
@@ -211,7 +214,7 @@ constructor(private var internalTerminalSize: TerminalSize? = TerminalSize(80, 2
     override fun readInput(): KeyStroke {
         try {
             return inputQueue.take()
-        } catch (e: InterruptedException) {
+        } catch (e: Throwable) {
             throw RuntimeException("Unexpected interrupt", e)
         }
     }

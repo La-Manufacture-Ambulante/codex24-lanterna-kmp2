@@ -24,8 +24,8 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.screen.TabBehaviour
-import java.util.Arrays
-import java.util.EnumSet
+import com.googlecode.lanterna.internal.compat.Arrays
+import com.googlecode.lanterna.internal.compat.EnumSet
 
 /**
  * TextGraphics implementation that does nothing, but has a pre-defined size.
@@ -35,7 +35,7 @@ internal class NullTextGraphics(override val size: TerminalSize?) : TextGraphics
     override var backgroundColor: TextColor? = TextColor.ANSI.DEFAULT
     override var tabBehaviour: TabBehaviour? = TabBehaviour.ALIGN_TO_COLUMN_4
 
-    private val styleSet: EnumSet<SGR> = EnumSet.noneOf(SGR::class.java)
+    private val styleSet: EnumSet<SGR> = EnumSet.noneOf(SGR::class)
 
     override val activeModifiers: EnumSet<SGR>
         get() = EnumSet.copyOf(styleSet)

@@ -19,7 +19,7 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.bundle.LocalizedUIBundle
-import java.util.Locale
+import com.googlecode.lanterna.internal.compat.Locale
 
 /**
  * Set of predefined localized string.

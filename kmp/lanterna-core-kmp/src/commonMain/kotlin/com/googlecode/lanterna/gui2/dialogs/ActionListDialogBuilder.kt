@@ -2,7 +2,7 @@ package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.TerminalSize
 import kotlin.collections.ArrayList
-import java.util.Arrays
+import com.googlecode.lanterna.internal.compat.Arrays
 
 /**
  * Dialog builder for the [ActionListDialog] class.

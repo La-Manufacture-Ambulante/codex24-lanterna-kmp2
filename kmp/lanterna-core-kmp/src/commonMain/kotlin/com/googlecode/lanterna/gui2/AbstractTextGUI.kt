@@ -26,7 +26,7 @@ import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.internal.io.EOFException
 import com.googlecode.lanterna.internal.io.IOException
-import java.util.concurrent.CopyOnWriteArrayList
+import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
 
 /**
  * Abstract implementation of [TextGUI] with shared screen/input logic.

@@ -37,7 +37,7 @@ class ProgressBar constructor(min: Int = 0, max: Int = 100, preferredWidth: Int 
     val formattedLabel: String
         get() {
             val format = labelFormat ?: return ""
-            return String.format(format, progress * 100.0f)
+            return formatPercent(format, progress * 100.0f)
         }
 
     init {
@@ -127,7 +127,7 @@ class ProgressBar constructor(min: Int = 0, max: Int = 100, preferredWidth: Int 
 
             val labelFormat = progressBar.getLabelFormat()
             return if (labelFormat != null && labelFormat.trim().isNotEmpty()) {
-                TerminalSize(TerminalTextUtils.getColumnWidth(String.format(labelFormat, 100.0f)) + 2, 1)
+                TerminalSize(TerminalTextUtils.getColumnWidth(formatPercent(labelFormat, 100.0f)) + 2, 1)
             } else {
                 TerminalSize(10, 1)
             }
@@ -295,6 +295,16 @@ class ProgressBar constructor(min: Int = 0, max: Int = 100, preferredWidth: Int 
                 if (size.columns > 3) {
                     g.setCharacter(size.columns - 2, rowOffset, Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER)
                 }
+            }
+        }
+    }
+
+    companion object {
+        private fun formatPercent(format: String, value: Float): String {
+            return if (format.contains("f")) {
+                "${value.toInt()}%"
+            } else {
+                format.replace("%s", value.toString())
             }
         }
     }

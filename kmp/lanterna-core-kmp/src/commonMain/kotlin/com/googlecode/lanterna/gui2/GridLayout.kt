@@ -21,10 +21,10 @@ package com.googlecode.lanterna.gui2
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import kotlin.collections.ArrayList
-import java.util.IdentityHashMap
-import java.util.LinkedList
-import java.util.Queue
-import java.util.TreeSet
+import com.googlecode.lanterna.internal.compat.IdentityHashMap
+import com.googlecode.lanterna.internal.compat.LinkedList
+import com.googlecode.lanterna.internal.compat.Queue
+import com.googlecode.lanterna.internal.compat.TreeSet
 
 /**
  * This emulates the behaviour of the GridLayout in SWT (as opposed to the one in AWT/Swing). I originally ported the

@@ -31,7 +31,7 @@ import com.googlecode.lanterna.gui2.InteractableLookupMap
 import com.googlecode.lanterna.gui2.TextGUIGraphics
 import com.googlecode.lanterna.input.KeyStroke
 import kotlin.collections.ArrayList
-import java.util.concurrent.CopyOnWriteArrayList
+import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
 
 /**
  * A menu bar offering drop-down menus.

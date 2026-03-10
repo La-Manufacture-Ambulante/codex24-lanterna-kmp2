@@ -24,9 +24,9 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.InputProvider
-import java.io.Closeable
+import com.googlecode.lanterna.internal.compat.Closeable
 import com.googlecode.lanterna.internal.io.IOException
-import java.util.concurrent.TimeUnit
+import com.googlecode.lanterna.internal.compat.TimeUnit
 
 interface Terminal : InputProvider, Closeable {
     @Throws(IOException::class)
@@ -41,8 +41,6 @@ interface Terminal : InputProvider, Closeable {
     @Throws(IOException::class)
     fun setCursorPosition(x: Int, y: Int)
 
-    @get:Throws(IOException::class)
-    @set:Throws(IOException::class)
     var cursorPosition: TerminalPosition?
 
     @Throws(IOException::class)
@@ -76,7 +74,6 @@ interface Terminal : InputProvider, Closeable {
 
     fun removeResizeListener(listener: TerminalResizeListener?)
 
-    @get:Throws(IOException::class)
     val terminalSize: TerminalSize?
 
     @Throws(IOException::class)

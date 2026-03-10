@@ -9,8 +9,8 @@ import com.googlecode.lanterna.gui2.LocalizedString
 import com.googlecode.lanterna.gui2.Panel
 import com.googlecode.lanterna.gui2.TextBox
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
-import java.math.BigInteger
-import java.util.regex.Pattern
+import com.googlecode.lanterna.internal.compat.BigInteger
+import com.googlecode.lanterna.internal.compat.Pattern
 
 /**
  * Modal text input dialog that prompts the user to enter a text string.

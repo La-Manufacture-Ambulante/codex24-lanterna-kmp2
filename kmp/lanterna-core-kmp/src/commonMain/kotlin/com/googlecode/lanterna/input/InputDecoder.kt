@@ -19,11 +19,11 @@
 package com.googlecode.lanterna.input
 
 import com.googlecode.lanterna.input.CharacterPattern.Matching
-
-import java.io.BufferedReader
+import com.googlecode.lanterna.internal.compat.synchronizedCompat
+import com.googlecode.lanterna.internal.compat.BufferedReader
+import com.googlecode.lanterna.internal.concurrency.sleepCurrentThread
 import com.googlecode.lanterna.internal.io.IOException
-import java.io.Reader
-import java.util.*
+import com.googlecode.lanterna.internal.compat.Reader
 
 /**
  * Used to read the input stream character by character and generate `Key` objects to be put in the input queue.
@@ -47,7 +47,7 @@ private var timeoutUnits:Int = 0
  */
      val patterns:Collection<CharacterPattern>
 get() {
-synchronized (bytePatterns) {
+synchronizedCompat(bytePatterns) {
 return ArrayList(bytePatterns)
 }
 }
@@ -68,7 +68,7 @@ this.timeoutUnits = 0 // default is no wait at all
      fun addProfile(profile:KeyDecodingProfile) {
 for (pattern in profile.patterns)
 {
-synchronized (bytePatterns) {
+synchronizedCompat(bytePatterns) {
  //If an equivalent pattern already exists, remove it first
                 bytePatterns.remove(pattern)
 bytePatterns.add(pattern)
@@ -82,7 +82,7 @@ bytePatterns.add(pattern)
  * @return `true` if the supplied pattern was found and was removed, otherwise `false`
  */
      fun removePattern(pattern:CharacterPattern?):Boolean {
-synchronized (bytePatterns) {
+synchronizedCompat(bytePatterns) {
 return bytePatterns.remove(pattern)
 }
 }
@@ -146,9 +146,9 @@ while (timeout > 0 && !source!!.ready())
 try
 {
 timeout--
-Thread.sleep(250)
+sleepCurrentThread(250)
 }
-catch (e:InterruptedException) {
+catch (e: Throwable) {
 timeout = 0
 }
 
@@ -249,7 +249,7 @@ return bestMatch
 private fun getBestMatch(characterSequence:List<Char>?):Matching {
 var partialMatch = false
 var bestMatch:KeyStroke? = null
-synchronized (bytePatterns) {
+synchronizedCompat(bytePatterns) {
 for (pattern in bytePatterns)
 {
 val res = pattern.match(characterSequence)

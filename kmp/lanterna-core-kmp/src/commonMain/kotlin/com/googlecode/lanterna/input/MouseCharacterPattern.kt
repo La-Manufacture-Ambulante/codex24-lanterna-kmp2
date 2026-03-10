@@ -19,9 +19,8 @@
 package com.googlecode.lanterna.input
 
 import com.googlecode.lanterna.TerminalPosition
-import java.util.regex.Matcher
-import java.util.regex.Pattern
-import java.util.stream.Collectors
+import com.googlecode.lanterna.internal.compat.Matcher
+import com.googlecode.lanterna.internal.compat.Pattern
 
 /**
  * Pattern used to detect Xterm-protocol mouse events coming in on the standard input channel
@@ -84,7 +83,7 @@ var altDown = false
 var ctrlDown = false
 
  // Get the button
-            val item = Integer.valueOf(matcher!!.group(1))
+            val item = com.googlecode.lanterna.internal.compat.Integer.valueOf(matcher!!.group(1))
 var button = 0
 
  // if the 6th bit is set, then it's a wheel event then we check the 1st bit to know if it's up or down
@@ -174,7 +173,7 @@ actionType = MouseActionType.MOVE
  // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
             // Get the position
-            val pos = TerminalPosition(Integer.valueOf(matcher!!.group(2)) - 1, Integer.valueOf(matcher!!.group(3)) - 1)
+            val pos = TerminalPosition(com.googlecode.lanterna.internal.compat.Integer.valueOf(matcher!!.group(2)) - 1, com.googlecode.lanterna.internal.compat.Integer.valueOf(matcher!!.group(3)) - 1)
 
 val ma = MouseAction(actionType, button, pos, ctrlDown, altDown, shiftDown)
 return CharacterPattern.Matching(ma) // yep

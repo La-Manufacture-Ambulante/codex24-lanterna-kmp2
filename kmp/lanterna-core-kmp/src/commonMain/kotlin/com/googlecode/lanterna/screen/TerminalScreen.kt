@@ -30,8 +30,8 @@ import com.googlecode.lanterna.terminal.Terminal
 import com.googlecode.lanterna.terminal.TerminalResizeListener
 import com.googlecode.lanterna.internal.io.IOException
 import kotlin.Comparator
-import java.util.EnumSet
-import java.util.TreeMap
+import com.googlecode.lanterna.internal.compat.EnumSet
+import com.googlecode.lanterna.internal.compat.TreeMap
 
 class TerminalScreen constructor(
     val terminal: Terminal,
@@ -228,7 +228,7 @@ class TerminalScreen constructor(
         terminal.resetColorAndSGR()
         scrollHint = null
 
-        val currentSGR = EnumSet.noneOf(SGR::class.java)
+        val currentSGR = EnumSet.noneOf(SGR::class)
         var currentForegroundColor: TextColor? = TextColor.ANSI.DEFAULT
         var currentBackgroundColor: TextColor? = TextColor.ANSI.DEFAULT
         val currentTerminalSize = terminalSize ?: return

@@ -2,7 +2,7 @@ package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.LocalizedString
-import java.io.File
+import com.googlecode.lanterna.internal.compat.File
 
 /**
  * Dialog builder for the [FileDialog] class.

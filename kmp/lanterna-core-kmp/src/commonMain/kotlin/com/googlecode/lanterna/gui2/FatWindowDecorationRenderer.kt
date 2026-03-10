@@ -37,7 +37,7 @@ class FatWindowDecorationRenderer : WindowDecorationRenderer {
             title = " ${title.trim()} "
         }
 
-        val themeDefinition = window.theme!!.getDefinition(FatWindowDecorationRenderer::class.java)!!
+        val themeDefinition = window.theme!!.getDefinition(FatWindowDecorationRenderer::class)!!
         val horizontalLine = themeDefinition.getCharacter("HORIZONTAL_LINE", Symbols.SINGLE_LINE_HORIZONTAL)
         val verticalLine = themeDefinition.getCharacter("VERTICAL_LINE", Symbols.SINGLE_LINE_VERTICAL)
         val bottomLeftCorner = themeDefinition.getCharacter("BOTTOM_LEFT_CORNER", Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER)

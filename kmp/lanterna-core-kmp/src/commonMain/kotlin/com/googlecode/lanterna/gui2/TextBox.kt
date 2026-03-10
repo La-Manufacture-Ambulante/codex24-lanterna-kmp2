@@ -29,7 +29,7 @@ import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
 import kotlin.collections.ArrayList
-import java.util.regex.Pattern
+import com.googlecode.lanterna.internal.compat.Pattern
 
 /**
  * Editable text component supporting single-line and multi-line modes.
@@ -156,7 +156,7 @@ open class TextBox constructor(
                 }
                 addLine(line.substring(i + 1))
                 return this
-            } else if (Character.isISOControl(c)) {
+            } else if (com.googlecode.lanterna.internal.compat.Character.isISOControl(c)) {
                 continue
             }
             bob.append(c)
@@ -182,11 +182,11 @@ open class TextBox constructor(
                 setText("")
                 return this
             }
-            throw ArrayIndexOutOfBoundsException("Cannot remove line $lineIndex from a single-line TextBox")
+            throw IndexOutOfBoundsException("Cannot remove line $lineIndex from a single-line TextBox")
         }
 
         if (lineIndex < 0 || lineIndex >= lines.size) {
-            throw ArrayIndexOutOfBoundsException("Invalid line index for TextBox with ${lines.size} lines: $lineIndex")
+            throw IndexOutOfBoundsException("Invalid line index for TextBox with ${lines.size} lines: $lineIndex")
         }
         lines.removeAt(lineIndex)
         when {

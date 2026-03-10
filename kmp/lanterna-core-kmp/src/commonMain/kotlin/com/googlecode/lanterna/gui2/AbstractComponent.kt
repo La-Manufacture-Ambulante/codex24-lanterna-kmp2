@@ -57,7 +57,9 @@ abstract class AbstractComponent<T : Component?> : Component {
             if ((themeRenderer == null && basePane != null) ||
                 (themeRenderer != null && currentTheme !== themeRenderersTheme)
             ) {
-                themeRenderer = currentTheme?.getDefinition(javaClass)?.getRenderer(selfClass())
+                @Suppress("UNCHECKED_CAST")
+                val rendererFromTheme = currentTheme?.getDefinition(this::class)?.getRenderer(selfClass())
+                themeRenderer = rendererFromTheme as ComponentRenderer<T?>?
                 if (themeRenderer != null) {
                     themeRenderersTheme = currentTheme
                 }
@@ -69,7 +71,7 @@ abstract class AbstractComponent<T : Component?> : Component {
             if (defaultRenderer == null) {
                 defaultRenderer = createDefaultRenderer()
                 if (defaultRenderer == null) {
-                    throw IllegalStateException("$javaClass returned a null default renderer")
+                    throw IllegalStateException("${this::class} returned a null default renderer")
                 }
             }
             return defaultRenderer
@@ -111,7 +113,7 @@ abstract class AbstractComponent<T : Component?> : Component {
         }
 
     override open val themeDefinition: ThemeDefinition?
-        get() = theme?.getDefinition(javaClass)
+        get() = theme?.getDefinition(this::class)
 
     override open val basePane: BasePane?
         get() = parent?.basePane
@@ -271,7 +273,7 @@ abstract class AbstractComponent<T : Component?> : Component {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun selfClass(): Class<T?> {
-        return javaClass as Class<T?>
+    private fun selfClass(): kotlin.reflect.KClass<out Component> {
+        return this::class as kotlin.reflect.KClass<out Component>
     }
 }

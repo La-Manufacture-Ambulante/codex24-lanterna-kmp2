@@ -24,7 +24,7 @@ import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.graphics.Scrollable
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.InputProvider
-import java.io.Closeable
+import com.googlecode.lanterna.internal.compat.Closeable
 import com.googlecode.lanterna.internal.io.IOException
 
 interface Screen : InputProvider, Scrollable, Closeable {

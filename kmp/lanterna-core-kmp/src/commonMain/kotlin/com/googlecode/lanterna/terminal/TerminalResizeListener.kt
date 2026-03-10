@@ -34,6 +34,6 @@ import com.googlecode.lanterna.TerminalSize
  * @param terminal Terminal that was resized
  * @param newSize Size of the terminal after the resize
  */
-    @SuppressWarnings("UnusedParameters")
+    @Suppress("unused")
  fun onResized(terminal:Terminal?, newSize:TerminalSize?) 
 }
