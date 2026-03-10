@@ -26,3 +26,6 @@
 
 ## Notes
 - Native target CI (Linux/macOS/Windows Kotlin/Native) is a follow-up after native targets are fully wired in Gradle.
+- Future task capture (2026-03-10):
+  - Task 5 should include publishing both Java and KMP libraries through JitPack.
+  - Windows native target planning should also reference Mordant as an additional inspiration/code-reference source.

@@ -9,6 +9,14 @@ Identify native-progress work from the archived `lanterna` repo that can be reus
 - Task 4: native Linux/macOS
 - Task 6 prep: native Windows interop without JNA
 
+## Saved Future Directives (2026-03-10)
+- Task 5 scope update:
+  - publish both artifacts through JitPack when task 5 is executed:
+    - Java library
+    - KMP library
+- Task 6 scope update:
+  - include Mordant repository as additional reference/inspiration for native Windows target design (`mingwX64`, no JNA).
+
 ## What Was Checked
 - `lanterna/kmp/lanterna-core-kmp/build.gradle.kts`
 - `lanterna/kmp/lanterna-demo-kmp/build.gradle.kts`
@@ -74,4 +82,3 @@ Identify native-progress work from the archived `lanterna` repo that can be reus
 - `gradle -p kmp :lanterna-core-kmp:compileKotlinMacosArm64`
 - `gradle -p kmp :lanterna-core-kmp:compileKotlinLinuxX64`
 - `gradle -p kmp :lanterna-demo-kmp:linkDebugExecutableMacosArm64`
-
