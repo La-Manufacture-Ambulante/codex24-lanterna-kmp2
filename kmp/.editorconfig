@@ -57,9 +57,6 @@ ktlint_standard_function-signature = disabled
 [**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/ComponentRenderer.kt]
 ktlint_standard_function-signature = disabled
 
-[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/InputFilter.kt]
-ktlint_standard_function-signature = disabled
-
 [**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/LayoutManager.kt]
 ktlint_standard_function-signature = disabled
 

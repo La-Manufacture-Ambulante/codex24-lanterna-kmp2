@@ -25,7 +25,7 @@ import com.googlecode.lanterna.input.KeyStroke
  * on to the interactable. It's also possible to fire custom actions for certain keystrokes.
  */
 interface InputFilter {
-/**
+    /**
      * Called when the component is about to receive input from the user and decides if the input should be passed on to
      * the component or not
      * @param interactable Interactable that the input is directed to
