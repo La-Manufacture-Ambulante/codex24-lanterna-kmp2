@@ -1,3 +1,21 @@
+/*
+ * This file is part of lanterna (https://github.com/mabe02/lanterna).
+ *
+ * lanterna is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2010-2020 Martin Berglund
+ */
 package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.TerminalSize
@@ -14,13 +32,14 @@ import com.googlecode.lanterna.gui2.Panels
 import com.googlecode.lanterna.gui2.Separator
 import com.googlecode.lanterna.gui2.TextBox
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
-import com.googlecode.lanterna.input.KeyStroke
 import java.io.File
 import java.util.Arrays
 import java.util.Comparator
 
 /**
  * Dialog that allows the user to iterate the file system and pick file to open/save.
+ *
+ * @author Martin
  */
 class FileDialog(
     title: String?,
@@ -122,11 +141,11 @@ class FileDialog(
         )
         separator.addTo(contentPane)
 
-        okButton = Button(actionLabel, OkHandler()).setAccelerator(KeyStroke.fromString("<a-o>")) ?: Button(actionLabel, OkHandler())
+        okButton = Button(requireNotNull(actionLabel), OkHandler())
         val buttonPanel = Panels.grid(
             2,
             okButton,
-            Button(LocalizedString.Cancel.toString(), CancelHandler()).setAccelerator(KeyStroke.fromString("<a-c>")),
+            Button(LocalizedString.Cancel.toString(), CancelHandler()),
         )
         buttonPanel?.setLayoutData(
             GridLayout.createLayoutData(
@@ -152,6 +171,9 @@ class FileDialog(
         component = contentPane
     }
 
+    /**
+     * The file selected in the dialog, or `null` if the dialog was cancelled.
+     */
     override fun showDialog(textGUI: WindowBasedTextGUI): File? {
         selectedFile = null
         super.showDialog(textGUI)

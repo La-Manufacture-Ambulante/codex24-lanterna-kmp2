@@ -41,7 +41,7 @@ val textBox = TextBox("A")
 
 val mainPanel = Panel(LinearLayout(Direction.VERTICAL))
 mainPanel.addComponent(textBox)
-mainPanel.addComponent(Button("Quit", Runnable({ basicWindow.close() })))
+mainPanel.addComponent(Button("Quit", Runnable { basicWindow.close() }))
 
 basicWindow.setComponent(mainPanel)
 basicWindow.setMenuBar(menuBar)

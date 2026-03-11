@@ -24,7 +24,8 @@ import com.googlecode.lanterna.input.KeyStroke
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Adapter class for [WindowListener].
+ * Adapter class for [WindowListener] to make it easier to create listeners without having to implement every
+ * interface method.
  */
 class WindowListenerAdapter : WindowListener {
     override fun onResized(window: Window?, oldSize: TerminalSize?, newSize: TerminalSize?) {}

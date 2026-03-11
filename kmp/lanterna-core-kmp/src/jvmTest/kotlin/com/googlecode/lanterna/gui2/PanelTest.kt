@@ -24,8 +24,7 @@ import java.io.IOException
 
  class PanelTest:TestBase() {
 
-@Override
- fun init(textGUI:WindowBasedTextGUI) {
+fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("Grid layout test")
 
 val mainPanel = Panel()
@@ -67,7 +66,7 @@ rightPanel.addComponent(panel!!.withBorder(Borders.doubleLine("Title")))
 
 window.setComponent(Panels.vertical(
 mainPanel.withBorder(Borders.singleLine("Main")), 
-Button("OK", Runnable({ window.close() }))))
+Button("OK", Runnable { window.close() })))
 textGUI.addWindow(window)
 }
 

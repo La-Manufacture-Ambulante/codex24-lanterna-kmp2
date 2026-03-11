@@ -116,6 +116,10 @@ abstract class AbstractTheme protected constructor(
         return DefinitionImpl(node)
     }
 
+    /**
+     * Returns redundant theme declarations. A declaration is redundant if the same value already exists in a parent
+     * node and removing the declaration would produce the same effective style.
+     */
     fun findRedundantDeclarations(): List<String?>? {
         val result = ArrayList<String?>()
         for (node in rootNode.childMap.values) {

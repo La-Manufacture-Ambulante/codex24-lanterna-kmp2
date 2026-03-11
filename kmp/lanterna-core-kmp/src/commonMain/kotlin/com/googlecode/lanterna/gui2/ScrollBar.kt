@@ -23,9 +23,19 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.graphics.ThemeDefinition
 
 /**
- * Classic scrollbar that can be used to display where inside a larger component a view is showing.
+ * Classic scrollbar that can be used to display where inside a larger component a view is showing. This implementation
+ * is not interactable and needs to be driven externally, meaning you can't focus on the scrollbar itself, you have to
+ * update its state as part of another component being modified. `ScrollBar`s are either horizontal or vertical,
+ * which affects the way they appear and how they are drawn.
+ *
+ * This class works on two concepts, the min-position-max values and the view size. The minimum value is always 0 and
+ * cannot be changed. The maximum value is 100 and can be adjusted programmatically. Position value is wherever along the
+ * axis of 0 to max the scrollbar's tracker currently is placed. The view size is an important concept, it determines
+ * how big the tracker should be and limits the position so that it can only reach `maximum value - view size`.
+ *
+ * @author Martin
  */
-class ScrollBar(val direction: Direction?) : AbstractComponent<ScrollBar>() {
+class ScrollBar(val direction: Direction) : AbstractComponent<ScrollBar>() {
     private var maximum: Int = 100
     private var scrollPosition: Int = 0
     private var viewSize: Int = 0
@@ -69,12 +79,18 @@ class ScrollBar(val direction: Direction?) : AbstractComponent<ScrollBar>() {
         return DefaultScrollBarRenderer()
     }
 
+    /**
+     * Helper class for making new `ScrollBar` renderers a little bit cleaner.
+     */
     abstract class ScrollBarRenderer : ComponentRenderer<ScrollBar?> {
         override fun getPreferredSize(component: ScrollBar?): TerminalSize {
             return TerminalSize.ONE
         }
     }
 
+    /**
+     * Default renderer for `ScrollBar` which will be used unless overridden.
+     */
     class DefaultScrollBarRenderer : ScrollBarRenderer() {
         private var growScrollTracker: Boolean = true
 

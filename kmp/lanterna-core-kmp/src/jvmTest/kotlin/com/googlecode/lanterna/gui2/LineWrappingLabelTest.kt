@@ -31,7 +31,6 @@ import java.io.IOException
 
 private var windowSize:TerminalSize = TerminalSize(70, 15)
 
-@Override
 protected fun createTextGUI(screen:Screen):MultiWindowTextGUI {
 return MultiWindowTextGUI(
 SeparateTextGUIThread.Factory(), 
@@ -41,8 +40,7 @@ WindowShadowRenderer(),
 EmptySpace(TextColor.ANSI.BLUE))
 }
 
-@Override
- fun init(textGUI:WindowBasedTextGUI) {
+fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("Wrapping label test")
 val contentPane = Panel()
 contentPane.setLayoutManager(BorderLayout())
@@ -50,7 +48,7 @@ contentPane.addComponent(Label("Resize window by holding ctrl and pressing arrow
 val bigTextLabel = Label(BIG_TEXT)
 bigTextLabel.withBorder(Borders.doubleLine())
 contentPane.addComponent(bigTextLabel.setLayoutData(BorderLayout.Location.CENTER))
-contentPane.addComponent(Button("Close", Runnable({ window.close() })).setLayoutData(BorderLayout.Location.BOTTOM))
+contentPane.addComponent(Button("Close", Runnable { window.close() }).setLayoutData(BorderLayout.Location.BOTTOM))
 
 window.setComponent(contentPane)
 

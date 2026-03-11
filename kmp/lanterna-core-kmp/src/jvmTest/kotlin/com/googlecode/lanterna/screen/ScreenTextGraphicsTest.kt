@@ -25,24 +25,20 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.graphics.DoublePrintingTextGraphics
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.graphics.TextGraphicsWriter
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import com.googlecode.lanterna.terminal.Terminal
-import java.io.ByteArrayInputStream
+import com.googlecode.lanterna.terminal.virtual.DefaultVirtualTerminal
 import java.io.IOException
-import java.nio.charset.Charset
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 
 /**
  * 
  * @author sdedic
  */
-@Ignore("Headless screen resource initialization differs in KMP test runtime")
 class ScreenTextGraphicsTest {
 internal var terminal:Terminal? = null
 internal var screen:TerminalScreen? = null
@@ -54,9 +50,7 @@ internal var subSize:TerminalSize = TerminalSize(15, 10)
 @Before
 @Throws(IOException::class)
   fun setUp() {
- // pass empty InputStream, so any read completes immediately.
-terminal = DefaultTerminalFactory(System.out, ByteArrayInputStream(ByteArray(0)), 
-Charset.defaultCharset()).setInitialTerminalSize(TerminalSize(120, 50)).createHeadlessTerminal()
+terminal = DefaultVirtualTerminal(TerminalSize(120, 50))
 screen = TerminalScreen(terminal!!)
 screen!!.startScreen()
 
@@ -67,7 +61,7 @@ subGraphics = textGraphics!!.newTextGraphics(subPosition, subSize)
 @After
 @Throws(Exception::class)
   fun tearDown() {
-screen!!.stopScreen(false)
+screen?.stopScreen(false)
 }
 
 /**

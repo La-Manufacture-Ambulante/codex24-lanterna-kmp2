@@ -39,14 +39,35 @@ import java.net.SocketAddress
 import java.net.SocketTimeoutException
 import java.nio.charset.Charset
 
+/**
+ * This class is used by the `TelnetTerminalServer` class when a client has connected in; this class will be the
+ * interaction point for that client. All operations are sent to the client over the network socket and some of the
+ * meta-operations (like echo mode) are communicated using Telnet negotiation language. You can't create objects of this
+ * class directly; they are created for you when you are listening for incoming connections using a
+ * `TelnetTerminalServer` and a client connects.
+ *
+ * A good resource on telnet communication is http://www.tcpipguide.com/free/t_TelnetProtocol.htm
+ * Also here: http://support.microsoft.com/kb/231866
+ * @see TelnetTerminalServer
+ * @author martin
+ */
 class TelnetTerminal @Throws(IOException::class) private constructor(
     private val socket: Socket,
     inputStream: TelnetClientIACFilterer,
     outputStream: OutputStream,
     terminalCharset: Charset,
 ) : ANSITerminal(inputStream, outputStream, terminalCharset) {
+    /**
+     * Retrieves the current negotiation state with the client, containing details on what options have been enabled
+     * and what the client has said it supports.
+     * @return The current negotiation state for this client
+     */
     val negotiationState: NegotiationState
 
+    /**
+     * Returns the socket address for the remote endpoint of the telnet connection
+     * @return SocketAddress representing the remote client
+     */
     val remoteSocketAddress: SocketAddress
         get() = socket.remoteSocketAddress
 
@@ -108,15 +129,40 @@ class TelnetTerminal @Throws(IOException::class) private constructor(
         socket.close()
     }
 
+    /**
+     * This class contains some of the various states that the Telnet negotiation protocol defines. Lanterna doesn't
+     * support all of them but the more common ones are represented.
+     */
     class NegotiationState internal constructor() {
+        /**
+         * Is the telnet client echo mode turned on (client is echoing characters locally)
+         * @return `true` if client echo is enabled
+         */
         var isClientEcho: Boolean = true
             internal set
+        /**
+         * Is the telnet client line mode 0 turned on (client sends character by character instead of line by line)
+         * @return `true` if client line mode 0 is enabled
+         */
         var isClientLineMode0: Boolean = false
             internal set
+        /**
+         * Is the telnet client resize notification turned on (client notifies server when the terminal window has
+         * changed size)
+         * @return `true` if client resize notification is enabled
+         */
         var isClientResizeNotification: Boolean = false
             internal set
+        /**
+         * Is the telnet client suppress go-ahead turned on
+         * @return `true` if client suppress go-ahead is enabled
+         */
         var isSuppressGoAhead: Boolean = true
             internal set
+        /**
+         * Is the telnet client extended ascii turned on
+         * @return `true` if client extended ascii is enabled
+         */
         var isExtendedAscii: Boolean = true
             internal set
 

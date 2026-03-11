@@ -23,6 +23,21 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.graphics.ThemeDefinition
 
+/**
+ * This GUI element gives a visual indication of how far a process of some sort has progressed at any given time. It's
+ * a classic user interface component that most people are familiar with. It works based on a scale expressed as having
+ * a *minimum*, a *maximum* and a current *value* somewhere along that range. When the current *value* is the same as
+ * the *minimum*, the progress indication is empty, at 0%. If the *value* is the same as the *maximum*, the progress
+ * indication is filled, at 100%. Any *value* in between the *minimum* and the *maximum* will be indicated
+ * proportionally to where on this range between *minimum* and *maximum* it is.
+ *
+ * In order to add a label to the progress bar, for example to print the % completed, this class supports adding a
+ * format specification. This label format, before drawing, will be passed in through a `String.format(..)` with the
+ * current progress of *value* from *minimum* to *maximum* expressed as a `float` passed in as a single vararg
+ * parameter. This parameter will be scaled from 0.0f to 100.0f. By default, the label format is set to "%2.0f%%"
+ * which becomes a simple percentage string when formatted.
+ * @author Martin
+ */
 class ProgressBar @JvmOverloads constructor(min: Int = 0, max: Int = 100, preferredWidth: Int = 0) :
     AbstractComponent<ProgressBar?>() {
     private var min: Int
@@ -31,9 +46,18 @@ class ProgressBar @JvmOverloads constructor(min: Int = 0, max: Int = 100, prefer
     var preferredWidth: Int
     private var labelFormat: String? = "%2.0f%%"
 
+    /**
+     * Returns the current progress of this progress bar's *value* from *minimum* to *maximum*, expressed as a float
+     * from 0.0f to 1.0f.
+     * @return current progress of this progress bar expressed as a float from 0.0f to 1.0f.
+     */
     val progress: Float
         @Synchronized get() = (value - min).toFloat() / max.toFloat()
 
+    /**
+     * Returns the label of this progress bar formatted through `String.format(..)` with the current progress value.
+     * @return The progress bar label formatted with the current progress
+     */
     val formattedLabel: String
         @Synchronized get() {
             val format = labelFormat ?: return ""
@@ -121,6 +145,10 @@ class ProgressBar @JvmOverloads constructor(min: Int = 0, max: Int = 100, prefer
         return DefaultProgressBarRenderer()
     }
 
+    /**
+     * Default implementation of the progress bar GUI component renderer. This renderer will draw the progress bar
+     * on a single line and gradually fill up the space with a different color as the progress is increasing.
+     */
     class DefaultProgressBarRenderer : ComponentRenderer<ProgressBar?> {
         override fun getPreferredSize(component: ProgressBar?): TerminalSize? {
             val progressBar = component ?: return TerminalSize(10, 1)

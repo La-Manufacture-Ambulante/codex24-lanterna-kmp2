@@ -87,7 +87,7 @@ dialogsListBox.addItem("Action list dialog", { ActionListDialogBuilder()
 
 mainPanel.addComponent(dialogsListBox)
 mainPanel.addComponent(EmptySpace(TerminalSize.ONE))
-mainPanel.addComponent(Button("Exit", Runnable({ window.close() })))
+mainPanel.addComponent(Button("Exit", Runnable { window.close() }))
 window.setComponent(mainPanel)
 
 textGUI.addWindowAndWait(window)

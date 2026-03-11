@@ -33,7 +33,22 @@ import java.util.Comparator
 import java.util.EnumSet
 import java.util.TreeMap
 
+/**
+ * This is the default concrete implementation of the Screen interface, a buffered layer sitting on top of a Terminal.
+ * If you want to get started with the Screen layer, this is probably the class you want to use. Remember to start the
+ * screen before you can use it and stop it when you are done with it. This will place the terminal in private mode
+ * during the screen operations and leave private mode afterwards.
+ *
+ * Be aware: directly modifying the underlying terminal will most likely result in unexpected behaviour if you then go
+ * on and try to interact with the Screen. The Screen's back-buffer/front-buffer won't know about those operations and
+ * won't be able to properly generate a refresh unless you enforce a `Screen.RefreshType.COMPLETE`.
+ *
+ * @author martin
+ */
 class TerminalScreen @JvmOverloads constructor(
+    /**
+     * Underlying terminal used by the screen.
+     */
     val terminal: Terminal,
     defaultCharacter: TextCharacter? = Screen.DEFAULT_CHARACTER,
 ) : AbstractScreen(terminal.terminalSize, defaultCharacter) {
@@ -76,6 +91,11 @@ class TerminalScreen @JvmOverloads constructor(
         stopScreen(true)
     }
 
+    /**
+     * Stops the screen and optionally drains pending input before exiting private mode.
+     * @param flushInput If `true`, drain pending input events before stopping
+     * @throws IOException If there was an underlying I/O exception
+     */
     @Synchronized
     @Throws(IOException::class)
     fun stopScreen(flushInput: Boolean) {

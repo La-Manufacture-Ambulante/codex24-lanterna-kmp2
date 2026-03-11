@@ -34,9 +34,18 @@ import java.util.concurrent.ConcurrentHashMap
 object LanternaThemes {
     private val REGISTERED_THEMES = ConcurrentHashMap<String, Theme>()
 
+    /**
+     * Returns a collection of all themes registered with this class, by their name. To get the associated [Theme]
+     * object, please use [getRegisteredTheme].
+     * @return Collection of theme names
+     */
     val registeredThemes: Collection<String?>
         get() = ArrayList(REGISTERED_THEMES.keys)
 
+    /**
+     * Returns lanterna's default theme which is used if no other theme is selected.
+     * @return Lanterna's default theme
+     */
     val defaultTheme: Theme?
         get() = REGISTERED_THEMES["default"]
 
@@ -55,8 +64,18 @@ object LanternaThemes {
         registerPropTheme("blaster", loadPropTheme("blaster-theme.properties"))
     }
 
+    /**
+     * Returns the [Theme] registered with this class under [name], or `null` if there is no such registration.
+     * @param name Name of the theme to retrieve
+     * @return Theme registered with the supplied name, or `null` if none
+     */
     fun getRegisteredTheme(name: String?): Theme? = REGISTERED_THEMES[name]
 
+    /**
+     * Registers a [Theme] with this class under a certain [name].
+     * @param name Name to register the theme under
+     * @param theme Theme to register with this name
+     */
     fun registerTheme(name: String?, theme: Theme?) {
         if (theme == null) {
             throw IllegalArgumentException("Theme cannot be null")
@@ -76,6 +95,10 @@ object LanternaThemes {
         }
     }
 
+    /**
+     * Attempts to load a bundled property theme file from the classpath, falling back to local resources for
+     * development/test execution.
+     */
     private fun loadPropTheme(resourceFileName: String): Properties? {
         val properties = Properties()
         return try {

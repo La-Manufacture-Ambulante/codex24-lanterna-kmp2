@@ -22,12 +22,10 @@ import com.googlecode.lanterna.*
 
 import com.googlecode.lanterna.bundle.LanternaThemes
 import org.junit.Assert
-import org.junit.Ignore
 import org.junit.Test
 
 import java.util.Collections
 
-@Ignore("Theme registry/resource parity is pending in KMP runtime")
 class RedundantThemeDeclarationsTest {
 @Test
   fun noThemeDeclarationsAreRedundant() {

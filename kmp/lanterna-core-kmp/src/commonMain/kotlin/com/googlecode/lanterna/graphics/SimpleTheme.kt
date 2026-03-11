@@ -39,17 +39,22 @@ import com.googlecode.lanterna.gui2.WindowShadowRenderer
 import com.googlecode.lanterna.gui2.table.Table
 import java.util.EnumSet
 import java.util.HashMap
-import java.util.Map
 import java.util.Properties
 
 /**
- * Very basic implementation of [Theme].
+ * Very basic [Theme] implementation that allows quick theme setup directly in code.
+ *
+ * This implementation does not perform class-hierarchy fallback. If a class has no explicit override, it uses the
+ * default definition.
  */
 class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles: SGR?) : Theme {
+    /**
+     * Default definition used whenever no class-specific override is registered.
+     */
     @get:Synchronized
     override val defaultDefinition: Definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
 
-    private val overrideDefinitions: MutableMap<Class<*>, Definition> = HashMap()
+    private val overrideDefinitions: MutableMap<Class<*>?, Definition> = HashMap()
 
     @get:Synchronized
     @set:Synchronized
@@ -61,16 +66,17 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
 
     @Synchronized
     override fun getDefinition(clazz: Class<*>?): Definition {
-        val resolved = if (clazz != null) overrideDefinitions[clazz] else null
+        val resolved = overrideDefinitions[clazz]
         return resolved ?: defaultDefinition
     }
 
+    /**
+     * Adds or replaces a definition override for [clazz].
+     */
     @Synchronized
     fun addOverride(clazz: Class<*>?, foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
         val definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
-        if (clazz != null) {
-            overrideDefinitions[clazz] = definition
-        }
+        overrideDefinitions[clazz] = definition
         return definition
     }
 
@@ -90,6 +96,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         fun getRenderer(type: Class<T?>?): ComponentRenderer<T?>?
     }
 
+    /**
+     * Mutable [ThemeDefinition] used by [SimpleTheme].
+     */
     class Definition constructor(override val normal: ThemeStyle?) : ThemeDefinition {
         private var preLightBacking: ThemeStyle? = null
         private var selectedBacking: ThemeStyle? = null
@@ -98,13 +107,16 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         private val customStyles: MutableMap<String?, ThemeStyle?> = HashMap()
         private val properties = Properties()
         private val characterMap: MutableMap<String?, Char> = HashMap()
-        private val componentRendererMap: MutableMap<Class<*>, RendererProvider<*>> = HashMap()
+        private val componentRendererMap: MutableMap<Class<*>?, RendererProvider<*>?> = HashMap()
         private var cursorVisible: Boolean = true
 
         @get:Synchronized
         override val preLight: ThemeStyle?
             get() = preLightBacking ?: normal
 
+        /**
+         * Sets style values for the `prelight` state.
+         */
         @Synchronized
         fun setPreLight(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             preLightBacking = DefaultMutableThemeStyle(foreground, background, *styles)
@@ -115,6 +127,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         override val selected: ThemeStyle?
             get() = selectedBacking ?: normal
 
+        /**
+         * Sets style values for the `selected` state.
+         */
         @Synchronized
         fun setSelected(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             selectedBacking = DefaultMutableThemeStyle(foreground, background, *styles)
@@ -125,6 +140,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         override val active: ThemeStyle?
             get() = activeBacking ?: normal
 
+        /**
+         * Sets style values for the `active` state.
+         */
         @Synchronized
         fun setActive(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             activeBacking = DefaultMutableThemeStyle(foreground, background, *styles)
@@ -135,6 +153,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         override val insensitive: ThemeStyle?
             get() = insensitiveBacking ?: normal
 
+        /**
+         * Sets style values for the `insensitive` state.
+         */
         @Synchronized
         fun setInsensitive(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             insensitiveBacking = DefaultMutableThemeStyle(foreground, background, *styles)
@@ -151,6 +172,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             return customStyles[name] ?: defaultValue
         }
 
+        /**
+         * Stores a named custom style retrievable through [getCustom].
+         */
         @Synchronized
         fun setCustom(name: String?, foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
             customStyles[name] = DefaultMutableThemeStyle(foreground, background, *styles)
@@ -162,6 +186,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             return Integer.parseInt(properties.getProperty(name, Integer.toString(defaultValue)))
         }
 
+        /**
+         * Stores an integer property retrievable through [getIntegerProperty].
+         */
         @Synchronized
         fun setIntegerProperty(name: String?, value: Int): Definition {
             properties.setProperty(name, Integer.toString(value))
@@ -173,6 +200,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             return java.lang.Boolean.parseBoolean(properties.getProperty(name, java.lang.Boolean.toString(defaultValue)))
         }
 
+        /**
+         * Stores a boolean property retrievable through [getBooleanProperty].
+         */
         @Synchronized
         fun setBooleanProperty(name: String?, value: Boolean): Definition {
             properties.setProperty(name, java.lang.Boolean.toString(value))
@@ -183,6 +213,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         override val isCursorVisible: Boolean
             get() = cursorVisible
 
+        /**
+         * Sets whether this definition prefers showing the text cursor.
+         */
         @Synchronized
         fun setCursorVisible(cursorVisible: Boolean): Definition {
             this.cursorVisible = cursorVisible
@@ -194,6 +227,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             return characterMap[name] ?: fallback
         }
 
+        /**
+         * Stores a named character retrievable through [getCharacter].
+         */
         @Synchronized
         fun setCharacter(name: String?, character: Char): Definition {
             characterMap[name] = character
@@ -203,18 +239,15 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         @Suppress("UNCHECKED_CAST")
         @Synchronized
         override fun <T : Component?> getRenderer(type: Class<T?>?): ComponentRenderer<T?>? {
-            if (type == null) {
-                return null
-            }
             val rendererProvider = componentRendererMap[type] as RendererProvider<T?>?
             return rendererProvider?.getRenderer(type)
         }
 
+        /**
+         * Registers a renderer provider for a specific component type.
+         */
         @Synchronized
         fun <T : Component?> setRenderer(type: Class<T?>?, rendererProvider: RendererProvider<T?>?): Definition {
-            if (type == null) {
-                return this
-            }
             if (rendererProvider == null) {
                 componentRendererMap.remove(type)
             } else {
@@ -226,6 +259,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
     }
 
     companion object {
+        /**
+         * Creates a preconfigured [SimpleTheme] similar to Lanterna's default simple style setup.
+         */
         fun makeTheme(
             activeIsBold: Boolean,
             baseForeground: TextColor?,
