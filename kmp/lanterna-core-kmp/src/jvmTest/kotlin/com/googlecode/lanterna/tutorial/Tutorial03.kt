@@ -53,16 +53,16 @@ screen = TerminalScreen(terminal)
  /*
             Let's turn off the cursor for this tutorial
              */
-            screen!!.setCursorPosition(null)
+            screen!!.cursorPosition = null
 
  /*
             Now let's draw some random content in the screen buffer
              */
             val random = Random()
-var terminalSize = screen!!.getTerminalSize()
-for (column in 0 until terminalSize!!.getColumns())
+var terminalSize = screen!!.terminalSize
+for (column in 0 until terminalSize!!.columns)
 {
-for (row in 0 until terminalSize!!.getRows())
+for (row in 0 until terminalSize!!.rows)
 {
 screen!!.setCharacter(column, row, TextCharacter(
 ' ', 
@@ -108,7 +108,7 @@ break
             while (true)
 {
 val keyStroke = screen!!.pollInput()
-if (keyStroke != null && (keyStroke!!.getKeyType() == KeyType.ESCAPE || keyStroke!!.getKeyType() == KeyType.EOF))
+if (keyStroke != null && (keyStroke!!.keyType == KeyType.ESCAPE || keyStroke!!.keyType == KeyType.EOF))
 {
 break
 }
@@ -136,8 +136,8 @@ for (i in 0 until charactersToModifyPerLoop)
                     We pick a random location
                      */
                         val cellToModify = TerminalPosition(
-random.nextInt(terminalSize!!.getColumns()), 
-random.nextInt(terminalSize!!.getRows()))
+random.nextInt(terminalSize!!.columns), 
+random.nextInt(terminalSize!!.rows))
 
  /*
                     Pick a random background color again
@@ -162,7 +162,7 @@ screen!!.setCharacter(cellToModify, characterInBackBuffer)
                 val sizeLabel = "Terminal Size: " + terminalSize!!
 val labelBoxTopLeft = TerminalPosition(1, 1)
 val labelBoxSize = TerminalSize(sizeLabel.length + 2, 3)
-val labelBoxTopRightCorner = labelBoxTopLeft.withRelativeColumn(labelBoxSize.getColumns() - 1)
+val labelBoxTopRightCorner = labelBoxTopLeft.withRelativeColumn(labelBoxSize.columns - 1)
 val textGraphics = screen!!.newTextGraphics()
  //This isn't really needed as we are overwriting everything below anyway, but just for demonstrative purpose
                 textGraphics!!.fillRectangle(labelBoxTopLeft, labelBoxSize, ' ')
@@ -172,11 +172,11 @@ val textGraphics = screen!!.newTextGraphics()
                  */
                 textGraphics!!.drawLine(
 labelBoxTopLeft.withRelativeColumn(1), 
-labelBoxTopLeft.withRelativeColumn(labelBoxSize.getColumns() - 2), 
+labelBoxTopLeft.withRelativeColumn(labelBoxSize.columns - 2), 
 Symbols.DOUBLE_LINE_HORIZONTAL)
 textGraphics!!.drawLine(
 labelBoxTopLeft.withRelativeRow(2)!!.withRelativeColumn(1), 
-labelBoxTopLeft.withRelativeRow(2)!!.withRelativeColumn(labelBoxSize.getColumns() - 2), 
+labelBoxTopLeft.withRelativeRow(2)!!.withRelativeColumn(labelBoxSize.columns - 2), 
 Symbols.DOUBLE_LINE_HORIZONTAL)
 
  /*
