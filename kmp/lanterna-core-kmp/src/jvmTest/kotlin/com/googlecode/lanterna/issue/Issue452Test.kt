@@ -261,7 +261,9 @@ class Issue452Test {
         try {
             clickOnWithRelative(table!!, previousColumnsWidth, positionRow + 1)
             System.out.println(
-                "--- Should not be here, should have thrown and caught exception from prior method call to clickOnWithRelative( table, positionColumn: " + positionColumn + ", x: " + previousColumnsWidth + ", y: " + (positionRow + 1) + ")",
+                "--- Should not be here, should have thrown and caught exception from prior method call to " +
+                    "clickOnWithRelative(table, positionColumn: " +
+                    positionColumn + ", x: " + previousColumnsWidth + ", y: " + (positionRow + 1) + ")",
             )
             fail()
         } catch (e: RunnableExecuted) {

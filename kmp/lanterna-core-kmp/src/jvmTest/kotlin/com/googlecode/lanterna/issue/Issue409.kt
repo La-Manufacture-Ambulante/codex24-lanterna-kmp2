@@ -106,9 +106,10 @@ object Issue409 {
         }
     }
 
-    private class FixedBackgroundTextBoxThemeStyle(definition: ThemeDefinition, private val color: TextColor.ANSI?) : DelegatingThemeDefinition(
-        definition,
-    ) {
+    private class FixedBackgroundTextBoxThemeStyle(
+        definition: ThemeDefinition,
+        private val color: TextColor.ANSI?,
+    ) : DelegatingThemeDefinition(definition) {
         override val normal: ThemeStyle?
             get() {
                 val mutableThemeStyle = DefaultMutableThemeStyle(super.normal!!)
