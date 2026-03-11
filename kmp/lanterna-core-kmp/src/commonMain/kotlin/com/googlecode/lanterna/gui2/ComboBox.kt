@@ -443,7 +443,11 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
             listBox.setSelectedIndex(getSelectedIndex())
             val dropDownListPreferredSize = listBox.preferredSize ?: TerminalSize.ZERO
             if (dropDownNumberOfRows > 0) {
-                listBox.setPreferredSize(dropDownListPreferredSize.withRows(kotlin.math.min(dropDownNumberOfRows, dropDownListPreferredSize.rows)))
+                listBox.setPreferredSize(
+                    dropDownListPreferredSize.withRows(
+                        kotlin.math.min(dropDownNumberOfRows, dropDownListPreferredSize.rows),
+                    ),
+                )
             }
             component = listBox
         }
