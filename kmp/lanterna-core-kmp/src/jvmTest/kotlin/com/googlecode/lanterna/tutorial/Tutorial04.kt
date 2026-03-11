@@ -84,11 +84,16 @@ object Tutorial04 {
             val title = Label("This is a label that spans two columns")
             title.setLayoutData(
                 GridLayout.createLayoutData(
-                    GridLayout.Alignment.BEGINNING, // Horizontal alignment in the grid cell if the cell is larger than the component's preferred size
-                    GridLayout.Alignment.BEGINNING, // Vertical alignment in the grid cell if the cell is larger than the component's preferred size
-                    true, // Give the component extra horizontal space if available
-                    false, // Give the component extra vertical space if available
-                    2, // Horizontal span
+                    // Horizontal alignment in the grid cell if the cell is larger than the component's preferred size
+                    GridLayout.Alignment.BEGINNING,
+                    // Vertical alignment in the grid cell if the cell is larger than the component's preferred size
+                    GridLayout.Alignment.BEGINNING,
+                    // Give the component extra horizontal space if available
+                    true,
+                    // Give the component extra vertical space if available
+                    false,
+                    // Horizontal span
+                    2,
                     1,
                 ),
             ) // Vertical span
