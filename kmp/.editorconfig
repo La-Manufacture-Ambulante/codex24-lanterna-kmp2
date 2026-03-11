@@ -63,9 +63,6 @@ ktlint_standard_function-signature = disabled
 [**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/WindowManager.kt]
 ktlint_standard_function-signature = disabled
 
-[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/table/TableHeaderRenderer.kt]
-ktlint_standard_function-signature = disabled
-
 [**/src/commonMain/kotlin/com/googlecode/lanterna/terminal/swing/TerminalScrollController.kt]
 ktlint_standard_function-signature = disabled
 
