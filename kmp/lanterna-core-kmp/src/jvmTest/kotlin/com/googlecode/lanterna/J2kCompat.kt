@@ -3,7 +3,6 @@ package com.googlecode.lanterna
 import com.googlecode.lanterna.graphics.ThemeStyle
 import com.googlecode.lanterna.gui2.Interactable
 import com.googlecode.lanterna.gui2.Window
-import com.googlecode.lanterna.input.KeyType
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.util.Properties
@@ -11,6 +10,7 @@ import java.util.Properties
 typealias FocusChangeDirection = Interactable.FocusChangeDirection
 typealias Hint = Window.Hint
 typealias Result = Interactable.Result
+typealias KeyType = com.googlecode.lanterna.input.KeyType
 
 val ARROW_UP: KeyType get() = KeyType.ARROW_UP
 val ARROW_DOWN: KeyType get() = KeyType.ARROW_DOWN
@@ -88,6 +88,11 @@ private fun Any.readInt(name: String): Int = (readAny(name) as Number).toInt()
 
 fun String.charAt(index: Int): Char = this[index]
 fun CharSequence.charAt(index: Int): Char = this[index]
+fun Any.toChar(): Char = when (this) {
+    is Char -> this
+    is Number -> toInt().toChar()
+    else -> toString().firstOrNull() ?: '\u0000'
+}
 fun String.replaceAll(regex: String, replacement: String): String = replace(Regex(regex), replacement)
 fun String.getBytes(): ByteArray = encodeToByteArray()
 fun Number.intValue(): Int = toInt()
@@ -109,7 +114,7 @@ fun Any.getBackgroundPane(): Any = readAny("backgroundPane")
 fun Any.getBufferLineCount(): Int = readInt("bufferLineCount")
 fun Any.getCharacter(): Any = readAny("character")
 fun Any.getCharacterString(): Any = readAny("characterString")
-fun Any.getCheckedItem(): Any = readAny("checkedItem")
+fun Any.getCheckedItem(): Any? = readMember("checkedItem")
 fun Any.getChildCount(): Int = readInt("childCount")
 fun Any.getChildren(): Any = readAny("children")
 fun Any.getChildrenList(): Any = readAny("childrenList")
@@ -186,13 +191,19 @@ fun Any.setActive(value: Any?) = writeMember("active", value)
 fun Any.setValidationPattern(value: Any?) = writeMember("validationPattern", value)
 fun Any.setVisible(value: Any?) = writeMember("visible", value)
 fun Any.setWrapBehaviour(value: Any?) = writeMember("wrapBehaviour", value)
+fun Any.setTerminalEmulatorFrameAutoCloseTrigger(value: Any?) = writeMember("terminalEmulatorFrameAutoCloseTrigger", value)
+fun Any.setSelectedIndex(value: Int) = writeMember("selectedIndex", value)
+fun Any.setSelectedItem(value: Any?) = writeMember("selectedItem", value)
 
 fun Any.flush() {
     runCatching { callMember("flush") }.onFailure { runCatching { callMember("refresh") } }
 }
 
 fun Any.read(): Any? = callMember("read")
+fun Any.pollInput(): Any? = callMember("pollInput")
 fun Any.addComponent(component: Any?): Any? = callMember("addComponent", component)
+fun Any.addListener(listener: Any?): Any? = callMember("addListener", listener)
+fun Any.invokeLater(runnable: Runnable): Any? = callMember("invokeLater", runnable)
 fun Any.addRow(vararg values: Any?): Any? = callMember("addRow", *values)
 fun Any.addColumn(vararg values: Any?): Any? = callMember("addColumn", *values)
 fun Any.removeRow(vararg values: Any?): Any? = callMember("removeRow", *values)
@@ -202,6 +213,25 @@ fun Any.withRelative(value: Any?): Any = runCatching { callMember("withRelative"
 fun Any.withRelative(vararg values: Any?): Any = runCatching { callMember("withRelative", *values) }.getOrNull() ?: this
 fun Any.withLineBufferScrollbackSize(value: Int): Any = runCatching { callMember("withLineBufferScrollbackSize", value) }.getOrNull() ?: this
 fun Any.computeDepth(vararg values: Any?): Any? = callMember("computeDepth", *values)
+fun Any.close(): Any? = callMember("close")
+fun Any.exitPrivateMode(): Any? = callMember("exitPrivateMode")
+fun Any.enterPrivateMode(): Any? = callMember("enterPrivateMode")
+fun Any.processEventsAndUpdate(): Any? = callMember("processEventsAndUpdate")
+fun Any.setInitialTerminalSize(size: TerminalSize): Any? = callMember("setInitialTerminalSize", size)
+fun Any.createScreen(): Any? = callMember("createScreen")
+fun Any.createTerminal(): Any? = callMember("createTerminal")
+fun Any.putCharacter(value: Any?): Any? = callMember("putCharacter", value)
+fun Any.addShutdownHook(thread: Thread): Any? = callMember("addShutdownHook", thread)
+fun Any.isVisible(): Boolean = readAny("visible") as Boolean
+
+fun valueOf(name: String): KeyType = valueOf(name)
+fun Collection<*>.toArray(): Array<Any?> = this.toTypedArray()
+fun Collection<*>.toArray(@Suppress("UNUSED_PARAMETER") seed: Array<Any?>): Array<Any?> = this.toTypedArray()
+
+fun TerminalPosition.withRelativeColumn(delta: Int): TerminalPosition = withColumn(column + delta)!!
+fun TerminalPosition.withRelativeRow(delta: Int): TerminalPosition = withRow(row + delta)!!
+fun TerminalSize.withRelativeColumns(delta: Int): TerminalSize = withColumns(columns + delta)
+fun TerminalSize.withRelativeRows(delta: Int): TerminalSize = withRows(rows + delta)
 
 fun Any.start() {
     runCatching { callMember("start") }.onFailure { runCatching { callMember("startScreen") } }

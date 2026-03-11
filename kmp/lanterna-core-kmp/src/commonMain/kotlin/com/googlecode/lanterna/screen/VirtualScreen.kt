@@ -28,14 +28,32 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.internal.io.IOException
 
+/**
+ * VirtualScreen wraps a normal screen and presents it as a screen that has a configurable minimum size; if the real
+ * screen is smaller than this size, the presented screen will add scrolling to get around it. To anyone using this
+ * class, it will appear and behave just as a normal screen. Scrolling is done by using CTRL + arrow keys.
+ *
+ * The use case for this class is to allow you to set a minimum size that you can count on be honored, no matter how
+ * small the user makes the terminal. This should make programming GUIs easier.
+ * @author Martin
+ */
 class VirtualScreen(private val realScreen: Screen) : AbstractScreen(realScreen.terminalSize) {
     private val frameRenderer: FrameRenderer = DefaultFrameRenderer()
     private var minimumSize: TerminalSize? = realScreen.terminalSize
     private var viewportTopLeft: TerminalPosition = TerminalPosition.TOP_LEFT_CORNER
+    /**
+     * Returns the current size of the viewport. This will generally match the dimensions of the underlying terminal.
+     * @return Viewport size for this [VirtualScreen]
+     */
     var viewportSize: TerminalSize? = minimumSize
         private set
     private var scrollWithCTRL = false
 
+    /**
+     * Sets the minimum size we want the virtual screen to have. If the user resizes the real terminal to something
+     * smaller than this, the virtual screen will refuse to make it smaller and add scrollbars to the view.
+     * @param minimumSize Minimum size we want the screen to have
+     */
     fun setMinimumSize(minimumSize: TerminalSize) {
         this.minimumSize = minimumSize
         val virtualSize = minimumSize.max(realScreen.terminalSize ?: minimumSize) ?: minimumSize
@@ -46,8 +64,18 @@ class VirtualScreen(private val realScreen: Screen) : AbstractScreen(realScreen.
         calculateViewport(realScreen.terminalSize ?: minimumSize)
     }
 
+    /**
+     * Returns the minimum size this virtual screen can have. If the real terminal is made smaller than this, the
+     * virtual screen will draw scrollbars and implement scrolling
+     * @return Minimum size configured for this virtual screen
+     */
     fun getMinimumSize(): TerminalSize? = minimumSize
 
+    /**
+     * When the viewport is too small, user can scroll using ALT + arrow keys, but ALT can be replaced by CTRL by
+     * calling this method.
+     * @param scrollOnCTRL Scroll using CTRL instead of ALT if set to `true`, ALT if `false`
+     */
     fun setScrollOnCTRL(scrollOnCTRL: Boolean) {
         scrollWithCTRL = scrollOnCTRL
     }
@@ -245,11 +273,32 @@ class VirtualScreen(private val realScreen: Screen) : AbstractScreen(realScreen.
         }
     }
 
+    /**
+     * Interface for rendering the virtual screen's frame when the real terminal is too small for the virtual screen
+     */
     interface FrameRenderer {
+        /**
+         * Given the size of the real terminal and the current size of the virtual screen, how large should the viewport
+         * where the screen content is drawn be?
+         * @param realSize Size of the real terminal
+         * @param virtualSize Size of the virtual screen
+         * @return Size of the viewport where screen content should be drawn
+         */
         fun getViewportSize(realSize: TerminalSize?, virtualSize: TerminalSize?): TerminalSize?
 
+        /**
+         * Returns the top-left coordinate where the viewport starts in the real terminal.
+         * @return Top-left position of the viewport
+         */
         val viewportOffset: TerminalPosition?
 
+        /**
+         * Draws the frame around the viewport.
+         * @param graphics Graphics object for drawing
+         * @param realSize Size of the real terminal
+         * @param virtualSize Size of the virtual screen
+         * @param virtualScrollPosition Current scroll position in the virtual screen
+         */
         fun drawFrame(
             graphics: TextGraphics?,
             realSize: TerminalSize?,

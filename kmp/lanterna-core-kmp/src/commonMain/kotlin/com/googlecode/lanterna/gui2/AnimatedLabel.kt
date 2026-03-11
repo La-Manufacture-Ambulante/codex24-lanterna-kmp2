@@ -26,7 +26,8 @@ import com.googlecode.lanterna.internal.compat.WeakHashMap
 
 /**
  * This is a special label that contains not just a single text to display but a number of frames that are cycled
- * through.
+ * through. The class will manage a timer on its own and ensure the label is updated and redrawn. There is a static
+ * helper method available to create the classic "spinning bar": `createClassicSpinningLine()`
  */
 class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
     private val frames: MutableList<Array<String>> = ArrayList()
@@ -34,7 +35,7 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
     private var currentFrame: Int = 0
 
     init {
-        val lines = splitIntoMultipleLines(firstFrameText ?: "")
+        val lines = splitIntoMultipleLines(firstFrameText!!)
         frames.add(lines)
         ensurePreferredSize(lines)
     }
@@ -60,7 +61,7 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
         if (currentFrame >= frames.size) {
             currentFrame = 0
         }
-        super.lines = frames[currentFrame]
+        setLines(frames[currentFrame])
         invalidate()
     }
 

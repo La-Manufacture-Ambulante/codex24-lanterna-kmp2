@@ -19,7 +19,9 @@
 package com.googlecode.lanterna.input
 
 /**
- * Character pattern that matches characters pressed while ALT and CTRL are held down.
+ * Character pattern that matches characters pressed while ALT and CTRL keys are held down.
+ *
+ * @author Martin, Andreas
  */
 class CtrlAltAndCharacterPattern : CharacterPattern {
     override fun match(seq: List<Char>?): CharacterPattern.Matching? {
@@ -33,6 +35,7 @@ class CtrlAltAndCharacterPattern : CharacterPattern {
         }
 
         val ch = sequence[1]
+        // Control-chars: exclude Esc(^[), but still include ^\, ^], ^^ and ^_
         if (ch.code < 32 && ch != '\b') {
             val ctrlCode = when (ch) {
                 KeyDecodingProfile.ESC_CODE -> return null

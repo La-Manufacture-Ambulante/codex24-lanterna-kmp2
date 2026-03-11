@@ -61,8 +61,7 @@ open class MenuItem constructor(
     }
 
     override fun handleKeyStroke(keyStroke: KeyStroke): com.googlecode.lanterna.gui2.Interactable.Result? {
-        if (isActivationStroke(keyStroke) || isKeyboardAcceleratorStroke(keyStroke)) {
-            takeFocus()
+        if (isActivationStroke(keyStroke)) {
             if (onActivated()) {
                 val activeBasePane: BasePane? = basePane
                 if (activeBasePane is Window && activeBasePane.hints.orEmpty().contains(Window.Hint.MENU_POPUP)) {

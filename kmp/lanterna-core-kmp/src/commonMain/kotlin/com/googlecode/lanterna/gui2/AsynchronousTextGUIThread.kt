@@ -19,6 +19,9 @@
 package com.googlecode.lanterna.gui2
 
 interface AsynchronousTextGUIThread : TextGUIThread {
+    /**
+     * Starts the AsynchronousTextGUIThread, typically meaning that the event processing loop will start.
+     */
     fun start()
 
     fun stop()
@@ -29,10 +32,25 @@ interface AsynchronousTextGUIThread : TextGUIThread {
 
     val state: State
 
+    /**
+     * Enum representing the states of the GUI thread life-cycle
+     */
     enum class State {
+        /**
+         * The instance has been created but not yet started
+         */
         CREATED,
+        /**
+         * The thread has started an is running
+         */
         STARTED,
+        /**
+         * The thread is trying to stop but is still running
+         */
         STOPPING,
+        /**
+         * The thread has stopped
+         */
         STOPPED,
     }
 }

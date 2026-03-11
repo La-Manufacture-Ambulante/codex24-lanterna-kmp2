@@ -236,11 +236,6 @@ open class TextBox constructor(
             return bob.toString()
         }
 
-    fun getTextOrDefault(defaultValueIfEmpty: String): String {
-        val text = text
-        return if (text.isEmpty()) defaultValueIfEmpty else text
-    }
-
     fun getMask(): Char? = mask
 
     fun setMask(mask: Char?): TextBox {

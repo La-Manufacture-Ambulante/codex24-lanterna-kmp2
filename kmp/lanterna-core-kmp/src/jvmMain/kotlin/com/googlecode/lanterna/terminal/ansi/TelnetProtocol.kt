@@ -20,18 +20,22 @@ package com.googlecode.lanterna.terminal.ansi
 
 import java.util.Collections
 
+/**
+ * Contains the telnet protocol commands, although not a complete set.
+ * @author Martin
+ */
 internal object TelnetProtocol {
-    const val COMMAND_SUBNEGOTIATION_END: Byte = 0xf0.toByte()
-    const val COMMAND_NO_OPERATION: Byte = 0xf1.toByte()
-    const val COMMAND_DATA_MARK: Byte = 0xf2.toByte()
-    const val COMMAND_BREAK: Byte = 0xf3.toByte()
-    const val COMMAND_INTERRUPT_PROCESS: Byte = 0xf4.toByte()
-    const val COMMAND_ABORT_OUTPUT: Byte = 0xf5.toByte()
-    const val COMMAND_ARE_YOU_THERE: Byte = 0xf6.toByte()
-    const val COMMAND_ERASE_CHARACTER: Byte = 0xf7.toByte()
-    const val COMMAND_ERASE_LINE: Byte = 0xf8.toByte()
-    const val COMMAND_GO_AHEAD: Byte = 0xf9.toByte()
-    const val COMMAND_SUBNEGOTIATION: Byte = 0xfa.toByte()
+    const val COMMAND_SUBNEGOTIATION_END: Byte = 0xf0.toByte() // SE
+    const val COMMAND_NO_OPERATION: Byte = 0xf1.toByte() // NOP
+    const val COMMAND_DATA_MARK: Byte = 0xf2.toByte() // DM
+    const val COMMAND_BREAK: Byte = 0xf3.toByte() // BRK
+    const val COMMAND_INTERRUPT_PROCESS: Byte = 0xf4.toByte() // IP
+    const val COMMAND_ABORT_OUTPUT: Byte = 0xf5.toByte() // AO
+    const val COMMAND_ARE_YOU_THERE: Byte = 0xf6.toByte() // AYT
+    const val COMMAND_ERASE_CHARACTER: Byte = 0xf7.toByte() // EC
+    const val COMMAND_ERASE_LINE: Byte = 0xf8.toByte() // WL
+    const val COMMAND_GO_AHEAD: Byte = 0xf9.toByte() // GA
+    const val COMMAND_SUBNEGOTIATION: Byte = 0xfa.toByte() // SB
     const val COMMAND_WILL: Byte = 0xfb.toByte()
     const val COMMAND_WONT: Byte = 0xfc.toByte()
     const val COMMAND_DO: Byte = 0xfd.toByte()

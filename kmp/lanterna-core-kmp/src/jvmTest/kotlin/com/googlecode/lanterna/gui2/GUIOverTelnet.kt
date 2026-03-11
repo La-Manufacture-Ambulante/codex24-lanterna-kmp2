@@ -27,7 +27,7 @@ import java.net.SocketException
 
 object GUIOverTelnet {
     @Throws(IOException::class)
-    @JvmStatic
+    
     fun main(args: Array<String?>?) {
         val telnetTerminalServer = TelnetTerminalServer(1024)
         println("Listening on port 1024, please connect with a telnet client")

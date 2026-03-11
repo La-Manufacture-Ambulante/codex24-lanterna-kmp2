@@ -94,20 +94,18 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
     fun getTableCellRenderer(): TableCellRenderer<V?> = tableCellRenderer
 
     fun setTableCellRenderer(tableCellRenderer: TableCellRenderer<V?>?): Table<V?> {
-        if (tableCellRenderer != null) {
-            this.tableCellRenderer = tableCellRenderer
-            invalidate()
-        }
+        requireNotNull(tableCellRenderer) { "Cannot assign a null TableCellRenderer" }
+        this.tableCellRenderer = tableCellRenderer
+        invalidate()
         return self()
     }
 
     fun getTableHeaderRenderer(): TableHeaderRenderer<V?> = tableHeaderRenderer
 
     fun setTableHeaderRenderer(tableHeaderRenderer: TableHeaderRenderer<V?>?): Table<V?> {
-        if (tableHeaderRenderer != null) {
-            this.tableHeaderRenderer = tableHeaderRenderer
-            invalidate()
-        }
+        requireNotNull(tableHeaderRenderer) { "Cannot assign a null TableHeaderRenderer" }
+        this.tableHeaderRenderer = tableHeaderRenderer
+        invalidate()
         return self()
     }
 

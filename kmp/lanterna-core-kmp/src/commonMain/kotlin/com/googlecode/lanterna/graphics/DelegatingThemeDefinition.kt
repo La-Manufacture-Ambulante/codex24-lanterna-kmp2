@@ -23,7 +23,17 @@ import com.googlecode.lanterna.gui2.ComponentRenderer
 import kotlin.reflect.KClass
 
 /**
- * Allows you to more easily wrap an existing theme definition and alter behavior.
+ * Allows you to more easily wrap an existing theme definition and alter the behaviour in some special cases. You
+ * normally create a new class that extends from this and override some of the methods to divert the call depending on
+ * what you are trying to do. For an example, please see Issue409 in the test code.
+ *
+ * Creates a new [DelegatingThemeDefinition] with a default implementation that forwards all calls to
+ * [themeDefinition].
+ * @param themeDefinition Other theme definition to delegate all calls to
+ *
+ * @see DelegatingTheme
+ * @see DefaultMutableThemeStyle
+ * @see Theme
  */
 open class DelegatingThemeDefinition(private val themeDefinition: ThemeDefinition) : ThemeDefinition {
     override val normal: ThemeStyle?

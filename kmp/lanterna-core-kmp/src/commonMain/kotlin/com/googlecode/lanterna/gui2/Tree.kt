@@ -58,7 +58,8 @@ class Tree<V>(
         } else {
             var delta = scrollingNode.getDepthTo(selectedNode)
             while (delta-- >= scrollWindowHeight) {
-                scrollingNode = scrollingNode.nextNode() ?: break
+                scrollingNode = scrollingNode.nextNode()
+                    ?: throw IllegalStateException("Unexpected end of tree while updating scrolling node")
             }
         }
     }
@@ -167,7 +168,7 @@ class Tree<V>(
 
     fun selectFirstNode() {
         selectedNode.setFocused(false)
-        val firstNode = if (isDisplayRoot) root else root.children.firstOrNull() ?: root
+        val firstNode = if (isDisplayRoot) root else root.children[0]
         firstNode.setFocused(true)
         selectedNode = firstNode
         scrollingNode = firstNode

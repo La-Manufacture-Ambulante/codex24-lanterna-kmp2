@@ -210,19 +210,19 @@ Separator(Direction.HORIZONTAL).setLayoutData(GridLayout.createHorizontallyFille
 contentPane.addComponent(
 EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
 
-val okButton = Button("OK", { gridLayout.setHorizontalSpacing(Integer.parseInt(textBoxHorizontalSpacing.getTextOrDefault("0")))
-gridLayout.setVerticalSpacing(Integer.parseInt(textBoxVerticalSpacing.getTextOrDefault("0")))
-gridLayout.setLeftMarginSize(Integer.parseInt(textBoxLeftMargin.getTextOrDefault("0")))
-gridLayout.setRightMarginSize(Integer.parseInt(textBoxRightMargin.getTextOrDefault("0")))
-gridLayout.setTopMarginSize(Integer.parseInt(textBoxTopMargin.getTextOrDefault("0")))
-gridLayout.setBottomMarginSize(Integer.parseInt(textBoxBottomMargin.getTextOrDefault("0")))
+val okButton = Button("OK", { gridLayout.setHorizontalSpacing(Integer.parseInt(textBoxHorizontalSpacing.text))
+gridLayout.setVerticalSpacing(Integer.parseInt(textBoxVerticalSpacing.text))
+gridLayout.setLeftMarginSize(Integer.parseInt(textBoxLeftMargin.text))
+gridLayout.setRightMarginSize(Integer.parseInt(textBoxRightMargin.text))
+gridLayout.setTopMarginSize(Integer.parseInt(textBoxTopMargin.text))
+gridLayout.setBottomMarginSize(Integer.parseInt(textBoxBottomMargin.text))
 close() })
 val cancelButton = Button("Cancel", Runnable({ this.close() }))
 
 contentPane.addComponent(
 Panels.horizontal(okButton, cancelButton)
 .setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)))
-setComponent(contentPane)
+this.setComponent(contentPane)
 }
 
 
@@ -245,7 +245,7 @@ radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.BEGINNING)
 radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.CENTER)
 radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.END)
 radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.FILL)
-radioBoxesHorizontalAlignment.setCheckedItem(gridLayoutData!!.horizontalAlignment)
+radioBoxesHorizontalAlignment.checkedItem = gridLayoutData!!.horizontalAlignment
 contentPane.addComponent(radioBoxesHorizontalAlignment)
 
 contentPane.addComponent(
@@ -257,7 +257,7 @@ radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.BEGINNING)
 radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.CENTER)
 radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.END)
 radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.FILL)
-radioBoxesVerticalAlignment.setCheckedItem(gridLayoutData!!.verticalAlignment)
+radioBoxesVerticalAlignment.checkedItem = gridLayoutData!!.verticalAlignment
 contentPane.addComponent(radioBoxesVerticalAlignment)
 
 contentPane.addComponent(
@@ -296,23 +296,23 @@ contentPane.addComponent(
 EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
 
 val okButton = Button("OK", {
-val horizontalAlignment = radioBoxesHorizontalAlignment.getCheckedItem() as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
-val verticalAlignment = radioBoxesVerticalAlignment.getCheckedItem() as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
+val horizontalAlignment = radioBoxesHorizontalAlignment.checkedItem as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
+val verticalAlignment = radioBoxesVerticalAlignment.checkedItem as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
 component.setLayoutData(
 GridLayout.createLayoutData(
 horizontalAlignment, 
 verticalAlignment, 
 checkBoxGrabExtraHorizontalSpace.isChecked(), 
 checkBoxGrabExtraVerticalSpace.isChecked(), 
-Integer.parseInt(textBoxHorizontalSpan.getTextOrDefault("1")), 
-Integer.parseInt(textBoxVerticalSpan.getTextOrDefault("1"))))
+Integer.parseInt(textBoxHorizontalSpan.text), 
+Integer.parseInt(textBoxVerticalSpan.text)))
 close() })
 val cancelButton = Button("Cancel", Runnable({ this.close() }))
 
 contentPane.addComponent(
 Panels.horizontal(okButton, cancelButton)
 .setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)))
-setComponent(contentPane)
+this.setComponent(contentPane)
 }
 }
 

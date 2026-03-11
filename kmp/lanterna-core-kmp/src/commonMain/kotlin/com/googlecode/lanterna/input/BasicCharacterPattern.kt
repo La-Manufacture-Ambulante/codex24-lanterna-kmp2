@@ -20,13 +20,24 @@ package com.googlecode.lanterna.input
 
 
 /**
- * Simple pattern that matches the input stream against a predefined character sequence.
+ * Very simple pattern that matches the input stream against a pre-defined list of characters. For the pattern to
+ * match, the list of characters must match exactly what's coming in on the input stream.
+ *
+ * @author Martin, Andreas
  */
-class BasicCharacterPattern(val result: KeyStroke?, vararg pattern: Char) : CharacterPattern {
+class BasicCharacterPattern(result: KeyStroke?, vararg pattern: Char) : CharacterPattern {
+    private val resultKeyStroke: KeyStroke? = result
     private val pattern: CharArray = pattern
 
     fun getPattern(): CharArray {
         return pattern.copyOf(pattern.size)
+    }
+
+    /**
+     * Returns the keystroke that this pattern results in.
+     */
+    fun getResult(): KeyStroke? {
+        return resultKeyStroke
     }
 
     override fun match(seq: List<Char>?): CharacterPattern.Matching? {
@@ -41,7 +52,7 @@ class BasicCharacterPattern(val result: KeyStroke?, vararg pattern: Char) : Char
             }
         }
         return if (size == pattern.size) {
-            CharacterPattern.Matching(result)
+            CharacterPattern.Matching(getResult())
         } else {
             CharacterPattern.Matching.NOT_YET
         }

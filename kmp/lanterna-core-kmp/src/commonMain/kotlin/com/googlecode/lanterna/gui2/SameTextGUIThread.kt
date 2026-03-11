@@ -22,19 +22,50 @@ import com.googlecode.lanterna.internal.concurrency.PlatformThreadToken
 import com.googlecode.lanterna.internal.concurrency.currentThreadToken
 
 /**
- * [TextGUIThread] implementation that reuses the current thread as the GUI thread.
+ * This [TextGUIThread] implementation is assuming the GUI event thread will be the same as the thread that
+ * creates the [TextGUI] objects. This means on the thread you create the GUI on, when you are done you pass over
+ * control to lanterna and let it manage the GUI for you. When the GUI is done, you'll get back control again over the
+ * thread. This is different from `SeparateTextGUIThread` which spawns a new thread that manages the GUI and
+ * leaves the current thread for you to handle.
+ * <p>
+ * Here are two examples of how to use `SameTextGUIThread`:
+ * <pre>
+ *     `MultiWindowTextGUI textGUI = new MultiWindowTextGUI(new SameTextGUIThread.Factory(), screen);
+ *     // ... add components ...
+ *     while(weWantToContinueRunningTheGUI) {
+ *         if(!textGUI.getGUIThread().processEventsAndUpdate()) {
+ *             Thread.sleep(1);
+ *         }
+ *     }
+ *     // ... tear down ...`
+ * </pre>
+ * In the example above, we use very precise control over events processing and when to update the GUI. In the example
+ * below we pass some of that control over to Lanterna, since the thread won't resume until the window is closed.
+ * <pre>
+ *     `MultiWindowTextGUI textGUI = new MultiWindowTextGUI(new SameTextGUIThread.Factory(), screen);
+ *     Window window = new MyWindow();
+ *     textGUI.addWindowAndWait(window); // This call will run the event/update loop and won't return until "window" is closed
+ *     // ... tear down ...`
+ * </pre>
+ * @see SeparateTextGUIThread
+ * @see TextGUIThread
  */
 class SameTextGUIThread private constructor(textGUI: TextGUI) : AbstractTextGUIThread(textGUI) {
     override val ownerThreadToken: PlatformThreadToken = currentThreadToken()
 
     init {
-        // Match Java behavior: same-thread mode rethrows loop exceptions by default.
+        // By default, reset the exception handler so all exceptions generated in processEventsAndUpdate are thrown
+        // back out instead of logged and dropped.
         exceptionHandlerRef = null
     }
 
+    /**
+     * Default factory class for `SameTextGUIThread`, you need to pass this to the `TextGUI` constructor if
+     * you want it to use this class
+     */
     class Factory : TextGUIThreadFactory {
         override fun createTextGUIThread(textGUI: TextGUI?): TextGUIThread? {
-            return textGUI?.let { SameTextGUIThread(it) }
+            return SameTextGUIThread(textGUI!!)
         }
     }
 }

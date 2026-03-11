@@ -44,7 +44,10 @@ import com.googlecode.lanterna.internal.compat.Properties
 import kotlin.reflect.KClass
 
 /**
- * Very basic implementation of [Theme].
+ * Very basic [Theme] implementation that allows quick theme setup directly in code.
+ *
+ * This implementation does not perform class-hierarchy fallback. If a class has no explicit override, it uses the
+ * default definition.
  */
 class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles: SGR?) : Theme {
         override val defaultDefinition: Definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
@@ -62,9 +65,7 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
 
     fun addOverride(clazz: KClass<*>?, foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
         val definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
-        if (clazz != null) {
-            overrideDefinitions[clazz] = definition
-        }
+        overrideDefinitions[clazz] = definition
         return definition
     }
 
@@ -82,6 +83,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         fun getRenderer(type: KClass<T>?): ComponentRenderer<T?>?
     }
 
+    /**
+     * Mutable [ThemeDefinition] used by [SimpleTheme].
+     */
     class Definition constructor(override val normal: ThemeStyle?) : ThemeDefinition {
         private var preLightBacking: ThemeStyle? = null
         private var selectedBacking: ThemeStyle? = null
@@ -197,6 +201,9 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
     }
 
     companion object {
+        /**
+         * Creates a preconfigured [SimpleTheme] similar to Lanterna's default simple style setup.
+         */
         fun makeTheme(
             activeIsBold: Boolean,
             baseForeground: TextColor?,

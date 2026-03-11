@@ -33,6 +33,9 @@ internal class DefaultShapeRenderer(private val callback: Callback) : ShapeRende
     }
 
     override fun drawLine(p1: TerminalPosition?, p2: TerminalPosition?, character: TextCharacter?) {
+        // Bresenham's line algorithm. References:
+        // http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+        // Graphics Programming Black Book (Michael Abrash)
         var point1 = requireNotNull(p1) { "p1" }
         var point2 = requireNotNull(p2) { "p2" }
 
@@ -144,6 +147,8 @@ internal class DefaultShapeRenderer(private val callback: Callback) : ShapeRende
         p3: TerminalPosition?,
         character: TextCharacter?
     ) {
+        // Algorithm reference:
+        // http://www-users.mat.uni.torun.pl/~wrona/3d_tutor/tri_fillers.html
         val point1 = requireNotNull(p1) { "p1" }
         val point2 = requireNotNull(p2) { "p2" }
         val point3 = requireNotNull(p3) { "p3" }

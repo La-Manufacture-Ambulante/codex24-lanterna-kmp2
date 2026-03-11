@@ -27,8 +27,7 @@ import java.util.regex.Pattern
 
  class ScrollBarTest:TestBase() {
 
-@Override
- fun init(textGUI:WindowBasedTextGUI) {
+fun init(textGUI:WindowBasedTextGUI) {
 val basicWindow = BasicWindow("ScrollBar test")
 val contentPanel = Panel()
 contentPanel.setLayoutManager(GridLayout(2))
@@ -52,7 +51,7 @@ verticalScroll.setViewSize(getInteger(textBoxVerticalSize!!.getText(), 1))
 horizontalScroll.setScrollMaximum(getInteger(textBoxHorizontalMax!!.getText(), 0))
 horizontalScroll.setScrollPosition(getInteger(textBoxHorizontalPosition!!.getText(), 0))
 horizontalScroll.setViewSize(getInteger(textBoxHorizontalSize!!.getText(), 1)) })
-val closeButton = Button("Close", Runnable({ basicWindow.close() }))
+val closeButton = Button("Close", Runnable { basicWindow.close() })
 
 verticalScroll.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.FILL, false, true))
 horizontalScroll.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))

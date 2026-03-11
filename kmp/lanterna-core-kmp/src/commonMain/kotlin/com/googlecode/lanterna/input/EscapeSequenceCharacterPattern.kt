@@ -22,7 +22,33 @@ import com.googlecode.lanterna.internal.compat.Character
 import kotlin.collections.HashMap
 
 /**
- * Matches terminal escape sequences representing special keys and key modifiers.
+ * This implementation of CharacterPattern matches two similar patterns
+ * of Escape sequences, that many terminals produce for special keys.<p>
+ *
+ * These sequences all start with Escape, followed by either an open bracket
+ * or a capital letter O (these two are treated as equivalent).<p>
+ *
+ * Then follows a list of zero or up to two decimals separated by a
+ * semicolon, and a non-digit last character.<p>
+ *
+ * If the last character is a tilde (~) then the first number defines
+ * the key (through stdMap), otherwise the last character itself defines
+ * the key (through finMap).<p>
+ *
+ * The second number, if provided by the terminal, specifies the modifier
+ * state (shift,alt,ctrl). The value is 1 + sum(modifiers), where shift is 1,
+ * alt is 2 and ctrl is 4.<p>
+ *
+ * The two maps stdMap and finMap can be customized in subclasses to add,
+ * remove or replace keys - to support non-standard Terminals.<p>
+ *
+ * Examples: (on a gnome terminal)<br>
+ * ArrowUp is "Esc [ A"; Alt-ArrowUp is "Esc [ 1 ; 3 A"<br>
+ * both are handled by finMap mapping 'A' to ArrowUp <br><br>
+ * F6 is "Esc [ 1 7 ~"; Ctrl-Shift-F6 is "Esc [ 1 7 ; 6 R"<br>
+ * both are handled by stdMap mapping 17 to F6 <br><br>
+ *
+ * @author Andreas
  */
 open class EscapeSequenceCharacterPattern : CharacterPattern {
     protected val stdMap: MutableMap<Int, KeyType?> = HashMap()

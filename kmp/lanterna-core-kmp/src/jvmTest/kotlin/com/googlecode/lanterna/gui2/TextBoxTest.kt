@@ -26,8 +26,7 @@ import java.io.IOException
 
  class TextBoxTest:TestBase() {
 
-@Override
- fun init(textGUI:WindowBasedTextGUI) {
+fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("TextBoxTest")
 val mainPanel = Panel()
 mainPanel.setLayoutManager(LinearLayout(Direction.HORIZONTAL))
@@ -56,7 +55,8 @@ mainPanel.addComponent(rightPanel.withBorder(Borders.singleLine("Multiline")))
 window.setComponent(
 Panels.vertical(
 mainPanel.withBorder(Borders.singleLine("Main")), 
-Button("OK", Runnable({ window.close() }))))
+Button("OK", Runnable { window.close() }))
+)
 textGUI.addWindow(window)
 }
 

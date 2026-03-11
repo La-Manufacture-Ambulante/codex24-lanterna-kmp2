@@ -348,8 +348,7 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         return this
     }
 
-    override fun addWindowAndWait(window: Window?): WindowBasedTextGUI {
-        requireNotNull(window) { "Cannot add null window" }
+    override fun addWindowAndWait(window: Window): WindowBasedTextGUI {
         addWindow(window)
         window.waitUntilClosed()
         return this
@@ -359,14 +358,14 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         if (!windowList.removeWindow(window)) {
             return this
         }
-        window?.textGUI = null
+        window.textGUI = null
         windowManager.onRemoved(this, window, windowList.windowsInStableOrder)
         invalidate()
         return this
     }
 
-    override fun waitForWindowToClose(abstractWindow: Window?) {
-        val window = abstractWindow ?: return
+    override fun waitForWindowToClose(abstractWindow: Window) {
+        val window = abstractWindow
         while (window.textGUI != null) {
             var sleep = true
             val guiThread = guiThread

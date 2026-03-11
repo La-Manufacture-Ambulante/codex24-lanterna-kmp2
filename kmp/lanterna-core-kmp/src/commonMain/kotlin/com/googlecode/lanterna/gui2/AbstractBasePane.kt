@@ -137,10 +137,6 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
 
         var handled = doHandleInput(event)
         if (!handled) {
-            handled = doHandleAccelerator(event)
-        }
-
-        if (!handled) {
             val hasBeenHandled = AtomicBoolean(false)
             for (listener in listeners) {
                 listener.onUnhandledInput(self(), event, hasBeenHandled)
@@ -151,34 +147,6 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
     }
 
     protected abstract fun self(): T
-
-    private fun doHandleAccelerator(key: KeyStroke): Boolean {
-        if (key.keyType == KeyType.MOUSE_EVENT) {
-            return false
-        }
-
-        val activeMenuBar = menuBar
-        if (activeMenuBar != null && activeMenuBar.handleInput(key)) {
-            return true
-        }
-
-        return handleAccelerator(contentHolder, key)
-    }
-
-    private fun handleAccelerator(container: Container, key: KeyStroke): Boolean {
-        for (child in container.children.orEmpty()) {
-            if (child is Button && child.handleInput(key) == Result.HANDLED) {
-                return true
-            }
-
-            if (child is Container && child.childCount > 0) {
-                if (handleAccelerator(child, key)) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
 
     private fun doHandleInput(key: KeyStroke): Boolean {
         if (key.keyType == KeyType.MOUSE_EVENT) {

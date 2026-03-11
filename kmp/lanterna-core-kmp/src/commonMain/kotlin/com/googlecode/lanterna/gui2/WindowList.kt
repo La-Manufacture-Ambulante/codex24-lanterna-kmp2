@@ -20,6 +20,10 @@ package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.internal.compat.LinkedList
 
+/**
+ *
+ * @author ginkoblongata
+ */
 class WindowList {
     private val windows = LinkedList<Window>()
     private val stableOrderingOfWindows = mutableListOf<Window>()
@@ -42,15 +46,14 @@ class WindowList {
         get() = stableOrderingOfWindows.toList()
 
     fun addWindow(window: Window?) {
-        val activeWindow = window ?: return
-        if (!stableOrderingOfWindows.contains(activeWindow)) {
-            stableOrderingOfWindows.add(activeWindow)
+        if (!stableOrderingOfWindows.contains(window)) {
+            stableOrderingOfWindows.add(window!!)
         }
-        if (!windows.contains(activeWindow)) {
-            windows.add(activeWindow)
+        if (!windows.contains(window)) {
+            windows.add(window!!)
         }
-        if (activeWindow.hints?.contains(Window.Hint.NO_FOCUS) != true) {
-            this.activeWindow = activeWindow
+        if (!window!!.hints!!.contains(Window.Hint.NO_FOCUS)) {
+            activeWindow = window
         }
         isHadWindowAtSomePoint = true
     }

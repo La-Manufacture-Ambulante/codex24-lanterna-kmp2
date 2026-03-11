@@ -116,7 +116,7 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?> protected construc
                 }
 
                 KeyType.CHARACTER -> {
-                    if (!keyStroke.isAltDown && !keyStroke.isCtrlDown && selectByCharacter(keyStroke.character)) {
+                    if (selectByCharacter(keyStroke.character)) {
                         return Interactable.Result.HANDLED
                     }
                     return Interactable.Result.UNHANDLED
