@@ -18,5 +18,4 @@ ktlint_standard_no-wildcard-imports = disabled
 ktlint_standard_no-wildcard-imports = disabled
 
 [**/src/jvmTest/kotlin/com/googlecode/lanterna/terminal/**/*.kt]
-ktlint_standard_max-line-length = disabled
 ktlint_standard_no-wildcard-imports = disabled
