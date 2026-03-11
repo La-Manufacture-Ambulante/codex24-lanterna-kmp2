@@ -37,6 +37,3 @@ ktlint_standard_max-line-length = disabled
 
 [**/src/jvmTest/kotlin/com/googlecode/lanterna/*.kt]
 ktlint_standard_no-wildcard-imports = disabled
-
-[**/src/commonMain/kotlin/com/googlecode/lanterna/terminal/swing/GraphicalTerminalImplementation.kt]
-ktlint_standard_argument-list-wrapping = disabled

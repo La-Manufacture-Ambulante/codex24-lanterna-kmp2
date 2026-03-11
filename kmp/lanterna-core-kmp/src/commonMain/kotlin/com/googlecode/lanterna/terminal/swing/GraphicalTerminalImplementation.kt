@@ -163,7 +163,8 @@ internal abstract class GraphicalTerminalImplementation(
                     }
                 }
             },
-            blinkLength, blinkLength,
+            blinkLength,
+            blinkLength,
         )
     }
 
