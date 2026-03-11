@@ -60,9 +60,6 @@ ktlint_standard_function-signature = disabled
 [**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/Panels.kt]
 ktlint_standard_function-signature = disabled
 
-[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/WindowDecorationRenderer.kt]
-ktlint_standard_function-signature = disabled
-
 [**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/WindowManager.kt]
 ktlint_standard_function-signature = disabled
 
