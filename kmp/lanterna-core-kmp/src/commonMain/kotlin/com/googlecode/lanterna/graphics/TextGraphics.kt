@@ -16,6 +16,8 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
+@file:Suppress("ktlint:standard:no-wildcard-imports")
+
 package com.googlecode.lanterna.graphics
 
 import com.googlecode.lanterna.*
