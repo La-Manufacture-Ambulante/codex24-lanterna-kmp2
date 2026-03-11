@@ -34,36 +34,36 @@ import java.util.regex.Pattern
  * @author Martin
  */
 interface TextColor : Serializable {
-/**
+    /**
      * Returns the byte sequence in between CSI and character 'm' that is used to enable this color as the foreground
      * color on an ANSI-compatible terminal.
      * @return Byte array out data to output in between of CSI and 'm'
      */
     val foregroundSGRSequence: ByteArray?
 
-/**
+    /**
      * Returns the byte sequence in between CSI and character 'm' that is used to enable this color as the background
      * color on an ANSI-compatible terminal.
      * @return Byte array out data to output in between of CSI and 'm'
      */
     val backgroundSGRSequence: ByteArray?
 
-/**
+    /**
      * @return Red intensity of this color, from 0 to 255
      */
     val red: Int
 
-/**
+    /**
      * @return Green intensity of this color, from 0 to 255
      */
     val green: Int
 
-/**
+    /**
      * @return Blue intensity of this color, from 0 to 255
      */
     val blue: Int
 
-/**
+    /**
      * Converts this color to an AWT color object, assuming a standard VGA palette.
      * @return TextColor as an AWT Color
      */
@@ -73,7 +73,7 @@ interface TextColor : Serializable {
     )
     fun toColor(): Color?
 
-/**
+    /**
      * This class represent classic ANSI colors that are likely to be very compatible with most terminal
      * implementations. It is limited to 8 colors (plus the 'default' color) but as a norm, using bold mode (SGR code)
      * will slightly alter the color, giving it a bit brighter tone, so in total this will give you 16 (+1) colors.
@@ -226,7 +226,7 @@ interface TextColor : Serializable {
                     byteArrayOf(0x08.toByte(), 0x08.toByte(), 0x08.toByte()), byteArrayOf(0x12.toByte(), 0x12.toByte(), 0x12.toByte()), byteArrayOf(0x1c.toByte(), 0x1c.toByte(), 0x1c.toByte()), byteArrayOf(0x26.toByte(), 0x26.toByte(), 0x26.toByte()), byteArrayOf(0x30.toByte(), 0x30.toByte(), 0x30.toByte()), byteArrayOf(0x3a.toByte(), 0x3a.toByte(), 0x3a.toByte()), byteArrayOf(0x44.toByte(), 0x44.toByte(), 0x44.toByte()), byteArrayOf(0x4e.toByte(), 0x4e.toByte(), 0x4e.toByte()), byteArrayOf(0x58.toByte(), 0x58.toByte(), 0x58.toByte()), byteArrayOf(0x62.toByte(), 0x62.toByte(), 0x62.toByte()), byteArrayOf(0x6c.toByte(), 0x6c.toByte(), 0x6c.toByte()), byteArrayOf(0x76.toByte(), 0x76.toByte(), 0x76.toByte()), byteArrayOf(0x80.toByte(), 0x80.toByte(), 0x80.toByte()), byteArrayOf(0x8a.toByte(), 0x8a.toByte(), 0x8a.toByte()), byteArrayOf(0x94.toByte(), 0x94.toByte(), 0x94.toByte()), byteArrayOf(0x9e.toByte(), 0x9e.toByte(), 0x9e.toByte()), byteArrayOf(0xa8.toByte(), 0xa8.toByte(), 0xa8.toByte()), byteArrayOf(0xb2.toByte(), 0xb2.toByte(), 0xb2.toByte()), byteArrayOf(0xbc.toByte(), 0xbc.toByte(), 0xbc.toByte()), byteArrayOf(0xc6.toByte(), 0xc6.toByte(), 0xc6.toByte()), byteArrayOf(0xd0.toByte(), 0xd0.toByte(), 0xd0.toByte()), byteArrayOf(0xda.toByte(), 0xda.toByte(), 0xda.toByte()), byteArrayOf(0xe4.toByte(), 0xe4.toByte(), 0xe4.toByte()), byteArrayOf(0xee.toByte(), 0xee.toByte(), 0xee.toByte()),
                 )
 
-/**
+            /**
              * Picks out a color approximated from the supplied RGB components
              * @param red Red intensity, from 0 to 255
              * @param green Red intensity, from 0 to 255
@@ -274,7 +274,7 @@ interface TextColor : Serializable {
                 }
             }
 
-/**
+            /**
              * Picks out a color from the grey-scale ramp area of the color index.
              * @param intensity Intensity, 0 - 255
              * @return Indexed color from the grey-scale ramp which is the best match for the supplied intensity
@@ -367,14 +367,14 @@ interface TextColor : Serializable {
         }
     }
 
-/**
+    /**
      * Utility class to instantiate colors from other types and definitions
      */
     object Factory {
         private val INDEXED_COLOR = Pattern.compile("#[0-9]{1,3}")
         private val RGB_COLOR = Pattern.compile("#[0-9a-fA-F]{6}")
 
-/**
+        /**
          * Parses a string into a color. The string can have one of three formats:
          *
          *  * *blue* - Constant value from the [ANSI] enum
