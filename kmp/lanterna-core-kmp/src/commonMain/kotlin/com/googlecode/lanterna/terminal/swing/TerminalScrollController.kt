@@ -32,7 +32,7 @@ interface TerminalScrollController {
      */
     val scrollingOffset: Int
 
-/**
+    /**
      * Called by the SwingTerminal when the terminal has changed or more lines are entered into the terminal
      * @param totalSize Total number of lines in the backlog currently
      * @param screenSize Number of lines covered by the terminal window at its current size
@@ -42,20 +42,17 @@ interface TerminalScrollController {
         screenSize: Int,
     )
 
-/**
+    /**
      * Implementation of [TerminalScrollController] that does nothing
      */
     class Null : TerminalScrollController {
-        public override val scrollingOffset: Int
-            @Override
-            get() {
-                return 0
-            }
+        override val scrollingOffset: Int
+            get() = 0
 
-        @Override
-        public override fun updateModel(
+        override fun updateModel(
             totalSize: Int,
             screenSize: Int,
-        ) {}
+        ) {
+        }
     }
 }
