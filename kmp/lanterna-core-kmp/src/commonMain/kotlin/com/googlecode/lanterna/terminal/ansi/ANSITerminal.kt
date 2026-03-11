@@ -353,34 +353,69 @@ abstract class ANSITerminal
                 }
                 MouseCaptureMode.CLICK_RELEASE -> {
                     writeCSISequenceToTerminal(
-                        '?'.code.toByte(), '1'.code.toByte(), '0'.code.toByte(), '0'.code.toByte(), '0'.code.toByte(), lOrH.code.toByte(),
+                        '?'.code.toByte(),
+                        '1'.code.toByte(),
+                        '0'.code.toByte(),
+                        '0'.code.toByte(),
+                        '0'.code.toByte(),
+                        lOrH.code.toByte(),
                     )
                 }
                 MouseCaptureMode.CLICK_RELEASE_DRAG -> {
                     writeCSISequenceToTerminal(
-                        '?'.code.toByte(), '1'.code.toByte(), '0'.code.toByte(), '0'.code.toByte(), '2'.code.toByte(), lOrH.code.toByte(),
+                        '?'.code.toByte(),
+                        '1'.code.toByte(),
+                        '0'.code.toByte(),
+                        '0'.code.toByte(),
+                        '2'.code.toByte(),
+                        lOrH.code.toByte(),
                     )
                 }
                 MouseCaptureMode.CLICK_RELEASE_DRAG_MOVE -> {
                     writeCSISequenceToTerminal(
-                        '?'.code.toByte(), '1'.code.toByte(), '0'.code.toByte(), '0'.code.toByte(), '3'.code.toByte(), lOrH.code.toByte(),
+                        '?'.code.toByte(),
+                        '1'.code.toByte(),
+                        '0'.code.toByte(),
+                        '0'.code.toByte(),
+                        '3'.code.toByte(),
+                        lOrH.code.toByte(),
                     )
                 }
                 MouseCaptureMode.CLICK_AUTODETECT -> {
                     writeCSISequenceToTerminal('?'.code.toByte(), '9'.code.toByte(), lOrH.code.toByte())
                     writeCSISequenceToTerminal(
-                        '?'.code.toByte(), '1'.code.toByte(), '0'.code.toByte(), '0'.code.toByte(), '0'.code.toByte(), lOrH.code.toByte(),
+                        '?'.code.toByte(),
+                        '1'.code.toByte(),
+                        '0'.code.toByte(),
+                        '0'.code.toByte(),
+                        '0'.code.toByte(),
+                        lOrH.code.toByte(),
                     )
                     writeCSISequenceToTerminal(
-                        '?'.code.toByte(), '1'.code.toByte(), '0'.code.toByte(), '0'.code.toByte(), '2'.code.toByte(), lOrH.code.toByte(),
+                        '?'.code.toByte(),
+                        '1'.code.toByte(),
+                        '0'.code.toByte(),
+                        '0'.code.toByte(),
+                        '2'.code.toByte(),
+                        lOrH.code.toByte(),
                     )
                     writeCSISequenceToTerminal(
-                        '?'.code.toByte(), '1'.code.toByte(), '0'.code.toByte(), '0'.code.toByte(), '3'.code.toByte(), lOrH.code.toByte(),
+                        '?'.code.toByte(),
+                        '1'.code.toByte(),
+                        '0'.code.toByte(),
+                        '0'.code.toByte(),
+                        '3'.code.toByte(),
+                        lOrH.code.toByte(),
                     )
                 }
             }
             writeCSISequenceToTerminal(
-                '?'.code.toByte(), '1'.code.toByte(), '0'.code.toByte(), '0'.code.toByte(), '6'.code.toByte(), lOrH.code.toByte(),
+                '?'.code.toByte(),
+                '1'.code.toByte(),
+                '0'.code.toByte(),
+                '0'.code.toByte(),
+                '6'.code.toByte(),
+                lOrH.code.toByte(),
             )
         }
 
