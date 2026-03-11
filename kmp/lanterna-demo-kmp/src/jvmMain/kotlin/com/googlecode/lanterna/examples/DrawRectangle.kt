@@ -27,7 +27,9 @@ object DrawRectangle {
         screen.clear()
 
         tGraphics!!.drawRectangle(
-            TerminalPosition(3, 3), TerminalSize(10, 10), '*',
+            TerminalPosition(3, 3),
+            TerminalSize(10, 10),
+            '*',
         )
         screen.refresh()
 

@@ -1,12 +1,16 @@
 root = true
 
 [*.{kt,kts}]
-ktlint_standard_argument-list-wrapping = disabled
-ktlint_standard_function-signature = disabled
 
 [**/src/jvmTest/**/*.kt]
 ktlint_standard_max-line-length = disabled
 ktlint_standard_no-wildcard-imports = disabled
+ktlint_standard_argument-list-wrapping = disabled
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/**/*.kt]
+ktlint_standard_argument-list-wrapping = disabled
+ktlint_standard_function-signature = disabled
 
 [**/src/nativeMain/**/*.kt]
 ktlint_standard_no-wildcard-imports = disabled
