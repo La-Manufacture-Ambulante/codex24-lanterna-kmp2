@@ -3,8 +3,25 @@ root = true
 [*.{kt,kts}]
 
 [**/src/jvmTest/**/*.kt]
-ktlint_standard_max-line-length = disabled
 ktlint_standard_no-wildcard-imports = disabled
+
+[**/src/jvmTest/kotlin/com/googlecode/lanterna/gui2/**/*.kt]
+ktlint_standard_max-line-length = disabled
+
+[**/src/jvmTest/kotlin/com/googlecode/lanterna/issue/**/*.kt]
+ktlint_standard_max-line-length = disabled
+
+[**/src/jvmTest/kotlin/com/googlecode/lanterna/screen/**/*.kt]
+ktlint_standard_max-line-length = disabled
+
+[**/src/jvmTest/kotlin/com/googlecode/lanterna/terminal/**/*.kt]
+ktlint_standard_max-line-length = disabled
+
+[**/src/jvmTest/kotlin/com/googlecode/lanterna/tutorial/**/*.kt]
+ktlint_standard_max-line-length = disabled
+
+[**/src/jvmTest/kotlin/com/googlecode/lanterna/TerminalTextUtilsTest.kt]
+ktlint_standard_max-line-length = disabled
 
 [**/src/commonMain/**/*.kt]
 ktlint_standard_argument-list-wrapping = disabled
