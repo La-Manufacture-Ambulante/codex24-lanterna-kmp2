@@ -18,9 +18,13 @@
  */
 package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.*
+import com.googlecode.lanterna.Symbols
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.DoublePrintingTextGraphics
-import java.awt.*
+import java.awt.Window
 import java.io.IOException
 
 /**

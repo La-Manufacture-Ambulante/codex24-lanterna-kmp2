@@ -18,8 +18,11 @@
  */
 package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.*
-import java.io.*
+import java.io.BufferedReader
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStreamReader
 
 /**
  * Use this program to see what the terminal emulator is sending through stdin; byte for byte

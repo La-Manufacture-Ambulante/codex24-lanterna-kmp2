@@ -18,10 +18,11 @@
  */
 package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class KeyTest {

@@ -18,8 +18,6 @@
  */
 package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.*
-
 /**
  *
  * @author martin

@@ -18,13 +18,12 @@
  */
 package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyType
-import java.awt.*
+import java.awt.Window
 import java.io.IOException
 
 object SimpleTerminalTest {
