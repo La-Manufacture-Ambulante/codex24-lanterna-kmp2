@@ -5,7 +5,12 @@ plugins {
 
 ktlint {
     filter {
-        exclude("**/src/commonMain/**")
+        exclude("**/src/commonMain/kotlin/com/googlecode/lanterna/TextColor.kt")
+        exclude("**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/BasePane.kt")
+        exclude("**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/Composite.kt")
+        exclude("**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/TextGUI.kt")
+        exclude("**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/table/TableRenderer.kt")
+        exclude("**/src/commonMain/kotlin/com/googlecode/lanterna/input/KeyType.kt")
     }
 }
 
