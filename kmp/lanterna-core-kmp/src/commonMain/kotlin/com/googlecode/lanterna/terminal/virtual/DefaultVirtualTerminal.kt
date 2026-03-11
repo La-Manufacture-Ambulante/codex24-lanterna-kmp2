@@ -166,7 +166,13 @@ class DefaultVirtualTerminal
 
         @Synchronized
         override fun putString(string: String?) {
-            val textCharacters = TextCharacter.fromString(string, activeForegroundColor, activeBackgroundColor, *activeModifiers.toTypedArray())
+            val textCharacters =
+                TextCharacter.fromString(
+                    string,
+                    activeForegroundColor,
+                    activeBackgroundColor,
+                    *activeModifiers.toTypedArray(),
+                )
             if (textCharacters != null) {
                 for (textCharacter in textCharacters) {
                     if (textCharacter != null) {
@@ -343,7 +349,11 @@ class DefaultVirtualTerminal
             } else {
                 val doubleWidth = terminalCharacter.isDoubleWidth
                 if (requireNotNull(cursorBufferPosition).column == terminalSize.columns - 1 && doubleWidth) {
-                    currentTextBuffer.setCharacter(cursorBufferPosition!!.row, cursorBufferPosition!!.column, TextCharacter.DEFAULT_CHARACTER)
+                    currentTextBuffer.setCharacter(
+                        cursorBufferPosition!!.row,
+                        cursorBufferPosition!!.column,
+                        TextCharacter.DEFAULT_CHARACTER,
+                    )
                     moveCursorToNextLine()
                 }
                 if (requireNotNull(cursorBufferPosition).column == terminalSize.columns) {

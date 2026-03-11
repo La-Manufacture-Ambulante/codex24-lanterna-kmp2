@@ -46,6 +46,3 @@ ktlint_standard_argument-list-wrapping = disabled
 
 [**/src/commonMain/kotlin/com/googlecode/lanterna/terminal/swing/GraphicalTerminalImplementation.kt]
 ktlint_standard_argument-list-wrapping = disabled
-
-[**/src/commonMain/kotlin/com/googlecode/lanterna/terminal/virtual/DefaultVirtualTerminal.kt]
-ktlint_standard_argument-list-wrapping = disabled
