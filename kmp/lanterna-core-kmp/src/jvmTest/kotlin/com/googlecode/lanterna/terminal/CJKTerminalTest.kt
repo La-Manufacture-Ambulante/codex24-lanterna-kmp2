@@ -79,7 +79,7 @@ terminal!!.exitPrivateMode()
 private fun printString(rawTerminal:Terminal?, string:String) {
 for (i in 0 until string.length)
 {
-rawTerminal!!.putCharacter(string.charAt(i))
+rawTerminal!!.putCharacter(string[i])
 }
 }
 }

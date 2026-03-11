@@ -69,7 +69,7 @@ terminal!!.addResizeListener(TerminalResizeTest())
 while (true)
 {
 val key = terminal!!.pollInput()
-if (key == null || key!!.getCharacter() != 'q')
+if (key == null || key!!.character != 'q')
 {
 Thread.sleep(1)
 }

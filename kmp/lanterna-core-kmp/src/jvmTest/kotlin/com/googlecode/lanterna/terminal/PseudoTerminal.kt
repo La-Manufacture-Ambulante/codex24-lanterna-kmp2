@@ -21,6 +21,7 @@ package com.googlecode.lanterna.terminal
 import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -58,7 +59,7 @@ private fun makeEnvironmentVariables():Array<String?>? {
 	val environment = ArrayList<String>()
 	val env = TreeMap<String, String>(System.getenv())
 env.put("TERM", "xterm")   //Will this make bash detect us as a proper terminal??
-for (key in env.keySet())
+for (key in env.keys)
 {
 environment.add(key + "=" + env.get(key))
 }
@@ -75,7 +76,7 @@ this.inputStreamReader = InputStreamReader(inputStream, Charset.defaultCharset()
 this.stop = false
 }
 
-private fun start() {
+fun start() {
 object:Thread("OutputReader") {
   override fun run() {
 try
@@ -132,7 +133,7 @@ init{
 this.stop = false
 }
 
-private fun start() {
+fun start() {
 object:Thread("InputWriter") {
   override fun run() {
 try
@@ -146,8 +147,8 @@ Thread.sleep(1)
 }
 else
 {
-when (keyStroke!!.getKeyType()) {
-KeyType.CHARACTER -> writeCharacter(keyStroke!!.getCharacter()!!.toChar())
+when (keyStroke!!.keyType) {
+KeyType.CHARACTER -> writeCharacter(keyStroke!!.character!!)
 KeyType.ENTER -> writeCharacter('\n')
 KeyType.BACKSPACE -> writeCharacter('\b')
 KeyType.TAB -> writeCharacter('\t')

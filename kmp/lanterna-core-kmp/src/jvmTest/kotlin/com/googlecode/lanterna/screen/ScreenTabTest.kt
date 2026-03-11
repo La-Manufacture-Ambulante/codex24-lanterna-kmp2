@@ -35,7 +35,7 @@ private val screen:Screen?
 init{
 screen = TestTerminalFactory(args).createScreen()
 screen!!.startScreen()
-screen!!.setCursorPosition(TerminalPosition(0, 0))
+screen!!.cursorPosition = TerminalPosition(0, 0)
 putStrings("Trying out some tabs!")
 
 val now = System.currentTimeMillis()
@@ -70,11 +70,11 @@ writer.setTabBehaviour(TabBehaviour.ALIGN_TO_COLUMN_4)
 writer.putString(10, 6, "TabBehaviour.ALIGN_TO_COLUMN_4:       |\t|\t|\t|\t|")
 writer.setTabBehaviour(TabBehaviour.ALIGN_TO_COLUMN_8)
 writer.putString(10, 7, "TabBehaviour.ALIGN_TO_COLUMN_8:       |\t|\t|\t|\t|")
-writer.putString(10, 9, "Default behaviour is: " + screen!!.getTabBehaviour()!!)
+writer.putString(10, 9, "Default behaviour is: " + screen!!.tabBehaviour!!)
 writer.putString(10, 10, "Testing Screen's tab replacement:")
 writer.putString(10, 11, "XXXXXXXXXXXXXXXX")
 screen!!.setCharacter(12, 11, TextCharacter('\t'))
-screen!!.setTabBehaviour(TabBehaviour.CONVERT_TO_ONE_SPACE)
+screen!!.tabBehaviour = TabBehaviour.CONVERT_TO_ONE_SPACE
 screen!!.setCharacter(20, 11, TextCharacter('\t'))
 screen!!.refresh()
 

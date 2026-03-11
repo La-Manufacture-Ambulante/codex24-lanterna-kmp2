@@ -59,11 +59,12 @@ KeyType.ARROW_LEFT -> screen.cursorPosition = screen.cursorPosition!!.withRelati
 
 KeyType.ARROW_RIGHT -> screen.cursorPosition = screen.cursorPosition!!.withRelativeColumn(1)
 
-KeyType.CHARACTER -> if (keyStroke!!.isCtrlDown())
+KeyType.CHARACTER -> if (keyStroke!!.isCtrlDown)
 {
 when (keyStroke.character) {
 'k' -> {
-screen.setCharacter(screen.cursorPosition, TextCharacter('桜', COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
+val cursorPos = screen.cursorPosition ?: continue@mainLoop
+screen.setCharacter(cursorPos, TextCharacter('桜', COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
 screen.cursorPosition = screen.cursorPosition!!.withRelativeColumn(2)
 }
 
@@ -82,7 +83,7 @@ foregroundCycle++
 	backgroundCycle = 0
 	}
 	}
-	else -> {}
+else -> {}
 	}
 if (COLORS_TO_CYCLE[foregroundCycle] !== TextColor.ANSI.BLACK)
 {
@@ -109,9 +110,9 @@ textGraphics!!.putString(0, (screen.terminalSize?.rows ?: 1) - 1, "Background co
 else
 {
 val ch = keyStroke.character ?: continue
-screen.setCharacter(screen.cursorPosition, TextCharacter(ch, COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
+val cursorPos = screen.cursorPosition ?: continue@mainLoop
+screen.setCharacter(cursorPos, TextCharacter(ch, COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
 screen.cursorPosition = screen.cursorPosition!!.withRelativeColumn(1)
-break
 }
 else -> {}
 }
