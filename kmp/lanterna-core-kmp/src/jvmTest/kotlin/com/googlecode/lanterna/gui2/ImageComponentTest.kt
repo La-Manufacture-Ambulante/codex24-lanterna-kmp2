@@ -34,7 +34,7 @@ selectedImageComponent!!.setTextImage(image)
 
 fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("ImageComponentTest")
-window.setTheme(LanternaThemes.getRegisteredTheme("conqueror"))
+window.theme = LanternaThemes.getRegisteredTheme("conqueror")
 
 val controller = ExampleController()
 controller.selectedImageComponent = makeImageComponent(controller, IMAGE_BLANK!!)

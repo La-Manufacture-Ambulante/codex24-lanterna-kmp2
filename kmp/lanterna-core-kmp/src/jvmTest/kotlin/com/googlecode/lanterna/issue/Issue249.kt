@@ -38,7 +38,7 @@ import com.googlecode.lanterna.terminal.*
 val screen = TerminalScreen(terminal)
 screen.startScreen()
 
-val screenSize = screen.getTerminalSize()
+val screenSize = screen.terminalSize
 
  // Create panel to hold components
         val panel = Panel()

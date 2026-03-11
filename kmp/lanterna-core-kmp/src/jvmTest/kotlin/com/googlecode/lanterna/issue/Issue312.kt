@@ -25,13 +25,13 @@ var keyStroke = terminal!!.pollInput()
 if (keyStroke == null)
 {
 terminal!!.setCursorPosition(0, 0)
-textGraphics!!.putString(0, terminal!!.getCursorPosition().getRow(), " > ")
+textGraphics!!.putString(0, terminal!!.cursorPosition!!.row, " > ")
 terminal!!.flush()
 keyStroke = terminal!!.readInput()
 row = 1
 terminal!!.clearScreen()
 }
-if (keyStroke!!.getKeyType() === KeyType.ESCAPE || keyStroke!!.getKeyType() === KeyType.EOF)
+if (keyStroke!!.keyType === KeyType.ESCAPE || keyStroke!!.keyType === KeyType.EOF)
 {
 break
 }

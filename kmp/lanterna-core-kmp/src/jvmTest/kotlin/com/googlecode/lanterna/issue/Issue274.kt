@@ -49,7 +49,7 @@ gui.addWindow(op)
 
 menubar.addComponent(Button("Save"))
 
-menubar.addComponent(Button("Exit", { gui.getActiveWindow()!!.close() }))
+menubar.addComponent(Button("Exit", { gui.activeWindow?.close() }))
 
 val main = BasicWindow("Test")
 main.component = menubar

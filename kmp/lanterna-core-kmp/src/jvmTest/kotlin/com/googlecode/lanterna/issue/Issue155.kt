@@ -41,7 +41,7 @@ val gui = MultiWindowTextGUI(screen, windowManager, background)
 screen.startScreen()
 gui.addWindowAndWait(object:BasicWindow("Issue155") {
 init{
-setComponent(createUi(gui, this))
+component = createUi(gui, this)
 }
 })
 screen.stopScreen()
@@ -66,6 +66,6 @@ return Runnable { ActionListDialogBuilder().setCanCancel(true).addAction("Reinst
 }
 
 private fun setupUI(gui:WindowBasedTextGUI, window:BasicWindow, counter:Int):Runnable {
-return Runnable { window.setComponent(createUi(gui, window, counter)) }
+return Runnable { window.component = createUi(gui, window, counter) }
 }
 }

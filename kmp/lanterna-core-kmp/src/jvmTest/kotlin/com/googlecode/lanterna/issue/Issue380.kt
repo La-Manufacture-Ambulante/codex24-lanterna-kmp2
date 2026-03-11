@@ -60,7 +60,7 @@ false,
 2, 
 1)
 )
-setComponent(p)
+component = p
 }
 
 private fun buildButtonPanel():Component {

@@ -30,7 +30,7 @@ import com.googlecode.lanterna.graphics.*
 
 fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("SplitPanelTest")
-window.setTheme(LanternaThemes.getRegisteredTheme("businessmachine"))
+window.theme = LanternaThemes.getRegisteredTheme("businessmachine")
 
 val left = makeImageComponent(IMAGE_X!!)
 val right = makeImageComponent(IMAGE_Y!!)

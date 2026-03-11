@@ -34,7 +34,7 @@ import java.util.EnumSet
  class WelcomeSplashTest:TestBase() {
 
 fun init(textGUI:WindowBasedTextGUI) {
-textGUI.getBackgroundPane()!!.setComponent(object:EmptySpace(TextColor.ANSI.BLUE) {
+textGUI.backgroundPane.component = object:EmptySpace(TextColor.ANSI.BLUE) {
 protected override fun createDefaultRenderer():ComponentRenderer<EmptySpace?> {
 return object:ComponentRenderer<EmptySpace?> {
 public override fun getPreferredSize(component:EmptySpace?):TerminalSize {
@@ -50,7 +50,7 @@ graphics!!.putString(3, 0, "Text GUI in 100% Java")
 }
 }
 }
-})
+}
 }
 
 fun afterGUIThreadStarted(textGUI:WindowBasedTextGUI) {
