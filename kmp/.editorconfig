@@ -40,4 +40,15 @@ ktlint_standard_no-wildcard-imports = disabled
 
 [**/src/commonMain/**/*.kt]
 ktlint_standard_argument-list-wrapping = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/graphics/**/*.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/**/*.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/terminal/**/*.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/TextColor.kt]
 ktlint_standard_function-signature = disabled
