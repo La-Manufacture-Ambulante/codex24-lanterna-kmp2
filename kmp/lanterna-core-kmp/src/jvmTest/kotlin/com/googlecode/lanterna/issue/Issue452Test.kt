@@ -87,7 +87,7 @@ displayForRenderering(singleLine)
 assertTrue(singleLine.isFocused)
  // Click at 3rd position
         clickOnWithRelative(singleLine, 3, 0)
-singleLine.handleInput(KeyStroke(BACKSPACE))
+singleLine.handleInput(KeyStroke(com.googlecode.lanterna.input.KeyType.BACKSPACE))
  // 3rd position (3) should be deleted
         assertEquals("12456789", singleLine.getText())
 }
@@ -104,12 +104,12 @@ displayForRenderering(multiLine)
 assertTrue(multiLine.isFocused)
  // Click at 3rd position 1st row
         clickOnWithRelative(multiLine, 3, 0)
-multiLine.handleInput(KeyStroke(BACKSPACE))
+multiLine.handleInput(KeyStroke(com.googlecode.lanterna.input.KeyType.BACKSPACE))
  // 3rd position (3) should be deleted
         assertEquals("12456789\nabcdefgh", multiLine.getText())
  // Click at 5th position 2nd row
         clickOnWithRelative(multiLine, 5, 1)
-multiLine.handleInput(KeyStroke(BACKSPACE))
+multiLine.handleInput(KeyStroke(com.googlecode.lanterna.input.KeyType.BACKSPACE))
  // 5th position (e) should be deleted
         assertEquals("12456789\nabcdfgh", multiLine.getText())
 }

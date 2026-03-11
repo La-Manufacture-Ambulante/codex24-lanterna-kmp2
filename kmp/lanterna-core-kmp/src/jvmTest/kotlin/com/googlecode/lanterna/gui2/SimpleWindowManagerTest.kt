@@ -50,20 +50,20 @@ textGUI.addWindow(mainWindow)
 
 private class CenteredWindow internal constructor():TestWindow("Centered window") {
 init{
-setHints(Collections.singletonList(Hint.CENTERED))
+setHints(Collections.singletonList(Window.Hint.CENTERED))
 }
 }
 
 private class UndecoratedWindow internal constructor():TestWindow("Undecorated") {
 init{
-setHints(Collections.singletonList(Hint.NO_DECORATIONS))
+setHints(Collections.singletonList(Window.Hint.NO_DECORATIONS))
 }
 }
 
 private class UndecoratedCenteredWindow internal constructor():TestWindow("UndecoratedCentered") {
 
 init{
-setHints(Arrays.asList(Hint.NO_DECORATIONS, Hint.CENTERED))
+setHints(Arrays.asList(Window.Hint.NO_DECORATIONS, Window.Hint.CENTERED))
 }
 }
 
@@ -80,7 +80,13 @@ content.addComponent(textBox)
 
 setComponent(content)
 
-setHints(if (decorations) Collections.singletonList(Hint.FULL_SCREEN) else Arrays.asList(Hint.FULL_SCREEN, Hint.NO_DECORATIONS))
+setHints(
+    if (decorations) {
+        Collections.singletonList(Window.Hint.FULL_SCREEN)
+    } else {
+        Arrays.asList(Window.Hint.FULL_SCREEN, Window.Hint.NO_DECORATIONS)
+    }
+)
 }
 }
 
@@ -97,7 +103,13 @@ content.addComponent(textBox)
 
 setComponent(content)
 
-setHints(if (decorations) Collections.singletonList(Hint.EXPANDED) else Arrays.asList(Hint.EXPANDED, Hint.NO_DECORATIONS))
+setHints(
+    if (decorations) {
+        Collections.singletonList(Window.Hint.EXPANDED)
+    } else {
+        Arrays.asList(Window.Hint.EXPANDED, Window.Hint.NO_DECORATIONS)
+    }
+)
 }
 }
 
