@@ -27,7 +27,7 @@ import java.io.IOException
  * @author Andreas
  */
 interface Scrollable {
-/**
+    /**
      * Scroll a range of lines of this Scrollable according to given distance.
      *
      * If scroll-range is empty (firstLine &gt; lastLine || distance == 0) then

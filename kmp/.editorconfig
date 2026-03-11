@@ -42,9 +42,6 @@ ktlint_standard_no-wildcard-imports = disabled
 ktlint_standard_function-signature = disabled
 ktlint_standard_argument-list-wrapping = disabled
 
-[**/src/commonMain/kotlin/com/googlecode/lanterna/graphics/Scrollable.kt]
-ktlint_standard_function-signature = disabled
-
 [**/src/commonMain/kotlin/com/googlecode/lanterna/graphics/TextGraphics.kt]
 ktlint_standard_function-signature = disabled
 
