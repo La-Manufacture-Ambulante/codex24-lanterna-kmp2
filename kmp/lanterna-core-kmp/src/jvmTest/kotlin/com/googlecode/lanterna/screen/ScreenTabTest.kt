@@ -18,7 +18,11 @@
  */
 package com.googlecode.lanterna.screen
 
-import com.googlecode.lanterna.*
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.TextColor
 import java.io.IOException
 
 /**

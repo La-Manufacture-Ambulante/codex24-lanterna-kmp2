@@ -13,8 +13,5 @@ ktlint_standard_max-line-length = disabled
 [**/src/jvmTest/kotlin/com/googlecode/lanterna/issue/**/*.kt]
 ktlint_standard_no-wildcard-imports = disabled
 
-[**/src/jvmTest/kotlin/com/googlecode/lanterna/screen/**/*.kt]
-ktlint_standard_no-wildcard-imports = disabled
-
 [**/src/jvmTest/kotlin/com/googlecode/lanterna/terminal/**/*.kt]
 ktlint_standard_no-wildcard-imports = disabled
