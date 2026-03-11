@@ -91,12 +91,12 @@ return TerminalSize(40, 15)
 }
 
 public override fun drawComponent(graphics:TextGUIGraphics?, component:MultiColorComponent?) {
-graphics!!.applyThemeStyle(getTheme()!!.getDefaultDefinition()!!.getNormal())
+graphics!!.applyThemeStyle(theme!!.defaultDefinition!!.normal)
 graphics!!.fill(' ')
 var row = 1
 for (color in TextColor.ANSI.values())
 {
-graphics!!.applyThemeStyle(getTheme()!!.getDefaultDefinition()!!.getNormal())
+graphics!!.applyThemeStyle(theme!!.defaultDefinition!!.normal)
 graphics!!.putString(1, row, color.toString() + ": ")
 graphics!!.setForegroundColor(TextColor.ANSI.BLACK)
 graphics!!.setBackgroundColor(color)
