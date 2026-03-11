@@ -16,6 +16,8 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
+@file:Suppress("ktlint:standard:max-line-length")
+
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.TerminalSize

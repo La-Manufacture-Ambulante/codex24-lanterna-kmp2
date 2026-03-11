@@ -16,6 +16,8 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
+@file:Suppress("ktlint:standard:max-line-length")
+
 package com.googlecode.lanterna.gui2.table
 
 import com.googlecode.lanterna.Symbols

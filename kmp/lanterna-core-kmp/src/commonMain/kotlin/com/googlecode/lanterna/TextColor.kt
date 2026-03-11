@@ -16,7 +16,7 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-@file:Suppress("ktlint:standard:enum-wrapping")
+@file:Suppress("ktlint:standard:enum-wrapping", "ktlint:standard:max-line-length")
 
 package com.googlecode.lanterna
 
