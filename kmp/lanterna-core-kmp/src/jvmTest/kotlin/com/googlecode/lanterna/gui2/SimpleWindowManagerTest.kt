@@ -44,26 +44,26 @@ contentArea.addComponent(Button("Undecorated + Full-screen window", { textGUI.ad
 contentArea.addComponent(Button("Expanded window", { textGUI.addWindow(ExpandedWindow(true)) }))
 contentArea.addComponent(Button("Undecorated + Expanded window", { textGUI.addWindow(ExpandedWindow(false)) }))
 contentArea.addComponent(Button("Close", Runnable { mainWindow.close() }))
-mainWindow.setComponent(contentArea)
+mainWindow.component = contentArea
 textGUI.addWindow(mainWindow)
 }
 
 private class CenteredWindow internal constructor():TestWindow("Centered window") {
 init{
-setHints(Collections.singletonList(Hint.CENTERED))
+setHints(Collections.singletonList(Window.Hint.CENTERED))
 }
 }
 
 private class UndecoratedWindow internal constructor():TestWindow("Undecorated") {
 init{
-setHints(Collections.singletonList(Hint.NO_DECORATIONS))
+setHints(Collections.singletonList(Window.Hint.NO_DECORATIONS))
 }
 }
 
 private class UndecoratedCenteredWindow internal constructor():TestWindow("UndecoratedCentered") {
 
 init{
-setHints(Arrays.asList(Hint.NO_DECORATIONS, Hint.CENTERED))
+setHints(Arrays.asList(Window.Hint.NO_DECORATIONS, Window.Hint.CENTERED))
 }
 }
 
@@ -78,9 +78,15 @@ textBox.setLayoutData(BorderLayout.Location.CENTER)
 textBox.setReadOnly(true)
 content.addComponent(textBox)
 
-setComponent(content)
+component = content
 
-setHints(if (decorations) Collections.singletonList(Hint.FULL_SCREEN) else Arrays.asList(Hint.FULL_SCREEN, Hint.NO_DECORATIONS))
+setHints(
+    if (decorations) {
+        Collections.singletonList(Window.Hint.FULL_SCREEN)
+    } else {
+        Arrays.asList(Window.Hint.FULL_SCREEN, Window.Hint.NO_DECORATIONS)
+    }
+)
 }
 }
 
@@ -95,15 +101,21 @@ textBox.setLayoutData(BorderLayout.Location.CENTER)
 textBox.setReadOnly(true)
 content.addComponent(textBox)
 
-setComponent(content)
+component = content
 
-setHints(if (decorations) Collections.singletonList(Hint.EXPANDED) else Arrays.asList(Hint.EXPANDED, Hint.NO_DECORATIONS))
+setHints(
+    if (decorations) {
+        Collections.singletonList(Window.Hint.EXPANDED)
+    } else {
+        Arrays.asList(Window.Hint.EXPANDED, Window.Hint.NO_DECORATIONS)
+    }
+)
 }
 }
 
 private open class TestWindow internal constructor(title:String):BasicWindow(title) {
 init{
-setComponent(Button("Close", Runnable { this.close() }))
+component = Button("Close", Runnable { this.close() })
 setCloseWindowWithEscape(true)
 }
 }

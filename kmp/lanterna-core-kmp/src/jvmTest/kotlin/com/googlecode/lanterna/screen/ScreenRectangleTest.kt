@@ -65,16 +65,16 @@ val startTime = System.currentTimeMillis()
 while (System.currentTimeMillis() - startTime < 1000 * 20)
 {
 val keyStroke = screen!!.pollInput()
-if ((keyStroke != null && (keyStroke!!.getKeyType() === KeyType.ESCAPE || keyStroke!!.getKeyType() === KeyType.EOF)))
+if ((keyStroke != null && (keyStroke!!.keyType == KeyType.ESCAPE || keyStroke!!.keyType == KeyType.EOF)))
 {
 break
 }
 screen!!.doResizeIfNecessary()
-val size = textGraphics.getSize()
+val size = textGraphics.size
 val color:TextColor?
 if (useAnsiColors)
 {
-color = TextColor.ANSI.values()[random.nextInt(TextColor.ANSI.values().length)]
+color = TextColor.ANSI.values()[random.nextInt(TextColor.ANSI.values().size)]
 }
 else
 {
@@ -82,8 +82,8 @@ else
                 color = TextColor.Indexed(random.nextInt(256))
 }
 
-val topLeft = TerminalPosition(random.nextInt(size!!.getColumns()), random.nextInt(size!!.getRows()))
-val rectangleSize = TerminalSize(random.nextInt(size!!.getColumns() - topLeft.getColumn()), random.nextInt(size!!.getRows() - topLeft.getRow()))
+val topLeft = TerminalPosition(random.nextInt(size!!.columns), random.nextInt(size!!.rows))
+val rectangleSize = TerminalSize(random.nextInt(size!!.columns - topLeft.column), random.nextInt(size!!.rows - topLeft.row))
 
 textGraphics.setBackgroundColor(color)
 if (useFilled)

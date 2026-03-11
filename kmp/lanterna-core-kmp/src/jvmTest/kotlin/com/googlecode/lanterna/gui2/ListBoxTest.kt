@@ -50,10 +50,10 @@ horizontalPanel.addComponent(checkBoxList.withBorder(Borders.singleLine("CheckBo
 horizontalPanel.addComponent(radioBoxList.withBorder(Borders.singleLine("RadioBoxList")))
 horizontalPanel.addComponent(actionListBox.withBorder(Borders.singleLine("ActionListBox")))
 
-window.setComponent(
+window.component =
 Panels.vertical(
 horizontalPanel, 
-Button("OK", Runnable { window.close() })))
+Button("OK", Runnable { window.close() }))
 textGUI.addWindow(window)
 }
 

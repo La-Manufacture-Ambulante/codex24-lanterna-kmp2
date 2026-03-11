@@ -53,8 +53,8 @@ window = BasicWindow("Issue452Test")
 content = Panel(GridLayout(GRID_WIDTH))
 val gridLayout = content!!.getLayoutManager() as GridLayout?
 gridLayout!!.setVerticalSpacing(1)
-window!!.setPosition(TerminalPosition.TOP_LEFT_CORNER)
-window!!.setComponent(content)
+window!!.position = TerminalPosition.TOP_LEFT_CORNER
+window!!.component = content
 }
 
 /**
@@ -69,7 +69,7 @@ val screen = TerminalScreen(terminal)
 screen.startScreen()
 val textGUI = MultiWindowTextGUI(screen)
 val window = BasicWindow("needing to get the table drawn")
-window.setComponent(component)
+window.component = component
 textGUI.addWindow(window)
 textGUI.updateScreen()
  // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -87,9 +87,9 @@ displayForRenderering(singleLine)
 assertTrue(singleLine.isFocused)
  // Click at 3rd position
         clickOnWithRelative(singleLine, 3, 0)
-singleLine.handleInput(KeyStroke(BACKSPACE))
+singleLine.handleInput(KeyStroke(com.googlecode.lanterna.input.KeyType.BACKSPACE))
  // 3rd position (3) should be deleted
-        assertEquals("12456789", singleLine.getText())
+        assertEquals("12456789", singleLine.text)
 }
 
 @Test
@@ -104,14 +104,14 @@ displayForRenderering(multiLine)
 assertTrue(multiLine.isFocused)
  // Click at 3rd position 1st row
         clickOnWithRelative(multiLine, 3, 0)
-multiLine.handleInput(KeyStroke(BACKSPACE))
+multiLine.handleInput(KeyStroke(com.googlecode.lanterna.input.KeyType.BACKSPACE))
  // 3rd position (3) should be deleted
-        assertEquals("12456789\nabcdefgh", multiLine.getText())
+        assertEquals("12456789\nabcdefgh", multiLine.text)
  // Click at 5th position 2nd row
         clickOnWithRelative(multiLine, 5, 1)
-multiLine.handleInput(KeyStroke(BACKSPACE))
+multiLine.handleInput(KeyStroke(com.googlecode.lanterna.input.KeyType.BACKSPACE))
  // 5th position (e) should be deleted
-        assertEquals("12456789\nabcdfgh", multiLine.getText())
+        assertEquals("12456789\nabcdfgh", multiLine.text)
 }
 
 @Test
@@ -202,18 +202,18 @@ list.addItem("RadioGogo")
 list.addItem("RadioBlaBla")
 content!!.addComponent(list, LAYOUT_NEW_ROW)
  // At start, first radio is selected but nothing should be checked
-        assertEquals("RadioGaga", list.getSelectedItem())
-assertEquals(null, list.getCheckedItem())
+        assertEquals("RadioGaga", list.selectedItem)
+assertEquals(null, list.checkedItem)
 
 list.handleInput(clickAt(0, 1))
  // second radio should be selected and item should be checked
-        assertEquals("RadioGogo", list.getSelectedItem())
-assertEquals("RadioGogo", list.getCheckedItem())
+        assertEquals("RadioGogo", list.selectedItem)
+assertEquals("RadioGogo", list.checkedItem)
 
 list.handleInput(clickAt(0, 2))
  // third radio should be selected and item should be checked
-        assertEquals("RadioBlaBla", list.getSelectedItem())
-assertEquals("RadioBlaBla", list.getCheckedItem())
+        assertEquals("RadioBlaBla", list.selectedItem)
+assertEquals("RadioBlaBla", list.checkedItem)
 }
 
 @Test
@@ -292,14 +292,14 @@ return MouseAction(MouseActionType.CLICK_DOWN, 1, TerminalPosition(column, row))
  * Clicks at position of the [Interactable]
  */
     private fun clickOn(component:Interactable) {
-component.handleInput(clickAt(component.getPosition()!!.getColumn(), component.getPosition()!!.getRow()))
+component.handleInput(clickAt(component.position!!.column, component.position!!.row))
 }
 
 /**
  * Clicks at position of the [Interactable] with offset
  */
     private fun clickOnWithRelative(component:Interactable, column:Int, row:Int) {
-val mouseAction = clickAt(component.getGlobalPosition()!!.getColumn() + column, component.getGlobalPosition()!!.getRow() + row)
+val mouseAction = clickAt(component.globalPosition!!.column + column, component.globalPosition!!.row + row)
 component.handleInput(mouseAction)
 }
 

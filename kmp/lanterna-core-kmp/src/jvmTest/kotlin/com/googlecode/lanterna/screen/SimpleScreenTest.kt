@@ -24,6 +24,7 @@ import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.terminal.Terminal
 
 import java.io.IOException
@@ -47,23 +48,24 @@ var backgroundCycle = 0
 mainLoop@ while (true)
 {
 val keyStroke = screen.readInput()
-when (keyStroke!!.getKeyType()) {
+when (keyStroke!!.keyType) {
 KeyType.EOF, KeyType.ESCAPE -> break@mainLoop
 
-KeyType.ARROW_UP -> screen.setCursorPosition(screen.getCursorPosition()!!.withRelativeRow(-1))
+KeyType.ARROW_UP -> screen.cursorPosition = screen.cursorPosition!!.withRelativeRow(-1)
 
-KeyType.ARROW_DOWN -> screen.setCursorPosition(screen.getCursorPosition()!!.withRelativeRow(1))
+KeyType.ARROW_DOWN -> screen.cursorPosition = screen.cursorPosition!!.withRelativeRow(1)
 
-KeyType.ARROW_LEFT -> screen.setCursorPosition(screen.getCursorPosition()!!.withRelativeColumn(-1))
+KeyType.ARROW_LEFT -> screen.cursorPosition = screen.cursorPosition!!.withRelativeColumn(-1)
 
-KeyType.ARROW_RIGHT -> screen.setCursorPosition(screen.getCursorPosition()!!.withRelativeColumn(1))
+KeyType.ARROW_RIGHT -> screen.cursorPosition = screen.cursorPosition!!.withRelativeColumn(1)
 
-KeyType.CHARACTER -> if (keyStroke!!.isCtrlDown())
+KeyType.CHARACTER -> if (keyStroke!!.isCtrlDown)
 {
-when (keyStroke!!.getCharacter()) {
+when (keyStroke.character) {
 'k' -> {
-screen.setCharacter(screen.getCursorPosition(), TextCharacter('桜', COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
-screen.setCursorPosition(screen.getCursorPosition()!!.withRelativeColumn(2))
+val cursorPos = screen.cursorPosition ?: continue@mainLoop
+screen.setCharacter(cursorPos, TextCharacter('桜', COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
+screen.cursorPosition = screen.cursorPosition!!.withRelativeColumn(2)
 }
 
 'f' -> {
@@ -81,7 +83,7 @@ foregroundCycle++
 	backgroundCycle = 0
 	}
 	}
-	else -> {}
+else -> {}
 	}
 if (COLORS_TO_CYCLE[foregroundCycle] !== TextColor.ANSI.BLACK)
 {
@@ -92,7 +94,7 @@ else
 textGraphics!!.setBackgroundColor(TextColor.ANSI.WHITE)
 }
 textGraphics!!.setForegroundColor(COLORS_TO_CYCLE[foregroundCycle])
-textGraphics!!.putString(0, screen.getTerminalSize()!!.getRows() - 2, "Foreground color")
+textGraphics!!.putString(0, (screen.terminalSize?.rows ?: 2) - 2, "Foreground color")
 
 if (COLORS_TO_CYCLE[backgroundCycle] !== TextColor.ANSI.BLACK)
 {
@@ -103,14 +105,14 @@ else
 textGraphics!!.setBackgroundColor(TextColor.ANSI.WHITE)
 }
 textGraphics!!.setForegroundColor(COLORS_TO_CYCLE[backgroundCycle])
-textGraphics!!.putString(0, screen.getTerminalSize()!!.getRows() - 1, "Background color")
+textGraphics!!.putString(0, (screen.terminalSize?.rows ?: 1) - 1, "Background color")
 }
 else
 {
 val ch = keyStroke.character ?: continue
-screen.setCharacter(screen.getCursorPosition(), TextCharacter(ch, COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
-screen.setCursorPosition(screen.getCursorPosition()!!.withRelativeColumn(1))
-break
+val cursorPos = screen.cursorPosition ?: continue@mainLoop
+screen.setCharacter(cursorPos, TextCharacter(ch, COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
+screen.cursorPosition = screen.cursorPosition!!.withRelativeColumn(1)
 }
 else -> {}
 }

@@ -25,9 +25,8 @@ init{
 val panel = Panel()
 panel.addComponent(Label("A label without tab"))
 panel.addComponent(Label("\tAnd one with tab"))
-setComponent(panel)
+component = panel
 }
 }
 }
-
 

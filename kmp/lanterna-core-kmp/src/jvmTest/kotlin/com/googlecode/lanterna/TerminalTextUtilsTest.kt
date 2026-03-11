@@ -32,7 +32,7 @@ for (characters in charactersToTest)
 {
 for (i in 0 until characters!!.length)
 {
-val c = characters!!.charAt(i)
+val c = characters!![i]
 val expected = true
 val actual = TerminalTextUtils.isCharCJK(c)
 assertEquals("Japanese character '" + c + "' was not marked as a CJK character", expected, actual)
@@ -46,7 +46,7 @@ assertEquals("Japanese character '" + c + "' was not marked as a CJK character",
         // are 'normal-width' we want to classify them as 'normal' character and not 2-columns wide.
         for (i in 0 until HALF_WIDTH_KATAKANA!!.length)
 {
-val c = HALF_WIDTH_KATAKANA!!.charAt(i)
+val c = HALF_WIDTH_KATAKANA!![i]
 val expected = false
 val actual = TerminalTextUtils.isCharCJK(c)
 assertEquals("Half-width katakana character '" + c + "' was marked as a CJK character, but shouldn't be", expected, actual)
@@ -59,7 +59,7 @@ assertEquals("Half-width katakana character '" + c + "' was marked as a CJK char
         // considered as CJK since they are double-width
         for (i in 0 until FULL_WIDTH_ROMANJI!!.length)
 {
-val c = FULL_WIDTH_ROMANJI!!.charAt(i)
+val c = FULL_WIDTH_ROMANJI!![i]
 val expected = true
 val actual = TerminalTextUtils.isCharCJK(c)
 assertEquals("Full-width romanji character '" + c + "' was marked not as a CJK character", expected, actual)
@@ -70,7 +70,7 @@ assertEquals("Full-width romanji character '" + c + "' was marked not as a CJK c
   fun koreanCharactersAreDetectedAsCJK() {
 for (i in 0 until HANGUL!!.length)
 {
-val c = HANGUL!!.charAt(i)
+val c = HANGUL!![i]
 val expected = true
 val actual = TerminalTextUtils.isCharCJK(c)
 assertEquals("Korean character '" + c + "' was not marked as a CJK character", expected, actual)
@@ -81,7 +81,7 @@ assertEquals("Korean character '" + c + "' was not marked as a CJK character", e
   fun simplifiedChineseCharactersAreDetectedAsCJK() {
 for (i in 0 until SIMPLIFIED_CHINESE_2500_MOST_COMMON!!.length)
 {
-val c = SIMPLIFIED_CHINESE_2500_MOST_COMMON!!.charAt(i)
+val c = SIMPLIFIED_CHINESE_2500_MOST_COMMON!![i]
 val expected = true
 val actual = TerminalTextUtils.isCharCJK(c)
 assertEquals("Simplified chinese character '" + c + "' was not marked as a CJK character", expected, actual)
@@ -97,7 +97,7 @@ for (i in 0 until characters!!.length)
 {
 val expected = 2
 val actual = TerminalTextUtils.getColumnWidth(characters!!.substring(i, i + 1))
-assertEquals("CJK character '" + characters!!.charAt(i) + "' didn't return 2", expected, actual)
+assertEquals("CJK character '" + characters!![i] + "' didn't return 2", expected, actual)
 }
 }
 val nonCJKCharacters = arrayOf<String?>(LATIN1, HALF_WIDTH_KATAKANA)
@@ -107,7 +107,7 @@ for (i in 0 until characters!!.length)
 {
 val expected = 1
 val actual = TerminalTextUtils.getColumnWidth(characters!!.substring(i, i + 1))
-assertEquals("Non-CJK character '" + characters!!.charAt(i) + "' didn't return 1", expected, actual)
+assertEquals("Non-CJK character '" + characters!![i] + "' didn't return 1", expected, actual)
 }
 }
 

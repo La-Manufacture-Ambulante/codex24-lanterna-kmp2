@@ -64,9 +64,9 @@ panel = Panel()
 panel!!.addComponent(Button("Panel 4 Button"))
 rightPanel.addComponent(panel!!.withBorder(Borders.doubleLine("Title")))
 
-window.setComponent(Panels.vertical(
+window.component = Panels.vertical(
 mainPanel.withBorder(Borders.singleLine("Main")), 
-Button("OK", Runnable { window.close() })))
+Button("OK", Runnable { window.close() }))
 textGUI.addWindow(window)
 }
 

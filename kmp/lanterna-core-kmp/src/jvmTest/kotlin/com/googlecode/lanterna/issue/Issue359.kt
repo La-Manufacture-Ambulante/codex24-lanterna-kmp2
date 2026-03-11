@@ -24,8 +24,8 @@ val button = Button("Hello")
  // Replacing a Component by itself just Border-wrapped
             // caused a NullPointerException lateron from within
             //   the call to gui.addWindowAndWait(window);
-            window.setComponent(button)
-window.setComponent(button.withBorder(Borders.singleLine("Border")))
+            window.component = button
+window.component = button.withBorder(Borders.singleLine("Border"))
 
 val gui = MultiWindowTextGUI(screen)
 gui.addWindowAndWait(window)

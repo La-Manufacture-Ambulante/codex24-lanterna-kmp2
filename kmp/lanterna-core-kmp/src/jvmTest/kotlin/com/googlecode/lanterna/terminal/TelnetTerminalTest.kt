@@ -66,7 +66,7 @@ System.err.println("Resized to " + newSize)
 terminalSizeCurrent = newSize
 }
 })
-terminalSizeCurrent = terminal!!.getTerminalSize()
+terminalSizeCurrent = terminal!!.terminalSize
 
 terminal!!.setCursorPosition(3, 3)
 printString(terminal, "Press any key to start")
@@ -78,7 +78,7 @@ val key = terminal!!.pollInput()
 if (key != null)
 {
 System.out.println(key)
-if (key!!.getKeyType() == KeyType.ESCAPE)
+if (key!!.keyType == KeyType.ESCAPE)
 {
 terminal!!.exitPrivateMode()
 return 
@@ -91,8 +91,8 @@ val backgroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.next
 terminal!!.setForegroundColor(foregroundIndex)
 terminal!!.setBackgroundColor(backgroundIndex)
 terminal!!.setCursorPosition(
-random.nextInt(terminalSizeCurrent!!.getColumns() - string.length),
-random.nextInt(terminalSizeCurrent!!.getRows())
+random.nextInt(terminalSizeCurrent!!.columns - string.length),
+random.nextInt(terminalSizeCurrent!!.rows)
 )
 printString(terminal, string)
 
@@ -125,7 +125,7 @@ e!!.printStackTrace()
 @Throws(IOException::class)
 private fun printString(terminal:Terminal?, string:String) {
 for (i in 0 until string.length)
-terminal!!.putCharacter(string.charAt(i))
+terminal!!.putCharacter(string[i])
 terminal!!.flush()
 }
 }

@@ -78,7 +78,7 @@ textGraphics!!.setBackgroundColor(TextColor.ANSI.BLACK)
 textGraphics!!.setForegroundColor(TextColor.ANSI.DEFAULT)
 textGraphics!!.setBackgroundColor(TextColor.ANSI.DEFAULT)
 textGraphics!!.putString(5, 3, "Terminal Size: ", SGR.BOLD)
-textGraphics!!.putString(5 + "Terminal Size: ".length, 3, terminal!!.getTerminalSize()!!.toString())
+textGraphics!!.putString(5 + "Terminal Size: ".length, 3, terminal!!.terminalSize!!.toString())
 
  /*
             You still need to flush for changes to become visible
@@ -96,7 +96,7 @@ override fun onResized(terminal1: Terminal?, newSize: TerminalSize?) {
  // Be careful here though, this is likely running on a separate thread. Lanterna is threadsafe in
                 // a best-effort way so while it shouldn't blow up if you call terminal methods on multiple threads,
                 // it might have unexpected behavior if you don't do any external synchronization
-                textGraphics!!.drawLine(5, 3, newSize!!.getColumns() - 1, 3, ' ')
+                textGraphics!!.drawLine(5, 3, newSize!!.columns - 1, 3, ' ')
 textGraphics!!.putString(5, 3, "Terminal Size: ", SGR.BOLD)
 textGraphics!!.putString(5 + "Terminal Size: ".length, 3, newSize.toString())
 try
@@ -126,9 +126,9 @@ terminal!!.flush()
             KeyType, while regular alphanumeric and symbol keys are all under KeyType.Character. Notice that tab and
             enter are not considered KeyType.Character but special types (KeyType.Tab and KeyType.Enter respectively)
              */
-            while (keyStroke!!.getKeyType() != KeyType.ESCAPE)
+            while (keyStroke!!.keyType != KeyType.ESCAPE)
 {
-textGraphics!!.drawLine(5, 4, terminal!!.getTerminalSize()!!.getColumns() - 1, 4, ' ')
+textGraphics!!.drawLine(5, 4, terminal!!.terminalSize!!.columns - 1, 4, ' ')
 textGraphics!!.putString(5, 4, "Last Keystroke: ", SGR.BOLD)
 textGraphics!!.putString(5 + "Last Keystroke: ".length, 4, keyStroke!!.toString())
 terminal!!.flush()

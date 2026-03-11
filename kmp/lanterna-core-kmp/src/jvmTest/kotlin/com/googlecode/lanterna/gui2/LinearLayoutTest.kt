@@ -53,17 +53,17 @@ Button("Collapse", { window.setHints(Collections.emptySet()) }),
 Button("Close", Runnable { window.close() })
 ))
 
-window.setComponent(mainPanel)
+window.component = mainPanel
 textGUI.addWindow(window)
 }
 
 internal fun toggleVisibleOnOddNumberLabels(panel:Panel) {
-for (i in 0 until panel.getChildCount())
+for (i in 0 until panel.childCount)
 {
 if ((i + 1) % 2 == 1)
 {
 val component = panel.childrenList?.get(i) ?: continue
-component.setVisible(!component.isVisible())
+component.setVisible(!component.isVisible)
 }
 }
 }

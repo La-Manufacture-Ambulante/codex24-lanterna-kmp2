@@ -44,7 +44,7 @@ mainSelector.addItem("Component test", { runComponentTest(textGUI) })
 mainSelector.addItem("Multi-theme test", { runMultiThemeTest(textGUI) })
 mainSelector.addItem("Make custom theme", { runCustomTheme(textGUI) })
 mainSelector.addItem("Exit", Runnable { mainSelectionWindow.close() })
-mainSelectionWindow.setComponent(mainSelector)
+mainSelectionWindow.component = mainSelector
 mainSelectionWindow.setHints(Collections.singletonList(Window.Hint.CENTERED))
 
 textGUI.addWindow(mainSelectionWindow)
@@ -148,7 +148,7 @@ mainPanel.addComponent(listBox)
 mainPanel.addComponent(EmptySpace())
 mainPanel.addComponent(Button(LocalizedString.Close!!.toString(), Runnable { componentTestChooser.close() }).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.END)))
 
-componentTestChooser.setComponent(mainPanel)
+componentTestChooser.component = mainPanel
 textGUI!!.addWindowAndWait(componentTestChooser)
 }
 
@@ -203,14 +203,14 @@ progressBarAdvanceTimer.start()
 override fun run() {
 val componentWindow = BasicWindow()
 componentWindow.setHints(Collections.singletonList(Window.Hint.CENTERED))
-componentWindow.setTitle("Themed Component")
+componentWindow.title = "Themed Component"
 
 val mainPanel = Panel()
 mainPanel.setLayoutManager(GridLayout(2))
 mainPanel.addComponent(borderedComponent!!.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
 
 val actionListBox = ActionListBox()
-for (themeName in LanternaThemes.getRegisteredThemes() as Collection<String>)
+for (themeName in LanternaThemes.registeredThemes as Collection<String>)
 {
 actionListBox.addItem(themeName, { borderedComponent!!.setTheme(LanternaThemes.getRegisteredTheme(themeName)) })
 }
@@ -223,7 +223,7 @@ val closeButton = Button(LocalizedString.Close!!.toString(), Runnable { componen
 closeButton.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.END, GridLayout.Alignment.END))
 mainPanel.addComponent(closeButton)
 
-componentWindow.setComponent(mainPanel)
+componentWindow.component = mainPanel
 closeButton.takeFocus()
 textGUI!!.addWindowAndWait(componentWindow)
 }
@@ -244,17 +244,17 @@ override fun toString(): String {
 
 private fun runMultiThemeTest(textGUI:WindowBasedTextGUI) {
 @Suppress("UNCHECKED_CAST")
-val themes = ArrayList(LanternaThemes.getRegisteredThemes() as Collection<String>)
+val themes = ArrayList(LanternaThemes.registeredThemes as Collection<String>)
 val windowThemeIndex = intArrayOf(themes.indexOf("bigsnake"), themes.indexOf("conqueror"))
 val window1 = BasicWindow("Theme: bigsnake")
 window1.setHints(Collections.singletonList(Window.Hint.FIXED_POSITION))
-window1.setTheme(LanternaThemes.getRegisteredTheme(themes.get(windowThemeIndex[0])))
-window1.setPosition(TerminalPosition(2, 1))
+window1.theme = LanternaThemes.getRegisteredTheme(themes.get(windowThemeIndex[0]))
+window1.position = TerminalPosition(2, 1)
 
 val window2 = BasicWindow("Theme: conqueror")
 window2.setHints(Collections.singletonList(Window.Hint.FIXED_POSITION))
-window2.setTheme(LanternaThemes.getRegisteredTheme(themes.get(windowThemeIndex[1])))
-window2.setPosition(TerminalPosition(30, 1))
+window2.theme = LanternaThemes.getRegisteredTheme(themes.get(windowThemeIndex[1]))
+window2.position = TerminalPosition(30, 1)
 
 val leftHolder = Panel().setPreferredSize(TerminalSize(15, 4))
 val rightHolder = Panel().setPreferredSize(TerminalSize(15, 4))
@@ -283,15 +283,15 @@ if (windowThemeIndex[0] >= themes.size)
 windowThemeIndex[0] = 0
 }
 val themeName = themes.get(windowThemeIndex[0])
-window1.setTheme(LanternaThemes.getRegisteredTheme(themeName))
-window1.setTitle("Theme: " + themeName!!) })!!
+window1.theme = LanternaThemes.getRegisteredTheme(themeName)
+window1.title = "Theme: " + themeName!! })!!
 .addItem("Switch active window", { textGUI.setActiveWindow(window2) })!!
 .addItem("Exit", { window1.close()
 window2.close() })
-window1.setComponent(
+window1.component =
 Panels.vertical(
 leftHolder!!.withBorder(Borders.singleLine()), 
-leftWindowActionBox))
+leftWindowActionBox)
 
 val rightWindowActionBox = ActionListBox()
 .addItem("Move button to left", { leftHolder!!.addComponent(exampleButton) })!!
@@ -309,15 +309,15 @@ if (windowThemeIndex[1] >= themes.size)
 windowThemeIndex[1] = 0
 }
 val themeName = themes.get(windowThemeIndex[1])
-window2.setTheme(LanternaThemes.getRegisteredTheme(themeName))
-window2.setTitle("Theme: " + themeName!!) })!!
+window2.theme = LanternaThemes.getRegisteredTheme(themeName)
+window2.title = "Theme: " + themeName!! })!!
 .addItem("Switch active window", { textGUI.setActiveWindow(window1) })!!
 .addItem("Exit", { window1.close()
 window2.close() })
-window2.setComponent(
+window2.component =
 Panels.vertical(
 rightHolder!!.withBorder(Borders.singleLine()), 
-rightWindowActionBox))
+rightWindowActionBox)
 
 window1.focusedInteractable = leftWindowActionBox
 window2.focusedInteractable = rightWindowActionBox
@@ -378,7 +378,7 @@ editableBackground.getSelectedItem(),
 selectedForeground.getSelectedItem(), 
 selectedBackground.getSelectedItem(), 
 guiBackground.getSelectedItem())
-textGUI.setTheme(theme)
+textGUI.theme = theme
 customThemeCreator.close() })
 val cancelButton = Button(LocalizedString.Cancel!!.toString(), Runnable { customThemeCreator.close() })
 mainPanel.addComponent(Panels.horizontal(
@@ -386,7 +386,7 @@ okButton,
 cancelButton
 ).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.END)))
 
-customThemeCreator.setComponent(mainPanel)
+customThemeCreator.component = mainPanel
 okButton.takeFocus()
 textGUI.addWindowAndWait(customThemeCreator)
 }

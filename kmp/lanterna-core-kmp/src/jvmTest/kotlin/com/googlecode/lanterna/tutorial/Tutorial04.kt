@@ -156,7 +156,7 @@ GridLayout.createHorizontallyEndAlignedLayoutData(2)))
             We now have the content panel fully populated with components. A common mistake is to forget to attach it to
             the window, so let's make sure to do that.
              */
-            window.setComponent(contentPanel)
+            window.component = contentPanel
 
  /*
             Now the window is created and fully populated. As discussed above regarding the threading model, we have the

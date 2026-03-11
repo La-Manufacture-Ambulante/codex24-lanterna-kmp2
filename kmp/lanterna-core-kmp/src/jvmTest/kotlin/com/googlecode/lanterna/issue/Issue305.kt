@@ -19,7 +19,7 @@ import java.io.InputStreamReader
     @Throws(IOException::class)
  fun main(args:Array<String?>?) {
 val terminal = DefaultTerminalFactory().createTerminal()!!
-System.out.println("Class: " + terminal!!.getClass())
+System.out.println("Class: " + terminal!!::class.java)
 
 terminal!!.close()
 

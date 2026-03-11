@@ -18,8 +18,8 @@ basePanel.setLayoutManager(layout)
 
 val bracketTree = createTestTree()
 bracketTree.setDisplayRoot(false)
-bracketTree.setOverflowCircle(true)
-bracketTree.setNodeSelectedConsumer({ node-> System.out.println("Selected leaf node: " + node!!.getLabel()) })
+bracketTree.isOverflowCircle = true
+bracketTree.setNodeSelectedConsumer({ node-> System.out.println("Selected leaf node: " + node!!.label) })
 
 val bracketTreePanel = Panel()
 bracketTreePanel.addComponent(bracketTree)
@@ -36,7 +36,7 @@ definition.setIntegerProperty(Tree.DefaultTreeRenderer.TREE_LEVEL_INDENT, 2)
 definition.setBooleanProperty(Tree.DefaultTreeRenderer.DISPLAY_BRACKETS, false)
 definition.setBooleanProperty(Tree.DefaultTreeRenderer.DISPLAY_BLOCK, true)
 noBracketTree.setTheme(theme)
-noBracketTree.setNodeSelectedConsumer({ node-> System.out.println("Selected leaf node: " + node!!.getLabel()) })
+noBracketTree.setNodeSelectedConsumer({ node-> System.out.println("Selected leaf node: " + node!!.label) })
 
 val noBracketTreePanel = Panel()
 noBracketTreePanel.addComponent(noBracketTree)
@@ -45,7 +45,7 @@ noBracketTreePanel.setPreferredSize(TerminalSize(35, 15))
 basePanel.addComponent(bracketTreePanel.withBorder(Borders.singleLine("Bracket Tree")), BorderLayout.Location.LEFT)
 basePanel.addComponent(noBracketTreePanel.withBorder(Borders.singleLine("No bracket in block Tree")), BorderLayout.Location.RIGHT)
 
-window.setComponent(basePanel)
+window.component = basePanel
 textGUI.addWindow(window)
 }
 
@@ -74,10 +74,10 @@ var transitiveParent = child4
 for (i in 9..19)
 {
 transitiveParent = transitiveParent!!.addChild("child_" + i, true)
-if (transitiveParent!!.getLabel().equals("child_9"))
+if (transitiveParent!!.label == "child_9")
 {
 transitiveParent!!.setVisible(false)
-transitiveParent!!.setLabel("child_9 (hidden)")
+transitiveParent!!.label = "child_9 (hidden)"
 }
 }
 

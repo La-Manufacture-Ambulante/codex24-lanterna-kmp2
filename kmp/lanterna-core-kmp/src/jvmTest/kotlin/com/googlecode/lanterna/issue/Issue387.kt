@@ -37,7 +37,7 @@ panel.addComponent(table)
 panel.addComponent(EmptySpace(TerminalSize(15, 1)))
 panel.addComponent(TextBox())
 
-window.setComponent(panel)
+window.component = panel
 
 val gui = MultiWindowTextGUI(screen)
 gui.addWindowAndWait(window)

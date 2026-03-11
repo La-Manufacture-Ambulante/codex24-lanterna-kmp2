@@ -34,7 +34,7 @@ selectedImageComponent!!.setTextImage(image)
 
 fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("ImageComponentTest")
-window.setTheme(LanternaThemes.getRegisteredTheme("conqueror"))
+window.theme = LanternaThemes.getRegisteredTheme("conqueror")
 
 val controller = ExampleController()
 controller.selectedImageComponent = makeImageComponent(controller, IMAGE_BLANK!!)
@@ -53,7 +53,7 @@ mainPanel.addComponent(imageComponentZ.withBorder(Borders.singleLine("z")))
 mainPanel.addComponent(controller.selectedImageComponent!!.withBorder(Borders.singleLine("selection")))
 
 
-window.setComponent(mainPanel)
+window.component = mainPanel
 textGUI.addWindow(window)
 }
 
@@ -84,7 +84,7 @@ return imageComponent
 internal fun fillImageLine(textImage:TextImage?, row:Int, line:String) {
 for (x in 0 until line.length)
 {
-val c = line.charAt(x)
+val c = line[x]
 val textCharacter = TextCharacter(c)
 textImage!!.setCharacterAt(x, row, textCharacter)
 }

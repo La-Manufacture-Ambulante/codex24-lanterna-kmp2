@@ -35,15 +35,14 @@ import java.io.IOException
 @Throws(IOException::class, InterruptedException::class)
  fun main(args:Array<String?>?) {
 val terminal = TestTerminalFactory(args)
-.setTerminalEmulatorFrameAutoCloseTrigger(null)
 .createTerminal() as Terminal
 var normalTerminal = true
 printNormalTerminalText(terminal!!)
 var keyStroke:KeyStroke? = null
-while (keyStroke == null || keyStroke!!.getKeyType() != KeyType.ESCAPE)
+while (keyStroke == null || keyStroke!!.keyType != KeyType.ESCAPE)
 {
 keyStroke = terminal!!.pollInput()
-if (keyStroke != null && keyStroke!!.getKeyType() == KeyType.CHARACTER && keyStroke!!.getCharacter() == ' ')
+if (keyStroke != null && keyStroke!!.keyType == KeyType.CHARACTER && keyStroke!!.character == ' ')
 {
 normalTerminal = !normalTerminal
 if (normalTerminal)
@@ -80,7 +79,7 @@ terminal.setCursorPosition(5, 3)
 val text = "Normal terminal, press space to switch"
 for (i in 0 until text.length)
 {
-terminal.putCharacter(text.charAt(i))
+terminal.putCharacter(text[i])
 }
 terminal.flush()
 }
@@ -92,7 +91,7 @@ terminal.setCursorPosition(5, 3)
 val text = "Private mode terminal, press space to switch"
 for (i in 0 until text.length)
 {
-terminal.putCharacter(text.charAt(i))
+terminal.putCharacter(text[i])
 }
 terminal.flush()
 }

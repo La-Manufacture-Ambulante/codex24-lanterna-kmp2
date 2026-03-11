@@ -40,7 +40,7 @@ val random = Random()
 val terminal = TestTerminalFactory(args).createTerminal()!!
 terminal!!.enterPrivateMode()
 terminal!!.clearScreen()
-val size = terminal!!.getTerminalSize()
+val size = terminal!!.terminalSize
 
 while (true)
 {
@@ -55,7 +55,7 @@ val backgroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.next
 
 terminal!!.setForegroundColor(foregroundIndex)
 terminal!!.setBackgroundColor(backgroundIndex)
-terminal!!.setCursorPosition(random.nextInt(size!!.getColumns() - string.length), random.nextInt(size!!.getRows()))
+terminal!!.setCursorPosition(random.nextInt(size!!.columns - string.length), random.nextInt(size!!.rows))
 printString(terminal, string)
 
 try
@@ -70,7 +70,7 @@ catch (e:InterruptedException) {}
 @Throws(IOException::class)
 private fun printString(terminal:Terminal, string:String) {
 for (i in 0 until string.length)
-terminal!!.putCharacter(string.charAt(i))
+terminal!!.putCharacter(string[i])
 terminal!!.flush()
 }
 }

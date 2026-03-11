@@ -54,11 +54,11 @@ drawRandomHello(rightTerminal)
 }
 
 private fun drawRandomHello(terminal:IOSafeTerminal) {
-val size = terminal.getTerminalSize()
-if (size!!.getColumns() > 6 && size!!.getRows() > 1)
+val size = terminal.terminalSize
+if (size!!.columns > 6 && size!!.rows > 1)
 {
-val positionX = RANDOM.nextInt(size!!.getColumns() - 6)
-val positionY = RANDOM.nextInt(size!!.getRows())
+val positionX = RANDOM.nextInt(size!!.columns - 6)
+val positionY = RANDOM.nextInt(size!!.rows)
 
 terminal.setCursorPosition(positionX, positionY)
 terminal.setBackgroundColor(TextColor.Indexed(RANDOM.nextInt(256)))
@@ -66,7 +66,7 @@ terminal.setForegroundColor(TextColor.Indexed(RANDOM.nextInt(256)))
 val hello = "Hello!"
 for (i in 0 until hello.length)
 {
-terminal.putCharacter(hello.charAt(i))
+terminal.putCharacter(hello[i])
 }
 terminal.flush()
 }

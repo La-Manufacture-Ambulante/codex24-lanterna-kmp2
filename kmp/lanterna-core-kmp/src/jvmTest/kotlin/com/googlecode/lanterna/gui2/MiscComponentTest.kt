@@ -86,7 +86,7 @@ LinearLayout.createLayoutData(LinearLayout.Alignment.FILL)))
 val okButton = Button("OK", { window.close()
 timer.cancel() }).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.CENTER))
 contentArea.addComponent(okButton)
-window.setComponent(contentArea)
+window.component = contentArea
 textGUI.addWindow(window)
 }
 

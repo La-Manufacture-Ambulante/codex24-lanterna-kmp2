@@ -47,7 +47,7 @@ System.out.println(aData)
 } })
 
 val win = BasicWindow()
-win.setComponent(table)
+win.component = table
 
 val factory = DefaultTerminalFactory()
 val terminal = factory.createTerminal()!!

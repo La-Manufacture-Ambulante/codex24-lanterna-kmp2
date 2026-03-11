@@ -52,11 +52,10 @@ rightPanel.addComponent(TextBox(TerminalSize(15, 5),
 mainPanel.addComponent(leftPanel.withBorder(Borders.singleLine("Single line")))
 mainPanel.addComponent(rightPanel.withBorder(Borders.singleLine("Multiline")))
 
-window.setComponent(
+window.component =
 Panels.vertical(
 mainPanel.withBorder(Borders.singleLine("Main")), 
 Button("OK", Runnable { window.close() }))
-)
 textGUI.addWindow(window)
 }
 

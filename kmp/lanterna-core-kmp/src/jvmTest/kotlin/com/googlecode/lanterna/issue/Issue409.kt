@@ -49,15 +49,15 @@ panel.addComponent(cyclingThemesTextBox)
 panel.addComponent(EmptySpace())
 panel.addComponent(Button("Close", Runnable { window.close() }))
 
-window.setComponent(panel)
+window.component = panel
 val gui = MultiWindowTextGUI(screen)
 gui.addWindow(window)
 Thread({ var counter = 0
-while (cyclingThemesTextBox.getTextGUI() != null)
+while (cyclingThemesTextBox.textGUI != null)
 {
 if (++counter % 200 == 0)
 {
-gui.getGUIThread()!!.invokeLater(Runnable { cyclingThemesTextBox.nextTheme() })
+gui.guiThread!!.invokeLater(Runnable { cyclingThemesTextBox.nextTheme() })
 }
 else
 {
@@ -98,7 +98,7 @@ private var index:Int = 0
 init{
 setPreferredSize(TerminalSize(40, 1))
 @Suppress("UNCHECKED_CAST")
-systemThemes = ArrayList(LanternaThemes.getRegisteredThemes() as Collection<String>)
+systemThemes = ArrayList(LanternaThemes.registeredThemes as Collection<String>)
 index = 0
 }
 

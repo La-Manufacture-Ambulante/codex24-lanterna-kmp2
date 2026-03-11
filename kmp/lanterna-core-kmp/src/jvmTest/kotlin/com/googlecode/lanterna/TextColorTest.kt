@@ -10,16 +10,16 @@ import org.junit.Assert.*
 @Test
   fun testFromAWTColor() {
 var rgb = TextColor.RGB.fromAWTColor(Color.BLUE)
-assertEquals(0, rgb!!.getRed())
-assertEquals(0, rgb!!.getGreen())
-assertEquals(255, rgb!!.getBlue())
+assertEquals(0, rgb!!.red)
+assertEquals(0, rgb!!.green)
+assertEquals(255, rgb!!.blue)
 rgb = TextColor.RGB.fromAWTColor(Color.RED)
-assertEquals(255, rgb!!.getRed())
-assertEquals(0, rgb!!.getGreen())
-assertEquals(0, rgb!!.getBlue())
+assertEquals(255, rgb!!.red)
+assertEquals(0, rgb!!.green)
+assertEquals(0, rgb!!.blue)
 rgb = TextColor.RGB.fromAWTColor(Color.GREEN)
-assertEquals(0, rgb!!.getRed())
-assertEquals(255, rgb!!.getGreen())
-assertEquals(0, rgb!!.getBlue())
+assertEquals(0, rgb!!.red)
+assertEquals(255, rgb!!.green)
+assertEquals(0, rgb!!.blue)
 }
 }

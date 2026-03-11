@@ -28,7 +28,7 @@ panel.addComponent(Label(""))
 
  // Create window to hold the panel
         val window = BasicWindow()
-window.setComponent(Panels.vertical(panel))
+window.component = Panels.vertical(panel)
 window.setCloseWindowWithEscape(true)
 
 gui.addWindowAndWait(window)

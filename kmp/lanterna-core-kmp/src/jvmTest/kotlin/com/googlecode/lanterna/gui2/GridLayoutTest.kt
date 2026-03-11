@@ -66,10 +66,10 @@ contentPanel.setLayoutManager(LinearLayout(Direction.VERTICAL))
 contentPanel.addComponent(Panels.horizontal(leftGridPanel, EmptySpace(TerminalSize.ONE), rightGridPanel))
 contentPanel.addComponent(EmptySpace(TerminalSize.ONE))
 contentPanel.addComponent(Panels.horizontal(
-Button("Toggle Visible Component", { visibilityToggleableComponent.setVisible(!visibilityToggleableComponent.isVisible()) }), 
+Button("Toggle Visible Component", { visibilityToggleableComponent.setVisible(!visibilityToggleableComponent.isVisible) }), 
 Button("Close", Runnable { window.close() })
 ))
-window.setComponent(contentPanel)
+window.component = contentPanel
 textGUI.addWindow(window)
 }
 

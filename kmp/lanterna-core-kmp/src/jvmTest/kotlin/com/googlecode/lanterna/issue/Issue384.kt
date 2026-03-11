@@ -45,9 +45,9 @@ buttonPanel.setLayoutManager(LinearLayout(Direction.HORIZONTAL))
 buttonPanel.addComponent(Button("Change Expandable Columns", { showExpandableColumnsEditor(textGUI, tableRenderer) }))
 buttonPanel.addComponent(Button("Close", Runnable { window.close() }))
 
-window.setComponent(Panels.vertical(
+window.component = Panels.vertical(
 table.withBorder(Borders.singleLineBevel("Table")), 
-buttonPanel))
+buttonPanel)
 table.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL))
 textGUI.addWindow(window)
 textGUI.waitForWindowToClose(window)
@@ -74,7 +74,7 @@ EXPANDABLE_COLUMNS.add(i)
 }
 tableRenderer!!.setExpandableColumns(EXPANDABLE_COLUMNS)
 dialogWindow.close() }), LinearLayout.createLayoutData(LinearLayout.Alignment.END))
-dialogWindow.setComponent(contentPanel)
+dialogWindow.component = contentPanel
 dialogWindow.showDialog(textGUI!!)
 }
 }

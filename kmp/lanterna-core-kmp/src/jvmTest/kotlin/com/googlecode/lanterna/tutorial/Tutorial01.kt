@@ -92,8 +92,8 @@ terminal!!.flush()
             terminal bounds are usually rounded to the first/last column/row. If you run into this, please clear the
             terminal content so the cursor is at the top again before running this code.
              */
-            val startPosition = terminal!!.getCursorPosition()
-terminal!!.setCursorPosition(startPosition!!.withRelativeColumn(3)!!.withRelativeRow(2))
+            val startPosition = terminal!!.cursorPosition
+terminal!!.cursorPosition = startPosition!!.withRelativeColumn(3)!!.withRelativeRow(2)
 terminal!!.flush()
 Thread.sleep(2000)
 
@@ -134,7 +134,7 @@ Thread.sleep(2000)
             TerminalPosition class is immutable and calling the with* methods will return a copy. So the following
             setCursorPosition(..) call will put us exactly one row below the previous row.
              */
-            terminal!!.setCursorPosition(startPosition!!.withRelativeColumn(3)!!.withRelativeRow(3))
+            terminal!!.cursorPosition = startPosition!!.withRelativeColumn(3)!!.withRelativeRow(3)
 terminal!!.flush()
 Thread.sleep(2000)
 terminal!!.enableSGR(SGR.BOLD)
@@ -159,7 +159,7 @@ Thread.sleep(2000)
             Ok, that's enough for now. Let's reset colors and SGR modifiers and move down one more line
              */
             terminal!!.resetColorAndSGR()
-terminal!!.setCursorPosition(terminal!!.getCursorPosition()!!.withColumn(0)!!.withRelativeRow(1))
+terminal!!.cursorPosition = terminal!!.cursorPosition!!.withColumn(0)!!.withRelativeRow(1)
 terminal!!.putCharacter('D')
 terminal!!.putCharacter('o')
 terminal!!.putCharacter('n')

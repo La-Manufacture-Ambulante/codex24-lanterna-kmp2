@@ -44,7 +44,7 @@ val textGraphics = screen!!.newTextGraphics()
 textGraphics!!.setBackgroundColor(TextColor.ANSI.GREEN)
 textGraphics!!.fillTriangle(TerminalPosition(40, 0), TerminalPosition(25, 19), TerminalPosition(65, 19), ' ')
 textGraphics!!.setBackgroundColor(TextColor.ANSI.RED)
-textGraphics!!.drawRectangle(TerminalPosition.TOP_LEFT_CORNER, screen!!.getTerminalSize(), ' ')
+textGraphics!!.drawRectangle(TerminalPosition.TOP_LEFT_CORNER, screen!!.terminalSize, ' ')
 screen!!.refresh()
 
 while (true)
@@ -52,7 +52,7 @@ while (true)
 val keyStroke = screen!!.pollInput()
 if (keyStroke != null)
 {
-if (keyStroke!!.getKeyType() == KeyType.ESCAPE)
+if (keyStroke!!.keyType == KeyType.ESCAPE)
 {
 break
 }

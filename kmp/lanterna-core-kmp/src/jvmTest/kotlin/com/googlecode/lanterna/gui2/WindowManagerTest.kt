@@ -21,7 +21,7 @@ val contentArea = Panel()
 contentArea.setLayoutManager(LinearLayout(Direction.VERTICAL))
 contentArea.addComponent(EmptySpace(TerminalSize.ONE))
 contentArea.addComponent(Button("Close", Runnable { mainWindow.close() }))
-mainWindow.setComponent(contentArea)
+mainWindow.component = contentArea
 textGUI.addWindow(mainWindow)
 }
 

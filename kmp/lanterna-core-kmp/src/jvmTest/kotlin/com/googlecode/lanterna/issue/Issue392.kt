@@ -24,17 +24,20 @@ setExceptionHandler()
 val window = BasicWindow()
 
 val button = Button("test")
-button.addListener({
+button.addListener(object : Button.Listener {
+override fun onTriggered(button: Button) {
 setExceptionHandler()
-throw RuntimeException("This should be caught in the uncaght exception handler!") })
-window.setComponent(button)
+throw RuntimeException("This should be caught in the uncaght exception handler!")
+}
+})
+window.component = button
 
 textGUI!!.addWindowAndWait(window)
 screen.stopScreen()
 }
 
 private fun setExceptionHandler() {
-textGUI!!.getGUIThread()!!.setExceptionHandler(object:TextGUIThread.ExceptionHandler {
+textGUI!!.guiThread!!.setExceptionHandler(object:TextGUIThread.ExceptionHandler {
 
 private fun handleException(e:Exception):Boolean {
 System.err.println("### Caught!")

@@ -38,7 +38,7 @@ import com.googlecode.lanterna.terminal.*
 val screen = TerminalScreen(terminal)
 screen.startScreen()
 
-val screenSize = screen.getTerminalSize()
+val screenSize = screen.terminalSize
 
  // Create panel to hold components
         val panel = Panel()
@@ -46,7 +46,7 @@ panel.setPreferredSize(screenSize)
 
  // Create window to hold the panel
         val window = BasicWindow()
-window.setComponent(panel)
+window.component = panel
 
  // Create gui and start gui
         val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))

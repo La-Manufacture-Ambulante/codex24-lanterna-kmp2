@@ -34,7 +34,7 @@ import java.io.IOException
  //Setup a standard Screen
         val screen = TestTerminalFactory(args).createScreen()
 screen!!.startScreen()
-screen!!.setCursorPosition(null)
+screen!!.cursorPosition = null
 
  //Create an 'image' that we fill with recognizable characters
         val image = BasicTextImage(5, 5)
@@ -55,24 +55,24 @@ val screenGraphics = screen!!.newTextGraphics()
 screenGraphics!!.setBackgroundColor(TextColor.Indexed.fromRGB(50, 50, 50))
 screenGraphics!!.fill(' ')
 screenGraphics!!.drawImage(TerminalPosition.OFFSET_1x1, image)
-screenGraphics!!.drawImage(TerminalPosition(8, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.getSize().withRelativeColumns(-4))
-screenGraphics!!.drawImage(TerminalPosition(10, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.getSize().withRelativeColumns(-3))
-screenGraphics!!.drawImage(TerminalPosition(13, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.getSize().withRelativeColumns(-2))
-screenGraphics!!.drawImage(TerminalPosition(17, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.getSize().withRelativeColumns(-1))
+screenGraphics!!.drawImage(TerminalPosition(8, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(-4))
+screenGraphics!!.drawImage(TerminalPosition(10, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(-3))
+screenGraphics!!.drawImage(TerminalPosition(13, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(-2))
+screenGraphics!!.drawImage(TerminalPosition(17, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(-1))
 screenGraphics!!.drawImage(TerminalPosition(22, 1), image)
-screenGraphics!!.drawImage(TerminalPosition(28, 1), image, TerminalPosition(1, 0), image.getSize())
-screenGraphics!!.drawImage(TerminalPosition(33, 1), image, TerminalPosition(2, 0), image.getSize())
-screenGraphics!!.drawImage(TerminalPosition(37, 1), image, TerminalPosition(3, 0), image.getSize())
-screenGraphics!!.drawImage(TerminalPosition(40, 1), image, TerminalPosition(4, 0), image.getSize())
+screenGraphics!!.drawImage(TerminalPosition(28, 1), image, TerminalPosition(1, 0), image.size)
+screenGraphics!!.drawImage(TerminalPosition(33, 1), image, TerminalPosition(2, 0), image.size)
+screenGraphics!!.drawImage(TerminalPosition(37, 1), image, TerminalPosition(3, 0), image.size)
+screenGraphics!!.drawImage(TerminalPosition(40, 1), image, TerminalPosition(4, 0), image.size)
 
  //Try to draw bigger than the image size, this should ignore the extra size
-        screenGraphics!!.drawImage(TerminalPosition(1, 7), image, TerminalPosition.TOP_LEFT_CORNER, image.getSize().withRelativeColumns(10))
+        screenGraphics!!.drawImage(TerminalPosition(1, 7), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(10))
 
  //0 size should draw nothing
         screenGraphics!!.drawImage(TerminalPosition(8, 7), image, TerminalPosition.TOP_LEFT_CORNER, TerminalSize.ZERO)
 
  //Drawing with a negative source image offset will move the target position
-        screenGraphics!!.drawImage(TerminalPosition(8, 7), image, TerminalPosition(-2, -2), image.getSize())
+        screenGraphics!!.drawImage(TerminalPosition(8, 7), image, TerminalPosition(-2, -2), image.size)
 
 screen!!.refresh()
 screen!!.readInput()

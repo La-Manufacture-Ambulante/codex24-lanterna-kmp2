@@ -80,7 +80,7 @@ val gridLayout = content.getLayoutManager() as GridLayout?
 gridLayout!!.setVerticalSpacing(1)
 addInteractableComponentsToContent(content)
 addMenuBar(window)
-window.setComponent(content)
+window.component = content
 gui.addWindowAndWait(window) })
 }
 
@@ -162,7 +162,7 @@ menuTextBox!!.setText("Menu3 clicked")
 menuTextBox!!.invalidate()
 }))
 menuBar.add(menu)
-window.setMenuBar(menuBar)
+window.menuBar = menuBar
 }
 
 }
