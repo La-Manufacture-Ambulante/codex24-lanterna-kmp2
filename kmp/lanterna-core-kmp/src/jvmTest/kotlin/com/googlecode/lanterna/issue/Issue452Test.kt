@@ -243,7 +243,11 @@ class Issue452Test {
      * will have + length of previous column header lenghts because they span
      * multiple columns
      */
-    private fun assertTablePositionSelectedAndExecuted(table: Table<String?>?, positionColumn: Int, positionRow: Int) {
+    private fun assertTablePositionSelectedAndExecuted(
+        table: Table<String?>?,
+        positionColumn: Int,
+        positionRow: Int,
+    ) {
         val headerPadding = 1 // should get this from renderer somehow...?
 
         var previousColumnsWidth = 0
@@ -266,7 +270,10 @@ class Issue452Test {
 /**
      * Clicks at position
      */
-    private fun clickAt(column: Int, row: Int): MouseAction {
+    private fun clickAt(
+        column: Int,
+        row: Int,
+    ): MouseAction {
         return MouseAction(MouseActionType.CLICK_DOWN, 1, TerminalPosition(column, row))
     }
 
@@ -280,7 +287,11 @@ class Issue452Test {
 /**
      * Clicks at position of the [Interactable] with offset
      */
-    private fun clickOnWithRelative(component: Interactable, column: Int, row: Int) {
+    private fun clickOnWithRelative(
+        component: Interactable,
+        column: Int,
+        row: Int,
+    ) {
         val mouseAction = clickAt(component.globalPosition!!.column + column, component.globalPosition!!.row + row)
         component.handleInput(mouseAction)
     }

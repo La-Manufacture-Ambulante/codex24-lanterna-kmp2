@@ -139,6 +139,7 @@ class TextCharacter private constructor(
         }
     }
 
+    @Suppress("ktlint:standard:function-naming")
     fun `is`(otherCharacter: Char): Boolean {
         return otherCharacter == characterString[0] && characterString.length == 1
     }
