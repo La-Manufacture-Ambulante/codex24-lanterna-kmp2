@@ -55,7 +55,8 @@ class ThemeTest : TestBase() {
         val componentTestDialogs =
             arrayOf<ThemedComponentTestDialog?>(
                 ThemedComponentTestDialog(
-                    textGUI, "ActionListBox",
+                    textGUI,
+                    "ActionListBox",
                     ActionListBox(TerminalSize(15, 5))
                         .addItem(NullRunnable("Item #1"))!!
                         .addItem(NullRunnable("Item #2"))!!
@@ -67,14 +68,16 @@ class ThemeTest : TestBase() {
                         .addItem(NullRunnable("Item #8"))!!,
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "AnimatedLabel",
+                    textGUI,
+                    "AnimatedLabel",
                     AnimatedLabel("First Frame")
                         .addFrame("Second Frame")
                         .addFrame("Third Frame")
                         .addFrame("Last Frame"),
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "Borders",
+                    textGUI,
+                    "Borders",
                     Panel()
                         .setLayoutManager(GridLayout(4))
                         .addComponent(EmptySpace(TerminalSize(4, 2)).withBorder(Borders.singleLine()))!!
@@ -83,15 +86,18 @@ class ThemeTest : TestBase() {
                         .addComponent(EmptySpace(TerminalSize(4, 2)).withBorder(Borders.doubleLineBevel()))!!,
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "Button",
+                    textGUI,
+                    "Button",
                     Button("This is a button"),
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "CheckBox",
+                    textGUI,
+                    "CheckBox",
                     CheckBox("This is a checkbox"),
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "CheckBoxList",
+                    textGUI,
+                    "CheckBoxList",
                     CheckBoxList<String?>(TerminalSize(15, 5))
                         .addItem("Item #1")!!
                         .addItem("Item #2")!!
@@ -103,7 +109,8 @@ class ThemeTest : TestBase() {
                         .addItem("Item #8")!!,
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "ComboBox",
+                    textGUI,
+                    "ComboBox",
                     Panel()
                         .addComponent(
                             ComboBox<Any?>("Editable", "Item #2", "Item #3", "Item #4", "Item #5", "Item #6", "Item #7")
@@ -118,11 +125,13 @@ class ThemeTest : TestBase() {
                         )!!,
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "Label",
+                    textGUI,
+                    "Label",
                     Label("This is a label"),
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "RadioBoxList",
+                    textGUI,
+                    "RadioBoxList",
                     RadioBoxList<String?>(TerminalSize(15, 5))
                         .addItem("Item #1")!!
                         .addItem("Item #2")!!
@@ -134,27 +143,31 @@ class ThemeTest : TestBase() {
                         .addItem("Item #8")!!,
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "ProgressBar",
+                    textGUI,
+                    "ProgressBar",
                     ProgressBar(0, 100, 24)
                         .setLabelFormat("%2.0f%%")
                         .setValue(26),
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "ScrollBar",
+                    textGUI,
+                    "ScrollBar",
                     Panel()
                         .setLayoutManager(GridLayout(2))
                         .addComponent(ScrollBar(Direction.HORIZONTAL).setPreferredSize(TerminalSize(6, 1)))!!
                         .addComponent(ScrollBar(Direction.VERTICAL).setPreferredSize(TerminalSize(1, 6)))!!,
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "Separator",
+                    textGUI,
+                    "Separator",
                     Panel()
                         .setLayoutManager(GridLayout(2))
                         .addComponent(Separator(Direction.HORIZONTAL).setPreferredSize(TerminalSize(6, 1)))!!
                         .addComponent(Separator(Direction.VERTICAL).setPreferredSize(TerminalSize(1, 6)))!!,
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "Table",
+                    textGUI,
+                    "Table",
                     Table<String?>("Column #1", "Column #2", "Column #3")
                         .setTableModel(
                             TableModel<String?>("Column #1", "Column #2", "Column #3")
@@ -165,7 +178,8 @@ class ThemeTest : TestBase() {
                         ),
                 ),
                 ThemedComponentTestDialog(
-                    textGUI, "TextBox",
+                    textGUI,
+                    "TextBox",
                     Panel()
                         .addComponent(
                             Panels.horizontal(
@@ -181,7 +195,10 @@ class ThemeTest : TestBase() {
                             Panels.horizontal(
                                 TextBox(TerminalSize(15, 5), "Multi\nline\ntext\nbox\nHere is a very long line that doesn't fit")
                                     .setVerticalFocusSwitching(false),
-                                TextBox(TerminalSize(15, 5), ("Multi\nline\nread-only\ntext\nbox\n" + "Here is a very long line that doesn't fit"))
+                                TextBox(
+                                    TerminalSize(15, 5),
+                                    ("Multi\nline\nread-only\ntext\nbox\n" + "Here is a very long line that doesn't fit"),
+                                )
                                     .setReadOnly(true),
                             ),
                         )!!,
@@ -219,7 +236,9 @@ class ThemeTest : TestBase() {
                     .setLeftMarginSize(2)
                     .setRightMarginSize(2),
             )
-            componentPanel.addComponent(embeddedComponent!!.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.CENTER)))
+            componentPanel.addComponent(
+                embeddedComponent!!.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.CENTER)),
+            )
             this.borderedComponent = componentPanel.withBorder(Borders.singleLine(label ?: ""))
 
             if (embeddedComponent is AnimatedLabel) {

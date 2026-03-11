@@ -75,7 +75,8 @@ class MiscComponentTest : TestBase() {
                     }
                 }
             },
-            250, 250,
+            250,
+            250,
         )
 
         val contentArea = Panel()

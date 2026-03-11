@@ -116,13 +116,21 @@ class NewSwingTerminalTest : javax.swing.JFrame() {
                     }
                 }
             } catch (ex: ClassNotFoundException) {
-                java.util.logging.Logger.getLogger(NewSwingTerminalTest::class.java!!.getName()).log(java.util.logging.Level.SEVERE, null, ex)
+                java.util.logging.Logger.getLogger(
+                    NewSwingTerminalTest::class.java!!.getName(),
+                ).log(java.util.logging.Level.SEVERE, null, ex)
             } catch (ex: InstantiationException) {
-                java.util.logging.Logger.getLogger(NewSwingTerminalTest::class.java!!.getName()).log(java.util.logging.Level.SEVERE, null, ex)
+                java.util.logging.Logger.getLogger(
+                    NewSwingTerminalTest::class.java!!.getName(),
+                ).log(java.util.logging.Level.SEVERE, null, ex)
             } catch (ex: UnsupportedLookAndFeelException) {
-                java.util.logging.Logger.getLogger(NewSwingTerminalTest::class.java!!.getName()).log(java.util.logging.Level.SEVERE, null, ex)
+                java.util.logging.Logger.getLogger(
+                    NewSwingTerminalTest::class.java!!.getName(),
+                ).log(java.util.logging.Level.SEVERE, null, ex)
             } catch (ex: IllegalAccessException) {
-                java.util.logging.Logger.getLogger(NewSwingTerminalTest::class.java!!.getName()).log(java.util.logging.Level.SEVERE, null, ex)
+                java.util.logging.Logger.getLogger(
+                    NewSwingTerminalTest::class.java!!.getName(),
+                ).log(java.util.logging.Level.SEVERE, null, ex)
             }
 
             // </editor-fold>

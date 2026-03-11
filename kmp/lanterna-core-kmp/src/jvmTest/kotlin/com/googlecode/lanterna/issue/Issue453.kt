@@ -53,7 +53,8 @@ internal object Issue453 {
                 screen!!.startScreen()
                 val gui =
                     MultiWindowTextGUI(
-                        screen, DefaultWindowManager(),
+                        screen,
+                        DefaultWindowManager(),
                         EmptySpace(TextColor.ANSI.BLACK),
                     )
 

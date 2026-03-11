@@ -177,7 +177,13 @@ class TableTest : TestBase() {
         table: Table<String>,
     ) {
         val dialogChoices =
-            arrayOf("Header border style (vertical)", "Header border style (horizontal)", "Cell border style (vertical)", "Cell border style (horizontal)", "Toggle cell selection")
+            arrayOf(
+                "Header border style (vertical)",
+                "Header border style (horizontal)",
+                "Cell border style (vertical)",
+                "Cell border style (horizontal)",
+                "Toggle cell selection",
+            )
         val choice = chooseAString(textGUI, "Which style do you want to change?", *dialogChoices)
         val renderer = table.renderer as DefaultTableRenderer<String?>
         if (choice == null) {

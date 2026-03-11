@@ -29,7 +29,15 @@ import java.io.IOException
 
 object SimpleTerminalTest {
     private val COLORS_TO_CYCLE =
-        arrayOf<TextColor?>(TextColor.ANSI.BLUE, TextColor.ANSI.CYAN, TextColor.ANSI.GREEN, TextColor.ANSI.MAGENTA, TextColor.ANSI.RED, TextColor.ANSI.WHITE, TextColor.ANSI.YELLOW)
+        arrayOf<TextColor?>(
+            TextColor.ANSI.BLUE,
+            TextColor.ANSI.CYAN,
+            TextColor.ANSI.GREEN,
+            TextColor.ANSI.MAGENTA,
+            TextColor.ANSI.RED,
+            TextColor.ANSI.WHITE,
+            TextColor.ANSI.YELLOW,
+        )
 
     @Throws(IOException::class)
     fun main(args: Array<String?>?) {
@@ -99,7 +107,11 @@ object SimpleTerminalTest {
                         }
                         'p' -> {
                             val position = terminal!!.cursorPosition
-                            textGraphics!!.putString(1, (terminal!!.terminalSize?.rows ?: 1) - 1, position.toString() + "                                     ")
+                            textGraphics!!.putString(
+                                1,
+                                (terminal!!.terminalSize?.rows ?: 1) - 1,
+                                position.toString() + "                                     ",
+                            )
 
                             // Restore the background color which was reset in the call above
                             terminal!!.setBackgroundColor(COLORS_TO_CYCLE[colorIndex])

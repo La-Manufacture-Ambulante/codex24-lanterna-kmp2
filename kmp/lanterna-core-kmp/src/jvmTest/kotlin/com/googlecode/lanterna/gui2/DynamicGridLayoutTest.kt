@@ -346,7 +346,14 @@ class DynamicGridLayoutTest : TestBase() {
         }
 
         private val GOOD_COLORS =
-            arrayOf(TextColor.ANSI.RED, TextColor.ANSI.BLUE, TextColor.ANSI.CYAN, TextColor.ANSI.GREEN, TextColor.ANSI.MAGENTA, TextColor.ANSI.YELLOW)
+            arrayOf(
+                TextColor.ANSI.RED,
+                TextColor.ANSI.BLUE,
+                TextColor.ANSI.CYAN,
+                TextColor.ANSI.GREEN,
+                TextColor.ANSI.MAGENTA,
+                TextColor.ANSI.YELLOW,
+            )
         private val RANDOM = Random()
     }
 }

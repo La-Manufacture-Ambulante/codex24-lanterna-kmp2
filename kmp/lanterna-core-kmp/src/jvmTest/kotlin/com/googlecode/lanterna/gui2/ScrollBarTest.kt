@@ -46,7 +46,9 @@ class ScrollBarTest : TestBase() {
                 verticalScroll.setScrollMaximum(getInteger(textBoxVerticalMax!!.text, 100))
                 verticalScroll.setScrollPosition(getInteger(textBoxVerticalPosition!!.text, 100))
                 verticalScroll.setViewSize(getInteger(textBoxVerticalSize!!.text, 1))
-                (horizontalScroll.renderer as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(checkHorizontalTrackerGrow!!.isChecked())
+                (horizontalScroll.renderer as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(
+                    checkHorizontalTrackerGrow!!.isChecked(),
+                )
                 horizontalScroll.setScrollMaximum(getInteger(textBoxHorizontalMax!!.text, 0))
                 horizontalScroll.setScrollPosition(getInteger(textBoxHorizontalPosition!!.text, 0))
                 horizontalScroll.setViewSize(getInteger(textBoxHorizontalSize!!.text, 1))
@@ -55,7 +57,9 @@ class ScrollBarTest : TestBase() {
 
         verticalScroll.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.FILL, false, true))
         horizontalScroll.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))
-        buttonRefresh.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.BEGINNING, true, true, 2, 1))
+        buttonRefresh.setLayoutData(
+            GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.BEGINNING, true, true, 2, 1),
+        )
 
         contentPanel.addComponent(controlPanel.withBorder(Borders.singleLine("Control")))
         contentPanel.addComponent(verticalScroll)

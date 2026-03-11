@@ -91,11 +91,17 @@ object DialogsTextGUIBasicTest {
                 ActionListDialogBuilder()
                     .setTitle("Action List Dialog")
                     .setDescription("Choose an item")
-                    .addAction("First Item", { MessageDialog.showMessageDialog(textGUI, "Action List Dialog", "You chose First Item", MessageDialogButton.OK) })
+                    .addAction(
+                        "First Item",
+                        { MessageDialog.showMessageDialog(textGUI, "Action List Dialog", "You chose First Item", MessageDialogButton.OK) },
+                    )
                     .addAction("Second Item", {
                         MessageDialog.showMessageDialog(textGUI, "Action List Dialog", "You chose Second Item", MessageDialogButton.OK)
                     })
-                    .addAction("Third Item", { MessageDialog.showMessageDialog(textGUI, "Action List Dialog", "You chose Third Item", MessageDialogButton.OK) })
+                    .addAction(
+                        "Third Item",
+                        { MessageDialog.showMessageDialog(textGUI, "Action List Dialog", "You chose Third Item", MessageDialogButton.OK) },
+                    )
                     .build()
                     .showDialog(textGUI)
             })

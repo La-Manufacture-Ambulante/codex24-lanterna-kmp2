@@ -47,7 +47,11 @@ class SplitPanelTest : TestBase() {
 
         val mainPanel = Panel()
         mainPanel.setLayoutManager(GridLayout(2))
-        val splitboth = SplitPanel.ofHorizontal(splitH.withBorder(Borders.singleLine("horiontal split")), splitV.withBorder(Borders.singleLine("vertical split")))
+        val splitboth =
+            SplitPanel.ofHorizontal(
+                splitH.withBorder(Borders.singleLine("horiontal split")),
+                splitV.withBorder(Borders.singleLine("vertical split")),
+            )
         mainPanel.addComponent(splitboth)
 
         window.component = mainPanel

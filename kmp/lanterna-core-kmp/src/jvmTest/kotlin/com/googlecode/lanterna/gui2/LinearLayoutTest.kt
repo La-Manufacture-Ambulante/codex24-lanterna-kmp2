@@ -36,7 +36,9 @@ class LinearLayoutTest : TestBase() {
                 .setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW))!!
                 .addTo(labelPanel)
         }
-        mainPanel.addComponent(labelPanel.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW)))
+        mainPanel.addComponent(
+            labelPanel.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW)),
+        )
 
         Separator(Direction.HORIZONTAL)
             .setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL))!!

@@ -68,7 +68,9 @@ object Issue155 {
         counter: Int,
     ): Runnable {
         return Runnable {
-            ActionListDialogBuilder().setCanCancel(true).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui)
+            ActionListDialogBuilder().setCanCancel(
+                true,
+            ).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui)
         }
     }
 

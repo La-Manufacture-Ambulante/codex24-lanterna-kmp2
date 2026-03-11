@@ -31,7 +31,8 @@ object Issue212 {
     fun main(args: Array<String?>?) {
         val table =
             Table<String?>(
-                "Column 1", "Column 2",
+                "Column 1",
+                "Column 2",
                 "Column 3",
             )
         table.getTableModel()!!.addRow("1", "2", "3")
@@ -62,7 +63,8 @@ object Issue212 {
         val gui =
             MultiWindowTextGUI(
                 screen,
-                DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE),
+                DefaultWindowManager(),
+                EmptySpace(TextColor.ANSI.BLUE),
             )
         gui.addWindowAndWait(win)
 

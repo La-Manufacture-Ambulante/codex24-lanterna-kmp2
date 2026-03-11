@@ -5,7 +5,6 @@ root = true
 [**/src/jvmTest/**/*.kt]
 ktlint_standard_max-line-length = disabled
 ktlint_standard_no-wildcard-imports = disabled
-ktlint_standard_argument-list-wrapping = disabled
 
 [**/src/commonMain/**/*.kt]
 ktlint_standard_argument-list-wrapping = disabled

@@ -48,7 +48,8 @@ object DrawImageTest {
             imageCharacter.withBackgroundColor(TextColor.ANSI.MAGENTA),
         )
         textGraphics!!.setCharacter(
-            2, 2,
+            2,
+            2,
             imageCharacter.withBackgroundColor(TextColor.ANSI.CYAN),
         )
 

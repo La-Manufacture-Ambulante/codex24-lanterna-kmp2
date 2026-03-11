@@ -58,7 +58,8 @@ object Tutorial03 {
             for (column in 0 until terminalSize!!.columns) {
                 for (row in 0 until terminalSize!!.rows) {
                     screen!!.setCharacter(
-                        column, row,
+                        column,
+                        row,
                         TextCharacter(
                             ' ',
                             TextColor.ANSI.DEFAULT,

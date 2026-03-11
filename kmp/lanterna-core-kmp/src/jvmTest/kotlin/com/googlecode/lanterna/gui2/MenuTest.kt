@@ -54,7 +54,10 @@ class MenuTest : TestBase() {
                 val file = FileDialogBuilder().build()!!.showDialog(textGUI)
                 if (file != null) {
                     MessageDialog.showMessageDialog(
-                        textGUI, "Open", "Selected file:\n$file", MessageDialogButton.OK,
+                        textGUI,
+                        "Open",
+                        "Selected file:\n$file",
+                        MessageDialogButton.OK,
                     )
                 }
             }),
@@ -81,14 +84,20 @@ class MenuTest : TestBase() {
         menuHelp.add(
             MenuItem("Homepage", {
                 MessageDialog.showMessageDialog(
-                    textGUI, "Homepage", "https://github.com/mabe02/lanterna", MessageDialogButton.OK,
+                    textGUI,
+                    "Homepage",
+                    "https://github.com/mabe02/lanterna",
+                    MessageDialogButton.OK,
                 )
             }),
         )
         menuHelp.add(
             MenuItem("About", {
                 MessageDialog.showMessageDialog(
-                    textGUI, "About", "Lanterna drop-down menu", MessageDialogButton.OK,
+                    textGUI,
+                    "About",
+                    "Lanterna drop-down menu",
+                    MessageDialogButton.OK,
                 )
             }),
         )

@@ -385,7 +385,8 @@ class DefaultVirtualTerminalTest {
             putString("Line " + i + "\n")
         }
         virtualTerminal!!.forEachLine(
-            0, rows,
+            0,
+            rows,
             object : VirtualTerminal.BufferWalker {
                 override fun onLine(
                     rowNumber: Int,
@@ -417,7 +418,10 @@ class DefaultVirtualTerminalTest {
 
         assertEquals(TextCharacter.DEFAULT_CHARACTER!!.withCharacter('A'), virtualTerminal!!.getCharacter(0, 0))
         assertEquals(TextCharacter('B', TextColor.ANSI.WHITE, TextColor.ANSI.BLUE), virtualTerminal!!.getCharacter(1, 0))
-        assertEquals(TextCharacter('C', TextColor.ANSI.WHITE, TextColor.ANSI.BLUE, SGR.BOLD, SGR.UNDERLINE), virtualTerminal!!.getCharacter(2, 0))
+        assertEquals(
+            TextCharacter('C', TextColor.ANSI.WHITE, TextColor.ANSI.BLUE, SGR.BOLD, SGR.UNDERLINE),
+            virtualTerminal!!.getCharacter(2, 0),
+        )
         assertEquals(TextCharacter('D', TextColor.ANSI.WHITE, TextColor.ANSI.BLUE, SGR.UNDERLINE), virtualTerminal!!.getCharacter(3, 0))
         assertEquals(TextCharacter.DEFAULT_CHARACTER!!.withCharacter('E'), virtualTerminal!!.getCharacter(4, 0))
     }

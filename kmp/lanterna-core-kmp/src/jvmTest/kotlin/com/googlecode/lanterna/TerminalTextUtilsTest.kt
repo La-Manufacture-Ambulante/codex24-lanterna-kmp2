@@ -241,13 +241,31 @@ class TerminalTextUtilsTest {
 
         assertEquals(
             "Incorrect word wrapping",
-            Arrays.asList("This is a rather", "long text that", "will demonstrate", "a more real-world", "example of how", "word-wrapping is", "applied on a", "single line"),
-            TerminalTextUtils.getWordWrappedText(17, "This is a rather long text that will demonstrate a more real-world example of how word-wrapping is applied on a single line"),
+            Arrays.asList(
+                "This is a rather",
+                "long text that",
+                "will demonstrate",
+                "a more real-world",
+                "example of how",
+                "word-wrapping is",
+                "applied on a",
+                "single line",
+            ),
+            TerminalTextUtils.getWordWrappedText(
+                17,
+                "This is a rather long text that will demonstrate a more real-world example of how word-wrapping is applied on a single line",
+            ),
         )
 
         assertEquals(
             "Incorrect word wrapping",
-            Arrays.asList("This is a rather long text that", "will demonstrate how", "word-wrapping is applied on", "texts that are already", "split over multiple lines"),
+            Arrays.asList(
+                "This is a rather long text that",
+                "will demonstrate how",
+                "word-wrapping is applied on",
+                "texts that are already",
+                "split over multiple lines",
+            ),
             TerminalTextUtils.getWordWrappedText(
                 32,
                 "This is a rather long text that will demonstrate how",

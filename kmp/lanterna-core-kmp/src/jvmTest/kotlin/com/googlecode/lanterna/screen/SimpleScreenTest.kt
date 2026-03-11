@@ -27,7 +27,16 @@ import java.io.IOException
 
 object SimpleScreenTest {
     private val COLORS_TO_CYCLE =
-        arrayOf<TextColor?>(TextColor.ANSI.BLACK, TextColor.ANSI.WHITE, TextColor.ANSI.BLUE, TextColor.ANSI.CYAN, TextColor.ANSI.GREEN, TextColor.ANSI.MAGENTA, TextColor.ANSI.RED, TextColor.ANSI.YELLOW)
+        arrayOf<TextColor?>(
+            TextColor.ANSI.BLACK,
+            TextColor.ANSI.WHITE,
+            TextColor.ANSI.BLUE,
+            TextColor.ANSI.CYAN,
+            TextColor.ANSI.GREEN,
+            TextColor.ANSI.MAGENTA,
+            TextColor.ANSI.RED,
+            TextColor.ANSI.YELLOW,
+        )
 
     @Throws(IOException::class)
     fun main(args: Array<String?>?) {
@@ -59,7 +68,10 @@ object SimpleScreenTest {
                         when (keyStroke.character) {
                             'k' -> {
                                 val cursorPos = screen.cursorPosition ?: continue@mainLoop
-                                screen.setCharacter(cursorPos, TextCharacter('桜', COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
+                                screen.setCharacter(
+                                    cursorPos,
+                                    TextCharacter('桜', COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]),
+                                )
                                 screen.cursorPosition = screen.cursorPosition!!.withRelativeColumn(2)
                             }
 
@@ -96,7 +108,10 @@ object SimpleScreenTest {
                     } else {
                         val ch = keyStroke.character ?: continue
                         val cursorPos = screen.cursorPosition ?: continue@mainLoop
-                        screen.setCharacter(cursorPos, TextCharacter(ch, COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
+                        screen.setCharacter(
+                            cursorPos,
+                            TextCharacter(ch, COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]),
+                        )
                         screen.cursorPosition = screen.cursorPosition!!.withRelativeColumn(1)
                     }
                 else -> {}

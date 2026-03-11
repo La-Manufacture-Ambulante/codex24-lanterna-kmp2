@@ -25,7 +25,9 @@ object Issue358 {
         layoutManager.setHorizontalSpacing(1)
         val contentPanel = Panel(layoutManager)
         contentPanel.addComponent(
-            EmptySpace(TextColor.ANSI.CYAN).setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.CENTER, false, false, 3, 1)),
+            EmptySpace(
+                TextColor.ANSI.CYAN,
+            ).setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.CENTER, false, false, 3, 1)),
         )
         window.component = contentPanel
         textGUI.addWindowAndWait(window)
