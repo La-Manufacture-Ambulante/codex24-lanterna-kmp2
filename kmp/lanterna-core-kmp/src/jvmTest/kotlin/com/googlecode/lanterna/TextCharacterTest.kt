@@ -21,12 +21,12 @@ assertEquals(1, TextCharacter.fromString("\uD83E\uDD7A")!!.size)
 
 @Test
   fun emojisAreDoubleWidth() {
-assertTrue(TextCharacter.fromString("\uD83D\uDC69\uD83C\uDFFD")!![0]!!.isDoubleWidth())
-assertTrue(TextCharacter.fromString("\uD83C\uDFE9")!![0]!!.isDoubleWidth())
-assertTrue(TextCharacter.fromString("\uD83D\uDC96")!![0]!!.isDoubleWidth())
-assertTrue(TextCharacter.fromString("❤\uFE0F")!![0]!!.isDoubleWidth())
-assertTrue(TextCharacter.fromString("\uD83D\uDE0A")!![0]!!.isDoubleWidth())
-assertTrue(TextCharacter.fromString("\uD83D\uDC40")!![0]!!.isDoubleWidth())
-assertFalse(TextCharacter.fromString("M")!![0]!!.isDoubleWidth())  // Not emoji
+assertTrue(TextCharacter.fromString("\uD83D\uDC69\uD83C\uDFFD")!![0]!!.isDoubleWidth)
+assertTrue(TextCharacter.fromString("\uD83C\uDFE9")!![0]!!.isDoubleWidth)
+assertTrue(TextCharacter.fromString("\uD83D\uDC96")!![0]!!.isDoubleWidth)
+assertTrue(TextCharacter.fromString("❤\uFE0F")!![0]!!.isDoubleWidth)
+assertTrue(TextCharacter.fromString("\uD83D\uDE0A")!![0]!!.isDoubleWidth)
+assertTrue(TextCharacter.fromString("\uD83D\uDC40")!![0]!!.isDoubleWidth)
+assertFalse(TextCharacter.fromString("M")!![0]!!.isDoubleWidth)  // Not emoji
 }
 }

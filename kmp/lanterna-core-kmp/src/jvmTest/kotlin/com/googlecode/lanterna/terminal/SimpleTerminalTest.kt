@@ -24,6 +24,7 @@ import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
 
 import java.awt.*
 import java.io.IOException
@@ -48,31 +49,31 @@ terminal!!.flush()
 mainLoop@ while (true)
 {
 val keyStroke = terminal!!.readInput()
-when (keyStroke!!.getKeyType()) {
+when (keyStroke!!.keyType) {
 KeyType.ESCAPE, KeyType.EOF -> break@mainLoop
 
-KeyType.ARROW_DOWN -> if (terminal!!.getTerminalSize()!!.getRows() > cursorPosition!!.getRow() + 1)
+KeyType.ARROW_DOWN -> if ((terminal!!.terminalSize?.rows ?: 0) > cursorPosition!!.row + 1)
 {
 cursorPosition = cursorPosition!!.withRelativeRow(1)
-terminal!!.setCursorPosition(cursorPosition!!.getColumn(), cursorPosition!!.getRow())
+terminal!!.setCursorPosition(cursorPosition!!.column, cursorPosition!!.row)
 }
-KeyType.ARROW_UP -> if (cursorPosition!!.getRow() > 0)
+KeyType.ARROW_UP -> if (cursorPosition!!.row > 0)
 {
 cursorPosition = cursorPosition!!.withRelativeRow(-1)
-terminal!!.setCursorPosition(cursorPosition!!.getColumn(), cursorPosition!!.getRow())
+terminal!!.setCursorPosition(cursorPosition!!.column, cursorPosition!!.row)
 }
-KeyType.ARROW_RIGHT -> if (cursorPosition!!.getColumn() + 1 < terminal!!.getTerminalSize()!!.getColumns())
+KeyType.ARROW_RIGHT -> if (cursorPosition!!.column + 1 < (terminal!!.terminalSize?.columns ?: 0))
 {
 cursorPosition = cursorPosition!!.withRelativeColumn(1)
-terminal!!.setCursorPosition(cursorPosition!!.getColumn(), cursorPosition!!.getRow())
+terminal!!.setCursorPosition(cursorPosition!!.column, cursorPosition!!.row)
 }
-KeyType.ARROW_LEFT -> if (cursorPosition!!.getColumn() > 0)
+KeyType.ARROW_LEFT -> if (cursorPosition!!.column > 0)
 {
 cursorPosition = cursorPosition!!.withRelativeColumn(-1)
-terminal!!.setCursorPosition(cursorPosition!!.getColumn(), cursorPosition!!.getRow())
+terminal!!.setCursorPosition(cursorPosition!!.column, cursorPosition!!.row)
 }
 
-KeyType.CHARACTER -> when (keyStroke!!.getCharacter()) {
+KeyType.CHARACTER -> when (keyStroke.character) {
 '?' -> {
 terminal!!.putCharacter('\n')
 printHelp(textGraphics!!)
@@ -102,13 +103,13 @@ colorIndex = 0
 terminal!!.setBackgroundColor(COLORS_TO_CYCLE[colorIndex])
 }
 'p' -> {
-val position = terminal!!.getCursorPosition()
-textGraphics!!.putString(1, terminal!!.getTerminalSize()!!.getRows() - 1, position!!.toString()!! + "                                     ")
+val position = terminal!!.cursorPosition
+textGraphics!!.putString(1, (terminal!!.terminalSize?.rows ?: 1) - 1, position.toString() + "                                     ")
 
  // Restore the background color which was reset in the call above
                             terminal!!.setBackgroundColor(COLORS_TO_CYCLE[colorIndex])
 
-terminal!!.setCursorPosition(position!!.getColumn(), position!!.getRow())
+terminal!!.setCursorPosition(position!!.column, position.row)
 }
 
 	'1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
@@ -117,7 +118,7 @@ terminal!!.setCursorPosition(position!!.getColumn(), position!!.getRow())
 	{
 	terminal!!.putCharacter(' ')
 	}
-	cursorPosition = terminal!!.getCursorPosition()
+	cursorPosition = terminal!!.cursorPosition
 	}
 	else -> {}
 	}
@@ -143,7 +144,7 @@ if (terminal is Window)
 @Throws(IOException::class)
 private fun resetCursorPositionAfterHelp(terminal:Terminal):TerminalPosition {
 val cursorPosition = TerminalPosition(0, 10)
-terminal.setCursorPosition(cursorPosition.getColumn(), cursorPosition.getRow())
+terminal.setCursorPosition(cursorPosition.column, cursorPosition.row)
 return cursorPosition
 }
 
