@@ -38,18 +38,63 @@ ktlint_standard_max-line-length = disabled
 [**/src/jvmTest/kotlin/com/googlecode/lanterna/*.kt]
 ktlint_standard_no-wildcard-imports = disabled
 
-[**/src/commonMain/kotlin/com/googlecode/lanterna/graphics/**/*.kt]
-ktlint_standard_function-signature = disabled
-
-[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/**/*.kt]
-ktlint_standard_function-signature = disabled
-
-[**/src/commonMain/kotlin/com/googlecode/lanterna/terminal/**/*.kt]
-ktlint_standard_function-signature = disabled
-
 [**/src/commonMain/kotlin/com/googlecode/lanterna/TextColor.kt]
 ktlint_standard_function-signature = disabled
 ktlint_standard_argument-list-wrapping = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/graphics/Scrollable.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/graphics/TextGraphics.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/graphics/TextImage.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/graphics/ThemeDefinition.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/BasePaneListener.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/ComponentRenderer.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/InputFilter.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/LayoutManager.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/Panels.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/WindowDecorationRenderer.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/WindowListener.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/WindowManager.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/WindowPostRenderer.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/table/TableCellRenderer.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/table/TableHeaderRenderer.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/terminal/TerminalResizeListener.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/terminal/swing/TerminalScrollController.kt]
+ktlint_standard_function-signature = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/terminal/virtual/VirtualTerminal.kt]
+ktlint_standard_function-signature = disabled
 
 [**/src/commonMain/kotlin/com/googlecode/lanterna/graphics/DefaultMutableThemeStyle.kt]
 ktlint_standard_argument-list-wrapping = disabled
