@@ -253,7 +253,8 @@ class TerminalTextUtilsTest {
             ),
             TerminalTextUtils.getWordWrappedText(
                 17,
-                "This is a rather long text that will demonstrate a more real-world example of how word-wrapping is applied on a single line",
+                "This is a rather long text that will demonstrate a more real-world example " +
+                    "of how word-wrapping is applied on a single line",
             ),
         )
 
@@ -348,7 +349,10 @@ class TerminalTextUtilsTest {
                 "ﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝﾞﾟ"
         )
 
-        private val FULL_WIDTH_ROMANJI = ("！＂＃＄％＆＇（）＊＋，－．／０１２３４５６７８９：；＜＝＞？＠ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ" + "［＼］＾＿｀ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ｛｜｝～｟｠")
+        private val FULL_WIDTH_ROMANJI = (
+            "！＂＃＄％＆＇（）＊＋，－．／０１２３４５６７８９：；＜＝＞？＠ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ" +
+                "［＼］＾＿｀ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ｛｜｝～｟｠"
+        )
 
         private val JOUYOU_KANJI = (
             "亜哀挨愛曖悪握圧扱宛嵐安案暗以衣位囲医依委威為畏胃尉異移萎偉椅彙意違維慰遺緯" +
