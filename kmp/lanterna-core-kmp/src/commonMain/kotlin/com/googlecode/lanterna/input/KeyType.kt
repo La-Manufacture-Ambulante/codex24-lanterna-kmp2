@@ -73,6 +73,7 @@ enum class KeyType {
     KEY_TYPE,
 
     // "Virtual" KeyStroke types
+
     /**
      * This value is used internally by Lanterna to track cursor position and is not expected from public input reads.
      */

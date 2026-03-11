@@ -73,12 +73,6 @@ interface BasePane : Composite {
     fun handleInput(key: KeyStroke?): Boolean
 
     /**
-     * Returns the component that is the content of the BasePane. This is probably the root of a hierarchy of nested
-     * Panels but it could also be a single component.
-     * @return Component which is the content of this BasePane
-     */
-
-    /**
      * Sets the top-level component inside this BasePane. If you want it to contain only one component, you can set it
      * directly, but for more complicated GUIs you probably want to create a hierarchy of panels and set the first one
      * here.
@@ -88,11 +82,6 @@ interface BasePane : Composite {
     @set:Override
     override var component: Component?
 
-    /**
-     * Returns the component in the root container that currently has input focus. There can only be one component at a
-     * time being in focus.
-     * @return Interactable component that is currently in receiving input focus
-     */
     /**
      * Sets the component currently in focus within this root container, or sets no component in focus if `null`
      * is passed in.
@@ -144,13 +133,6 @@ interface BasePane : Composite {
     fun setEnableDirectionBasedMovements(enableDirectionBasedMovements: Boolean)
 
     /**
-     * Returns the text GUI [Theme] associated with this base pane/window. This is either coming from the
-     * [TextGUI] this object is associated with, the theme set as the override through [setTheme]
-     * or `null` if this base pane/window isn't added to any [TextGUI] and doesn't have any override.
-     * @return The [Theme] this base pane/window is expected to use when drawing the contents
-     */
-
-    /**
      * Sets the override [Theme] to use for this base pane/window, rather than the default [Theme]
      * associated with the [TextGUI] it is attached to. If called with `null`, it will clear the override
      * and use the default value instead.
@@ -158,12 +140,6 @@ interface BasePane : Composite {
      */
     var theme: Theme?
 
-    /**
-     * Sets the active [MenuBar] for this base pane/window. The menu will be rendered at the top (inside the
-     * window decorations if set on a window), if set. If called with `null`, any previously set menu bar is
-     * removed.
-     * @param menubar The [MenuBar] to assign to this pane/window
-     */
     /**
      * Returns the [MenuBar] assigned to this base pane/window, if any, otherwise returns {code null}.
      * @return The active menu bar or `null`

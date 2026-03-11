@@ -3,13 +3,6 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
 }
 
-ktlint {
-    filter {
-        exclude("**/src/commonMain/kotlin/com/googlecode/lanterna/TextColor.kt")
-        exclude("**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/BasePane.kt")
-    }
-}
-
 kotlin {
     jvm()
     sourceSets {

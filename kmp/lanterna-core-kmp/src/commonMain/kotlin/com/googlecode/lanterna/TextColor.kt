@@ -106,6 +106,7 @@ interface TextColor : Serializable {
         MAGENTA_BRIGHT(5, true, 255, 85, 255),
         CYAN_BRIGHT(6, true, 85, 255, 255),
         WHITE_BRIGHT(7, true, 255, 255, 255),
+
         ;
 
         private val foregroundSGR: ByteArray?
@@ -136,30 +137,12 @@ interface TextColor : Serializable {
         }
     }
 
-/**
-     * This class represents a color expressed in the indexed XTerm 256 color extension, where each color is defined in a
-     * lookup-table. All in all, there are 256 codes, but in order to know which one to know you either need to have the
-     * table at hand, or you can use the two static helper methods which can help you convert from three 8-bit
-     * RGB values to the closest approximate indexed color number. If you are interested, the 256 index values are
-     * actually divided like this:<br></br>
-     * 0 .. 15 - System colors, same as ANSI, but the actual rendered color depends on the terminal emulators color scheme<br></br>
-     * 16 .. 231 - Forms a 6x6x6 RGB color cube<br></br>
-     * 232 .. 255 - A gray scale ramp (without black and white endpoints)<br></br>
+    /**
+     * Creates a new TextColor using the XTerm 256 color indexed mode, with the specified index value.
      *
-     *
-     * Support for indexed colors is somewhat widely adopted, not as much as the ANSI colors (TextColor.ANSI) but more
-     * than the RGB (TextColor.RGB).
-     *
-     *
-     * For more details on this, please see [
- * this](https://github.com/robertknight/konsole/blob/master/user-doc/README.moreColors) commit message to Konsole.
+     * @param colorIndex Index value to use for this color (0..255)
      */
-    class Indexed/**
-     * Creates a new TextColor using the XTerm 256 color indexed mode, with the specified index value. You must
-     * choose a value between 0 and 255.
-     * @param colorIndex Index value to use for this color.
-     */
-    (private val colorIndex: Int) : TextColor {
+    class Indexed(private val colorIndex: Int) : TextColor {
         public override val foregroundSGRSequence: ByteArray?
             @Override
             get() {
@@ -301,24 +284,14 @@ interface TextColor : Serializable {
         }
     }
 
-/**
-     * This class can be used to specify a color in 24-bit color space (RGB with 8-bit resolution per color). Please be
-     * aware that only a few terminal support 24-bit color control codes, please avoid using this class unless you know
-     * all users will have compatible terminals. For details, please see
-     * [
- * this](https://github.com/robertknight/konsole/blob/master/user-doc/README.moreColors) commit log. Behavior on terminals that don't support these codes is undefined.
-     */
-    class RGB/**
-     * This class can be used to specify a color in 24-bit color space (RGB with 8-bit resolution per color). Please be
-     * aware that only a few terminal support 24-bit color control codes, please avoid using this class unless you know
-     * all users will have compatible terminals. For details, please see
-     * [
- * this](https://github.com/robertknight/konsole/blob/master/user-doc/README.moreColors) commit log. Behavior on terminals that don't support these codes is undefined.
+    /**
+     * Creates a 24-bit color (RGB with 8-bit resolution per channel).
      *
      * @param r Red intensity, from 0 to 255
      * @param g Green intensity, from 0 to 255
      * @param b Blue intensity, from 0 to 255
-     */(
+     */
+    class RGB(
         @get:Override
         public override val red: Int,
         @get:Override
