@@ -28,38 +28,38 @@ var loremIpsum:String? = ("  Lorem ipsum dolor sit amet, consectetur adipisici e
 " obcaecat cupiditat non proident, sunt in culpa qui officia deserunt" + 
 " mollit anim id est laborum.\n")
  // change all blanks behind full-stops or commas to underlined tabs:
-        loremIpsum = loremIpsum!!.replaceAll("([.,]) ", "$1\u001b[4m\t\u001b[24m")
+        loremIpsum = loremIpsum!!.replace(Regex("([.,]) "), "$1\u001b[4m\t\u001b[24m")
  // each occurrence of "dolor" gets its own background:
-        loremIpsum = loremIpsum!!.replaceAll("(dolor)", "\u001b[45m$1\u001b[49m")
+        loremIpsum = loremIpsum!!.replace(Regex("(dolor)"), "\u001b[45m$1\u001b[49m")
  // each 'o' is turned yellow.
-        loremIpsum = loremIpsum!!.replaceAll("([o])", "\u001b[1;33m$1\u001b[22;39m")
+        loremIpsum = loremIpsum!!.replace(Regex("([o])"), "\u001b[1;33m$1\u001b[22;39m")
 
 tw.putString("\u001b[m")
-tw.setWrapBehaviour(WrapBehaviour.SINGLE_LINE)
+tw.wrapBehaviour = WrapBehaviour.SINGLE_LINE
 writer.setTabBehaviour(TabBehaviour.ALIGN_TO_COLUMN_4)
-tw.putString("\n" + tw.getWrapBehaviour() + ":\n")
+tw.putString("\n" + tw.wrapBehaviour + ":\n")
 tw.putString(loremIpsum!!)
 
-tw.setWrapBehaviour(WrapBehaviour.CLIP)
-tw.putString("\n" + tw.getWrapBehaviour() + ":\n")
+tw.wrapBehaviour = WrapBehaviour.CLIP
+tw.putString("\n" + tw.wrapBehaviour + ":\n")
 tw.putString(loremIpsum!!)
 
-tw.setWrapBehaviour(WrapBehaviour.CHAR)
-tw.putString("\n" + tw.getWrapBehaviour() + ":\n")
+tw.wrapBehaviour = WrapBehaviour.CHAR
+tw.putString("\n" + tw.wrapBehaviour + ":\n")
 tw.putString(loremIpsum!!)
 
-tw.setWrapBehaviour(WrapBehaviour.WORD)
-tw.putString("\n" + tw.getWrapBehaviour() + ":\n")
+tw.wrapBehaviour = WrapBehaviour.WORD
+tw.putString("\n" + tw.wrapBehaviour + ":\n")
 tw.putString(loremIpsum!!)
 
-tw.setWrapBehaviour(WrapBehaviour.CLIP)
+tw.wrapBehaviour = WrapBehaviour.CLIP
 writer.setTabBehaviour(TabBehaviour.IGNORE)
-tw.putString("\n" + tw.getWrapBehaviour() + " + TabBehaviour.IGNORE:\n")
+tw.putString("\n" + tw.wrapBehaviour + " + TabBehaviour.IGNORE:\n")
 tw.putString(loremIpsum!!)
 
 tw.putString("\u001b[m")
-tw.setStyleable(false)
-tw.putString(tw.getWrapBehaviour().toString() + " + Styleable turned off, so esc-sequences are visible:\n")
+tw.isStyleable = false
+tw.putString(tw.wrapBehaviour.toString() + " + Styleable turned off, so esc-sequences are visible:\n")
 tw.putString(loremIpsum!!)
 
 screen.refresh()

@@ -75,8 +75,8 @@ val pos = TerminalPosition(3, 3)
 textGraphics!!.putString(pos, "Hello")
 
 val screenPos = textGraphics!!.toScreenPosition(pos)
-assertEquals("H", screen!!.getBackCharacter(screenPos)!!.getCharacterString())
-assertEquals("l", screen!!.getBackCharacter(screenPos!!.withRelativeColumn(3))!!.getCharacterString())
+assertEquals("H", screen!!.getBackCharacter(screenPos)!!.characterString)
+assertEquals("l", screen!!.getBackCharacter(screenPos!!.withRelativeColumn(3))!!.characterString)
 }
 
 @Test
@@ -90,8 +90,8 @@ assertNotEquals(pos, subGraphics!!.toScreenPosition(pos))
 assertNotEquals(textGraphics!!.toScreenPosition(pos), subGraphics!!.toScreenPosition(pos))
 
 val screenPos = subGraphics!!.toScreenPosition(pos)
-assertEquals("H", screen!!.getBackCharacter(screenPos)!!.getCharacterString())
-assertEquals("l", screen!!.getBackCharacter(screenPos!!.withRelativeColumn(3))!!.getCharacterString())
+assertEquals("H", screen!!.getBackCharacter(screenPos)!!.characterString)
+assertEquals("l", screen!!.getBackCharacter(screenPos!!.withRelativeColumn(3))!!.characterString)
 }
 
 @Test
@@ -122,9 +122,9 @@ val screenPos = doubleText.toScreenPosition(pos)
 val nextScreenPos = doubleText.toScreenPosition(pos.withRelativeColumn("Ahoj".length))
 
 val diff = nextScreenPos!!.minus(screenPos!!)
-assertEquals("Ahoj".length * 2, diff!!.getColumn())
-assertEquals('A', screen!!.getBackCharacter(screenPos)!!.getCharacter())
-assertEquals('j', screen!!.getBackCharacter(nextScreenPos!!.withRelativeColumn(-1))!!.getCharacter())
+assertEquals("Ahoj".length * 2, diff!!.column)
+assertEquals('A', screen!!.getBackCharacter(screenPos)!!.character)
+assertEquals('j', screen!!.getBackCharacter(nextScreenPos!!.withRelativeColumn(-1))!!.character)
 }
 
 @Test
@@ -133,16 +133,16 @@ assertEquals('j', screen!!.getBackCharacter(nextScreenPos!!.withRelativeColumn(-
 val pos = TerminalPosition(3, 2)
 val writer = TextGraphicsWriter(subGraphics!!)
 
-writer.setCursorPosition(pos)
+writer.cursorPosition = pos
 val startPos = writer.toScreenPosition(null)
 writer.putString("Ahoj")
 
 val nextPos = writer.toScreenPosition(null)
 
 val diff = nextPos!!.minus(startPos!!)
-assertEquals("Ahoj".length, diff!!.getColumn())
+assertEquals("Ahoj".length, diff!!.column)
 
-assertEquals('A', screen!!.getBackCharacter(startPos)!!.getCharacter())
-assertEquals('j', screen!!.getBackCharacter(nextPos!!.withRelativeColumn(-1))!!.getCharacter())
+assertEquals('A', screen!!.getBackCharacter(startPos)!!.character)
+assertEquals('j', screen!!.getBackCharacter(nextPos!!.withRelativeColumn(-1))!!.character)
 }
 }
