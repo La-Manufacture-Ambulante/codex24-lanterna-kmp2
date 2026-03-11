@@ -3,7 +3,6 @@ root = true
 [*.{kt,kts}]
 ktlint_standard_argument-list-wrapping = disabled
 ktlint_standard_function-signature = disabled
-ktlint_standard_kdoc = disabled
 
 [**/src/jvmTest/**/*.kt]
 ktlint_standard_max-line-length = disabled
