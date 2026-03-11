@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.table.Table
@@ -31,14 +32,14 @@ import java.io.IOException
  object Issue212 {
 @Throws(IOException::class)
  fun main(args:Array<String?>?) {
-val table = Table("Column 1", "Column 2", 
+val table = Table<String?>("Column 1", "Column 2", 
 "Column 3")
-table.getTableModel().addRow("1", "2", "3")
-table.getTableModel().addRow("1", "2", "3")
-table.getTableModel().addRow("1", "2", "3")
-table.getTableModel().addRow("1", "2", "3")
-table.getTableModel().addRow("1", "2", "3")
-table.setSelectAction({ val data = table.getTableModel().getRow(
+table.getTableModel()!!.addRow("1", "2", "3")
+table.getTableModel()!!.addRow("1", "2", "3")
+table.getTableModel()!!.addRow("1", "2", "3")
+table.getTableModel()!!.addRow("1", "2", "3")
+table.getTableModel()!!.addRow("1", "2", "3")
+table.setSelectAction({ val data = table.getTableModel()!!.getRow(
 table.getSelectedRow())
 for (aData in data!!)
 {
@@ -49,7 +50,7 @@ val win = BasicWindow()
 win.setComponent(table)
 
 val factory = DefaultTerminalFactory()
-val terminal = factory.createTerminal()
+val terminal = factory.createTerminal()!!
 
 val screen = TerminalScreen(terminal)
 screen.startScreen()

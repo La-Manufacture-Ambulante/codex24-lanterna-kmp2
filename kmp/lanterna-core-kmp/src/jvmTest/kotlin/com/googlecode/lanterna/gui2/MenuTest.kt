@@ -18,9 +18,7 @@
  */
 package com.googlecode.lanterna.gui2
 
-import java.io.File
-import java.io.IOException
-
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder
@@ -29,83 +27,77 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
 import com.googlecode.lanterna.gui2.menu.Menu
 import com.googlecode.lanterna.gui2.menu.MenuBar
 import com.googlecode.lanterna.gui2.menu.MenuItem
-import com.googlecode.lanterna.input.KeyStroke
 
- class MenuTest:TestBase() {
+import java.io.File
+import java.io.IOException
 
-@Override
- fun init(textGUI:WindowBasedTextGUI?) {
+class MenuTest:TestBase() {
+
+fun init(textGUI:WindowBasedTextGUI) {
  // Create window to hold the menu
         val window = BasicWindow()
 val contentPane = Panel(BorderLayout())
 contentPane.addComponent(Panels.vertical(
-Separator(Direction.HORIZONTAL).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL)), 
-MultiColorComponent(), 
-Button("Close", ???({ window.close() }))))
+Separator(Direction.HORIZONTAL).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL)),
+MultiColorComponent(),
+Button("Close", Runnable { window.close() })))
 window.setComponent(contentPane)
 
 val menubar = MenuBar()
 window.setMenuBar(menubar)
 
- // "File" menu w/Accelerator Set
-        val menuFile = Menu("File").setAccelerator(KeyStroke('f', false, true))
+ // "File" menu
+        val menuFile = Menu("File")
 menubar.add(menuFile)
-menuFile!!.add(MenuItem("Open...", { val file = FileDialogBuilder().build().showDialog(textGUI)
+menuFile.add(MenuItem("Open...", { val file = FileDialogBuilder().build()!!.showDialog(textGUI)
 if (file != null)
 MessageDialog.showMessageDialog(
-textGUI, "Open", "Selected file:\n" + file!!, MessageDialogButton.OK) }).setAccelerator(KeyStroke('o', false, false)))
-menuFile!!.add(MenuItem("Exit", ???({ window.close() })).setAccelerator(KeyStroke('x', false, false)))
+textGUI, "Open", "Selected file:\n$file", MessageDialogButton.OK) }))
+menuFile.add(MenuItem("Exit", Runnable { window.close() }))
 
- // Menu w/accelerator set
-        val countryMenu = Menu("Country").setAccelerator(KeyStroke('c', false, true))
+val countryMenu = Menu("Country")
 menubar.add(countryMenu)
 
- // Menu w/accelerator not set
-        val germanySubMenu = Menu("Germany").setAccelerator(KeyStroke('g', false, false))
-countryMenu!!.add(germanySubMenu)
+val germanySubMenu = Menu("Germany")
+countryMenu.add(germanySubMenu)
 for (state in GERMANY_STATES)
 {
-germanySubMenu!!.add(MenuItem(state, DO_NOTHING))
+germanySubMenu.add(MenuItem(state, DO_NOTHING))
 }
-
- // Menu w/accelerator set
-        val japanSubMenu = Menu("Japan").setAccelerator(KeyStroke('j', false, false))
-countryMenu!!.add(japanSubMenu)
+val japanSubMenu = Menu("Japan")
+countryMenu.add(japanSubMenu)
 for (prefecture in JAPAN_PREFECTURES)
 {
-japanSubMenu!!.add(MenuItem(prefecture, DO_NOTHING))
+japanSubMenu.add(MenuItem(prefecture, DO_NOTHING))
 }
 
- // "Help" menu w/accelerator set
-        val menuHelp = Menu("Help").setAccelerator(KeyStroke('h', false, true))
+ // "Help" menu
+        val menuHelp = Menu("Help")
 menubar.add(menuHelp)
-menuHelp!!.add(MenuItem("Homepage", { MessageDialog.showMessageDialog(
-textGUI, "Homepage", "https://github.com/mabe02/lanterna", MessageDialogButton.OK) }).setAccelerator(KeyStroke('h', false, false)))
-menuHelp!!.add(MenuItem("About", { MessageDialog.showMessageDialog(
-textGUI, "About", "Lanterna drop-down menu", MessageDialogButton.OK) }).setAccelerator(KeyStroke('a', false, false)))
+menuHelp.add(MenuItem("Homepage", { MessageDialog.showMessageDialog(
+textGUI, "Homepage", "https://github.com/mabe02/lanterna", MessageDialogButton.OK) }))
+menuHelp.add(MenuItem("About", { MessageDialog.showMessageDialog(
+textGUI, "About", "Lanterna drop-down menu", MessageDialogButton.OK) }))
 
  // Create textGUI and start textGUI
-        textGUI!!.addWindow(window)
+        textGUI.addWindow(window)
 }
 
 private class MultiColorComponent:AbstractComponent<MultiColorComponent?>() {
-@Override
-protected fun createDefaultRenderer():ComponentRenderer<MultiColorComponent?> {
-return object:ComponentRenderer<MultiColorComponent?>() {
-@Override
- fun getPreferredSize(component:MultiColorComponent?):TerminalSize {
+protected override fun createDefaultRenderer():ComponentRenderer<MultiColorComponent?> {
+return object:ComponentRenderer<MultiColorComponent?> {
+public override fun getPreferredSize(component:MultiColorComponent?):TerminalSize {
 return TerminalSize(40, 15)
 }
 
-@Override
- fun drawComponent(graphics:TextGUIGraphics?, component:MultiColorComponent?) {
-graphics!!.applyThemeStyle(getTheme().getDefaultDefinition().getNormal())
+public override fun drawComponent(graphics:TextGUIGraphics?, component:MultiColorComponent?) {
+graphics!!.applyThemeStyle(getTheme()!!.getDefaultDefinition()!!.getNormal())
 graphics!!.fill(' ')
 var row = 1
 for (color in TextColor.ANSI.values())
 {
-graphics!!.applyThemeStyle(getTheme().getDefaultDefinition().getNormal())
-graphics!!.putString(1, row, color!!.toString() + ": ")
+graphics!!.applyThemeStyle(getTheme()!!.getDefaultDefinition()!!.getNormal())
+graphics!!.putString(1, row, color.toString() + ": ")
 graphics!!.setForegroundColor(TextColor.ANSI.BLACK)
 graphics!!.setBackgroundColor(color)
 graphics!!.putString(20, row++, "     TEXT     ")
@@ -121,10 +113,10 @@ companion object {
 MenuTest().run(args)
 }
 
-private val DO_NOTHING = {  }
+private val DO_NOTHING = Runnable { }
 
-private val GERMANY_STATES = arrayOf<String?>("Baden-Württemberg", "Bayern", "Berlin", "Brandenburg", "Bremen", "Hamburg", "Hessen", "Mecklenburg-Vorpommern", "Niedersachsen", "Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland", "Sachsen", "Sachsen-Anhalt", "Schleswig-Holstein", "Thüringen")
+private val GERMANY_STATES = arrayOf("Baden-Württemberg", "Bayern", "Berlin", "Brandenburg", "Bremen", "Hamburg", "Hessen", "Mecklenburg-Vorpommern", "Niedersachsen", "Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland", "Sachsen", "Sachsen-Anhalt", "Schleswig-Holstein", "Thüringen")
 
-private val JAPAN_PREFECTURES = arrayOf<String?>("Aichi", "Akita", "Aomori", "Chiba", "Ehime", "Fukui", "Fukuoka", "Fukushima", "Gifu", "Gunma", "Hiroshima", "Hokkaido", "Hyōgo", "Ibaraki", "Ishikawa", "Iwate", "Kagawa", "Kagoshima", "Kanagawa", "Kōchi", "Kumamoto", "Kyoto", "Mie", "Miyagi", "Miyazaki", "Nagano", "Nagasaki", "Nara", "Niigata", "Ōita", "Okayama", "Okinawa", "Osaka", "Saga", "Saitama", "Shiga", "Shimane", "Shizuoka", "Tochigi", "Tokushima", "Tokyo", "Tottori", "Toyama", "Wakayama", "Yamagata", "Yamaguchi", "Yamanashi")
+private val JAPAN_PREFECTURES = arrayOf("Aichi", "Akita", "Aomori", "Chiba", "Ehime", "Fukui", "Fukuoka", "Fukushima", "Gifu", "Gunma", "Hiroshima", "Hokkaido", "Hyōgo", "Ibaraki", "Ishikawa", "Iwate", "Kagawa", "Kagoshima", "Kanagawa", "Kōchi", "Kumamoto", "Kyoto", "Mie", "Miyagi", "Miyazaki", "Nagano", "Nagasaki", "Nara", "Niigata", "Ōita", "Okayama", "Okinawa", "Osaka", "Saga", "Saitama", "Shiga", "Shimane", "Shizuoka", "Tochigi", "Tokushima", "Tokyo", "Tottori", "Toyama", "Wakayama", "Yamagata", "Yamaguchi", "Yamanashi")
 }
 }

@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.TextColor
@@ -32,20 +33,20 @@ import java.io.IOException
 @Throws(IOException::class)
  fun main(args:Array<String?>?) {
 val screen = TestTerminalFactory(args).createScreen()
-screen!!.startScreen()
+screen.startScreen()
 for (i in 0..9)
 {
 drawText(screen)
-screen!!.refresh()
+screen.refresh()
 sleep(1000)
-screen!!.clear()
-screen!!.refresh()
+screen.clear()
+screen.refresh()
 sleep(300)
 }
-screen!!.stopScreen()
+screen.stopScreen()
 }
 
-private fun drawText(screen:Screen?) {
+private fun drawText(screen:Screen) {
 val writer = ScreenTextGraphics(screen)
 writer.setForegroundColor(TextColor.ANSI.DEFAULT)
 writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
@@ -124,7 +125,7 @@ writer.putString(17, 27, "Hello World", SGR.BOLD)
 private fun sleep(i:Int) {
 try
 {
-Thread.sleep(i)
+Thread.sleep(i.toLong())
 }
 catch (ignored:InterruptedException) {}
 

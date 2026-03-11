@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
@@ -32,19 +33,15 @@ import java.util.EnumSet
  */
  class WelcomeSplashTest:TestBase() {
 
-@Override
- fun init(textGUI:WindowBasedTextGUI) {
-textGUI.getBackgroundPane().setComponent(object:EmptySpace(TextColor.ANSI.BLUE) {
-@Override
-protected fun createDefaultRenderer():ComponentRenderer<EmptySpace?>? {
-return object:ComponentRenderer<EmptySpace?>() {
-@Override
- fun getPreferredSize(component:EmptySpace?):TerminalSize {
+fun init(textGUI:WindowBasedTextGUI) {
+textGUI.getBackgroundPane()!!.setComponent(object:EmptySpace(TextColor.ANSI.BLUE) {
+protected override fun createDefaultRenderer():ComponentRenderer<EmptySpace?> {
+return object:ComponentRenderer<EmptySpace?> {
+public override fun getPreferredSize(component:EmptySpace?):TerminalSize {
 return TerminalSize.ONE
 }
 
-@Override
- fun drawComponent(graphics:TextGUIGraphics?, component:EmptySpace?) {
+public override fun drawComponent(graphics:TextGUIGraphics?, component:EmptySpace?) {
 graphics!!.setForegroundColor(TextColor.ANSI.CYAN)
 graphics!!.setBackgroundColor(TextColor.ANSI.BLUE)
 graphics!!.setModifiers(EnumSet.of(SGR.BOLD))
@@ -56,8 +53,7 @@ graphics!!.putString(3, 0, "Text GUI in 100% Java")
 })
 }
 
-@Override
- fun afterGUIThreadStarted(textGUI:WindowBasedTextGUI?) {
+fun afterGUIThreadStarted(textGUI:WindowBasedTextGUI) {
 MessageDialogBuilder()
 .setTitle("Information")
 .setText("Welcome to Lanterna!")

@@ -18,13 +18,13 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import java.io.IOException
 import java.util.Collections
 
  class LinearLayoutTest:TestBase() {
 
-@Override
- fun init(textGUI:WindowBasedTextGUI?) {
+fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("Linear layout test")
 val mainPanel = Panel()
 val labelPanel = Panel()
@@ -35,26 +35,26 @@ labelPanel.setLayoutManager(linearLayout)
 for (i in 0..4)
 {
 Label("LABEL COMPONENT")
-.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW))
+.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW))!!
 .addTo(labelPanel)
 }
 mainPanel.addComponent(labelPanel.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW)))
 
 Separator(Direction.HORIZONTAL)
-.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL))
+.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL))!!
 .addTo(mainPanel)
 
 mainPanel.addComponent(Panels.horizontal(
 Button("Add", { Label("LABEL COMPONENT").addTo(labelPanel) }), 
-Button("Spacing", { linearLayout.setSpacing(if (linearLayout.getSpacing() === 1) 0 else 1) }), 
+Button("Spacing", { linearLayout.setSpacing(if (linearLayout.getSpacing() == 1) 0 else 1) }), 
 Button("Toggle Hide Odd #", { toggleVisibleOnOddNumberLabels(labelPanel) }), 
 Button("Expand", { window.setHints(Collections.singletonList(Window.Hint.EXPANDED)) }), 
 Button("Collapse", { window.setHints(Collections.emptySet()) }), 
-Button("Close", ???({ window.close() }))
+Button("Close", Runnable { window.close() })
 ))
 
 window.setComponent(mainPanel)
-textGUI!!.addWindow(window)
+textGUI.addWindow(window)
 }
 
 internal fun toggleVisibleOnOddNumberLabels(panel:Panel) {
@@ -62,8 +62,8 @@ for (i in 0 until panel.getChildCount())
 {
 if ((i + 1) % 2 == 1)
 {
-val component = panel.getChildrenList().get(i)
-component!!.setVisible(!component!!.isVisible())
+val component = panel.childrenList?.get(i) ?: continue
+component.setVisible(!component.isVisible())
 }
 }
 }

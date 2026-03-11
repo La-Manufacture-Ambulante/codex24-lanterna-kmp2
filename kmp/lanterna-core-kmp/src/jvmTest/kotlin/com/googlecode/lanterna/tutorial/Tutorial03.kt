@@ -40,7 +40,7 @@ try
             terminal emulator the software is running in. Just to demonstrate that a Screen sits on top of a Terminal,
             we are going to create one manually instead of using DefaultTerminalFactory.
              */
-            val terminal = defaultTerminalFactory.createTerminal()
+            val terminal = defaultTerminalFactory.createTerminal()!!
 screen = TerminalScreen(terminal)
 
  /*
@@ -60,15 +60,15 @@ screen = TerminalScreen(terminal)
              */
             val random = Random()
 var terminalSize = screen!!.getTerminalSize()
-for (column in 0 until terminalSize!!.columns)
+for (column in 0 until terminalSize!!.getColumns())
 {
-for (row in 0 until terminalSize!!.rows)
+for (row in 0 until terminalSize!!.getRows())
 {
 screen!!.setCharacter(column, row, TextCharacter(
 ' ', 
 TextColor.ANSI.DEFAULT, 
  // This will pick a random background color
-                            TextColor.ANSI.values()[random.nextInt(TextColor.ANSI.values().length)]))
+                            TextColor.ANSI.values()!![random.nextInt(TextColor.ANSI.values()!!.size)]))
 }
 }
 
@@ -108,7 +108,7 @@ break
             while (true)
 {
 val keyStroke = screen!!.pollInput()
-if (keyStroke != null && (keyStroke!!.getKeyType() === KeyType.ESCAPE || keyStroke!!.getKeyType() === KeyType.EOF))
+if (keyStroke != null && (keyStroke!!.getKeyType() == KeyType.ESCAPE || keyStroke!!.getKeyType() == KeyType.EOF))
 {
 break
 }
@@ -136,13 +136,13 @@ for (i in 0 until charactersToModifyPerLoop)
                     We pick a random location
                      */
                         val cellToModify = TerminalPosition(
-random.nextInt(terminalSize!!.columns), 
-random.nextInt(terminalSize!!.rows))
+random.nextInt(terminalSize!!.getColumns()), 
+random.nextInt(terminalSize!!.getRows()))
 
  /*
                     Pick a random background color again
                      */
-                        val color = TextColor.ANSI.values()[random.nextInt(TextColor.ANSI.values().length)]
+                        val color = TextColor.ANSI.values()!![random.nextInt(TextColor.ANSI.values()!!.size)]
 
  /*
                     Update it in the back buffer, notice that just like TerminalPosition and TerminalSize, TextCharacter
@@ -161,8 +161,8 @@ screen!!.setCharacter(cellToModify, characterInBackBuffer)
                  */
                 val sizeLabel = "Terminal Size: " + terminalSize!!
 val labelBoxTopLeft = TerminalPosition(1, 1)
-val labelBoxSize = TerminalSize(sizeLabel!!.length() + 2, 3)
-val labelBoxTopRightCorner = labelBoxTopLeft.withRelativeColumn(labelBoxSize.columns - 1)
+val labelBoxSize = TerminalSize(sizeLabel.length + 2, 3)
+val labelBoxTopRightCorner = labelBoxTopLeft.withRelativeColumn(labelBoxSize.getColumns() - 1)
 val textGraphics = screen!!.newTextGraphics()
  //This isn't really needed as we are overwriting everything below anyway, but just for demonstrative purpose
                 textGraphics!!.fillRectangle(labelBoxTopLeft, labelBoxSize, ' ')
@@ -172,11 +172,11 @@ val textGraphics = screen!!.newTextGraphics()
                  */
                 textGraphics!!.drawLine(
 labelBoxTopLeft.withRelativeColumn(1), 
-labelBoxTopLeft.withRelativeColumn(labelBoxSize.columns - 2), 
+labelBoxTopLeft.withRelativeColumn(labelBoxSize.getColumns() - 2), 
 Symbols.DOUBLE_LINE_HORIZONTAL)
 textGraphics!!.drawLine(
 labelBoxTopLeft.withRelativeRow(2)!!.withRelativeColumn(1), 
-labelBoxTopLeft.withRelativeRow(2)!!.withRelativeColumn(labelBoxSize.columns - 2), 
+labelBoxTopLeft.withRelativeRow(2)!!.withRelativeColumn(labelBoxSize.getColumns() - 2), 
 Symbols.DOUBLE_LINE_HORIZONTAL)
 
  /*

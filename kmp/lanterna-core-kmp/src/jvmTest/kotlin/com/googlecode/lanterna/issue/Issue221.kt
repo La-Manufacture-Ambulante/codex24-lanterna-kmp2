@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.screen.Screen
@@ -32,7 +33,7 @@ import java.io.IOException
  fun main(args:Array<String?>?) {
 
  // Setup terminal and screen layers
-        val terminal = DefaultTerminalFactory().createTerminal()
+        val terminal = DefaultTerminalFactory().createTerminal()!!
 val screen = TerminalScreen(terminal)
 screen.startScreen()
 
@@ -41,11 +42,15 @@ screen.startScreen()
 panel.setLayoutManager(GridLayout(2))
 
 panel.addComponent(Label("The List"))
-val box = RadioBoxList()
+val box = RadioBoxList<String>()
 box.addItem("Item 1")
 box.addItem("Item 2")
 box.addItem("Item 3")
-box.addListener({ selected, previous-> System.out.println("Selected Index: " + selected + ", previous: " + previous) })
+box.addListener(object : RadioBoxList.Listener {
+override fun onSelectionChanged(selectedIndex: Int, previousSelection: Int) {
+System.out.println("Selected Index: " + selectedIndex + ", previous: " + previousSelection)
+}
+})
 
 panel.addComponent(box)
 

@@ -1,5 +1,6 @@
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.input.KeyStroke
@@ -10,37 +11,30 @@ import java.io.IOException
 
  class WindowManagerTest:TestBase() {
 
-@Override
-protected fun createTextGUI(screen:Screen?):MultiWindowTextGUI? {
+protected fun createTextGUI(screen:Screen):MultiWindowTextGUI {
 return MultiWindowTextGUI(SeparateTextGUIThread.Factory(), screen, CustomWindowManager())
 }
 
-@Override
- fun init(textGUI:WindowBasedTextGUI) {
+fun init(textGUI:WindowBasedTextGUI) {
 val mainWindow = BasicWindow("Window Manager Test")
 val contentArea = Panel()
 contentArea.setLayoutManager(LinearLayout(Direction.VERTICAL))
 contentArea.addComponent(EmptySpace(TerminalSize.ONE))
-contentArea.addComponent(Button("Close", object:Runnable() {
-@Override
-@JvmStatic  fun run() {
-mainWindow.close()
-}
-}))
+contentArea.addComponent(Button("Close", Runnable { mainWindow.close() }))
 mainWindow.setComponent(contentArea)
 textGUI.addWindow(mainWindow)
 }
 
 private class CustomWindowManager:DefaultWindowManager() {
-@Override
-protected fun prepareWindow(screenSize:TerminalSize?, window:Window?) {
-super.prepareWindow(screenSize, window)
-
-window!!.setDecoratedSize(window!!.getPreferredSize().withRelative(12, 10))
-window!!.setPosition(TerminalPosition(
-screenSize!!.columns - window!!.getDecoratedSize().getColumns() - 1, 
-screenSize!!.rows - window!!.getDecoratedSize().getRows() - 1
-))
+override fun onAdded(textGUI: WindowBasedTextGUI?, window: Window?, allWindows: List<Window?>?) {
+super.onAdded(textGUI, window, allWindows)
+val w = window ?: return
+val screen = textGUI?.screen?.terminalSize ?: return
+w.decoratedSize = (w.preferredSize ?: TerminalSize.ZERO).withRelative(12, 10)
+w.position = TerminalPosition(
+screen.columns - (w.decoratedSize?.columns ?: 0) - 1,
+screen.rows - (w.decoratedSize?.rows ?: 0) - 1
+)
 }
 }
 

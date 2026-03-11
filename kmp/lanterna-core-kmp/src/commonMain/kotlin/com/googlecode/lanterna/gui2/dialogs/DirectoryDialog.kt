@@ -93,7 +93,7 @@ class DirectoryDialog(
             ),
         )
         panelButtons.addComponent(
-            Button(actionLabel, OkHandler()),
+            Button(requireNotNull(actionLabel), OkHandler()),
         )
         panelButtons.addComponent(
             Button(LocalizedString.Cancel.toString(), CancelHandler()),

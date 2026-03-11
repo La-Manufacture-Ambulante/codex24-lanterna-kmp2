@@ -37,14 +37,14 @@ this.virtualTerminal = DefaultVirtualTerminal()
 }
 
 @Test
-@JvmStatic  fun initialTerminalStateIsAsExpected() {
+  fun initialTerminalStateIsAsExpected() {
 assertEquals(TerminalPosition.TOP_LEFT_CORNER, virtualTerminal!!.getCursorPosition())
 val terminalSize = virtualTerminal!!.getTerminalSize()
 assertEquals(TerminalSize(80, 24), terminalSize)
 
-for (row in 0 until terminalSize!!.rows)
+for (row in 0 until terminalSize!!.getRows())
 {
-for (column in 0 until terminalSize!!.columns)
+for (column in 0 until terminalSize!!.getColumns())
 {
 assertEquals(DEFAULT_CHARACTER, virtualTerminal!!.getCharacter(column, row))
 }
@@ -52,7 +52,7 @@ assertEquals(DEFAULT_CHARACTER, virtualTerminal!!.getCharacter(column, row))
 }
 
 @Test
-@JvmStatic  fun simpleTestOutputTest() {
+  fun simpleTestOutputTest() {
 val testString = "Hello World!"
 for (c in testString.toCharArray())
 {
@@ -60,12 +60,12 @@ virtualTerminal!!.putCharacter(c)
 }
 assertLineEquals(testString, 0)
 assertLineEquals("", 1)
-assertEquals(TerminalPosition(testString.length(), 0), virtualTerminal!!.getCursorPosition())
+assertEquals(TerminalPosition(testString.length, 0), virtualTerminal!!.getCursorPosition())
 }
 
 @Test
-@JvmStatic  fun multiLineTextTest() {
-val toPrint = arrayOf<String?>("Hello", "Hallo", "Hallå", "こんにちは")
+  fun multiLineTextTest() {
+val toPrint = arrayOf("Hello", "Hallo", "Hallå", "こんにちは")
 for (string in toPrint)
 {
 for (c in string!!.toCharArray())
@@ -82,21 +82,21 @@ assertEquals(TerminalPosition(0, toPrint.size), virtualTerminal!!.getCursorPosit
 }
 
 @Test
-@JvmStatic  fun singleLineWriteAndReadBackWorks() {
+  fun singleLineWriteAndReadBackWorks() {
 assertEquals(TerminalPosition.TOP_LEFT_CORNER, virtualTerminal!!.getCursorPosition())
 virtualTerminal!!.putCharacter(TextCharacter('H'))
 virtualTerminal!!.putCharacter(TextCharacter('E'))
 virtualTerminal!!.putCharacter(TextCharacter('L'))
 virtualTerminal!!.putCharacter(TextCharacter('L'))
 virtualTerminal!!.putCharacter(TextCharacter('O'))
-assertEquals(TerminalPosition.TOP_LEFT_CORNER.withColumn(5), virtualTerminal!!.getCursorPosition())
-assertEquals('H', virtualTerminal!!.getCharacter(TerminalPosition(0, 0)).getCharacterString().charAt(0))
-assertEquals('E', virtualTerminal!!.getCharacter(TerminalPosition(1, 0)).getCharacterString().charAt(0))
-assertEquals('L', virtualTerminal!!.getCharacter(TerminalPosition(2, 0)).getCharacterString().charAt(0))
-assertEquals('L', virtualTerminal!!.getCharacter(TerminalPosition(3, 0)).getCharacterString().charAt(0))
-assertEquals('O', virtualTerminal!!.getCharacter(TerminalPosition(4, 0)).getCharacterString().charAt(0))
+assertEquals(TerminalPosition.TOP_LEFT_CORNER!!.withColumn(5), virtualTerminal!!.getCursorPosition())
+assertEquals('H', virtualTerminal!!.getCharacter(TerminalPosition(0, 0))!!.characterString[0])
+assertEquals('E', virtualTerminal!!.getCharacter(TerminalPosition(1, 0))!!.characterString[0])
+assertEquals('L', virtualTerminal!!.getCharacter(TerminalPosition(2, 0))!!.characterString[0])
+assertEquals('L', virtualTerminal!!.getCharacter(TerminalPosition(3, 0))!!.characterString[0])
+assertEquals('O', virtualTerminal!!.getCharacter(TerminalPosition(4, 0))!!.characterString[0])
 
-assertFalse(virtualTerminal!!.isWholeBufferDirtyThenReset())
+assertFalse(virtualTerminal!!.isWholeBufferDirtyThenReset)
 assertEquals(TreeSet(Arrays.asList(
 TerminalPosition(0, 0), 
 TerminalPosition(1, 0), 
@@ -106,11 +106,11 @@ TerminalPosition(4, 0))),
 virtualTerminal!!.getAndResetDirtyCells())
 
  // Make sure it's reset
-        assertEquals(Collections.emptySet(), virtualTerminal!!.getAndResetDirtyCells())
+        assertEquals(emptySet<TerminalPosition>(), virtualTerminal!!.getAndResetDirtyCells())
 }
 
 @Test
-@JvmStatic  fun clearAllMarksEverythingAsDirtyAndEverythingInTheTerminalIsReplacedWithDefaultCharacter() {
+  fun clearAllMarksEverythingAsDirtyAndEverythingInTheTerminalIsReplacedWithDefaultCharacter() {
 virtualTerminal!!.setTerminalSize(TerminalSize(10, 5))
 assertEquals(TerminalPosition.TOP_LEFT_CORNER, virtualTerminal!!.getCursorPosition())
 virtualTerminal!!.putCharacter(TextCharacter('H'))
@@ -120,8 +120,8 @@ virtualTerminal!!.putCharacter(TextCharacter('L'))
 virtualTerminal!!.putCharacter(TextCharacter('O'))
 virtualTerminal!!.clearScreen()
 
-assertTrue(virtualTerminal!!.isWholeBufferDirtyThenReset())
-assertEquals(Collections.emptySet(), virtualTerminal!!.getAndResetDirtyCells())
+assertTrue(virtualTerminal!!.isWholeBufferDirtyThenReset)
+assertEquals(emptySet<TerminalPosition>(), virtualTerminal!!.getAndResetDirtyCells())
 
 assertEquals(TerminalPosition.TOP_LEFT_CORNER, virtualTerminal!!.getCursorPosition())
 assertEquals(TextCharacter.DEFAULT_CHARACTER, virtualTerminal!!.getCharacter(TerminalPosition(0, 0)))
@@ -132,7 +132,7 @@ assertEquals(TextCharacter.DEFAULT_CHARACTER, virtualTerminal!!.getCharacter(Ter
 }
 
 @Test
-@JvmStatic  fun replacingAllContentTriggersWholeTerminalIsDirty() {
+  fun replacingAllContentTriggersWholeTerminalIsDirty() {
 virtualTerminal!!.setTerminalSize(TerminalSize(5, 3))
 assertEquals(TerminalPosition.TOP_LEFT_CORNER, virtualTerminal!!.getCursorPosition())
 virtualTerminal!!.putCharacter(TextCharacter('H'))
@@ -150,12 +150,12 @@ virtualTerminal!!.putCharacter(TextCharacter('Y'))
 virtualTerminal!!.putCharacter(TextCharacter('E'))
 virtualTerminal!!.putCharacter(TextCharacter('!'))
 
-assertTrue(virtualTerminal!!.isWholeBufferDirtyThenReset())
-assertEquals(Collections.emptySet(), virtualTerminal!!.getAndResetDirtyCells())
+assertTrue(virtualTerminal!!.isWholeBufferDirtyThenReset)
+assertEquals(emptySet<TerminalPosition>(), virtualTerminal!!.getAndResetDirtyCells())
 }
 
 @Test
-@JvmStatic  fun tooLongLinesWrap() {
+  fun tooLongLinesWrap() {
 virtualTerminal!!.setTerminalSize(TerminalSize(5, 5))
 assertEquals(TerminalPosition.TOP_LEFT_CORNER, virtualTerminal!!.getCursorPosition())
 virtualTerminal!!.putCharacter(TextCharacter('H'))
@@ -173,7 +173,7 @@ assertEquals(TerminalPosition.OFFSET_1x1, virtualTerminal!!.getCursorPosition())
     }
 
 @Test
-@JvmStatic  fun makeSureDoubleWidthCharactersWrapProperly() {
+  fun makeSureDoubleWidthCharactersWrapProperly() {
 virtualTerminal!!.setTerminalSize(TerminalSize(9, 5))
 assertEquals(TerminalPosition.TOP_LEFT_CORNER, virtualTerminal!!.getCursorPosition())
 virtualTerminal!!.putCharacter(TextCharacter('こ'))
@@ -194,31 +194,31 @@ assertEquals(TerminalPosition(3, 1), virtualTerminal!!.getCursorPosition())
 }
 
 @Test
-@JvmStatic  fun overwritingDoubleWidthCharactersEraseTheOtherHalf() {
+  fun overwritingDoubleWidthCharactersEraseTheOtherHalf() {
 virtualTerminal!!.setTerminalSize(TerminalSize(5, 5))
 virtualTerminal!!.putCharacter(TextCharacter('画'))
 virtualTerminal!!.putCharacter(TextCharacter('面'))
 
-assertEquals('画', virtualTerminal!!.getCharacter(TerminalPosition(0, 0)).getCharacterString().charAt(0))
-assertEquals('画', virtualTerminal!!.getCharacter(TerminalPosition(1, 0)).getCharacterString().charAt(0))
-assertEquals('面', virtualTerminal!!.getCharacter(TerminalPosition(2, 0)).getCharacterString().charAt(0))
-assertEquals('面', virtualTerminal!!.getCharacter(TerminalPosition(3, 0)).getCharacterString().charAt(0))
+assertEquals('画', virtualTerminal!!.getCharacter(TerminalPosition(0, 0))!!.characterString[0])
+assertEquals('画', virtualTerminal!!.getCharacter(TerminalPosition(1, 0))!!.characterString[0])
+assertEquals('面', virtualTerminal!!.getCharacter(TerminalPosition(2, 0))!!.characterString[0])
+assertEquals('面', virtualTerminal!!.getCharacter(TerminalPosition(3, 0))!!.characterString[0])
 
 virtualTerminal!!.setCursorPosition(TerminalPosition(0, 0))
 virtualTerminal!!.putCharacter(TextCharacter('Y'))
 
-assertEquals('Y', virtualTerminal!!.getCharacter(TerminalPosition(0, 0)).getCharacterString().charAt(0))
+assertEquals('Y', virtualTerminal!!.getCharacter(TerminalPosition(0, 0))!!.characterString[0])
 assertEquals(TextCharacter.DEFAULT_CHARACTER, virtualTerminal!!.getCharacter(TerminalPosition(1, 0)))
 
 virtualTerminal!!.setCursorPosition(TerminalPosition(3, 0))
 virtualTerminal!!.putCharacter(TextCharacter('V'))
 
 assertEquals(TextCharacter.DEFAULT_CHARACTER, virtualTerminal!!.getCharacter(TerminalPosition(2, 0)))
-assertEquals('V', virtualTerminal!!.getCharacter(TerminalPosition(3, 0)).getCharacterString().charAt(0))
+assertEquals('V', virtualTerminal!!.getCharacter(TerminalPosition(3, 0))!!.characterString[0])
 }
 
 @Test
-@JvmStatic  fun testCursorPositionUpdatesWhenTerminalSizeChanges() {
+  fun testCursorPositionUpdatesWhenTerminalSizeChanges() {
 virtualTerminal!!.setTerminalSize(TerminalSize(3, 3))
 virtualTerminal!!.putCharacter('\n')
 virtualTerminal!!.putCharacter('\n')
@@ -250,7 +250,7 @@ assertEquals(TerminalPosition(0, 4), virtualTerminal!!.getCursorPosition())
 }
 
 @Test
-@JvmStatic  fun textScrollingOutOfTheBacklogDisappears() {
+  fun textScrollingOutOfTheBacklogDisappears() {
 virtualTerminal!!.setTerminalSize(TerminalSize(10, 3))
  // Backlog of 1, meaning viewport size + 1 row
         virtualTerminal!!.setBacklogSize(1)
@@ -304,7 +304,7 @@ assertEquals(TerminalPosition(0, 3), virtualTerminal!!.getCursorBufferPosition()
 }
 
 @Test
-@JvmStatic  fun backlogTrimmingAdjustsCursorPositionAndDirtyCells() {
+  fun backlogTrimmingAdjustsCursorPositionAndDirtyCells() {
 virtualTerminal!!.setTerminalSize(TerminalSize(80, 3))
 virtualTerminal!!.setBacklogSize(0)
 virtualTerminal!!.putCharacter(fromChar('A'))
@@ -335,7 +335,7 @@ assertEquals(TerminalPosition(0, 2), virtualTerminal!!.getCursorPosition())
 }
 
 @Test
-@JvmStatic  fun testPrivateMode() {
+  fun testPrivateMode() {
 val ROWS = 5
 virtualTerminal!!.setTerminalSize(TerminalSize(20, ROWS))
 for (i in 1..ROWS + 2)
@@ -363,7 +363,7 @@ for (i in 0 until ROWS - 1)
 assertLineEquals("Line " + (i + 6), i)
 }
 assertLineEquals("", ROWS - 1)
-assertEquals(5, virtualTerminal!!.getBufferLineCount())
+assertEquals(5, virtualTerminal!!.getBufferLineCount().toLong())
 
 virtualTerminal!!.exitPrivateMode()
 for (i in 0 until ROWS - 1)
@@ -374,25 +374,26 @@ assertLineEquals("", ROWS - 1)
 }
 
 @Test
-@JvmStatic  fun testForEachLine() {
+  fun testForEachLine() {
 val ROWS = 40
 virtualTerminal!!.setTerminalSize(TerminalSize(10, 5))
 for (i in 1..ROWS)
 {
 putString("Line " + i + "\n")
 }
-virtualTerminal!!.forEachLine(0, ROWS, { rowNumber, bufferLine-> if (rowNumber === ROWS)
-{
+virtualTerminal!!.forEachLine(0, ROWS, object : VirtualTerminal.BufferWalker {
+override fun onLine(rowNumber: Int, bufferLine: VirtualTerminal.BufferLine?) {
+if (rowNumber == ROWS) {
 assertLineEquals("", bufferLine)
+} else {
+assertLineEquals("Line " + (rowNumber + 1), bufferLine)
 }
-else
-{
-assertLineEquals("Line " + (rowNumber!! + 1), bufferLine)
-} })
+}
+})
 }
 
 @Test
-@JvmStatic  fun testColorAndSGR() {
+  fun testColorAndSGR() {
 virtualTerminal!!.putCharacter('A')
 virtualTerminal!!.setBackgroundColor(TextColor.ANSI.BLUE)
 virtualTerminal!!.setForegroundColor(TextColor.ANSI.WHITE)
@@ -405,15 +406,15 @@ virtualTerminal!!.putCharacter('D')
 virtualTerminal!!.resetColorAndSGR()
 virtualTerminal!!.putCharacter('E')
 
-assertEquals(TextCharacter.DEFAULT_CHARACTER.withCharacter('A'), virtualTerminal!!.getCharacter(0, 0))
+assertEquals(TextCharacter.DEFAULT_CHARACTER!!.withCharacter('A'), virtualTerminal!!.getCharacter(0, 0))
 assertEquals(TextCharacter('B', TextColor.ANSI.WHITE, TextColor.ANSI.BLUE), virtualTerminal!!.getCharacter(1, 0))
 assertEquals(TextCharacter('C', TextColor.ANSI.WHITE, TextColor.ANSI.BLUE, SGR.BOLD, SGR.UNDERLINE), virtualTerminal!!.getCharacter(2, 0))
 assertEquals(TextCharacter('D', TextColor.ANSI.WHITE, TextColor.ANSI.BLUE, SGR.UNDERLINE), virtualTerminal!!.getCharacter(3, 0))
-assertEquals(TextCharacter.DEFAULT_CHARACTER.withCharacter('E'), virtualTerminal!!.getCharacter(4, 0))
+assertEquals(TextCharacter.DEFAULT_CHARACTER!!.withCharacter('E'), virtualTerminal!!.getCharacter(4, 0))
 }
 
 @Test
-@JvmStatic  fun testTabExpansion() {
+  fun testTabExpansion() {
 putString("XXXXXXXXXXXXXXXXXX")
 virtualTerminal!!.setCursorPosition(0, 0)
 virtualTerminal!!.putCharacter('\t')
@@ -451,7 +452,7 @@ assertLineEquals("XXXXX   XXXXXXXXXX", 0)
 }
 
 @Test
-@JvmStatic  fun testInput() {
+  fun testInput() {
 val keyStroke1 = KeyStroke('A', false, false)
 val keyStroke2 = KeyStroke('B', false, false)
 virtualTerminal!!.addInput(keyStroke1)
@@ -461,30 +462,26 @@ assertEquals(keyStroke2, virtualTerminal!!.readInput())
 }
 
 @Test
-@JvmStatic  fun testVirtualTerminalListener() {
+  fun testVirtualTerminalListener() {
 val flushCounter = AtomicInteger(0)
 val bellCounter = AtomicInteger(0)
 val resizeCounter = AtomicInteger(0)
 val closeCounter = AtomicInteger(0)
 
-val listener = object:VirtualTerminalListener() {
-@Override
-@JvmStatic  fun onFlush() {
+val listener = object:VirtualTerminalListener {
+ public override fun onFlush() {
 flushCounter.incrementAndGet()
 }
 
-@Override
-@JvmStatic  fun onBell() {
+ public override fun onBell() {
 bellCounter.incrementAndGet()
 }
 
-@Override
- fun onResized(terminal:Terminal?, newSize:TerminalSize?) {
+public override fun onResized(terminal:Terminal?, newSize:TerminalSize?) {
 resizeCounter.incrementAndGet()
 }
 
-@Override
-@JvmStatic  fun onClose() {
+ public override fun onClose() {
 closeCounter.incrementAndGet()
 }
 }
@@ -521,7 +518,7 @@ assertEquals(1, closeCounter.get())
 }
 
 @Test
-@JvmStatic  fun settingCursorOutsideOfTerminalWindowWillBeAdjusted() {
+  fun settingCursorOutsideOfTerminalWindowWillBeAdjusted() {
 virtualTerminal!!.setTerminalSize(TerminalSize(10, 5))
 virtualTerminal!!.setCursorPosition(20, 10)
 assertEquals(TerminalPosition(9, 4), virtualTerminal!!.getCursorPosition())
@@ -534,7 +531,7 @@ assertEquals(TerminalPosition(9, 0), virtualTerminal!!.getCursorPosition())
 }
 
 @Test
-@JvmStatic  fun puttingCharacterInLastColumnDoesntMoveCursorToNextLine() {
+  fun puttingCharacterInLastColumnDoesntMoveCursorToNextLine() {
 virtualTerminal!!.setTerminalSize(TerminalSize(10, 5))
 virtualTerminal!!.setCursorPosition(8, 2)
 assertEquals(TerminalPosition(8, 2), virtualTerminal!!.getCursorPosition())
@@ -568,7 +565,7 @@ if (TerminalTextUtils.isCharDoubleWidth(c))
 column++
 }
 }
-while (column < virtualTerminal!!.getTerminalSize().getColumns())
+while (column < virtualTerminal!!.getTerminalSize()!!.getColumns())
 {
 assertEquals(DEFAULT_CHARACTER, virtualTerminal!!.getCharacter(column++, rowNumber))
 }
@@ -584,7 +581,7 @@ if (TerminalTextUtils.isCharDoubleWidth(c))
 column++
 }
 }
-while (column < virtualTerminal!!.getTerminalSize().getColumns())
+while (column < virtualTerminal!!.getTerminalSize()!!.getColumns())
 {
 assertEquals(DEFAULT_CHARACTER, virtualTerminal!!.getBufferCharacter(column++, rowNumber))
 }
@@ -600,7 +597,7 @@ if (TerminalTextUtils.isCharDoubleWidth(c))
 column++
 }
 }
-while (column < virtualTerminal!!.getTerminalSize().getColumns())
+while (column < virtualTerminal!!.getTerminalSize()!!.getColumns())
 {
 assertEquals(DEFAULT_CHARACTER, line!!.getCharacterAt(column++))
 }

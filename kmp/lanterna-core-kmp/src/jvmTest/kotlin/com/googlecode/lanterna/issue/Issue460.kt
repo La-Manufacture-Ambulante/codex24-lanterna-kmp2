@@ -1,5 +1,6 @@
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.Button
 import com.googlecode.lanterna.gui2.GridLayout
@@ -14,7 +15,7 @@ import com.googlecode.lanterna.terminal.Terminal
  object Issue460 {
 @Throws(Exception::class)
  fun main(args:Array<String?>?) {
-val terminal = DefaultTerminalFactory().createTerminal()
+val terminal = DefaultTerminalFactory().createTerminal()!!
 val screen = TerminalScreen(terminal)
 screen.startScreen()
 
@@ -28,11 +29,8 @@ true,
 1, 
 4
 ))
-contentPanel.addComponent(Button("Close", object:Runnable() {
-@Override
-@JvmStatic  fun run() {
+contentPanel.addComponent(Button("Close", Runnable {
 window1.close()
-}
 }), GridLayout.createHorizontallyFilledLayoutData(2))
 window1.setComponent(contentPanel)
 

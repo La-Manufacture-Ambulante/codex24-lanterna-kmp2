@@ -1,5 +1,6 @@
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.SimpleTheme
@@ -8,8 +9,7 @@ import java.io.IOException
 
  class TreeTest:TestBase() {
 
-@Override
- fun init(textGUI:WindowBasedTextGUI) {
+fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("TreeTest")
 
 val layout = BorderLayout()
@@ -28,12 +28,13 @@ basePanel.addComponent(bracketTreePanel, BorderLayout.Location.LEFT)
 
 val noBracketTree = createTestTree()
 val theme = SimpleTheme(TextColor.ANSI.BLUE, TextColor.ANSI.WHITE)
-theme.getDefaultDefinition().setActive(TextColor.ANSI.RED, TextColor.ANSI.CYAN)
-theme.getDefaultDefinition().setCharacter(Tree.DefaultTreeRenderer.LEAF_MARKER, '*')
-theme.getDefaultDefinition().setCharacter(Tree.DefaultTreeRenderer.DISPLAY_BLOCK_FILLER, '.')
-theme.getDefaultDefinition().setIntegerProperty(Tree.DefaultTreeRenderer.TREE_LEVEL_INDENT, 2)
-theme.getDefaultDefinition().setBooleanProperty(Tree.DefaultTreeRenderer.DISPLAY_BRACKETS, false)
-theme.getDefaultDefinition().setBooleanProperty(Tree.DefaultTreeRenderer.DISPLAY_BLOCK, true)
+val definition = theme.defaultDefinition
+definition.setActive(TextColor.ANSI.RED, TextColor.ANSI.CYAN)
+definition.setCharacter(Tree.DefaultTreeRenderer.LEAF_MARKER, '*')
+definition.setCharacter(Tree.DefaultTreeRenderer.DISPLAY_BLOCK_FILLER, '.')
+definition.setIntegerProperty(Tree.DefaultTreeRenderer.TREE_LEVEL_INDENT, 2)
+definition.setBooleanProperty(Tree.DefaultTreeRenderer.DISPLAY_BRACKETS, false)
+definition.setBooleanProperty(Tree.DefaultTreeRenderer.DISPLAY_BLOCK, true)
 noBracketTree.setTheme(theme)
 noBracketTree.setNodeSelectedConsumer({ node-> System.out.println("Selected leaf node: " + node!!.getLabel()) })
 
@@ -50,13 +51,12 @@ textGUI.addWindow(window)
 
 companion object {
 
-@Throws(IOException::class, InterruptedException::class)
- fun main(args:Array<String?>?) {
+@Throws(IOException::class, InterruptedException::class)fun main(args:Array<String?>?) {
 
 TreeTest().run(arrayOf<String?>("--mouse-click"))
 }
 
-private fun createTestTree():Tree<String?> {
+private fun createTestTree():Tree<String> {
 
 val root = TreeNode("root", true)
 val child1 = root.addChild("child_1", false)

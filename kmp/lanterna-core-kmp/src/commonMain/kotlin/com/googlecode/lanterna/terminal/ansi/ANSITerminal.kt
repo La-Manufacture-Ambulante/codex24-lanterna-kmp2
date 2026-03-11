@@ -112,23 +112,31 @@ abstract class ANSITerminal @Suppress("WeakerAccess") protected constructor(
     }
 
     @Throws(IOException::class)
-    override fun setTitle(title: String) {
+    override fun setTitle(title: String?) {
+        if (title == null) {
+            return
+        }
         val safeTitle = title.replace("\u0007", "")
         writeOSCSequenceToTerminal(*("2;$safeTitle\u0007").toByteArray())
     }
 
     @Throws(IOException::class)
-    override fun setForegroundColor(color: TextColor) {
-        writeSGRSequenceToTerminal(*requireNotNull(color.foregroundSGRSequence))
+    override fun setForegroundColor(color: TextColor?) {
+        val resolvedColor = requireNotNull(color)
+        writeSGRSequenceToTerminal(*requireNotNull(resolvedColor.foregroundSGRSequence))
     }
 
     @Throws(IOException::class)
-    override fun setBackgroundColor(color: TextColor) {
-        writeSGRSequenceToTerminal(*requireNotNull(color.backgroundSGRSequence))
+    override fun setBackgroundColor(color: TextColor?) {
+        val resolvedColor = requireNotNull(color)
+        writeSGRSequenceToTerminal(*requireNotNull(resolvedColor.backgroundSGRSequence))
     }
 
     @Throws(IOException::class)
-    override fun enableSGR(sgr: SGR) {
+    override fun enableSGR(sgr: SGR?) {
+        if (sgr == null) {
+            return
+        }
         when (sgr) {
             SGR.BLINK -> writeCSISequenceToTerminal('5'.code.toByte(), 'm'.code.toByte())
             SGR.BOLD -> writeCSISequenceToTerminal('1'.code.toByte(), 'm'.code.toByte())
@@ -143,7 +151,10 @@ abstract class ANSITerminal @Suppress("WeakerAccess") protected constructor(
     }
 
     @Throws(IOException::class)
-    override fun disableSGR(sgr: SGR) {
+    override fun disableSGR(sgr: SGR?) {
+        if (sgr == null) {
+            return
+        }
         when (sgr) {
             SGR.BLINK -> writeCSISequenceToTerminal('2'.code.toByte(), '5'.code.toByte(), 'm'.code.toByte())
             SGR.BOLD -> writeCSISequenceToTerminal('2'.code.toByte(), '2'.code.toByte(), 'm'.code.toByte())

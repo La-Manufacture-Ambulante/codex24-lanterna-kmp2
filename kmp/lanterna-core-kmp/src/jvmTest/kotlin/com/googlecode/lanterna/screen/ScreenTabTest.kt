@@ -48,7 +48,7 @@ screen!!.stopScreen()
 
 @Throws(IOException::class)
 private fun putStrings(topTitle:String?) {
-val writer = ScreenTextGraphics(screen)
+val writer = ScreenTextGraphics(screen!!)
 writer.setForegroundColor(TextColor.ANSI.DEFAULT)
 writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
 writer.fill(' ')
@@ -70,7 +70,7 @@ writer.setTabBehaviour(TabBehaviour.ALIGN_TO_COLUMN_4)
 writer.putString(10, 6, "TabBehaviour.ALIGN_TO_COLUMN_4:       |\t|\t|\t|\t|")
 writer.setTabBehaviour(TabBehaviour.ALIGN_TO_COLUMN_8)
 writer.putString(10, 7, "TabBehaviour.ALIGN_TO_COLUMN_8:       |\t|\t|\t|\t|")
-writer.putString(10, 9, "Default behaviour is: " + screen!!.getTabBehaviour())
+writer.putString(10, 9, "Default behaviour is: " + screen!!.getTabBehaviour()!!)
 writer.putString(10, 10, "Testing Screen's tab replacement:")
 writer.putString(10, 11, "XXXXXXXXXXXXXXXX")
 screen!!.setCharacter(12, 11, TextCharacter('\t'))
@@ -79,19 +79,19 @@ screen!!.setCharacter(20, 11, TextCharacter('\t'))
 screen!!.refresh()
 
  //Verify
-        if (!screen!!.getBackCharacter(TerminalPosition(20, 11)).`is`(' '))
+        if (!screen!!.getBackCharacter(TerminalPosition(20, 11))!!.`is`(' '))
 {
 throw IllegalStateException("Expected tab to be replaced with space")
 }
-if (!screen!!.getBackCharacter(TerminalPosition(21, 11)).`is`('X'))
+if (!screen!!.getBackCharacter(TerminalPosition(21, 11))!!.`is`('X'))
 {
 throw IllegalStateException("Expected X in back buffer")
 }
-if (!screen!!.getFrontCharacter(TerminalPosition(20, 11)).`is`(' '))
+if (!screen!!.getFrontCharacter(TerminalPosition(20, 11))!!.`is`(' '))
 {
 throw IllegalStateException("Expected tab to be replaced with space")
 }
-if (!screen!!.getFrontCharacter(TerminalPosition(21, 11)).`is`('X'))
+if (!screen!!.getFrontCharacter(TerminalPosition(21, 11))!!.`is`('X'))
 {
 throw IllegalStateException("Expected X in front buffer")
 }

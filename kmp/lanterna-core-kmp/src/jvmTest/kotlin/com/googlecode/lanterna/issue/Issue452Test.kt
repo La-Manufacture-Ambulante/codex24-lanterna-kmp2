@@ -48,10 +48,10 @@ private var content:Panel? = null
 private var window:Window? = null
 
 @Before
-@JvmStatic  fun before() {
+  fun before() {
 window = BasicWindow("Issue452Test")
 content = Panel(GridLayout(GRID_WIDTH))
-val gridLayout = content!!.getLayoutManager() as GridLayout
+val gridLayout = content!!.getLayoutManager() as GridLayout?
 gridLayout!!.setVerticalSpacing(1)
 window!!.setPosition(TerminalPosition.TOP_LEFT_CORNER)
 window!!.setComponent(content)
@@ -77,68 +77,68 @@ textGUI.updateScreen()
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testSingleLineTextBox() {
+  fun testSingleLineTextBox() {
 val singleLine = TextBox("123456789")
 content!!.addComponent(singleLine, LAYOUT_NEW_ROW)
 displayForRenderering(singleLine)
 
  // Focus component
         clickOn(singleLine)
-assertTrue(singleLine.isFocused())
+assertTrue(singleLine.isFocused)
  // Click at 3rd position
         clickOnWithRelative(singleLine, 3, 0)
-singleLine.handleInput(KeyStroke(KeyType.BACKSPACE))
+singleLine.handleInput(KeyStroke(BACKSPACE))
  // 3rd position (3) should be deleted
         assertEquals("12456789", singleLine.getText())
 }
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testMultuLineTextBox() {
+  fun testMultuLineTextBox() {
 val multiLine = TextBox("123456789\nabcdefgh", Style.MULTI_LINE)
 content!!.addComponent(multiLine, LAYOUT_NEW_ROW)
 displayForRenderering(multiLine)
 
  // Focus component
         clickOn(multiLine)
-assertTrue(multiLine.isFocused())
+assertTrue(multiLine.isFocused)
  // Click at 3rd position 1st row
         clickOnWithRelative(multiLine, 3, 0)
-multiLine.handleInput(KeyStroke(KeyType.BACKSPACE))
+multiLine.handleInput(KeyStroke(BACKSPACE))
  // 3rd position (3) should be deleted
         assertEquals("12456789\nabcdefgh", multiLine.getText())
  // Click at 5th position 2nd row
         clickOnWithRelative(multiLine, 5, 1)
-multiLine.handleInput(KeyStroke(KeyType.BACKSPACE))
+multiLine.handleInput(KeyStroke(BACKSPACE))
  // 5th position (e) should be deleted
         assertEquals("12456789\nabcdfgh", multiLine.getText())
 }
 
 @Test
-@JvmStatic  fun testCheckBox() {
+  fun testCheckBox() {
 val checkBox = CheckBox("Checkbox")
 content!!.addComponent(checkBox, LAYOUT_NEW_ROW)
-assertFalse(checkBox.isFocused())
+assertFalse(checkBox.isFocused)
 assertFalse(checkBox.isChecked())
  // First click should focus the checkbox and item should be selected
         clickOn(checkBox)
-assertTrue(checkBox.isFocused())
+assertTrue(checkBox.isFocused)
 assertTrue(checkBox.isChecked())
  // Second click, focus should remain and item should be unselected
         clickOn(checkBox)
-assertTrue(checkBox.isFocused())
+assertTrue(checkBox.isFocused)
 assertFalse(checkBox.isChecked())
  // Third click should change its value back to TRUE
         clickOn(checkBox)
-assertTrue(checkBox.isFocused())
+assertTrue(checkBox.isFocused)
 assertTrue(checkBox.isChecked())
 }
 
 @Test
-@JvmStatic  fun testButton() {
+  fun testButton() {
 val button = Button("Button", createRunnable("Button"))
 content!!.addComponent(button, LAYOUT_NEW_ROW)
-assertFalse(button.isFocused())
+assertFalse(button.isFocused)
 try
 {
 clickOn(button)
@@ -151,7 +151,7 @@ assertEquals("Button", e!!.name)
 }
 
 @Test
-@JvmStatic  fun testActionListBox() {
+  fun testActionListBox() {
 val listBox = ActionListBox()
 listBox.addItem(createRunnable("item_1"))
 listBox.addItem(createRunnable("item_2"))
@@ -160,7 +160,7 @@ listBox.addItem(createRunnable("item_4"))
 content!!.addComponent(listBox, LAYOUT_NEW_ROW)
 
  // First index is selected at the beginning so no need to focus it
-        assertEquals(0, listBox.getSelectedIndex())
+        assertEquals(0, listBox.getSelectedIndex().toLong())
 
 try
 {
@@ -169,7 +169,7 @@ fail()
 }
 catch (e:RunnableExecuted) {
 assertEquals("item_2", e!!.name)
-assertEquals(1, listBox.getSelectedIndex())
+assertEquals(1, listBox.getSelectedIndex().toLong())
 }
 
 try
@@ -179,7 +179,7 @@ fail()
 }
 catch (e:RunnableExecuted) {
 assertEquals("item_3", e!!.name)
-assertEquals(2, listBox.getSelectedIndex())
+assertEquals(2, listBox.getSelectedIndex().toLong())
 }
 
 try
@@ -189,14 +189,14 @@ fail()
 }
 catch (e:RunnableExecuted) {
 assertEquals("item_4", e!!.name)
-assertEquals(3, listBox.getSelectedIndex())
+assertEquals(3, listBox.getSelectedIndex().toLong())
 }
 
 }
 
 @Test
-@JvmStatic  fun testRadioBoxList() {
-val list = RadioBoxList()
+  fun testRadioBoxList() {
+val list = RadioBoxList<String?>()
 list.addItem("RadioGaga")
 list.addItem("RadioGogo")
 list.addItem("RadioBlaBla")
@@ -218,20 +218,20 @@ assertEquals("RadioBlaBla", list.getCheckedItem())
 
 @Test
 @Throws(Exception::class)
-@JvmStatic  fun testTable() {
-val table = Table("Column0000000", "Column111", "Column22222")
+  fun testTable() {
+val table = Table<String?>("Column0000000", "Column111", "Column22222")
 table.setTheme(SimpleTheme(TextColor.ANSI.WHITE, TextColor.ANSI.BLACK))
-table.getTableModel().addRow("0", "0", "0")
-table.getTableModel().addRow("1", "1", "1")
-table.getTableModel().addRow("2", "2", "2")
+table.getTableModel()!!.addRow("0", "0", "0")
+table.getTableModel()!!.addRow("1", "1", "1")
+table.getTableModel()!!.addRow("2", "2", "2")
 table.setSelectAction(createRunnable("Table"))
 table.setCellSelection(true)
 content!!.addComponent(table, LAYOUT_NEW_ROW)
 displayForRenderering(table)
 
-assertTrue(table.isFocused())
-assertEquals(0, table.getSelectedColumn())
-assertEquals(0, table.getSelectedRow())
+assertTrue(table.isFocused)
+assertEquals(0, table.getSelectedColumn().toLong())
+assertEquals(0, table.getSelectedRow().toLong())
 
  // 0, 0 would get activated by first click so just to be able to run same method
         // for all indices sets position to 1, 1
@@ -263,7 +263,7 @@ val headerPadding = 1 // should get this from renderer somehow...?
 var previousColumnsWidth = 0
 for (i in 0 until positionColumn)
 {
-previousColumnsWidth += table!!.getTableModel().getColumnLabel(i).length()
+previousColumnsWidth += table!!.getTableModel()!!.getColumnLabel(i)!!.length
 previousColumnsWidth += headerPadding
 }
 
@@ -292,34 +292,25 @@ return MouseAction(MouseActionType.CLICK_DOWN, 1, TerminalPosition(column, row))
  * Clicks at position of the [Interactable]
  */
     private fun clickOn(component:Interactable) {
-component.handleInput(clickAt(component.getPosition().getColumn(), component.getPosition().getRow()))
+component.handleInput(clickAt(component.getPosition()!!.getColumn(), component.getPosition()!!.getRow()))
 }
 
 /**
  * Clicks at position of the [Interactable] with offset
  */
     private fun clickOnWithRelative(component:Interactable, column:Int, row:Int) {
-val mouseAction = clickAt(component.getGlobalPosition().getColumn() + column, component.getGlobalPosition().getRow() + row)
+val mouseAction = clickAt(component.getGlobalPosition()!!.getColumn() + column, component.getGlobalPosition()!!.getRow() + row)
 component.handleInput(mouseAction)
 }
 
 private fun createRunnable(name:String?):Runnable {
-return object:Runnable() {
-@Override
-@JvmStatic  fun run() {
+return Runnable {
  // propagate that this runnable was executed
                 throw RunnableExecuted(name)
 }
 }
-}
 
-private inner class RunnableExecuted( val name:String?):RuntimeException() {
-companion object {
-
-private val serialVersionUID = 1L
-}
-
-}
+private inner class RunnableExecuted( val name:String?):RuntimeException()
 
 companion object {
 private val GRID_WIDTH = 100

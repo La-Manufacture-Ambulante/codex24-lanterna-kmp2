@@ -29,7 +29,7 @@ import com.googlecode.lanterna.TextColor
  */
 open class EmptySpace @JvmOverloads constructor(
     private var color: TextColor? = null,
-    private val size: TerminalSize? = TerminalSize.ONE,
+    private val preferredSpaceSize: TerminalSize? = TerminalSize.ONE,
 ) : AbstractComponent<EmptySpace?>() {
 
     /**
@@ -59,7 +59,7 @@ open class EmptySpace @JvmOverloads constructor(
     override fun createDefaultRenderer(): ComponentRenderer<EmptySpace?>? {
         return object : ComponentRenderer<EmptySpace?> {
             override fun getPreferredSize(component: EmptySpace?): TerminalSize? {
-                return size
+                return preferredSpaceSize
             }
 
             override fun drawComponent(graphics: TextGUIGraphics?, component: EmptySpace?) {

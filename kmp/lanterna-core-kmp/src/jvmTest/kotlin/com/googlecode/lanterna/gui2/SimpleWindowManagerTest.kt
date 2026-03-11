@@ -32,8 +32,7 @@ import java.util.Collections
  */
  class SimpleWindowManagerTest:TestBase() {
 
-@Override
- fun init(textGUI:WindowBasedTextGUI) {
+fun init(textGUI:WindowBasedTextGUI) {
 val mainWindow = BasicWindow("Choose test")
 val contentArea = Panel()
 contentArea.setLayoutManager(LinearLayout(Direction.VERTICAL))
@@ -44,7 +43,7 @@ contentArea.addComponent(Button("Full-screen window", { textGUI.addWindow(FullSc
 contentArea.addComponent(Button("Undecorated + Full-screen window", { textGUI.addWindow(FullScreenWindow(false)) }))
 contentArea.addComponent(Button("Expanded window", { textGUI.addWindow(ExpandedWindow(true)) }))
 contentArea.addComponent(Button("Undecorated + Expanded window", { textGUI.addWindow(ExpandedWindow(false)) }))
-contentArea.addComponent(Button("Close", Runnable({ mainWindow.close() })))
+contentArea.addComponent(Button("Close", Runnable { mainWindow.close() }))
 mainWindow.setComponent(contentArea)
 textGUI.addWindow(mainWindow)
 }
@@ -104,7 +103,7 @@ setHints(if (decorations) Collections.singletonList(Hint.EXPANDED) else Arrays.a
 
 private open class TestWindow internal constructor(title:String):BasicWindow(title) {
 init{
-setComponent(Button("Close", Runnable({ this.close() })))
+setComponent(Button("Close", Runnable { this.close() }))
 setCloseWindowWithEscape(true)
 }
 }

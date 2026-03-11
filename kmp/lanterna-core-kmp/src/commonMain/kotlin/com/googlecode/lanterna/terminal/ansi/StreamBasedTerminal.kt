@@ -73,7 +73,10 @@ abstract class StreamBasedTerminal @Suppress("WeakerAccess") constructor(
     }
 
     @Throws(IOException::class)
-    override fun putString(string: String) {
+    override fun putString(string: String?) {
+        if (string == null) {
+            return
+        }
         for (character in string) {
             putCharacter(character)
         }
@@ -88,7 +91,8 @@ abstract class StreamBasedTerminal @Suppress("WeakerAccess") constructor(
     }
 
     @Throws(IOException::class)
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit): ByteArray {
+    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray {
+        val resolvedTimeoutUnit = timeoutUnit ?: TimeUnit.MILLISECONDS
         synchronized(terminalOutput as Any) {
             terminalOutput.write(5)
             flush()
@@ -96,7 +100,7 @@ abstract class StreamBasedTerminal @Suppress("WeakerAccess") constructor(
 
         val startTime = System.currentTimeMillis()
         while (terminalInput!!.available() == 0) {
-            if (System.currentTimeMillis() - startTime > timeoutUnit.toMillis(timeout.toLong())) {
+            if (System.currentTimeMillis() - startTime > resolvedTimeoutUnit.toMillis(timeout.toLong())) {
                 return ByteArray(0)
             }
             try {

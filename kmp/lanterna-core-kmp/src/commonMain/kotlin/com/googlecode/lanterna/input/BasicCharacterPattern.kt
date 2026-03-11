@@ -26,7 +26,8 @@ import java.util.Arrays
  *
  * @author Martin, Andreas
  */
-class BasicCharacterPattern(val result: KeyStroke?, vararg pattern: Char) : CharacterPattern {
+class BasicCharacterPattern(result: KeyStroke?, vararg pattern: Char) : CharacterPattern {
+    private val resultKeyStroke: KeyStroke? = result
     private val pattern: CharArray = pattern
 
     fun getPattern(): CharArray {
@@ -37,7 +38,7 @@ class BasicCharacterPattern(val result: KeyStroke?, vararg pattern: Char) : Char
      * Returns the keystroke that this pattern results in.
      */
     fun getResult(): KeyStroke? {
-        return result
+        return resultKeyStroke
     }
 
     override fun match(seq: List<Char>?): CharacterPattern.Matching? {

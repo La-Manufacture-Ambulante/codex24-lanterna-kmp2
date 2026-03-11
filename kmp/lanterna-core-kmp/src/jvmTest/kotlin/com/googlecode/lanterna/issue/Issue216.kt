@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
@@ -33,7 +34,7 @@ import java.io.IOException
  object Issue216 {
 @Throws(IOException::class)
  fun main(args:Array<String?>?) {
-val terminal = DefaultTerminalFactory().createTerminal()
+val terminal = DefaultTerminalFactory().createTerminal()!!
 val screen = TerminalScreen(terminal)
 screen.startScreen()
 
@@ -48,7 +49,7 @@ panel.addComponent(Label("Surname"))
 panel.addComponent(TextBox())
 
 panel.addComponent(Label("Table"))
-val table = Table("Test")
+val table = Table<String?>("Test")
 val tableModel = table.getTableModel()
 tableModel!!.addRow("hi")
 panel.addComponent(table)

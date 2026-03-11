@@ -44,13 +44,6 @@ import java.util.Properties
  */
 open class PropertyTheme : AbstractTheme {
     /**
-     * Creates a new `PropertyTheme` that is initialized by the properties passed in. If the properties refer to
-     * a class that cannot be resolved, it will throw `IllegalArgumentException`.
-     * @param properties Properties to initialize this theme with
-     */
-    constructor(properties: Properties) : this(properties, false)
-
-    /**
      * Creates a new `PropertyTheme` that is initialized by the properties value and optionally prevents it from
      * throwing an exception if there are invalid definitions in the properties object.
      * @param properties Properties to initialize this theme with

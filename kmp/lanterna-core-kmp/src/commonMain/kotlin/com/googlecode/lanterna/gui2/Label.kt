@@ -29,7 +29,7 @@ import java.util.EnumSet
  * @author Martin
  */
 open class Label(text: String?) : AbstractComponent<Label?>() {
-    protected var lines: Array<String> = emptyArray()
+    private var lineBuffer: Array<String> = emptyArray()
     private var labelWidth: Int? = 0
     private var labelSize: TerminalSize? = TerminalSize.ZERO
     private var foregroundColor: TextColor? = null
@@ -47,24 +47,24 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
      * @param lines New lines this label will display
      */
     protected fun setLines(lines: Array<String>) {
-        this.lines = lines
+        this.lineBuffer = lines
     }
 
     @Synchronized
     fun setText(text: String) {
         setLines(splitIntoMultipleLines(text))
-        this.labelSize = getBounds(lines, labelSize)
+        this.labelSize = getBounds(lineBuffer, labelSize)
         invalidate()
     }
 
     @Synchronized
     fun getText(): String {
-        if (lines.isEmpty()) {
+        if (lineBuffer.isEmpty()) {
             return ""
         }
-        val bob = StringBuilder(lines[0])
-        for (i in 1 until lines.size) {
-            bob.append("\n").append(lines[i])
+        val bob = StringBuilder(lineBuffer[0])
+        for (i in 1 until lineBuffer.size) {
+            bob.append("\n").append(lineBuffer[i])
         }
         return bob.toString()
     }
@@ -155,9 +155,9 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
                 }
 
                 val linesToDraw: Array<String> = if (component.getLabelWidth() == null) {
-                    component.lines
+                    component.lineBuffer
                 } else {
-                    TerminalTextUtils.getWordWrappedText(graphics.size!!.columns, *component.lines)
+                    TerminalTextUtils.getWordWrappedText(graphics.size!!.columns, *component.lineBuffer)
                         .map { it ?: "" }
                         .toTypedArray()
                 }

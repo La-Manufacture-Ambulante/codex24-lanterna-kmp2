@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 
@@ -25,8 +26,7 @@ import java.io.IOException
 
  class GridLayoutTest:TestBase() {
 
-@Override
- fun init(textGUI:WindowBasedTextGUI) {
+fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("Grid layout test")
 
 val leftGridPanel = Panel()
@@ -67,7 +67,7 @@ contentPanel.addComponent(Panels.horizontal(leftGridPanel, EmptySpace(TerminalSi
 contentPanel.addComponent(EmptySpace(TerminalSize.ONE))
 contentPanel.addComponent(Panels.horizontal(
 Button("Toggle Visible Component", { visibilityToggleableComponent.setVisible(!visibilityToggleableComponent.isVisible()) }), 
-Button("Close", ???({ window.close() }))
+Button("Close", Runnable { window.close() })
 ))
 window.setComponent(contentPanel)
 textGUI.addWindow(window)

@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestUtils
 
@@ -27,8 +28,7 @@ import java.util.TimerTask
 
  class MiscComponentTest:TestBase() {
 
-@Override
- fun init(textGUI:WindowBasedTextGUI?) {
+fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("Grid layout test")
 val leftPanel = Panel()
 val checkBoxPanel = Panel()
@@ -43,8 +43,8 @@ textBoxPanel!!.addComponent(Panels.horizontal(Label("Normal:   "), TextBox(Termi
 textBoxPanel!!.addComponent(Panels.horizontal(Label("Password: "), TextBox(TerminalSize(12, 1), "Text").setMask('*')))
 
 val buttonPanel = Panel()
-buttonPanel.addComponent(Button("Enable spacing", { val layoutManager = leftPanel.getLayoutManager() as LinearLayout
-layoutManager!!.setSpacing(if (layoutManager!!.getSpacing() === 0) 1 else 0) }))
+buttonPanel.addComponent(Button("Enable spacing", { val layoutManager = leftPanel.getLayoutManager() as LinearLayout?
+layoutManager!!.setSpacing(if (layoutManager!!.getSpacing() == 0) 1 else 0) }))
 
 leftPanel.addComponent(checkBoxPanel.withBorder(Borders.singleLine("CheckBoxes")))
 leftPanel.addComponent(textBoxPanel!!.withBorder(Borders.singleLine("TextBoxes")))
@@ -54,7 +54,7 @@ val rightPanel = Panel()
 textBoxPanel = Panel()
 val readOnlyTextArea = TextBox(TerminalSize(16, 8))
 readOnlyTextArea.setReadOnly(true)
-readOnlyTextArea.setText(TestUtils.downloadGPL())
+readOnlyTextArea.setText(TestUtils.downloadGPL()!!)
 textBoxPanel!!.addComponent(readOnlyTextArea)
 rightPanel.addComponent(textBoxPanel!!.withBorder(Borders.singleLine("Read-only")))
 val progressBar = ProgressBar(0, 100, 16)
@@ -65,9 +65,8 @@ rightPanel.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FI
 
 val timer = Timer("ProgressBar-timer", true)
 timer.schedule(object:TimerTask() {
-@Override
-@JvmStatic  fun run() {
-if (progressBar.getValue() === progressBar.getMax())
+  override fun run() {
+if (progressBar.getValue() == progressBar.getMax())
 {
 progressBar.setValue(0)
 }
@@ -88,8 +87,7 @@ val okButton = Button("OK", { window.close()
 timer.cancel() }).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.CENTER))
 contentArea.addComponent(okButton)
 window.setComponent(contentArea)
-window.setFocusedInteractable(okButton)
-textGUI!!.addWindow(window)
+textGUI.addWindow(window)
 }
 
 companion object {

@@ -19,6 +19,7 @@
 
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestTerminalFactory
@@ -44,10 +45,10 @@ rawTerminal!!.clearScreen()
 for (fg in TextColor.ANSI.values())
 {
 rawTerminal!!.resetColorAndSGR()
-val charArray = fg!!.name().toCharArray()
+val charArray = fg.name.toCharArray()
 for (i in 0..13)
 {
-val c = if (i < charArray!!.size) charArray!![i] else ' '
+val c = if (i < charArray.size) charArray[i] else ' '
 rawTerminal!!.putCharacter(c)
 }
 rawTerminal!!.putCharacter(' ')

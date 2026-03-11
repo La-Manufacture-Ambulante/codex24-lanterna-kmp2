@@ -18,8 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.input.KeyStroke
 
 import java.io.IOException
 
@@ -29,23 +29,22 @@ import java.io.IOException
  */
  class ListBoxTest:TestBase() {
 
-@Override
- fun init(textGUI:WindowBasedTextGUI?) {
+fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("ListBox test")
 
 val horizontalPanel = Panel()
 horizontalPanel.setLayoutManager(LinearLayout(Direction.HORIZONTAL))
 
 val size = TerminalSize(14, 10)
-val checkBoxList = CheckBoxList(size)
-val radioBoxList = RadioBoxList(size)
+val checkBoxList = CheckBoxList<String?>(size)
+val radioBoxList = RadioBoxList<String?>(size)
 val actionListBox = ActionListBox(size)
 for (i in 0..29)
 {
 val itemText = "Item " + (i + 1)
 checkBoxList.addItem(itemText)
 radioBoxList.addItem(itemText)
-actionListBox.addItem(itemText, { System.out.println("Selected " + itemText!!) })
+actionListBox.addItem(itemText, { System.out.println("Selected " + itemText) })
 }
 horizontalPanel.addComponent(checkBoxList.withBorder(Borders.singleLine("CheckBoxList")))
 horizontalPanel.addComponent(radioBoxList.withBorder(Borders.singleLine("RadioBoxList")))
@@ -54,8 +53,8 @@ horizontalPanel.addComponent(actionListBox.withBorder(Borders.singleLine("Action
 window.setComponent(
 Panels.vertical(
 horizontalPanel, 
-Button("OK", ???({ window.close() })).setAccelerator(KeyStroke('o', false, true))))
-textGUI!!.addWindow(window)
+Button("OK", Runnable { window.close() })))
+textGUI.addWindow(window)
 }
 
 companion object {

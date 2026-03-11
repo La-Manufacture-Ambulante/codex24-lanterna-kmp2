@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
 import java.io.*
 
 /**
@@ -103,16 +104,15 @@ privateMode = true
 }
 else
 {
-System.err.println("Unknown parameter " + parameter!!)
-return@Runtime.getRuntime().addShutdownHook 
+	System.err.println("Unknown parameter " + parameter!!)
+	return
 }
 }
 if (privateMode)
 {
 writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '4'.toByte(), '9'.toByte(), 'h'.toByte())
 Runtime.getRuntime().addShutdownHook(object:Thread("RestoreTerminal") {
-@Override
-@JvmStatic  fun run() {
+  override fun run() {
 try
 {
 writeCSISequenceToTerminal('?'.toByte(), '1'.toByte(), '0'.toByte(), '4'.toByte(), '9'.toByte(), 'l'.toByte())
@@ -157,7 +157,7 @@ if (Character.isISOControl(inByte))
 {
 charString = "<control character>"
 }
-return inByte + " (0x" + Integer.toString(inByte, 16) + ", b" + Integer.toString(inByte, 2) + ", '" + charString + "')"
+return "$inByte (0x${Integer.toString(inByte, 16)}, b${Integer.toString(inByte, 2)}, '$charString')"
 }
 
 @Throws(IOException::class)
@@ -169,24 +169,23 @@ System.out.flush()
 
 @Throws(IOException::class)
 private fun exec(vararg cmd:String?):String? {
-val pb = ProcessBuilder(cmd)
-val process = pb.start()
-val stdoutBuffer = ByteArrayOutputStream()
-val stdout = process!!.getInputStream()
-var readByte = stdout!!.read()
-while (readByte >= 0)
-{
-stdoutBuffer.write(readByte)
-readByte = stdout!!.read()
-}
+	val pb = ProcessBuilder(*cmd.filterNotNull().toTypedArray())
+	val process = pb.start()
+	val stdoutBuffer = ByteArrayOutputStream()
+	val stdout = process.inputStream
+	var readByte = stdout.read()
+	while (readByte >= 0)
+	{
+	stdoutBuffer.write(readByte)
+	readByte = stdout.read()
+	}
 val stdoutBufferInputStream = ByteArrayInputStream(stdoutBuffer.toByteArray())
 val reader = BufferedReader(InputStreamReader(stdoutBufferInputStream))
 val builder = StringBuilder()
-val line:String?
-while ((line = reader.readLine()) != null)
-{
-builder.append(line)
-}
+	while (true) {
+		val line = reader.readLine() ?: break
+		builder.append(line)
+	}
 reader.close()
 return builder.toString()
 }

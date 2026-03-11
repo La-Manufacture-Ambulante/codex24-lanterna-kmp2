@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.TestTerminalFactory
@@ -29,14 +30,13 @@ import java.io.IOException
  */
  class TerminalResizeTest:TerminalResizeListener {
 
-@Override
- fun onResized(terminal:Terminal, newSize:TerminalSize) {
+public override fun onResized(terminal:Terminal?, newSize:TerminalSize?) {
 try
 {
-terminal.setCursorPosition(0, 0)
-val string = newSize.columns + "x" + newSize.rows + "                     "
-val chars = string!!.toCharArray()
-for (c in chars!!)
+terminal!!.setCursorPosition(0, 0)
+val string = "${newSize!!.columns}x${newSize.rows}                     "
+val chars = string.toCharArray()
+for (c in chars)
 {
 terminal.putCharacter(c)
 }
@@ -69,7 +69,7 @@ terminal!!.addResizeListener(TerminalResizeTest())
 while (true)
 {
 val key = terminal!!.pollInput()
-if (key == null || key!!.getCharacter() !== 'q')
+if (key == null || key!!.getCharacter() != 'q')
 {
 Thread.sleep(1)
 }

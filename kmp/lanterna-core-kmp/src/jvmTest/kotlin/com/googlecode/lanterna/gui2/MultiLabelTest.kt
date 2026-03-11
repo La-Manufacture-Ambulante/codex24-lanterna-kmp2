@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestTerminalFactory
@@ -30,7 +31,7 @@ import java.io.IOException
 @Throws(IOException::class, InterruptedException::class)
  fun main(args:Array<String?>?) {
 val screen = TestTerminalFactory(args).createScreen()
-screen!!.startScreen()
+screen.startScreen()
 val textGUI = MultiWindowTextGUI(screen)
 try
 {
@@ -55,15 +56,15 @@ contentArea.addComponent(EmptySpace(TerminalSize(5, 1)))
 contentArea.addComponent(Label("Here is an animated label:"))
 contentArea.addComponent(AnimatedLabel.createClassicSpinningLine())
 contentArea.addComponent(EmptySpace())
-contentArea.addComponent(Button("Close", ???({ window.close() })).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.CENTER)))
+contentArea.addComponent(Button("Close", Runnable { window.close() }).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.CENTER)))
 
 window.setComponent(contentArea)
 textGUI.addWindow(window)
 textGUI.updateScreen()
-while (!textGUI.getWindows().isEmpty())
+while (textGUI.windows.isNotEmpty())
 {
 textGUI.processInput()
-if (textGUI.isPendingUpdate())
+if (textGUI.isPendingUpdate)
 {
 textGUI.updateScreen()
 }
@@ -76,7 +77,7 @@ Thread.sleep(1)
 
 finally
 {
-screen!!.stopScreen()
+screen.stopScreen()
 }
 }
 }

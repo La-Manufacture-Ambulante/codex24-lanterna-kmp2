@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.graphics.DefaultMutableThemeStyle
 import com.googlecode.lanterna.graphics.SimpleTheme
@@ -40,7 +41,7 @@ internal object Issue453 {
 val writer = LanternaTerminalWriter(args)
 for (i in 0..999)
 {
-writer.write(String.valueOf(i), SGR.BOLD)
+writer.write(i.toString(), SGR.BOLD)
 Thread.sleep(100)
 }
 writer.close()
@@ -58,7 +59,7 @@ screen!!.startScreen()
 val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), 
 EmptySpace(TextColor.ANSI.BLACK))
 
-assertNotNull(DefaultMutableThemeStyle(TextColor.ANSI.WHITE, TextColor.ANSI.BLACK, arrayOf<SGR?>()))
+assertNotNull(DefaultMutableThemeStyle(TextColor.ANSI.WHITE, TextColor.ANSI.BLACK, *arrayOf<SGR?>()))
 screenWriter = screen!!.newTextGraphics()
 }
 
@@ -69,7 +70,7 @@ screen!!.stopScreen()
 
 @Throws(IOException::class)
  fun write(string:String?, vararg styles:SGR?) {
-screenWriter!!.enableModifiers(styles)
+screenWriter!!.enableModifiers(*styles)
 val current_y = 1
 val default_x = 3
 screenWriter!!.putString(default_x, current_y, string)
@@ -79,4 +80,3 @@ screen!!.refresh()
 
 }
 }
-

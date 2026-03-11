@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.bundle.LanternaThemes
@@ -34,7 +35,7 @@ import java.util.ArrayList
 try
 {
 val screen = DefaultTerminalFactory().createScreen()
-screen!!.startScreen()
+screen.startScreen()
 
 val window = BasicWindow()
 
@@ -46,7 +47,7 @@ panel.addComponent(EmptySpace())
 val cyclingThemesTextBox = CyclingThemesTextBox()
 panel.addComponent(cyclingThemesTextBox)
 panel.addComponent(EmptySpace())
-panel.addComponent(Button("Close", ???({ window.close() })))
+panel.addComponent(Button("Close", Runnable { window.close() }))
 
 window.setComponent(panel)
 val gui = MultiWindowTextGUI(screen)
@@ -56,7 +57,7 @@ while (cyclingThemesTextBox.getTextGUI() != null)
 {
 if (++counter % 200 == 0)
 {
-gui.getGUIThread().invokeLater(???({ cyclingThemesTextBox.nextTheme() }))
+gui.getGUIThread()!!.invokeLater(Runnable { cyclingThemesTextBox.nextTheme() })
 }
 else
 {
@@ -72,7 +73,7 @@ break
 } }).start()
 
 window.waitUntilClosed()
-screen!!.stopScreen()
+screen.stopScreen()
 }
 catch (e:IOException) {
 e!!.printStackTrace()
@@ -80,52 +81,50 @@ e!!.printStackTrace()
 
 }
 
-private class CustomBackgroundTextBox(color:TextColor.ANSI):TextBox("Custom " + color.name()) {
+private class CustomBackgroundTextBox(color:TextColor.ANSI):TextBox("Custom " + color.name) {
 init{
-setTheme(object:DelegatingTheme(getTheme()) {
-@Override
- fun getDefinition(clazz:Class<*>?):ThemeDefinition? {
+setTheme(object:DelegatingTheme(theme ?: LanternaThemes.defaultTheme!!) {
+public override fun getDefinition(clazz:Class<*>?):ThemeDefinition {
 val themeDefinition = super.getDefinition(clazz)
-return FixedBackgroundTextBoxThemeStyle(themeDefinition, color)
+return FixedBackgroundTextBoxThemeStyle(themeDefinition!!, color)
 }
 })
 }
 }
 
 private class CyclingThemesTextBox:TextBox("Cycling themes: default") {
-private val systemThemes:List<String?>?
+private val systemThemes:List<String>
 private var index:Int = 0
 init{
 setPreferredSize(TerminalSize(40, 1))
-systemThemes = ArrayList(LanternaThemes.getRegisteredThemes())
+@Suppress("UNCHECKED_CAST")
+systemThemes = ArrayList(LanternaThemes.getRegisteredThemes() as Collection<String>)
 index = 0
 }
 
-@JvmStatic internal fun nextTheme() {
-if (++index == systemThemes!!.size())
+internal fun nextTheme() {
+if (++index == systemThemes.size)
 {
 index = 0
 }
-val name = systemThemes!!.get(index)
+val name = systemThemes[index]
 val theme = LanternaThemes.getRegisteredTheme(name)
 setTheme(theme)
-setText("Cycling themes: " + name!!)
+setText("Cycling themes: " + name)
 }
 }
 
-private class FixedBackgroundTextBoxThemeStyle(definition:ThemeDefinition?, private val color:TextColor.ANSI?):DelegatingThemeDefinition(definition) {
+private class FixedBackgroundTextBoxThemeStyle(definition:ThemeDefinition, private val color:TextColor.ANSI?):DelegatingThemeDefinition(definition) {
 
- val normal:ThemeStyle?
-@Override
+override val normal: ThemeStyle?
 get() {
-val mutableThemeStyle = DefaultMutableThemeStyle(super.getNormal())
+ val mutableThemeStyle = DefaultMutableThemeStyle(super.normal!!)
 return mutableThemeStyle.setBackground(color)
 }
 
- val active:ThemeStyle?
-@Override
+override val active: ThemeStyle?
 get() {
-val mutableThemeStyle = DefaultMutableThemeStyle(super.getActive())
+ val mutableThemeStyle = DefaultMutableThemeStyle(super.active!!)
 return mutableThemeStyle.setBackground(color)
 }
 }

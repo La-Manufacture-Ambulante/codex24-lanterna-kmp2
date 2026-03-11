@@ -1,5 +1,6 @@
 package com.googlecode.lanterna.tutorial
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TextColor
@@ -158,7 +159,7 @@ Thread.sleep(2000)
             Ok, that's enough for now. Let's reset colors and SGR modifiers and move down one more line
              */
             terminal!!.resetColorAndSGR()
-terminal!!.setCursorPosition(terminal!!.getCursorPosition().withColumn(0).withRelativeRow(1))
+terminal!!.setCursorPosition(terminal!!.getCursorPosition()!!.withColumn(0)!!.withRelativeRow(1))
 terminal!!.putCharacter('D')
 terminal!!.putCharacter('o')
 terminal!!.putCharacter('n')

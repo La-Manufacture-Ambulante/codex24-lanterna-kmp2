@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.screen.Screen
@@ -30,7 +31,7 @@ import java.io.IOException
  object Issue150 {
 @Throws(IOException::class)
  fun main(vararg args:String?) {
-val term = DefaultTerminalFactory().createTerminal()
+val term = DefaultTerminalFactory().createTerminal()!!
 val screen = TerminalScreen(term)
 val windowManager = DefaultWindowManager()
 val background = EmptySpace(TextColor.ANSI.DEFAULT)
@@ -46,11 +47,10 @@ screen.stopScreen()
 
 private fun createUi():Component {
 val actions = ActionListBox()
-actions.addItem("Enter terminal in a strange state", ???({ stub() }))
+actions.addItem("Enter terminal in a strange state", Runnable {
+ // Intentional repro action for issue 150.
+ throw UnsupportedOperationException("What a terrible failure!")
+})
 return actions
-}
-
-private fun <T> stub():T? {
-throw UnsupportedOperationException("What a terrible failure!")
 }
 }

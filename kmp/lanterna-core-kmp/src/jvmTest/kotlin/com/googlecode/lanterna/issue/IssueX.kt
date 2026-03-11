@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.TestTerminalFactory
@@ -31,7 +32,7 @@ internal object IssueX {
 val writer = LanternaTerminalWriter(args)
 for (i in 0..999)
 {
-writer.write(String.valueOf(i), SGR.BOLD)
+writer.write(i.toString(), SGR.BOLD)
 Thread.sleep(100)
 }
 writer.close()
@@ -57,7 +58,7 @@ screen!!.stopScreen()
 
 @Throws(IOException::class)
  fun write(string:String?, vararg styles:SGR?) {
-screenWriter!!.enableModifiers(styles)
+screenWriter!!.enableModifiers(*styles)
 val current_y = 1
 val default_x = 3
 screenWriter!!.putString(default_x, current_y, string)
@@ -67,4 +68,3 @@ screen!!.refresh()
 
 }
 }
-

@@ -1,5 +1,6 @@
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
 import java.io.IOException
 
 import com.googlecode.lanterna.TestTerminalFactory
@@ -11,7 +12,7 @@ import com.googlecode.lanterna.graphics.TextGraphicsWriter
 @Throws(IOException::class)
  fun main(args:Array<String?>?) {
 val screen = TestTerminalFactory(args).createScreen()
-screen!!.startScreen()
+screen.startScreen()
 
 val writer = ScreenTextGraphics(screen)
 writer.setForegroundColor(TextColor.ANSI.WHITE)
@@ -37,32 +38,32 @@ tw.putString("\u001b[m")
 tw.setWrapBehaviour(WrapBehaviour.SINGLE_LINE)
 writer.setTabBehaviour(TabBehaviour.ALIGN_TO_COLUMN_4)
 tw.putString("\n" + tw.getWrapBehaviour() + ":\n")
-tw.putString(loremIpsum)
+tw.putString(loremIpsum!!)
 
 tw.setWrapBehaviour(WrapBehaviour.CLIP)
 tw.putString("\n" + tw.getWrapBehaviour() + ":\n")
-tw.putString(loremIpsum)
+tw.putString(loremIpsum!!)
 
 tw.setWrapBehaviour(WrapBehaviour.CHAR)
 tw.putString("\n" + tw.getWrapBehaviour() + ":\n")
-tw.putString(loremIpsum)
+tw.putString(loremIpsum!!)
 
 tw.setWrapBehaviour(WrapBehaviour.WORD)
 tw.putString("\n" + tw.getWrapBehaviour() + ":\n")
-tw.putString(loremIpsum)
+tw.putString(loremIpsum!!)
 
 tw.setWrapBehaviour(WrapBehaviour.CLIP)
 writer.setTabBehaviour(TabBehaviour.IGNORE)
 tw.putString("\n" + tw.getWrapBehaviour() + " + TabBehaviour.IGNORE:\n")
-tw.putString(loremIpsum)
+tw.putString(loremIpsum!!)
 
 tw.putString("\u001b[m")
 tw.setStyleable(false)
-tw.putString(tw.getWrapBehaviour() + " + Styleable turned off, so esc-sequences are visible:\n")
-tw.putString(loremIpsum)
+tw.putString(tw.getWrapBehaviour().toString() + " + Styleable turned off, so esc-sequences are visible:\n")
+tw.putString(loremIpsum!!)
 
-screen!!.refresh()
-screen!!.readInput()
-screen!!.stopScreen()
+screen.refresh()
+screen.readInput()
+screen.stopScreen()
 }
 }

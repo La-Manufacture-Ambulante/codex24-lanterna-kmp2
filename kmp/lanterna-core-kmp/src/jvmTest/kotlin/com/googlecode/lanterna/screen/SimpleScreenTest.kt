@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
@@ -33,7 +34,7 @@ private val COLORS_TO_CYCLE = arrayOf<TextColor?>(TextColor.ANSI.BLACK, TextColo
 
 @Throws(IOException::class)
  fun main(args:Array<String?>?) {
-val terminal = TestTerminalFactory(args).createTerminal()
+val terminal = TestTerminalFactory(args).createTerminal()!!
 val screen = TerminalScreen(terminal)
 screen.startScreen()
 screen.refresh()
@@ -47,40 +48,41 @@ mainLoop@ while (true)
 {
 val keyStroke = screen.readInput()
 when (keyStroke!!.getKeyType()) {
-EOF, ESCAPE -> break@mainLoop
+KeyType.EOF, KeyType.ESCAPE -> break@mainLoop
 
-ARROW_UP -> screen.setCursorPosition(screen.getCursorPosition().withRelativeRow(-1))
+KeyType.ARROW_UP -> screen.setCursorPosition(screen.getCursorPosition()!!.withRelativeRow(-1))
 
-ARROW_DOWN -> screen.setCursorPosition(screen.getCursorPosition().withRelativeRow(1))
+KeyType.ARROW_DOWN -> screen.setCursorPosition(screen.getCursorPosition()!!.withRelativeRow(1))
 
-ARROW_LEFT -> screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(-1))
+KeyType.ARROW_LEFT -> screen.setCursorPosition(screen.getCursorPosition()!!.withRelativeColumn(-1))
 
-ARROW_RIGHT -> screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(1))
+KeyType.ARROW_RIGHT -> screen.setCursorPosition(screen.getCursorPosition()!!.withRelativeColumn(1))
 
-CHARACTER -> if (keyStroke!!.isCtrlDown())
+KeyType.CHARACTER -> if (keyStroke!!.isCtrlDown())
 {
 when (keyStroke!!.getCharacter()) {
 'k' -> {
 screen.setCharacter(screen.getCursorPosition(), TextCharacter('桜', COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
-screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(2))
+screen.setCursorPosition(screen.getCursorPosition()!!.withRelativeColumn(2))
 }
 
 'f' -> {
 foregroundCycle++
-if (foregroundCycle >= COLORS_TO_CYCLE.size)
-{
-foregroundCycle = 0
-}
-}
+	if (foregroundCycle >= COLORS_TO_CYCLE.size)
+	{
+	foregroundCycle = 0
+	}
+	}
 
-'b' -> {
-backgroundCycle++
-if (backgroundCycle >= COLORS_TO_CYCLE.size)
-{
-backgroundCycle = 0
-}
-}
-}
+	'b' -> {
+	backgroundCycle++
+	if (backgroundCycle >= COLORS_TO_CYCLE.size)
+	{
+	backgroundCycle = 0
+	}
+	}
+	else -> {}
+	}
 if (COLORS_TO_CYCLE[foregroundCycle] !== TextColor.ANSI.BLACK)
 {
 textGraphics!!.setBackgroundColor(TextColor.ANSI.BLACK)
@@ -90,7 +92,7 @@ else
 textGraphics!!.setBackgroundColor(TextColor.ANSI.WHITE)
 }
 textGraphics!!.setForegroundColor(COLORS_TO_CYCLE[foregroundCycle])
-textGraphics!!.putString(0, screen.getTerminalSize().getRows() - 2, "Foreground color")
+textGraphics!!.putString(0, screen.getTerminalSize()!!.getRows() - 2, "Foreground color")
 
 if (COLORS_TO_CYCLE[backgroundCycle] !== TextColor.ANSI.BLACK)
 {
@@ -101,14 +103,16 @@ else
 textGraphics!!.setBackgroundColor(TextColor.ANSI.WHITE)
 }
 textGraphics!!.setForegroundColor(COLORS_TO_CYCLE[backgroundCycle])
-textGraphics!!.putString(0, screen.getTerminalSize().getRows() - 1, "Background color")
+textGraphics!!.putString(0, screen.getTerminalSize()!!.getRows() - 1, "Background color")
 }
 else
 {
-screen.setCharacter(screen.getCursorPosition(), TextCharacter(keyStroke!!.getCharacter(), COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
-screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(1))
+val ch = keyStroke.character ?: continue
+screen.setCharacter(screen.getCursorPosition(), TextCharacter(ch, COLORS_TO_CYCLE[foregroundCycle], COLORS_TO_CYCLE[backgroundCycle]))
+screen.setCursorPosition(screen.getCursorPosition()!!.withRelativeColumn(1))
 break
 }
+else -> {}
 }
 
 screen.refresh()

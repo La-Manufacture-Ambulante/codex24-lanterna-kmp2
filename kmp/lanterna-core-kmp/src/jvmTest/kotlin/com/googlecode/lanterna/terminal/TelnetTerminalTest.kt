@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyStroke
@@ -50,20 +51,22 @@ spawnColorTest(telnetTerminal)
 private fun spawnColorTest(terminal:TelnetTerminal?) {
 object:Thread() {
 
-@Volatile private var size:TerminalSize? = null
+@Volatile private var terminalSizeCurrent:TerminalSize? = null
 
-@Override
-@JvmStatic  fun run() {
+  override fun run() {
 try
 {
 val string = "Hello!"
 val random = Random()
 terminal!!.enterPrivateMode()
 terminal!!.clearScreen()
-terminal!!.addResizeListener({ terminal1, newSize->
-System.err.println("Resized to " + newSize!!)
-size = newSize })
-size = terminal!!.getTerminalSize()
+terminal!!.addResizeListener(object : TerminalResizeListener {
+override fun onResized(terminal1: Terminal?, newSize: TerminalSize?) {
+System.err.println("Resized to " + newSize)
+terminalSizeCurrent = newSize
+}
+})
+terminalSizeCurrent = terminal!!.getTerminalSize()
 
 terminal!!.setCursorPosition(3, 3)
 printString(terminal, "Press any key to start")
@@ -75,7 +78,7 @@ val key = terminal!!.pollInput()
 if (key != null)
 {
 System.out.println(key)
-if (key!!.getKeyType() === KeyType.ESCAPE)
+if (key!!.getKeyType() == KeyType.ESCAPE)
 {
 terminal!!.exitPrivateMode()
 return 
@@ -87,7 +90,10 @@ val backgroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.next
 
 terminal!!.setForegroundColor(foregroundIndex)
 terminal!!.setBackgroundColor(backgroundIndex)
-terminal!!.setCursorPosition(random.nextInt(size!!.columns - string.length()), random.nextInt(size!!.rows))
+terminal!!.setCursorPosition(
+random.nextInt(terminalSizeCurrent!!.getColumns() - string.length),
+random.nextInt(terminalSizeCurrent!!.getRows())
+)
 printString(terminal, string)
 
 try
@@ -118,7 +124,7 @@ e!!.printStackTrace()
 
 @Throws(IOException::class)
 private fun printString(terminal:Terminal?, string:String) {
-for (i in 0 until string.length())
+for (i in 0 until string.length)
 terminal!!.putCharacter(string.charAt(i))
 terminal!!.flush()
 }

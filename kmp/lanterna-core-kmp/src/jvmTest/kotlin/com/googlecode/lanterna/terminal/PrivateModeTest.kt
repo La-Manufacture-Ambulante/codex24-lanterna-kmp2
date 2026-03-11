@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
@@ -35,14 +36,14 @@ import java.io.IOException
  fun main(args:Array<String?>?) {
 val terminal = TestTerminalFactory(args)
 .setTerminalEmulatorFrameAutoCloseTrigger(null)
-.createTerminal()
+.createTerminal() as Terminal
 var normalTerminal = true
 printNormalTerminalText(terminal!!)
 var keyStroke:KeyStroke? = null
-while (keyStroke == null || keyStroke!!.getKeyType() !== KeyType.ESCAPE)
+while (keyStroke == null || keyStroke!!.getKeyType() != KeyType.ESCAPE)
 {
 keyStroke = terminal!!.pollInput()
-if (keyStroke != null && keyStroke!!.getKeyType() === KeyType.CHARACTER && keyStroke!!.getCharacter() === ' ')
+if (keyStroke != null && keyStroke!!.getKeyType() == KeyType.CHARACTER && keyStroke!!.getCharacter() == ' ')
 {
 normalTerminal = !normalTerminal
 if (normalTerminal)
@@ -77,7 +78,7 @@ private fun printNormalTerminalText(terminal:Terminal) {
 terminal.clearScreen()
 terminal.setCursorPosition(5, 3)
 val text = "Normal terminal, press space to switch"
-for (i in 0 until text.length())
+for (i in 0 until text.length)
 {
 terminal.putCharacter(text.charAt(i))
 }
@@ -89,7 +90,7 @@ private fun printPrivateModeTerminalText(terminal:Terminal) {
 terminal.clearScreen()
 terminal.setCursorPosition(5, 3)
 val text = "Private mode terminal, press space to switch"
-for (i in 0 until text.length())
+for (i in 0 until text.length)
 {
 terminal.putCharacter(text.charAt(i))
 }

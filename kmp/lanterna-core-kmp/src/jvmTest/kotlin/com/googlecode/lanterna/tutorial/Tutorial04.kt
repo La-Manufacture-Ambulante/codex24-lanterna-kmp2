@@ -1,5 +1,6 @@
 package com.googlecode.lanterna.tutorial
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog
@@ -74,7 +75,7 @@ screen!!.startScreen()
              * specified that we want to have a grid with two columns, below we customize the layout further by adding
              * some spacing between the columns.
              */
-            val gridLayout = contentPanel.getLayoutManager() as GridLayout
+            val gridLayout = contentPanel.getLayoutManager() as GridLayout?
 gridLayout!!.setHorizontalSpacing(3)
 
  /*
@@ -117,15 +118,15 @@ TextBox()
             read-only and one that is editable.
              */
             contentPanel.addComponent(Label("Read-only Combo Box (forced size)"))
-val timezonesAsStrings = ArrayList(Arrays.asList(TimeZone.getAvailableIDs()))
-val readOnlyComboBox = ComboBox(timezonesAsStrings)
+val timezonesAsStrings = ArrayList(TimeZone.getAvailableIDs().toList())
+val readOnlyComboBox = ComboBox<String?>(timezonesAsStrings)
 readOnlyComboBox.setReadOnly(true)
 readOnlyComboBox.setPreferredSize(TerminalSize(20, 1))
 contentPanel.addComponent(readOnlyComboBox)
 
 contentPanel.addComponent(Label("Editable Combo Box (filled)"))
 contentPanel.addComponent(
-ComboBox("Item #1", "Item #2", "Item #3", "Item #4")
+ComboBox<Any?>("Item #1", "Item #2", "Item #3", "Item #4")
 .setReadOnly(false)
 .setLayoutData(GridLayout.createHorizontallyFilledLayoutData(1)))
 
@@ -148,7 +149,7 @@ Separator(Direction.HORIZONTAL)
 .setLayoutData(
 GridLayout.createHorizontallyFilledLayoutData(2)))
 contentPanel.addComponent(
-Button("Close", ???({ window.close() })).setLayoutData(
+Button("Close", Runnable { window.close() }).setLayoutData(
 GridLayout.createHorizontallyEndAlignedLayoutData(2)))
 
  /*

@@ -309,11 +309,12 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
     }
 
     protected fun showPopup(keyStroke: KeyStroke?) {
-        popupWindow = PopupWindow()
-        popupWindow?.position = toGlobal(TerminalPosition(0, 1))
+        val popup = PopupWindow()
+        popupWindow = popup
+        popup.position = toGlobal(TerminalPosition(0, 1))
         val gui = textGUI as? WindowBasedTextGUI ?: return
-        gui.addWindow(popupWindow)
-        gui.setActiveWindow(popupWindow)
+        gui.addWindow(popup)
+        gui.setActiveWindow(popup)
     }
 
     private fun handleEditableCBKeyStroke(keyStroke: KeyStroke): Interactable.Result? {

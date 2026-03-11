@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
@@ -38,7 +39,7 @@ import java.io.IOException
  fun main(args:Array<String?>?) {
 val terminal = TestTerminalFactory(args)
 .setTerminalEmulatorFrameAutoCloseTrigger(null)
-.createTerminal()
+.createTerminal() as Terminal
 val redScreen = TerminalScreen(terminal)
 val greenScreen = TerminalScreen(terminal)
 
@@ -70,11 +71,11 @@ if (keyStroke == null)
 {
 Thread.sleep(1)
 }
-else if (keyStroke!!.getKeyType() === KeyType.ESCAPE)
+else if (keyStroke!!.getKeyType() == KeyType.ESCAPE)
 {
 break@mainLoop
 }
-else if (keyStroke!!.getCharacter() === ' ')
+else if (keyStroke!!.getCharacter() == ' ')
 {
 break
 }
@@ -89,18 +90,18 @@ if (keyStroke == null)
 {
 Thread.sleep(1)
 }
-else if (keyStroke!!.getKeyType() === KeyType.ESCAPE)
+else if (keyStroke!!.getKeyType() == KeyType.ESCAPE)
 {
 break@mainLoop
 }
-else if (keyStroke!!.getCharacter() === ' ')
+else if (keyStroke!!.getCharacter() == ' ')
 {
 break
 }
 }
 greenScreen.stopScreen()
 }
-terminal!!.clearScreen()
+terminal.clearScreen()
 if (terminal is Window)
 {
 (terminal as Window).dispose()

@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.terminal.swing.SwingTerminal
@@ -46,25 +47,24 @@ splitPane!!.setLeftComponent(leftTerminal)
 splitPane!!.setRightComponent(rightTerminal)
 pack()
 
-val timer = Timer(500, object:ActionListener() {
-@Override
- fun actionPerformed(e:ActionEvent?) {
+val timer = Timer(500, object:ActionListener {
+override fun actionPerformed(e:ActionEvent?) {
 drawRandomHello(leftTerminal)
 drawRandomHello(rightTerminal)
 }
 
 private fun drawRandomHello(terminal:IOSafeTerminal) {
 val size = terminal.getTerminalSize()
-if (size!!.columns > 6 && size!!.rows > 1)
+if (size!!.getColumns() > 6 && size!!.getRows() > 1)
 {
-val positionX = RANDOM.nextInt(size!!.columns - 6)
-val positionY = RANDOM.nextInt(size!!.rows)
+val positionX = RANDOM.nextInt(size!!.getColumns() - 6)
+val positionY = RANDOM.nextInt(size!!.getRows())
 
 terminal.setCursorPosition(positionX, positionY)
 terminal.setBackgroundColor(TextColor.Indexed(RANDOM.nextInt(256)))
 terminal.setForegroundColor(TextColor.Indexed(RANDOM.nextInt(256)))
 val hello = "Hello!"
-for (i in 0 until hello.length())
+for (i in 0 until hello.length)
 {
 terminal.putCharacter(hello.charAt(i))
 }

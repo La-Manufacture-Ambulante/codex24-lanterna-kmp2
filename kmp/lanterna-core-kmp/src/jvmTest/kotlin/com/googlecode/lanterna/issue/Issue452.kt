@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import java.io.IOException
 
 import com.googlecode.lanterna.TerminalSize
@@ -71,11 +72,11 @@ private var tableTriggeredCounter = 0
 DefaultTerminalFactory().setTelnetPort(23000)
 .setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE_DRAG_MOVE).setInitialTerminalSize(TerminalSize(100, 100))
 .createScreen().use({ screen->
-screen!!.startScreen()
+screen.startScreen()
 val gui = MultiWindowTextGUI(screen)
 val window = BasicWindow("Issue452")
 val content = Panel(GridLayout(GRID_WIDTH))
-val gridLayout = content.getLayoutManager() as GridLayout
+val gridLayout = content.getLayoutManager() as GridLayout?
 gridLayout!!.setVerticalSpacing(1)
 addInteractableComponentsToContent(content)
 addMenuBar(window)
@@ -102,9 +103,8 @@ Style.MULTI_LINE), LAYOUT_NEW_ROW)
  // button
         val textBoxButton = TextBox("Click the button!")
 val button = Button("Button")
-button.addListener(object:Listener() {
-@Override
- fun onTriggered(button:Button?) {
+button.addListener(object:Listener {
+public override fun onTriggered(button:Button) {
 textBoxButton.setText("Button triggered " + Issue452.buttonTriggeredCounter++ + " times")
 }
 })
@@ -114,29 +114,20 @@ content.addComponent(textBoxButton, GridLayout.createHorizontallyFilledLayoutDat
  // action list box
         actionListTextBox = TextBox("Click on something in the action list!")
 val actionMenu = ActionListBox()
-actionMenu.addItem("First menu", object:Runnable() {
-@Override
-@JvmStatic  fun run() {
+actionMenu.addItem("First menu", Runnable {
 actionListTextBox!!.setText("First menu clicked")
-}
 })
-actionMenu.addItem("Second menu", object:Runnable() {
-@Override
-@JvmStatic  fun run() {
+actionMenu.addItem("Second menu", Runnable {
 actionListTextBox!!.setText("Second menu clicked")
-}
 })
-actionMenu.addItem("Third menu", object:Runnable() {
-@Override
-@JvmStatic  fun run() {
+actionMenu.addItem("Third menu", Runnable {
 actionListTextBox!!.setText("Third menu clicked")
-}
 })
 content.addComponent(actionListTextBox, LAYOUT_NEW_ROW)
 content.addComponent(actionMenu, LAYOUT_NEW_ROW)
 
  // radiobox list
-        val list = RadioBoxList()
+        val list = RadioBoxList<String?>()
 list.addItem("RadioGaga")
 list.addItem("RadioGogo")
 list.addItem("RadioBlaBla")
@@ -144,10 +135,10 @@ content.addComponent(list, LAYOUT_NEW_ROW)
 
  // Table
         tableTextBox = TextBox("Try table bellow")
-val table = Table("Column0000000", "Column111", "Column22222")
-table.getTableModel().addRow("0", "0", "0")
-table.getTableModel().addRow("1", "1", "1")
-table.getTableModel().addRow("2", "2", "2")
+val table = Table<String?>("Column0000000", "Column111", "Column22222")
+table.getTableModel()!!.addRow("0", "0", "0")
+table.getTableModel()!!.addRow("1", "1", "1")
+table.getTableModel()!!.addRow("2", "2", "2")
 table.setSelectAction({ tableTriggeredCounter++
 tableTextBox!!.setText("Table's action runned " + tableTriggeredCounter + " times") })
 table.setCellSelection(true)
@@ -158,28 +149,17 @@ content.addComponent(table, LAYOUT_NEW_ROW)
 private fun addMenuBar(window:Window) {
 val menuBar = MenuBar()
 val menu = Menu("Settings")
-menu.add(MenuItem("Menu1", object:Runnable() {
-@Override
-@JvmStatic  fun run() {
+menu.add(MenuItem("Menu1", Runnable {
 menuTextBox!!.setText("Menu1 clicked")
 menuTextBox!!.invalidate()
-}
 }))
-menu.add(MenuItem("Menu2", object:Runnable() {
-
-@Override
-@JvmStatic  fun run() {
+menu.add(MenuItem("Menu2", Runnable {
 menuTextBox!!.setText("Menu2 clicked")
 menuTextBox!!.invalidate()
-}
 }))
-menu.add(MenuItem("Menu3", object:Runnable() {
-
-@Override
-@JvmStatic  fun run() {
+menu.add(MenuItem("Menu3", Runnable {
 menuTextBox!!.setText("Menu3 clicked")
 menuTextBox!!.invalidate()
-}
 }))
 menuBar.add(menu)
 window.setMenuBar(menuBar)

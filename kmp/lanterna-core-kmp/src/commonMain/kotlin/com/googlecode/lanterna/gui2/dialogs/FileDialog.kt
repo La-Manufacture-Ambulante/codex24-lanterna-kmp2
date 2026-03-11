@@ -141,7 +141,7 @@ class FileDialog(
         )
         separator.addTo(contentPane)
 
-        okButton = Button(actionLabel, OkHandler())
+        okButton = Button(requireNotNull(actionLabel), OkHandler())
         val buttonPanel = Panels.grid(
             2,
             okButton,

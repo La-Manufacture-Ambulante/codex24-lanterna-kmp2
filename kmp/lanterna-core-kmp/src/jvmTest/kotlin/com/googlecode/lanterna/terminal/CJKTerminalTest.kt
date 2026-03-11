@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextColor
 
@@ -47,7 +48,7 @@ if (terminal!!.pollInput() != null)
 break
 }
 terminal!!.setCursorPosition(0, 0)
-printString(terminal, pos + "x" + line)
+	printString(terminal, "${pos}x${line}")
 terminal!!.setCursorPosition(pos++, line)
 if (pos == 10)
 {
@@ -76,7 +77,7 @@ terminal!!.exitPrivateMode()
 
 @Throws(IOException::class)
 private fun printString(rawTerminal:Terminal?, string:String) {
-for (i in 0 until string.length())
+for (i in 0 until string.length)
 {
 rawTerminal!!.putCharacter(string.charAt(i))
 }

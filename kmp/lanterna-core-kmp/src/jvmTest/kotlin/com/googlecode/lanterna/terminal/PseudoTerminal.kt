@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.input.KeyStroke
 import java.io.IOException
@@ -54,8 +55,8 @@ System.exit(returnCode)
 }
 
 private fun makeEnvironmentVariables():Array<String?>? {
-val environment = ArrayList()
-val env = TreeMap(System.getenv())
+	val environment = ArrayList<String>()
+	val env = TreeMap<String, String>(System.getenv())
 env.put("TERM", "xterm")   //Will this make bash detect us as a proper terminal??
 for (key in env.keySet())
 {
@@ -76,8 +77,7 @@ this.stop = false
 
 private fun start() {
 object:Thread("OutputReader") {
-@Override
-@JvmStatic  fun run() {
+  override fun run() {
 try
 {
 val buffer = CharArray(1024)
@@ -120,7 +120,7 @@ catch (e:IOException) {}
 }.start()
 }
 
-private fun stop() {
+fun stop() {
 stop = true
 }
 }
@@ -134,8 +134,7 @@ this.stop = false
 
 private fun start() {
 object:Thread("InputWriter") {
-@Override
-@JvmStatic  fun run() {
+  override fun run() {
 try
 {
 while (!stop)
@@ -148,10 +147,11 @@ Thread.sleep(1)
 else
 {
 when (keyStroke!!.getKeyType()) {
-CHARACTER -> writeCharacter(keyStroke!!.getCharacter())
-ENTER -> writeCharacter('\n')
-BACKSPACE -> writeCharacter('\b')
-TAB -> writeCharacter('\t')
+KeyType.CHARACTER -> writeCharacter(keyStroke!!.getCharacter()!!.toChar())
+KeyType.ENTER -> writeCharacter('\n')
+KeyType.BACKSPACE -> writeCharacter('\b')
+KeyType.TAB -> writeCharacter('\t')
+else -> {}
 }
 flush()
 }
@@ -174,8 +174,8 @@ catch (e:IOException) {}
 
 @Throws(IOException::class)
 private fun writeCharacter(character:Char) {
-outputStream!!.write(character)
-terminalEmulator!!.putCharacter(character)
+	outputStream!!.write(character.code)
+	terminalEmulator!!.putCharacter(character)
 }
 
 @Throws(IOException::class)
@@ -184,7 +184,7 @@ outputStream!!.flush()
 terminalEmulator!!.flush()
 }
 
-private fun stop() {
+fun stop() {
 stop = true
 }
 }

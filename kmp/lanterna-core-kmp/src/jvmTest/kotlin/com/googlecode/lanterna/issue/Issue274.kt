@@ -3,6 +3,7 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import java.io.IOException
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.BasicWindow
@@ -28,7 +29,7 @@ val ter = DefaultTerminalFactory()
 .setForceTextTerminal(true)
 .setMouseCaptureMode(MouseCaptureMode.CLICK)
 .setTelnetPort(1024)
-.createTerminal()
+.createTerminal()!!
 
 val screen = TerminalScreen(ter)
 screen.startScreen()
@@ -40,13 +41,15 @@ menubar.setLayoutManager(LinearLayout(Direction.HORIZONTAL).setSpacing(1))
 val text = TextBox(TerminalSize(10, 10), TextBox.Style.MULTI_LINE)
 menubar.addComponent(text)
 
-menubar.addComponent(Button("Open", { val op = BasicWindow("Select file")
+menubar.addComponent(Button("Open", {
+val op = BasicWindow("Select file")
+op.setComponent(Button("Close", Runnable { op.close() }))
 gui.addWindow(op)
-op.setComponent(Button("Close", ???({ op.close() }))) }))
+}))
 
 menubar.addComponent(Button("Save"))
 
-menubar.addComponent(Button("Exit", { gui.getActiveWindow().close() }))
+menubar.addComponent(Button("Exit", { gui.getActiveWindow()!!.close() }))
 
 val main = BasicWindow("Test")
 main.setComponent(menubar)

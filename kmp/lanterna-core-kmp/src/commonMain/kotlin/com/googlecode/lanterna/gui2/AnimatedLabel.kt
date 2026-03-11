@@ -64,7 +64,7 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
         if (currentFrame >= frames.size) {
             currentFrame = 0
         }
-        super.lines = frames[currentFrame]
+        setLines(frames[currentFrame])
         invalidate()
     }
 

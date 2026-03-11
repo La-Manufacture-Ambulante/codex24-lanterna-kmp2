@@ -57,7 +57,7 @@ checkBoxList.addItem(i.toString())
 return Panels.vertical(
 Button("Open Dialog (and crush stuff)", openDialog(gui, window, nextCounter)), 
 checkBoxList, 
-Button("Quit", Runnable({ window.close() }))
+Button("Quit", Runnable { window.close() })
 )
 }
 

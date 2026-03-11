@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.graphics.DoublePrintingTextGraphics
 import com.googlecode.lanterna.graphics.TextGraphics
@@ -69,12 +70,12 @@ square = true
 }
 }
 val screen = TestTerminalFactory(args).createScreen()
-screen!!.startScreen()
+screen.startScreen()
 
 var graphics:TextGraphics? = ScreenTextGraphics(screen)
 if (square)
 {
-graphics = DoublePrintingTextGraphics(graphics)
+graphics = DoublePrintingTextGraphics(graphics!!)
 }
 val random = Random()
 
@@ -82,18 +83,18 @@ var color:TextColor? = null
 var rad = 0.0
 while (true)
 {
-val keyStroke = screen!!.pollInput()
-if ((keyStroke != null && (keyStroke!!.getKeyType() === KeyType.ESCAPE || keyStroke!!.getKeyType() === KeyType.EOF)))
+val keyStroke = screen.pollInput()
+if ((keyStroke != null && (keyStroke!!.getKeyType() == KeyType.ESCAPE || keyStroke!!.getKeyType() == KeyType.EOF)))
 {
 break
 }
-screen!!.doResizeIfNecessary()
+screen.doResizeIfNecessary()
 val size = graphics!!.getSize()
 if (useAnsiColors)
 {
 if (color == null || !rotating)
 {
-color = TextColor.ANSI.values()[random.nextInt(TextColor.ANSI.values().length)]
+color = TextColor.ANSI.values()!![random.nextInt(TextColor.ANSI.values()!!.size)]
 }
 }
 else
@@ -110,14 +111,14 @@ val p2:TerminalPosition?
 val p3:TerminalPosition?
 if (rotating)
 {
-screen!!.clear()
+screen.clear()
 val triangleSize = 15.0
-val x0 = (size!!.columns / 2) + (Math.cos(rad) * triangleSize) as Int
-val y0 = (size!!.rows / 2) + (Math.sin(rad) * triangleSize) as Int
-val x1 = (size!!.columns / 2) + (Math.cos(rad + oneThirdOf2PI) * triangleSize) as Int
-val y1 = (size!!.rows / 2) + (Math.sin(rad + oneThirdOf2PI) * triangleSize) as Int
-val x2 = (size!!.columns / 2) + (Math.cos(rad + twoThirdsOf2PI) * triangleSize) as Int
-val y2 = (size!!.rows / 2) + (Math.sin(rad + twoThirdsOf2PI) * triangleSize) as Int
+val x0 = (size!!.getColumns() / 2) + (Math.cos(rad) * triangleSize) as Int
+val y0 = (size!!.getRows() / 2) + (Math.sin(rad) * triangleSize) as Int
+val x1 = (size!!.getColumns() / 2) + (Math.cos(rad + oneThirdOf2PI) * triangleSize) as Int
+val y1 = (size!!.getRows() / 2) + (Math.sin(rad + oneThirdOf2PI) * triangleSize) as Int
+val x2 = (size!!.getColumns() / 2) + (Math.cos(rad + twoThirdsOf2PI) * triangleSize) as Int
+val y2 = (size!!.getRows() / 2) + (Math.sin(rad + twoThirdsOf2PI) * triangleSize) as Int
 p1 = TerminalPosition(x0, y0)
 p2 = TerminalPosition(x1, y1)
 p3 = TerminalPosition(x2, y2)
@@ -125,9 +126,9 @@ rad += Math.PI / 90.0
 }
 else
 {
-p1 = TerminalPosition(random.nextInt(size!!.columns), random.nextInt(size!!.rows))
-p2 = TerminalPosition(random.nextInt(size!!.columns), random.nextInt(size!!.rows))
-p3 = TerminalPosition(random.nextInt(size!!.columns), random.nextInt(size!!.rows))
+p1 = TerminalPosition(random.nextInt(size!!.getColumns()), random.nextInt(size!!.getRows()))
+p2 = TerminalPosition(random.nextInt(size!!.getColumns()), random.nextInt(size!!.getRows()))
+p3 = TerminalPosition(random.nextInt(size!!.getColumns()), random.nextInt(size!!.getRows()))
 }
 
 graphics!!.setBackgroundColor(color)
@@ -139,12 +140,12 @@ else
 {
 graphics!!.drawTriangle(p1, p2, p3, ' ')
 }
-screen!!.refresh(Screen.RefreshType.DELTA)
+screen.refresh(Screen.RefreshType.DELTA)
 if (slow)
 {
 Thread.sleep(500)
 }
 }
-screen!!.stopScreen()
+screen.stopScreen()
 }
 }

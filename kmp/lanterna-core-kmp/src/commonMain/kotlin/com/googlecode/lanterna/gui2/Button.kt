@@ -59,7 +59,7 @@ class Button(label: String) : AbstractInteractableComponent<Button>() {
         setLabel(label)
     }
 
-    override fun createDefaultRenderer(): ButtonRenderer {
+    override fun createDefaultRenderer(): ButtonRenderer? {
         return DefaultButtonRenderer()
     }
 
@@ -108,7 +108,7 @@ class Button(label: String) : AbstractInteractableComponent<Button>() {
     /**
      * Helper interface that doesn't add any new methods but makes coding new button renderers a little bit more clear
      */
-    interface ButtonRenderer : InteractableRenderer<Button>
+    interface ButtonRenderer : InteractableRenderer<Button?>
 
     class DefaultButtonRenderer : ButtonRenderer {
         override fun getCursorLocation(button: Button?): TerminalPosition? {

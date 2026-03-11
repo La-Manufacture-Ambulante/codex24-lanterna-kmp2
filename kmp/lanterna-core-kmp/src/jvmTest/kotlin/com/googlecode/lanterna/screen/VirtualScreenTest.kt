@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextColor
@@ -35,8 +36,8 @@ import java.io.IOException
  constructor(args:Array<String?>?) {
 
 init{
-var screen = TestTerminalFactory(args).createScreen()
-screen = VirtualScreen(screen)
+var screen:Screen? = TestTerminalFactory(args).createScreen()
+screen = VirtualScreen(screen!!)
 screen!!.startScreen()
 
 val textGraphics = screen!!.newTextGraphics()
@@ -51,7 +52,7 @@ while (true)
 val keyStroke = screen!!.pollInput()
 if (keyStroke != null)
 {
-if (keyStroke!!.getKeyType() === KeyType.ESCAPE)
+if (keyStroke!!.getKeyType() == KeyType.ESCAPE)
 {
 break
 }
