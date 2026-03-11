@@ -64,7 +64,7 @@ assertScreenEquals(("" +
 @Test
 @Throws(Exception::class)
   fun testRendersVisibleRowsAndColumnsPartially() {
-table!!.getRenderer().setAllowPartialColumn(true)
+table!!.renderer!!.allowPartialColumn = true
 addRowsWithLongSecondColumn(4)
 assertScreenEquals(("" + 
 "a  b\n" + 
@@ -79,8 +79,8 @@ assertScreenEquals(("" +
   fun testRendersVisibleRowsAndColumnsPartiallyWhenHorizontallyScrolled() {
 model = TableModel<String?>("x", "a", "b")
 table.setTableModel(this.model)
-table.getRenderer().setAllowPartialColumn(true)
-table.getRenderer().setViewLeftColumn(1)
+table.renderer!!.allowPartialColumn = true
+table.renderer!!.viewLeftColumn = 1
 addRowsWithLongThirdColumn(4)
 assertScreenEquals(("" + 
 "a  b\n" + 
@@ -117,7 +117,7 @@ assertScreenEquals(("" +
 @Throws(Exception::class)
   fun testRendersVisibleRowsWithoutVerticalScrollBar() {
 table!!.setVisibleRows(2)
-table!!.getRenderer().setScrollBarsHidden(true)
+table!!.renderer!!.isScrollBarsHidden = true
 addFourRows()
 assertScreenEquals(("" + 
 "a  b\n" + 
@@ -129,7 +129,7 @@ assertScreenEquals(("" +
 @Throws(Exception::class)
   fun testRendersVisibleColumnsWithoutHorizontalScrollBar() {
 table!!.setVisibleRows(2)
-table!!.getRenderer().setScrollBarsHidden(true)
+table!!.renderer!!.isScrollBarsHidden = true
 addRowsWithLongSecondColumn(2)
 assertScreenEquals(("" + 
 "a  b\n" + 
@@ -141,7 +141,7 @@ assertScreenEquals(("" +
 @Throws(Exception::class)
   fun testRendersVisibleRowsAndColumnsWithoutHorizontalScrollBar() {
 table!!.setVisibleRows(2)
-table!!.getRenderer().setScrollBarsHidden(true)
+table!!.renderer!!.isScrollBarsHidden = true
 addRowsWithLongSecondColumn(4)
 assertScreenEquals(("" + 
 "a  b\n" + 
@@ -268,6 +268,6 @@ assertEquals(expected, stripTrailingNewlines(terminal.toString()))
 }
 
 private fun stripTrailingNewlines(s:String):String? {
-return s.replaceAll("(?s)[\\s\n]+$", "")
+return s.replace(Regex("(?s)[\\s\\n]+$"), "")
 }
 }

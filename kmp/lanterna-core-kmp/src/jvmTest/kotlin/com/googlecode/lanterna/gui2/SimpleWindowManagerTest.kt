@@ -78,7 +78,7 @@ textBox.setLayoutData(BorderLayout.Location.CENTER)
 textBox.setReadOnly(true)
 content.addComponent(textBox)
 
-setComponent(content)
+component = content
 
 setHints(
     if (decorations) {
@@ -101,7 +101,7 @@ textBox.setLayoutData(BorderLayout.Location.CENTER)
 textBox.setReadOnly(true)
 content.addComponent(textBox)
 
-setComponent(content)
+component = content
 
 setHints(
     if (decorations) {
@@ -115,7 +115,7 @@ setHints(
 
 private open class TestWindow internal constructor(title:String):BasicWindow(title) {
 init{
-setComponent(Button("Close", Runnable { this.close() }))
+component = Button("Close", Runnable { this.close() })
 setCloseWindowWithEscape(true)
 }
 }

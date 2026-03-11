@@ -37,9 +37,8 @@ import java.io.IOException
  object MultiScreenTest {
 @Throws(IOException::class, InterruptedException::class)
  fun main(args:Array<String?>?) {
-val terminal = TestTerminalFactory(args)
-.setTerminalEmulatorFrameAutoCloseTrigger(null)
-.createTerminal() as Terminal
+val terminalFactory = TestTerminalFactory(args)
+val terminal = terminalFactory.createTerminal() as Terminal
 val redScreen = TerminalScreen(terminal)
 val greenScreen = TerminalScreen(terminal)
 
@@ -71,11 +70,11 @@ if (keyStroke == null)
 {
 Thread.sleep(1)
 }
-else if (keyStroke!!.getKeyType() == KeyType.ESCAPE)
+else if (keyStroke!!.keyType == KeyType.ESCAPE)
 {
 break@mainLoop
 }
-else if (keyStroke!!.getCharacter() == ' ')
+else if (keyStroke!!.character == ' ')
 {
 break
 }
@@ -90,11 +89,11 @@ if (keyStroke == null)
 {
 Thread.sleep(1)
 }
-else if (keyStroke!!.getKeyType() == KeyType.ESCAPE)
+else if (keyStroke!!.keyType == KeyType.ESCAPE)
 {
 break@mainLoop
 }
-else if (keyStroke!!.getCharacter() == ' ')
+else if (keyStroke!!.character == ' ')
 {
 break
 }
