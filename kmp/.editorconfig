@@ -72,9 +72,6 @@ ktlint_standard_function-signature = disabled
 [**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/WindowManager.kt]
 ktlint_standard_function-signature = disabled
 
-[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/WindowPostRenderer.kt]
-ktlint_standard_function-signature = disabled
-
 [**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/table/TableCellRenderer.kt]
 ktlint_standard_function-signature = disabled
 
