@@ -23,87 +23,82 @@ import com.googlecode.lanterna.TerminalPosition
 /**
  * MouseAction, a KeyStroke in disguise, this class contains the information of a single mouse action event.
  */
-class MouseAction : KeyStroke {
-    /**
-     * Returns the mouse action type so the caller can determine which kind of action was performed.
-     * @return The action type of the mouse event
-     */
-    val actionType: MouseActionType?
+ class MouseAction:KeyStroke {
+/**
+ * Returns the mouse action type so the caller can determine which kind of action was performed.
+ * @return The action type of the mouse event
+ */
+     val actionType:MouseActionType?
+/**
+ * Which button was involved in this event. Please note that for CLICK_RELEASE events, there is no button
+ * information available (getButton() will return 0). The standard xterm mapping is:
+ * 
+ *  * No button = 0
+ *  * Left button = 1
+ *  * Middle (wheel) button = 2
+ *  * Right button = 3
+ *  * Wheel up = 4
+ *  * Wheel down = 5
+ * 
+ * @return The button which is clicked down when this event was generated
+ */
+     val button:Int
+/**
+ * The location of the mouse cursor when this event was generated.
+ * @return Location of the mouse cursor
+ */
+     val position:TerminalPosition?
 
-    /**
-     * Which button was involved in this event. Please note that for CLICK_RELEASE events, there is no button
-     * information available (getButton() will return 0). The standard xterm mapping is:
-     * <ul>
-     * <li>No button = 0</li>
-     * <li>Left button = 1</li>
-     * <li>Middle (wheel) button = 2</li>
-     * <li>Right button = 3</li>
-     * <li>Wheel up = 4</li>
-     * <li>Wheel down = 5</li>
-     * </ul>
-     * @return The button which is clicked down when this event was generated
-     */
-    val button: Int
+ val isMouseDown:Boolean
+get() {
+return actionType === MouseActionType.CLICK_DOWN
+}
 
-    /**
-     * The location of the mouse cursor when this event was generated.
-     * @return Location of the mouse cursor
-     */
-    val position: TerminalPosition?
+ val isMouseDrag:Boolean
+get() {
+return actionType === MouseActionType.DRAG
+}
 
-    /**
-     * Constructs a MouseAction based on an action type, a button and a location on the screen
-     * @param actionType The kind of mouse event
-     * @param button Which button is involved (no button = 0, left button = 1, middle (wheel) button = 2,
-     * right button = 3, scroll wheel up = 4, scroll wheel down = 5)
-     * @param position Where in the terminal is the mouse cursor located
-     */
-    constructor(actionType: MouseActionType?, button: Int, position: TerminalPosition?) : super(
-        KeyType.MOUSE_EVENT,
-        false,
-        false,
-    ) {
-        this.actionType = actionType
-        this.button = button
-        this.position = position
-    }
+ val isMouseMove:Boolean
+get() {
+return actionType === MouseActionType.MOVE
+}
 
-    /**
-     * Constructs a MouseAction based on an action type, a button and a location on the screen
-     * @param actionType The kind of mouse event
-     * @param button Which button is involved (no button = 0, left button = 1, middle (wheel) button = 2,
-     * right button = 3, scroll wheel up = 4, scroll wheel down = 5)
-     * @param position Where in the terminal is the mouse cursor located
-     * @param ctrlDown Whether the control key was pressed when this event was generated
-     * @param altDown Whether the alt key was pressed when this event was generated
-     * @param shiftDown Whether the shift key was pressed when this event was generated
-     */
-    constructor(
-        actionType: MouseActionType?,
-        button: Int,
-        position: TerminalPosition?,
-        ctrlDown: Boolean,
-        altDown: Boolean,
-        shiftDown: Boolean,
-    ) : super(KeyType.MOUSE_EVENT, ctrlDown, altDown, shiftDown) {
-        this.actionType = actionType
-        this.button = button
-        this.position = position
-    }
+ val isMouseUp:Boolean
+get() {
+return actionType === MouseActionType.CLICK_RELEASE
+}
 
-    val isMouseDown: Boolean
-        get() = actionType == MouseActionType.CLICK_DOWN
+/**
+ * Constructs a MouseAction based on an action type, a button and a location on the screen
+ * @param actionType The kind of mouse event
+ * @param button Which button is involved (no button = 0, left button = 1, middle (wheel) button = 2,
+ * right button = 3, scroll wheel up = 4, scroll wheel down = 5)
+ * @param position Where in the terminal is the mouse cursor located
+ */
+     constructor(actionType:MouseActionType?, button:Int, position:TerminalPosition?) : super(KeyType.MOUSE_EVENT, false, false) {
+this.actionType = actionType
+this.button = button
+this.position = position
+}
 
-    val isMouseDrag: Boolean
-        get() = actionType == MouseActionType.DRAG
+/**
+ * Constructs a MouseAction based on an action type, a button and a location on the screen
+ * @param actionType The kind of mouse event
+ * @param button Which button is involved (no button = 0, left button = 1, middle (wheel) button = 2,
+ * right button = 3, scroll wheel up = 4, scroll wheel down = 5)
+ * @param position Where in the terminal is the mouse cursor located
+ * @param ctrlDown Whether the control key was pressed when this event was generated
+ * @param altDown Whether the alt key was pressed when this event was generated
+ * @param shiftDown Whether the shift key was pressed when this event was generated
+ */
+     constructor(actionType:MouseActionType?, button:Int, position:TerminalPosition?, ctrlDown:Boolean, altDown:Boolean, shiftDown:Boolean) : super(KeyType.MOUSE_EVENT, ctrlDown, altDown, shiftDown) {
+this.actionType = actionType
+this.button = button
+this.position = position
+}
 
-    val isMouseMove: Boolean
-        get() = actionType == MouseActionType.MOVE
-
-    val isMouseUp: Boolean
-        get() = actionType == MouseActionType.CLICK_RELEASE
-
-    override fun toString(): String {
-        return "MouseAction{actionType=$actionType, button=$button, position=$position}"
-    }
+override fun toString():String {
+return "MouseAction{actionType=" + actionType + ", button=" + button + ", position=" + position + '}'.toString()
+}
 }

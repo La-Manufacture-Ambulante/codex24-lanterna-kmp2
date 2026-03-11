@@ -100,6 +100,12 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
     }
 
     override fun handleInput(key: KeyStroke?): Boolean {
+        for (menu in menus) {
+            if (menu.isKeyboardAcceleratorStroke(key)) {
+                menu.handleInput(key)
+                return true
+            }
+        }
         return false
     }
 

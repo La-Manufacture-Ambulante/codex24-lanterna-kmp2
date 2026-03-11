@@ -1,21 +1,3 @@
-/*
- * This file is part of lanterna (https://github.com/mabe02/lanterna).
- *
- * lanterna is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2010-2020 Martin Berglund
- */
 package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.TerminalSize
@@ -31,7 +13,6 @@ import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 
 /**
  * Dialog that allows the user to select an item from a list.
- * @author Martin
  */
 class ListSelectDialog<T> internal constructor(
     title: String?,
@@ -106,9 +87,6 @@ class ListSelectDialog<T> internal constructor(
         close()
     }
 
-    /**
-     * Opens the dialog and returns the selected item, or `null` if cancelled.
-     */
     override fun showDialog(textGUI: WindowBasedTextGUI): T? {
         result = null
         super.showDialog(textGUI)
@@ -116,16 +94,10 @@ class ListSelectDialog<T> internal constructor(
     }
 
     companion object {
-        /**
-         * Convenience helper creating and showing a [ListSelectDialog] with automatic list-box sizing.
-         */
         fun <T> showDialog(textGUI: WindowBasedTextGUI, title: String?, description: String?, vararg items: T): T? {
             return showDialog(textGUI, title, description, null, *items)
         }
 
-        /**
-         * Convenience helper creating and showing a [ListSelectDialog] with explicit list-box height.
-         */
         fun <T> showDialog(
             textGUI: WindowBasedTextGUI,
             title: String?,
@@ -141,9 +113,6 @@ class ListSelectDialog<T> internal constructor(
             return showDialog(textGUI, title, description, TerminalSize(width, listBoxHeight), *items)
         }
 
-        /**
-         * Convenience helper creating and showing a [ListSelectDialog] with explicit list-box size.
-         */
         fun <T> showDialog(
             textGUI: WindowBasedTextGUI,
             title: String?,

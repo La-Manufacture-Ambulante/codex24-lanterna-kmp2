@@ -22,8 +22,6 @@ import com.googlecode.lanterna.internal.compat.Character
 
 /**
  * Character pattern that matches characters pressed while ALT is held down.
- *
- * @author Martin, Andreas
  */
 class AltAndCharacterPattern : CharacterPattern {
     override fun match(seq: List<Char>?): CharacterPattern.Matching? {

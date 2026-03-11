@@ -25,12 +25,6 @@ import com.googlecode.lanterna.graphics.BasicTextImage
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.graphics.TextImage
 
-/**
- * Defines a buffer used by AbstractScreen and its subclasses to keep its state of what's currently displayed and what
- * the edit buffer looks like. A ScreenBuffer is essentially a two-dimensional array of TextCharacter with some utility
- * methods to inspect and manipulate it in a safe way.
- * @author martin
- */
 class ScreenBuffer private constructor(private val backend: BasicTextImage) : TextImage {
     constructor(size: TerminalSize?, filler: TextCharacter?) : this(BasicTextImage(size, filler))
 

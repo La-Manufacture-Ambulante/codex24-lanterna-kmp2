@@ -178,7 +178,7 @@ class TreeNode<V> constructor(
         return when {
             previousChildren != null -> previousChildren.lastExpandedChildren()
             isVisible() -> this
-            parent != null -> parent?.getPreviousNode(treeNode)
+            parent != null -> parent?.getPreviousNode(this)
             else -> null
         }
     }
@@ -195,7 +195,7 @@ class TreeNode<V> constructor(
     private fun getNextNode(treeNode: TreeNode<V>): TreeNode<V>? {
         val childIndex = children.indexOf(treeNode)
         val nextChildren = getFirstVisibleChildren(childIndex + 1)
-        return nextChildren ?: parent?.getNextNode(treeNode)
+        return nextChildren ?: parent?.getNextNode(this)
     }
 
     private fun getFirstVisibleChildren(): TreeNode<V>? = getFirstVisibleChildren(0)

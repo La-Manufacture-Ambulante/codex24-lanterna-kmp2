@@ -28,8 +28,7 @@ import com.googlecode.lanterna.screen.TabBehaviour
 import com.googlecode.lanterna.internal.compat.EnumSet
 
 /**
- * Default logic for drawing basic text graphics.
- * Implementations rely on [setCharacter] being implemented in subclasses.
+ * Default logic for TextGraphics implementations.
  */
 abstract class AbstractTextGraphics protected constructor() : TextGraphics {
     private val activeModifiersBacking: EnumSet<SGR> = EnumSet.noneOf(SGR::class)
@@ -49,10 +48,6 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
         },
     )
 
-    /**
-     * Screen coordinates of the top-left corner of this [TextGraphics].
-     * Subclasses that offset the graphics should override this property.
-     */
     protected open val screenLocation: TerminalPosition
         get() = TerminalPosition.TOP_LEFT_CORNER
 
@@ -338,7 +333,6 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
             val controlSequence = TerminalTextUtils.getANSIControlSequenceAt(prepared, i)
             if (controlSequence != null) {
                 TerminalTextUtils.updateModifiersFromCSICode(controlSequence, this, original)
-                // Skip the control sequence bytes and continue scanning from the next visible character.
                 i += controlSequence.length
                 continue
             }
@@ -358,10 +352,6 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
         return if (position == null) null else getCharacter(position.column, position.row)
     }
 
-    /**
-     * Translates a position within this [TextGraphics] to absolute screen coordinates.
-     * Returns `null` if the translated position falls outside the writable bounds.
-     */
     override fun toScreenPosition(pos: TerminalPosition?): TerminalPosition? {
         if (pos == null) {
             return null
@@ -372,9 +362,6 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
         return if (loc.column > max.column || loc.row > max.row) null else loc
     }
 
-    /**
-     * Creates a sub-graphics view, or a [NullTextGraphics] if the requested area is fully outside this graphics.
-     */
     @Throws(IllegalArgumentException::class)
     override fun newTextGraphics(topLeftCorner: TerminalPosition?, size: TerminalSize?): TextGraphics? {
         if (topLeftCorner == null || size == null) {
@@ -413,7 +400,6 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
     }
 
     private fun getOffsetToNextCharacter(character: Char): Int {
-        // CJK full-width glyphs consume two columns; regular glyphs consume one.
         return if (TerminalTextUtils.isCharDoubleWidth(character)) 2 else 1
     }
 

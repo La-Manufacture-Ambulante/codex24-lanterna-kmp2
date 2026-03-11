@@ -23,15 +23,17 @@ import com.googlecode.lanterna.TerminalPosition
 /**
  * ScreenInfoAction, a KeyStroke in disguise, this class contains the reported position of the screen cursor.
  */
-class ScreenInfoAction(
-    /**
-     * The location of the mouse cursor when this event was generated.
-     * @return Location of the mouse cursor
-     */
-    val position: TerminalPosition?
-) : KeyStroke(KeyType.CURSOR_LOCATION) {
+ class ScreenInfoAction/**
+ * Constructs a ScreenInfoAction based on a location on the screen
+ * @param position the TerminalPosition reported from terminal
+ */
+    (/**
+ * The location of the mouse cursor when this event was generated.
+ * @return Location of the mouse cursor
+ */
+     val position:TerminalPosition?):KeyStroke(KeyType.CURSOR_LOCATION) {
 
-    override fun toString(): String {
-        return "ScreenInfoAction{position=$position}"
-    }
+override fun toString():String {
+return "ScreenInfoAction{position=" + position + '}'.toString()
+}
 }

@@ -27,10 +27,7 @@ import com.googlecode.lanterna.input.KeyType
 import kotlin.collections.HashSet
 
 /**
- * Abstract Window has most of the code required for a window to function, all concrete window implementations extend
- * from this in one way or another. You can define your own window by extending from this, as an alternative to
- * building up the GUI externally by constructing a `BasicWindow` and adding components to it.
- * @author Martin
+ * Abstract [Window] implementation with shared behavior.
  */
 abstract class AbstractWindow protected constructor(initialTitle: String? = "") : AbstractBasePane<Window?>(), Window {
     override var textGUI: WindowBasedTextGUI? = null
@@ -50,10 +47,6 @@ abstract class AbstractWindow protected constructor(initialTitle: String? = "") 
     private var windowPostRenderer: WindowPostRenderer? = null
     private var closeWindowWithEscape: Boolean = false
 
-    /**
-     * Setting this property to `true` will cause pressing the ESC key to close the window.
-     * @param closeWindowWithEscape If `true`, this window will self-close if you press ESC key
-     */
     fun setCloseWindowWithEscape(closeWindowWithEscape: Boolean) {
         this.closeWindowWithEscape = closeWindowWithEscape
     }

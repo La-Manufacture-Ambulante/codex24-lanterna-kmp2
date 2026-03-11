@@ -26,10 +26,7 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
 
 /**
- * The checkbox component looks like a regular checkbox that you can find in modern graphics user interfaces, a label
- * and a space that the user can toggle on and off by using enter or space keys.
- *
- * @author Martin
+ * Checkbox component.
  */
 class CheckBox(label: String) : AbstractInteractableComponent<CheckBox?>() {
     interface Listener {
@@ -72,7 +69,7 @@ class CheckBox(label: String) : AbstractInteractableComponent<CheckBox?>() {
             setChecked(!isChecked())
             return Interactable.Result.HANDLED
         } else if (isMouseActivationStroke(keyStroke)) {
-            basePane!!.focusedInteractable = this
+            basePane?.focusedInteractable = this
             setChecked(!isChecked())
             return Interactable.Result.HANDLED
         }

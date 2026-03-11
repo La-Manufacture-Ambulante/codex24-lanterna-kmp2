@@ -74,7 +74,9 @@ abstract class AbstractScreen(
     private var latestResizeRequest: TerminalSize? = null
 
     override fun setCharacter(position: TerminalPosition?, screenCharacter: TextCharacter?) {
-        setCharacter(position!!.column, position.row, screenCharacter!!)
+        if (position != null) {
+            setCharacter(position.column, position.row, screenCharacter)
+        }
     }
 
     override fun newTextGraphics(): TextGraphics {
@@ -102,7 +104,7 @@ abstract class AbstractScreen(
     }
 
     override fun setCharacter(column: Int, row: Int, screenCharacter: TextCharacter?) {
-        var character = screenCharacter!!
+        var character = screenCharacter ?: return
         if (character.`is`('\t')) {
             character = character.withCharacter(' ')
             val replacementLength = tabBehaviour?.replaceTabs("\t", column)?.length ?: 1
@@ -118,13 +120,13 @@ abstract class AbstractScreen(
         getCharacterFromBuffer(frontBuffer, column, row)
 
     override fun getFrontCharacter(position: TerminalPosition?): TextCharacter? =
-        getFrontCharacter(position!!.column, position.row)
+        if (position == null) null else getFrontCharacter(position.column, position.row)
 
     override fun getBackCharacter(column: Int, row: Int): TextCharacter? =
         getCharacterFromBuffer(backBuffer, column, row)
 
     override fun getBackCharacter(position: TerminalPosition?): TextCharacter? =
-        getBackCharacter(position!!.column, position.row)
+        if (position == null) null else getBackCharacter(position.column, position.row)
 
     @Throws(IOException::class)
     override fun refresh() {

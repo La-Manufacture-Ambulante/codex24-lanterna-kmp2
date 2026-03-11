@@ -22,18 +22,7 @@ import com.googlecode.lanterna.internal.compat.System
 import kotlin.collections.ArrayList
 
 /**
- * Represents the user pressing a key on the keyboard. If the user held down ctrl and/or alt before pressing the key,
- * this may be recorded in this class, depending on the terminal implementation and if such information in available.
- * KeyStroke objects are normally constructed by a KeyDecodingProfile, which works off a character stream that likely
- * coming from the system's standard input. Because of this, the class can only represent what can be read and
- * interpreted from the input stream; for example, certain key-combinations like ctrl+i is indistinguishable from a tab
- * key press.
- * <p>
- * Use the <tt>keyType</tt> field to determine what kind of key was pressed. For ordinary letters, numbers and symbols,
- * the <tt>keyType</tt> will be <tt>KeyType.Character</tt> and the actual character value of the key is in the
- * <tt>character</tt> field. Please note that return (\n) and tab (\t) are not sorted under type
- * <tt>KeyType.Character</tt> but <tt>KeyType.Enter</tt> and <tt>KeyType.Tab</tt> instead.
- * @author martin
+ * Represents one decoded keyboard event.
  */
 open class KeyStroke private constructor(
     val keyType: KeyType?,

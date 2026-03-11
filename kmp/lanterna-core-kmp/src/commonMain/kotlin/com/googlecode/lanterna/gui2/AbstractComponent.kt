@@ -120,12 +120,12 @@ abstract class AbstractComponent<T : Component?> : Component {
 
     protected abstract fun createDefaultRenderer(): ComponentRenderer<T?>?
 
-    protected fun runOnGUIThreadIfExistsOtherwiseRunDirect(runnable: Runnable) {
+    protected fun runOnGUIThreadIfExistsOtherwiseRunDirect(runnable: Runnable?) {
         val guiThread = textGUI?.guiThread
         if (guiThread != null) {
             guiThread.invokeLater { runnable?.run() }
         } else {
-            runnable.run()
+            runnable?.run()
         }
     }
 

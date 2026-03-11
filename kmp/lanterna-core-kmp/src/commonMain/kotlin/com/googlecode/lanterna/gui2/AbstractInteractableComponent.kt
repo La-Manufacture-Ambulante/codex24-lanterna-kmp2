@@ -157,7 +157,7 @@ abstract class AbstractInteractableComponent<T : AbstractInteractableComponent<T
         } else {
             false
         }
-        return isMouseActivation
+        return isFocused && isMouseActivation
     }
 
     fun isActivationStroke(keyStroke: KeyStroke?): Boolean {

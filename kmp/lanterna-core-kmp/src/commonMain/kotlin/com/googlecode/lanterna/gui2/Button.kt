@@ -27,39 +27,31 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
 
 /**
- * Simple labeled button that the user can trigger by pressing the Enter or the Spacebar key on the keyboard when the
- * component is in focus. You can specify an initial action through one of the constructors and you can also add
- * additional actions to the button using [addListener]. To remove a previously attached action, use
- * [removeListener].
+ * Simple labeled button.
  */
-class Button(label: String) : AbstractInteractableComponent<Button>() {
-    /**
-     * Listener interface that can be used to catch user events on the button
-     */
+class Button(label: String?) : AbstractInteractableComponent<Button?>() {
     interface Listener {
-        /**
-         * This is called when the user has triggered the button
-         * @param button Button which was triggered
-         */
-        fun onTriggered(button: Button)
+        fun onTriggered(button: Button?)
     }
 
     private val listeners: MutableList<Listener> = CopyOnWriteArrayList()
     private var label: String = " "
 
-    constructor(label: String, action: Runnable) : this(label) {
-        listeners.add(object : Listener {
-            override fun onTriggered(button: Button) {
-                action.run()
-            }
-        })
+    constructor(label: String?, action: Runnable?) : this(label) {
+        if (action != null) {
+            listeners.add(object : Listener {
+                override fun onTriggered(button: Button?) {
+                    action.run()
+                }
+            })
+        }
     }
 
     init {
         setLabel(label)
     }
 
-    override fun createDefaultRenderer(): ButtonRenderer? {
+    override fun createDefaultRenderer(): ButtonRenderer {
         return DefaultButtonRenderer()
     }
 
@@ -75,7 +67,8 @@ class Button(label: String) : AbstractInteractableComponent<Button>() {
     }
 
     override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
-        if (isActivationStroke(keyStroke)) {
+        if (isActivationStroke(keyStroke) || isKeyboardAcceleratorStroke(keyStroke)) {
+            basePane?.focusedInteractable = this
             triggerActions()
             return Interactable.Result.HANDLED
         }
@@ -100,11 +93,14 @@ class Button(label: String) : AbstractInteractableComponent<Button>() {
         invalidate()
     }
 
-    fun addListener(listener: Listener) {
+    fun addListener(listener: Listener?) {
+        if (listener == null) {
+            throw IllegalArgumentException("null listener to a button is not allowed")
+        }
         listeners.add(listener)
     }
 
-    fun removeListener(listener: Listener): Boolean {
+    fun removeListener(listener: Listener?): Boolean {
         return listeners.remove(listener)
     }
 
@@ -116,9 +112,6 @@ class Button(label: String) : AbstractInteractableComponent<Button>() {
         return "Button{$label}"
     }
 
-    /**
-     * Helper interface that doesn't add any new methods but makes coding new button renderers a little bit more clear
-     */
     interface ButtonRenderer : InteractableRenderer<Button?>
 
     class DefaultButtonRenderer : ButtonRenderer {

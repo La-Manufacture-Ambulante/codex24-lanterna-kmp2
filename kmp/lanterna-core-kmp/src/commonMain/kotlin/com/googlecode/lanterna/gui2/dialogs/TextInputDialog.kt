@@ -1,21 +1,3 @@
-/*
- * This file is part of lanterna (https://github.com/mabe02/lanterna).
- *
- * lanterna is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2010-2020 Martin Berglund
- */
 package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.TerminalSize
@@ -32,7 +14,6 @@ import com.googlecode.lanterna.internal.compat.Pattern
 
 /**
  * Modal text input dialog that prompts the user to enter a text string.
- * @author Martin
  */
 class TextInputDialog internal constructor(
     title: String?,
@@ -114,9 +95,6 @@ class TextInputDialog internal constructor(
         close()
     }
 
-    /**
-     * Opens the dialog and returns entered text, or `null` if cancelled.
-     */
     override fun showDialog(textGUI: WindowBasedTextGUI): String? {
         result = null
         super.showDialog(textGUI)
@@ -124,9 +102,6 @@ class TextInputDialog internal constructor(
     }
 
     companion object {
-        /**
-         * Shows a plain text-input dialog.
-         */
         fun showDialog(
             textGUI: WindowBasedTextGUI,
             title: String?,
@@ -141,9 +116,6 @@ class TextInputDialog internal constructor(
             return textInputDialog.showDialog(textGUI)
         }
 
-        /**
-         * Shows a number-only text-input dialog and returns parsed value.
-         */
         fun showNumberDialog(
             textGUI: WindowBasedTextGUI,
             title: String?,
@@ -160,9 +132,6 @@ class TextInputDialog internal constructor(
             return if (numberString != null) BigInteger(numberString) else null
         }
 
-        /**
-         * Shows a password-style text-input dialog (masked input).
-         */
         fun showPasswordDialog(
             textGUI: WindowBasedTextGUI,
             title: String?,

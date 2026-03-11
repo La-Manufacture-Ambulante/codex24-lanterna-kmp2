@@ -31,18 +31,9 @@ class ProgressBar constructor(min: Int = 0, max: Int = 100, preferredWidth: Int 
     var preferredWidth: Int
     private var labelFormat: String? = "%2.0f%%"
 
-    /**
-     * Returns the current progress of this progress bar's *value* from *minimum* to *maximum*, expressed as a float
-     * from 0.0f to 1.0f.
-     * @return current progress of this progress bar expressed as a float from 0.0f to 1.0f.
-     */
     val progress: Float
         get() = (value - min).toFloat() / max.toFloat()
 
-    /**
-     * Returns the label of this progress bar formatted through `String.format(..)` with the current progress value.
-     * @return The progress bar label formatted with the current progress
-     */
     val formattedLabel: String
         get() {
             val format = labelFormat ?: return ""
@@ -126,10 +117,6 @@ class ProgressBar constructor(min: Int = 0, max: Int = 100, preferredWidth: Int 
         return DefaultProgressBarRenderer()
     }
 
-    /**
-     * Default implementation of the progress bar GUI component renderer. This renderer will draw the progress bar
-     * on a single line and gradually fill up the space with a different color as the progress is increasing.
-     */
     class DefaultProgressBarRenderer : ComponentRenderer<ProgressBar?> {
         override fun getPreferredSize(component: ProgressBar?): TerminalSize? {
             val progressBar = component ?: return TerminalSize(10, 1)

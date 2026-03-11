@@ -23,9 +23,7 @@ import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.gui2.TextGUIGraphics
 
 /**
- * Default implementation of `TableCellRenderer`
- * @param V Type of data stored in each table cell
- * @author Martin
+ * Default implementation of [TableCellRenderer].
  */
 open class DefaultTableCellRenderer<V> : TableCellRenderer<V?> {
     override fun getPreferredSize(table: Table<V?>?, cell: V?, columnIndex: Int, rowIndex: Int): TerminalSize {
@@ -47,8 +45,8 @@ open class DefaultTableCellRenderer<V> : TableCellRenderer<V?> {
         rowIndex: Int,
         textGUIGraphics: TextGUIGraphics?,
     ) {
-        val activeTable = table!!
-        val activeGraphics = textGUIGraphics!!
+        val activeTable = table ?: return
+        val activeGraphics = textGUIGraphics ?: return
         val isSelected =
             (activeTable.getSelectedColumn() == columnIndex && activeTable.getSelectedRow() == rowIndex) ||
                 (activeTable.getSelectedRow() == rowIndex && !activeTable.isCellSelection())

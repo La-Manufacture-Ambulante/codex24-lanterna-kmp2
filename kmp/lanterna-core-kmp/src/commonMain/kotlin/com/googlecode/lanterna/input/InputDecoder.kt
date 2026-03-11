@@ -27,20 +27,19 @@ import com.googlecode.lanterna.internal.compat.Reader
 
 /**
  * Used to read the input stream character by character and generate `Key` objects to be put in the input queue.
- *
+ * 
  * @author Martin, Andreas
  */
-class InputDecoder(
-    /**
-     * Reader to read characters from, wrapped by a [BufferedReader].
-     */
-    source: Reader?
-) {
-    private val source: Reader = BufferedReader(requireNotNull(source) { "source" })
-    private val bytePatterns: MutableList<CharacterPattern> = ArrayList()
-    private val currentMatching: MutableList<Char> = ArrayList()
-    private var seenEOF: Boolean = false
-    private var timeoutUnits: Int = 0
+ class InputDecoder/**
+ * Creates a new input decoder using a specified Reader as the source to read characters from
+ * @param source Reader to read characters from, will be wrapped by a BufferedReader
+ */
+    (source:Reader?) {
+private val source:Reader?
+private val bytePatterns:MutableList<CharacterPattern>
+private val currentMatching:MutableList<Char>
+private var seenEOF:Boolean = false
+private var timeoutUnits:Int = 0
 
 /**
  * Returns a collection of all patterns registered in this InputDecoder.
@@ -72,10 +71,10 @@ for (pattern in profile.patterns)
 synchronizedCompat(bytePatterns) {
  //If an equivalent pattern already exists, remove it first
                 bytePatterns.remove(pattern)
-                bytePatterns.add(pattern)
-            }
-        }
-    }
+bytePatterns.add(pattern)
+}
+}
+}
 
 /**
  * Removes one pattern from the list of patterns in this InputDecoder
@@ -88,21 +87,29 @@ return bytePatterns.remove(pattern)
 }
 }
 
-    /**
-     * Sets the number of 1/4-second units for how long to try to get further input
-     * to complete an escape-sequence for a special Key.
-     *
-     * Negative numbers are mapped to 0 (no wait at all), and unreasonably high
-     * values are mapped to a maximum of 240 (1 minute).
-     * @param units New timeout to use, in 250ms units
-     */
-    fun setTimeoutUnits(units: Int) {
-        timeoutUnits = when {
-            units < 0 -> 0
-            units > 240 -> 240
-            else -> units
-        }
-    }
+/**
+ * Sets the number of 1/4-second units for how long to try to get further input
+ * to complete an escape-sequence for a special Key.
+ * 
+ * Negative numbers are mapped to 0 (no wait at all), and unreasonably high
+ * values are mapped to a maximum of 240 (1 minute).
+ * @param units New timeout to use, in 250ms units
+ */
+     fun setTimeoutUnits(units:Int) {
+timeoutUnits = if ((units < 0))
+0
+else if ((units > 240))
+240
+else
+units
+}
+/**
+ * queries the current timeoutUnits value. One unit is 1/4 second.
+ * @return The timeout this InputDecoder will use when waiting for additional input, in units of 1/4 seconds
+ */
+     fun getTimeoutUnits():Int {
+return timeoutUnits
+}
 
 /**
  * Reads and decodes the next key stroke from the input stream
@@ -113,22 +120,16 @@ return bytePatterns.remove(pattern)
     @Throws(IOException::class)
  fun getNextCharacter(blockingIO:Boolean):KeyStroke? {
 
-    /**
-     * Reads and decodes the next key stroke from the input stream.
-     * @param blockingIO If set to `true`, the call will not return until it has read at least one [KeyStroke]
-     * @return Key stroke read from the input stream, or `null` if none
-     * @throws IOException If there was an I/O error when reading from the input stream
-     */
-    @Synchronized
-    @Throws(IOException::class)
-    fun getNextCharacter(blockingIO: Boolean): KeyStroke? {
-        var bestMatch: KeyStroke? = null
-        var bestLen = 0
-        var curLen = 0
+var bestMatch:KeyStroke? = null
+var bestLen = 0
+var curLen = 0
 
-        while (true) {
-            if (curLen < currentMatching.size) {
-                // (Re-)consume characters previously read.
+while (true)
+{
+
+if (curLen < currentMatching.size)
+{
+ // (re-)consume characters previously read:
                 curLen++
 }
 else
@@ -151,71 +152,94 @@ catch (e: Throwable) {
 timeout = 0
 }
 
-                // If input is available, read without waiting.
-                // Otherwise, for blocking reads with no best match yet, wait for more input.
-                if (source.ready() || (blockingIO && bestMatch == null)) {
-                    val readChar = source.read()
-                    if (readChar == -1) {
-                        seenEOF = true
-                        if (currentMatching.isEmpty()) {
-                            return KeyStroke(KeyType.EOF)
-                        }
-                        break
-                    }
-                    currentMatching.add(readChar.toChar())
-                    curLen++
-                } else {
-                    // No more available input at this time.
-                    if (bestMatch != null) {
-                        break
-                    }
+}
+}
+ // if input is available, we can just read a char without waiting,
+                // otherwise, for readInput() with no bestMatch found yet,
+                //  we have to wait blocking for more input:
+                if (source!!.ready() || (blockingIO && bestMatch == null))
+{
+val readChar = source!!.read()
+if (readChar == -1)
+{
+seenEOF = true
+if (currentMatching.isEmpty())
+{
+return KeyStroke(KeyType.EOF)
+}
+break
+}
+currentMatching.add(readChar.toChar())
+curLen++
+}
+else
+{ // no more available input at this time.
+ // already found something:
+                    if (bestMatch != null)
+{
+break // it's something...
+}
+ // otherwise: no KeyStroke yet
                     return null
-                }
-            }
+}
+}
 
-            val curSub = currentMatching.subList(0, curLen)
-            val matching = getBestMatch(curSub)
+val curSub = currentMatching.subList(0, curLen)
+val matching = getBestMatch(curSub)
 
-            // Full match found.
-            if (matching.fullMatch != null) {
-                bestMatch = matching.fullMatch
-                bestLen = curLen
+ // fullMatch found...
+            if (matching.fullMatch != null)
+{
+bestMatch = matching.fullMatch
+bestLen = curLen
 
-                if (!matching.partialMatch) {
+if (!matching.partialMatch)
+{
+ // that match and no more
                     break
-                }
+}
+else
+{
+ // that match, but maybe more
+
+                    
+                    continue
+}
+}
+else if (matching.partialMatch)
+{
+
                 continue
-            }
-            // No full match yet, but there is still potential.
-            else if (matching.partialMatch) {
-                continue
-            }
-            // No longer match possible at this point.
-            else {
-                if (bestMatch != null) {
-                    // There was already a previous full match, use it.
+}
+else
+{
+if (bestMatch != null)
+{
+ // there was already a previous full-match, use it:
                     break
-                }
-                // Invalid input: remove failed prefix and retry finding a KeyStroke.
-                curSub.clear() // Alternative would be: currentMatching.removeAt(0)
-                curLen = 0
-                continue
-            }
-        }
+}
+else
+{ // invalid input!
+ // remove the whole fail and re-try finding a KeyStroke...
+                    curSub.clear() // or just 1 char?  currentMatching.remove(0);
+curLen = 0
 
-        // Did we find anything? Otherwise return null.
-        if (bestMatch == null) {
-            if (seenEOF) {
-                currentMatching.clear()
-                return KeyStroke(KeyType.EOF)
-            }
-            return null
-        }
+                    continue
+}
+}// no longer match possible at this point:
+ // No match found yet, but there's still potential...
+}
 
-        val bestSub = currentMatching.subList(0, bestLen)
-        bestSub.clear() // Remove matched characters from input.
-        return bestMatch
-    }
+ //Did we find anything? Otherwise return null
+        if (bestMatch == null)
+{
+if (seenEOF)
+{
+currentMatching.clear()
+return KeyStroke(KeyType.EOF)
+}
+return null
+}
 
 val bestSub = currentMatching.subList(0, bestLen)
 bestSub.clear() // remove matched characters from input

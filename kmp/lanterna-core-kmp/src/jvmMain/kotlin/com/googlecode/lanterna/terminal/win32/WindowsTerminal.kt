@@ -22,7 +22,7 @@ class WindowsTerminal @Throws(IOException::class) constructor(
     terminalInput: InputStream?,
     terminalOutput: OutputStream?,
     terminalCharset: Charset?,
-    terminalCtrlCBehaviour: UnixLikeTerminal.CtrlCBehaviour,
+    terminalCtrlCBehaviour: UnixLikeTerminal.CtrlCBehaviour?,
 ) : UnixLikeTerminal(terminalInput, terminalOutput, terminalCharset, terminalCtrlCBehaviour) {
     private var settings: IntArray? = null
 
@@ -108,7 +108,7 @@ class WindowsTerminal @Throws(IOException::class) constructor(
     }
 
     @Throws(IOException::class)
-    override fun registerTerminalResizeListener(onResize: Runnable) {
+    override fun registerTerminalResizeListener(onResize: Runnable?) {
         // ignore
     }
 

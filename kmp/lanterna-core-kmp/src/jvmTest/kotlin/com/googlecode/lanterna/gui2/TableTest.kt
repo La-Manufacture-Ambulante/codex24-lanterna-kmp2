@@ -40,7 +40,8 @@ import com.googlecode.lanterna.internal.compat.Pattern
 
 private var columnCounter = 4
 
-fun init(textGUI:WindowBasedTextGUI) {
+@Override
+ fun init(textGUI:WindowBasedTextGUI) {
 val window = BasicWindow("Table container test")
 window.setHints(Collections.singletonList(Window.Hint.FIT_TERMINAL_WINDOW))
 
@@ -111,7 +112,7 @@ model.removeColumn(Integer.parseInt(numberAsText))
 } })
 .build()
 .showDialog(textGUI) }))
-buttonPanel.addComponent(Button("Close", Runnable { window.close() }))
+buttonPanel.addComponent(Button("Close", Runnable({ window.close() })))
 
 table.withBorder(Borders.singleLineBevel("Table"))
 window.setComponent(Panels.vertical(table, buttonPanel))
