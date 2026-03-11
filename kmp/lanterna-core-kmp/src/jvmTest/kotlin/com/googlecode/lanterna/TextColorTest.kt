@@ -1,8 +1,8 @@
 package com.googlecode.lanterna
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.awt.*
+import java.awt.Color
 
 class TextColorTest {
     @Test
