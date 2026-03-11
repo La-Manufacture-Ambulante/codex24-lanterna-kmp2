@@ -23,7 +23,7 @@ window.setHints(Collections.singletonList(Window.Hint.FULL_SCREEN))
 val gui = MultiWindowTextGUI(screen)
 
 val mainPanel = Panel(LinearLayout())
-window.setComponent(mainPanel)
+window.component = mainPanel
 
 val disabledInBorder1 = Button("disabledB1")
 disabledInBorder1.setEnabled(false)

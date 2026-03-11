@@ -59,7 +59,7 @@ panel.addComponent(Button("Submit"))
  // Create window to hold the panel
         val window = BasicWindow()
 window.setFixedSize(TerminalSize(500, 700))
-window.setComponent(panel)
+window.component = panel
 
 gui.addWindowAndWait(window)
 }

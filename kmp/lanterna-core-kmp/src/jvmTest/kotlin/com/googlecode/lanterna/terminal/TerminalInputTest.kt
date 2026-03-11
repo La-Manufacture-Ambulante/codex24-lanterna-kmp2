@@ -50,7 +50,7 @@ Thread.sleep(1)
 continue
 }
 
-if (key!!.getKeyType() === KeyType.ESCAPE || key!!.getKeyType() === KeyType.EOF)
+if (key!!.keyType == KeyType.ESCAPE || key!!.keyType == KeyType.EOF)
 {
 break
 }
@@ -63,7 +63,7 @@ rawTerminal!!.clearScreen()
 rawTerminal!!.setCursorPosition(0, currentRow++)
 putString(rawTerminal, key!!.toString())
 
-if (currentRow >= rawTerminal!!.getTerminalSize().getRows())
+if (currentRow >= rawTerminal!!.terminalSize!!.rows)
 {
 currentRow = 0
 }
@@ -76,7 +76,7 @@ rawTerminal!!.exitPrivateMode()
 private fun putString(rawTerminal:Terminal, string:String) {
 for (i in 0 until string.length)
 {
-rawTerminal!!.putCharacter(string.charAt(i))
+rawTerminal!!.putCharacter(string[i])
 }
 rawTerminal!!.flush()
 }

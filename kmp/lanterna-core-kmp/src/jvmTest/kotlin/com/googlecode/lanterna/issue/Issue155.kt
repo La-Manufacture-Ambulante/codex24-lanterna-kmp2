@@ -41,7 +41,7 @@ val gui = MultiWindowTextGUI(screen, windowManager, background)
 screen.startScreen()
 gui.addWindowAndWait(object:BasicWindow("Issue155") {
 init{
-setComponent(createUi(gui, this))
+component = createUi(gui, this)
 }
 })
 screen.stopScreen()

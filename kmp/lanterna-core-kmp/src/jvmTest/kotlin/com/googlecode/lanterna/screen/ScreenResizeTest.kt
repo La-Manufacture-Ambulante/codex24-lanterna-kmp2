@@ -39,7 +39,7 @@ private val screen:Screen
 init{
 screen = TestTerminalFactory(args).createScreen()
 screen!!.startScreen()
-screen!!.setCursorPosition(TerminalPosition(0, 0))
+screen!!.cursorPosition = TerminalPosition(0, 0)
 putStrings("Initial setup, please resize the window")
 
 val now = System.currentTimeMillis()
@@ -48,7 +48,7 @@ while (System.currentTimeMillis() - now < 20 * 1000)
 screen!!.pollInput()
 if (screen!!.doResizeIfNecessary() != null)
 {
-putStrings("Size: " + screen!!.getTerminalSize().getColumns() + "x" + screen!!.getTerminalSize().getRows())
+putStrings("Size: " + screen!!.terminalSize!!.columns + "x" + screen!!.terminalSize!!.rows)
 }
 
 Thread.sleep(1)

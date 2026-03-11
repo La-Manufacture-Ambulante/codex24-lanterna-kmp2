@@ -40,7 +40,7 @@ rawTerminal!!.setCursorPosition(5, 5)
 printString(rawTerminal, "Waiting for initial size...")
 rawTerminal!!.flush()
 
-val initialSize = rawTerminal!!.getTerminalSize()
+val initialSize = rawTerminal!!.terminalSize
 rawTerminal!!.clearScreen()
 rawTerminal!!.setCursorPosition(5, 5)
 printString(rawTerminal, "Initial size: ")
@@ -62,7 +62,7 @@ rawTerminal!!.exitPrivateMode()
 private fun printString(rawTerminal:Terminal, string:String) {
 for (i in 0 until string.length)
 {
-rawTerminal!!.putCharacter(string.charAt(i))
+rawTerminal!!.putCharacter(string[i])
 }
 }
 }

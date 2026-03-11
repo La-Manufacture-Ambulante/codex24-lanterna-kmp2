@@ -25,7 +25,7 @@ val screen = TerminalScreen(terminal)
 screen.startScreen()
 
 val window = BasicWindow()
-window.setTitle("Hello World")
+window.title = "Hello World"
 
 val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
 gui.addWindowAndWait(window)

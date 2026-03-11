@@ -32,7 +32,7 @@ import java.io.IOException
 val screen = TestTerminalFactory(args).createScreen()
 screen!!.startScreen()
 val textGUI = MultiWindowTextGUI(screen)
-textGUI.setEOFWhenNoWindows(true)
+textGUI.isEOFWhenNoWindows = true
 try
 {
 val window = BasicWindow("Button test")
@@ -46,7 +46,7 @@ contentArea.addComponent(EmptySpace(TerminalSize(5, 1)))
  //contentArea.addComponent(new Button("Here is a\nmulti-line\ntext segment that is using \\n"));
             contentArea.addComponent(Button("OK", Runnable({ window.close() })))
 
-window.setComponent(contentArea)
+window.component = contentArea
 textGUI.addWindowAndWait(window)
 }
 

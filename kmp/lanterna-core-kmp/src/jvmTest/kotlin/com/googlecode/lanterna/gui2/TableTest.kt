@@ -115,7 +115,7 @@ model.removeColumn(Integer.parseInt(numberAsText))
 buttonPanel.addComponent(Button("Close", Runnable({ window.close() })))
 
 table.withBorder(Borders.singleLineBevel("Table"))
-window.setComponent(Panels.vertical(table, buttonPanel))
+window.component = Panels.vertical(table, buttonPanel)
 textGUI.addWindow(window)
 }
 
@@ -165,7 +165,7 @@ model.setCell(Integer.parseInt(columnIndexAsText), Integer.parseInt(rowIndexAsTe
 private fun onModifyStyle(textGUI:WindowBasedTextGUI, table:Table<String>) {
 val dialogChoices = arrayOf("Header border style (vertical)", "Header border style (horizontal)", "Cell border style (vertical)", "Cell border style (horizontal)", "Toggle cell selection")
 val choice = chooseAString(textGUI, "Which style do you want to change?", *dialogChoices)
-val renderer = table.getRenderer() as DefaultTableRenderer<String?>
+val renderer = table.renderer as DefaultTableRenderer<String?>
 if (choice == null)
 {
 return 

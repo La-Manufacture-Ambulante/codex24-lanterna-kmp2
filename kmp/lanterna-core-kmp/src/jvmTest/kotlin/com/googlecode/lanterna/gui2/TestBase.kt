@@ -41,14 +41,14 @@ abstract class TestBase {
         val textGUI = invokeCreateTextGUI(screen)
         val theme = extractTheme(args ?: emptyArray())
         if (theme != null) {
-            textGUI.setTheme(LanternaThemes.getRegisteredTheme(theme))
+            textGUI.theme = LanternaThemes.getRegisteredTheme(theme)
         }
         textGUI.setBlockingIO(false)
-        textGUI.setEOFWhenNoWindows(true)
+        textGUI.isEOFWhenNoWindows = true
 
         try {
             invokeInit(textGUI)
-            val guiThread = textGUI.getGUIThread() as AsynchronousTextGUIThread
+            val guiThread = textGUI.guiThread as AsynchronousTextGUIThread
             guiThread.start()
             invokeAfterGUIThreadStarted(textGUI)
             guiThread.waitForStop()

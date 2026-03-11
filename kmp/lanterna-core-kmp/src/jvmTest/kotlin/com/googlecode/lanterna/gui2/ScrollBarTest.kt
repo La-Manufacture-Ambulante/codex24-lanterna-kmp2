@@ -76,7 +76,7 @@ controlPanel.addComponent(EmptySpace(TerminalSize.ONE)).addComponent(EmptySpace(
 controlPanel.addComponent(buttonRefresh)
 contentPanel.addComponent(closeButton)
 
-basicWindow.setComponent(contentPanel)
+basicWindow.component = contentPanel
 textGUI.addWindow(basicWindow)
 }
 

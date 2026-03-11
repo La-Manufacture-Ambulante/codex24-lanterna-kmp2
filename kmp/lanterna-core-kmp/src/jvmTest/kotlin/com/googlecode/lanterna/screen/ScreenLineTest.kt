@@ -64,16 +64,16 @@ val random = Random()
 while (true)
 {
 val keyStroke = screen!!.pollInput()
-if ((keyStroke != null && (keyStroke!!.getKeyType() === KeyType.ESCAPE || keyStroke!!.getKeyType() === KeyType.EOF)))
+if ((keyStroke != null && (keyStroke!!.keyType == KeyType.ESCAPE || keyStroke!!.keyType == KeyType.EOF)))
 {
 break
 }
 screen!!.doResizeIfNecessary()
-val size = textGraphics.getSize()
+val size = textGraphics.size
 val color:TextColor?
 if (useAnsiColors)
 {
-color = TextColor.ANSI.values()[random.nextInt(TextColor.ANSI.values().length)]
+color = TextColor.ANSI.values()[random.nextInt(TextColor.ANSI.values().size)]
 }
 else
 {
@@ -85,14 +85,14 @@ val p1:TerminalPosition?
 val p2:TerminalPosition?
 if (circle)
 {
-p1 = TerminalPosition(size!!.getColumns() / 2, size!!.getRows() / 2)
+p1 = TerminalPosition(size!!.columns / 2, size!!.rows / 2)
 if (CIRCLE_LAST_POSITION == null)
 {
 CIRCLE_LAST_POSITION = TerminalPosition(0, 0)
 }
-else if (CIRCLE_LAST_POSITION!!.getRow() === 0)
+else if (CIRCLE_LAST_POSITION!!.row == 0)
 {
-if (CIRCLE_LAST_POSITION!!.getColumn() < size!!.getColumns() - 1)
+if (CIRCLE_LAST_POSITION!!.column < size!!.columns - 1)
 {
 CIRCLE_LAST_POSITION = CIRCLE_LAST_POSITION!!.withRelativeColumn(1)
 }
@@ -101,9 +101,9 @@ else
 CIRCLE_LAST_POSITION = CIRCLE_LAST_POSITION!!.withRelativeRow(1)
 }
 }
-else if (CIRCLE_LAST_POSITION!!.getRow() < size!!.getRows() - 1)
+else if (CIRCLE_LAST_POSITION!!.row < size!!.rows - 1)
 {
-if (CIRCLE_LAST_POSITION!!.getColumn() === 0)
+if (CIRCLE_LAST_POSITION!!.column == 0)
 {
 CIRCLE_LAST_POSITION = CIRCLE_LAST_POSITION!!.withRelativeRow(-1)
 }
@@ -114,7 +114,7 @@ CIRCLE_LAST_POSITION = CIRCLE_LAST_POSITION!!.withRelativeRow(1)
 }
 else
 {
-if (CIRCLE_LAST_POSITION!!.getColumn() > 0)
+if (CIRCLE_LAST_POSITION!!.column > 0)
 {
 CIRCLE_LAST_POSITION = CIRCLE_LAST_POSITION!!.withRelativeColumn(-1)
 }
@@ -127,14 +127,14 @@ p2 = CIRCLE_LAST_POSITION
 }
 else
 {
-p1 = TerminalPosition(random.nextInt(size!!.getColumns()), random.nextInt(size!!.getRows()))
-p2 = TerminalPosition(random.nextInt(size!!.getColumns()), random.nextInt(size!!.getRows()))
+p1 = TerminalPosition(random.nextInt(size!!.columns), random.nextInt(size!!.rows))
+p2 = TerminalPosition(random.nextInt(size!!.columns), random.nextInt(size!!.rows))
 }
 textGraphics.setBackgroundColor(color)
 textGraphics.drawLine(p1, p2, ' ')
 textGraphics.setBackgroundColor(TextColor.ANSI.BLACK)
 textGraphics.setForegroundColor(TextColor.ANSI.WHITE)
-textGraphics.putString(4, size!!.getRows() - 1, "P1 " + p1 + " -> P2 " + p2)
+textGraphics.putString(4, size!!.rows - 1, "P1 " + p1 + " -> P2 " + p2)
 screen!!.refresh(Screen.RefreshType.DELTA)
 if (slow)
 {
