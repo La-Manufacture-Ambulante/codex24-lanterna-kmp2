@@ -30,14 +30,11 @@ import java.io.IOException
  */
 interface TextGUI {
     /**
-     * Returns the theme currently assigned to this [TextGUI]
-     * @return Currently active [Theme]
-     */
-    /**
      * Sets the global theme to be used by this TextGUI. This value will be set on every TextGUIGraphics object created
      * for drawing the GUI, but individual components can override this if they want. If you don't call this method
      * you should assume that a default theme is assigned by the library.
-     * @param theme Theme to use as the default theme for this TextGUI
+     *
+     * Returns the theme currently assigned to this [TextGUI].
      */
     var theme: Theme?
 
