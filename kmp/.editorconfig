@@ -38,9 +38,6 @@ ktlint_standard_max-line-length = disabled
 [**/src/jvmTest/kotlin/com/googlecode/lanterna/*.kt]
 ktlint_standard_no-wildcard-imports = disabled
 
-[**/src/commonMain/**/*.kt]
-ktlint_standard_argument-list-wrapping = disabled
-
 [**/src/commonMain/kotlin/com/googlecode/lanterna/graphics/**/*.kt]
 ktlint_standard_function-signature = disabled
 
@@ -52,3 +49,19 @@ ktlint_standard_function-signature = disabled
 
 [**/src/commonMain/kotlin/com/googlecode/lanterna/TextColor.kt]
 ktlint_standard_function-signature = disabled
+ktlint_standard_argument-list-wrapping = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/graphics/DefaultMutableThemeStyle.kt]
+ktlint_standard_argument-list-wrapping = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/ComboBox.kt]
+ktlint_standard_argument-list-wrapping = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/terminal/ansi/ANSITerminal.kt]
+ktlint_standard_argument-list-wrapping = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/terminal/swing/GraphicalTerminalImplementation.kt]
+ktlint_standard_argument-list-wrapping = disabled
+
+[**/src/commonMain/kotlin/com/googlecode/lanterna/terminal/virtual/DefaultVirtualTerminal.kt]
+ktlint_standard_argument-list-wrapping = disabled
