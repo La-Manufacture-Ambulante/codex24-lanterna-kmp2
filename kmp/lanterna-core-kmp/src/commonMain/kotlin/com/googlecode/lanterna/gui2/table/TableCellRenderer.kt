@@ -26,9 +26,9 @@ import com.googlecode.lanterna.gui2.TextGUIGraphics
  *
  * @param <V> Type of data in the table cells
  * @author Martin
-</V> */
+ */
 interface TableCellRenderer<V> {
-/**
+    /**
      * Called by the table when it wants to know how big a particular table cell should be
      * @param table Table containing the cell
      * @param cell Data stored in the cell
@@ -43,7 +43,7 @@ interface TableCellRenderer<V> {
         rowIndex: Int,
     ): TerminalSize?
 
-/**
+    /**
      * Called by the table when it's time to draw a cell, you can see how much size is available by checking the size of
      * the `textGUIGraphics`. The top-left position of the graphics object is the top-left position of this cell.
      * @param table Table containing the cell
