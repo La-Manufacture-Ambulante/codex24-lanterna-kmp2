@@ -37,11 +37,11 @@ class ImageComponentTest : TestBase() {
         window.theme = LanternaThemes.getRegisteredTheme("conqueror")
 
         val controller = ExampleController()
-        controller.selectedImageComponent = makeImageComponent(controller, IMAGE_BLANK!!)
+        controller.selectedImageComponent = makeImageComponent(controller, imageBlank!!)
 
-        val imageComponentX = makeImageComponent(controller, IMAGE_X!!)
-        val imageComponentY = makeImageComponent(controller, IMAGE_Y!!)
-        val imageComponentZ = makeImageComponent(controller, IMAGE_Z!!)
+        val imageComponentX = makeImageComponent(controller, imageX!!)
+        val imageComponentY = makeImageComponent(controller, imageY!!)
+        val imageComponentZ = makeImageComponent(controller, imageZ!!)
 
         val mainPanel = Panel()
         mainPanel.setLayoutManager(GridLayout(2))
@@ -97,19 +97,19 @@ class ImageComponentTest : TestBase() {
             ImageComponentTest().run(args)
         }
 
-        internal var IMAGE: Array<String>? =
+        internal var image: Array<String>? =
             arrayOf("-====================================================-", "xx                                                  xx", "xx  X                                            X  xx", "xx                                                  xx", "xx    .d8b.  d8888b.  .o88b.                        xx", "xx   d8' `8b 88  `8D d8P  Y8                        xx", "xx   88ooo88 88oooY' 8P            asdfasdf         xx", "xx   88~~~88 88~~~b. 8b                             xx", "xx   88   88 88   8D Y8b  d8              1234      xx", "xx   YP   YP Y8888P'  `Y88P'                        xx", "xx                                 asdfasdf         xx", "xx                                                  xx", "xx   db    db db    db d88888D                      xx", "xx   `8b  d8' `8b  d8' YP  d8'                      xx", "xx    `8bd8'   `8bd8'     d8'          xxxxxxx      xx", "xx    .dPYb.     88      d8'           x     x      xx", "xx   .8P  Y8.    88     d8' db         x     x      xx", "xx   YP    YP    YP    d88888P         x     x      xx", "xx                                     xxxxxxx      xx", "xx  X                                            X  xx", "xx                                                  xx", "-====================================================-")
 
-        internal var IMAGE_BLANK: Array<String>? =
+        internal var imageBlank: Array<String>? =
             arrayOf("-=================================-", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "x                                 x", "-=================================-")
 
-        internal var IMAGE_X: Array<String>? =
+        internal var imageX: Array<String>? =
             arrayOf("-=================================-", "xx                               xx", "xx  X                         X  xx", "xx                               xx", "xx     XXXXXXX       XXXXXXX     xx", "xx     X:::::X       X:::::X     xx", "xx     X:::::X       X:::::X     xx", "xx     X::::::X     X::::::X     xx", "xx     XXX:::::X   X:::::XXX     xx", "xx        X:::::X X:::::X        xx", "xx         X:::::X:::::X         xx", "xx          X:::::::::X          xx", "xx          X:::::::::X          xx", "xx         X:::::X:::::X         xx", "xx        X:::::X X:::::X        xx", "xx     XXX:::::X   X:::::XXX     xx", "xx     X::::::X     X::::::X     xx", "xx     X:::::X       X:::::X     xx", "xx     X:::::X       X:::::X     xx", "xx     XXXXXXX       XXXXXXX     xx", "xx                               xx", "xx  X                         X  xx", "xx                               xx", "-=================================-")
 
-        internal var IMAGE_Y: Array<String>? =
+        internal var imageY: Array<String>? =
             arrayOf("-=================================-", "xx                               xx", "xx  X                         X  xx", "xx                               xx", "xx     YYYYYYY       YYYYYYY     xx", "xx     Y:::::Y       Y:::::Y     xx", "xx     Y:::::Y       Y:::::Y     xx", "xx     Y::::::Y     Y::::::Y     xx", "xx     YYY:::::Y   Y:::::YYY     xx", "xx        Y:::::Y Y:::::Y        xx", "xx         Y:::::Y:::::Y         xx", "xx          Y:::::::::Y          xx", "xx           Y:::::::Y           xx", "xx            Y:::::Y            xx", "xx            Y:::::Y            xx", "xx            Y:::::Y            xx", "xx            Y:::::Y            xx", "xx         YYYY:::::YYYY         xx", "xx         Y:::::::::::Y         xx", "xx         YYYYYYYYYYYYY         xx", "xx                               xx", "xx  X                         X  xx", "xx                               xx", "-=================================-")
 
-        internal var IMAGE_Z: Array<String>? =
+        internal var imageZ: Array<String>? =
             arrayOf("-=================================-", "xx                               xx", "xx  X                         X  xx", "xx                               xx", "xx     ZZZZZZZZZZZZZZZZZZZ       xx", "xx     Z:::::::::::::::::Z       xx", "xx     Z:::::::::::::::::Z       xx", "xx     Z:::ZZZZZZZZ:::::Z        xx", "xx     ZZZZZ     Z:::::Z         xx", "xx             Z:::::Z           xx", "xx            Z:::::Z            xx", "xx           Z:::::Z             xx", "xx          Z:::::Z              xx", "xx         Z:::::Z               xx", "xx        Z:::::Z                xx", "xx     ZZZ:::::Z     ZZZZZ       xx", "xx     Z::::::ZZZZZZZZ:::Z       xx", "xx     Z:::::::::::::::::Z       xx", "xx     Z:::::::::::::::::Z       xx", "xx     ZZZZZZZZZZZZZZZZZZZ       xx", "xx                               xx", "xx  X                         X  xx", "xx                               xx", "-=================================-")
     }
 }

@@ -74,12 +74,12 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
 
     @Synchronized
     fun startAnimation(millisecondsPerFrame: Long): AnimatedLabel {
-        if (TIMER == null) {
-            TIMER = Timer("AnimatedLabel")
+        if (timer == null) {
+            timer = Timer("AnimatedLabel")
         }
         val animationTimerTask = AnimationTimerTask(this)
-        SCHEDULED_TASKS[this] = animationTimerTask
-        TIMER!!.scheduleAtFixedRate(animationTimerTask, millisecondsPerFrame, millisecondsPerFrame)
+        scheduledTasks[this] = animationTimerTask
+        timer!!.scheduleAtFixedRate(animationTimerTask, millisecondsPerFrame, millisecondsPerFrame)
         return this
     }
 
@@ -108,8 +108,8 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
     }
 
     companion object {
-        private var TIMER: Timer? = null
-        private val SCHEDULED_TASKS: WeakHashMap<AnimatedLabel, TimerTask> = WeakHashMap()
+        private var timer: Timer? = null
+        private val scheduledTasks: WeakHashMap<AnimatedLabel, TimerTask> = WeakHashMap()
 
         @JvmOverloads
         fun createClassicSpinningLine(speed: Int = 150): AnimatedLabel {
@@ -123,16 +123,16 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
 
         @Synchronized
         private fun removeTaskFromTimer(animatedLabel: AnimatedLabel) {
-            SCHEDULED_TASKS[animatedLabel]?.cancel()
-            SCHEDULED_TASKS.remove(animatedLabel)
+            scheduledTasks[animatedLabel]?.cancel()
+            scheduledTasks.remove(animatedLabel)
             canCloseTimer()
         }
 
         @Synchronized
         private fun canCloseTimer() {
-            if (SCHEDULED_TASKS.isEmpty()) {
-                TIMER?.cancel()
-                TIMER = null
+            if (scheduledTasks.isEmpty()) {
+                timer?.cancel()
+                timer = null
             }
         }
     }

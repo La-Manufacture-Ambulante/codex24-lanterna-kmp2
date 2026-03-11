@@ -72,9 +72,9 @@ internal object Issue453 {
                 vararg styles: SGR?,
             ) {
                 screenWriter!!.enableModifiers(*styles)
-                val current_y = 1
-                val default_x = 3
-                screenWriter!!.putString(default_x, current_y, string)
+                val currentY = 1
+                val defaultX = 3
+                screenWriter!!.putString(defaultX, currentY, string)
                 screen!!.pollInput()
                 screen!!.refresh()
             }

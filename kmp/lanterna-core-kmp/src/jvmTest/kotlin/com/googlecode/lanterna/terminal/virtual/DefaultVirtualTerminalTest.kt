@@ -345,53 +345,53 @@ class DefaultVirtualTerminalTest {
 
     @Test
     fun testPrivateMode() {
-        val ROWS = 5
-        virtualTerminal!!.setTerminalSize(TerminalSize(20, ROWS))
-        for (i in 1..ROWS + 2) {
+        val rows = 5
+        virtualTerminal!!.setTerminalSize(TerminalSize(20, rows))
+        for (i in 1..rows + 2) {
             putString("Line " + i + "\n")
         }
-        assertEquals(TerminalPosition(0, ROWS - 1), virtualTerminal!!.cursorPosition)
-        assertEquals(TerminalPosition(0, ROWS + 2), virtualTerminal!!.cursorBufferPosition)
+        assertEquals(TerminalPosition(0, rows - 1), virtualTerminal!!.cursorPosition)
+        assertEquals(TerminalPosition(0, rows + 2), virtualTerminal!!.cursorBufferPosition)
 
         virtualTerminal!!.enterPrivateMode()
         assertEquals(TerminalPosition(0, 0), virtualTerminal!!.cursorPosition)
         assertEquals(TerminalPosition(0, 0), virtualTerminal!!.cursorBufferPosition)
-        for (i in 0 until ROWS) {
+        for (i in 0 until rows) {
             assertLineEquals("", i)
         }
 
         // There should be no backlog in private mode
-        for (i in 1..ROWS + 4) {
+        for (i in 1..rows + 4) {
             putString("Line " + i + "\n")
         }
-        for (i in 0 until ROWS - 1) {
+        for (i in 0 until rows - 1) {
             assertLineEquals("Line " + (i + 6), i)
         }
-        assertLineEquals("", ROWS - 1)
+        assertLineEquals("", rows - 1)
         assertEquals(5, virtualTerminal!!.bufferLineCount.toLong())
 
         virtualTerminal!!.exitPrivateMode()
-        for (i in 0 until ROWS - 1) {
+        for (i in 0 until rows - 1) {
             assertLineEquals("Line " + (i + 4), i)
         }
-        assertLineEquals("", ROWS - 1)
+        assertLineEquals("", rows - 1)
     }
 
     @Test
     fun testForEachLine() {
-        val ROWS = 40
+        val rows = 40
         virtualTerminal!!.setTerminalSize(TerminalSize(10, 5))
-        for (i in 1..ROWS) {
+        for (i in 1..rows) {
             putString("Line " + i + "\n")
         }
         virtualTerminal!!.forEachLine(
-            0, ROWS,
+            0, rows,
             object : VirtualTerminal.BufferWalker {
                 override fun onLine(
                     rowNumber: Int,
                     bufferLine: VirtualTerminal.BufferLine?,
                 ) {
-                    if (rowNumber == ROWS) {
+                    if (rowNumber == rows) {
                         assertLineEquals("", bufferLine)
                     } else {
                         assertLineEquals("Line " + (rowNumber + 1), bufferLine)
