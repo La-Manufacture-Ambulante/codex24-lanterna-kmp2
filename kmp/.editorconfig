@@ -54,9 +54,6 @@ ktlint_standard_function-signature = disabled
 [**/src/commonMain/kotlin/com/googlecode/lanterna/graphics/ThemeDefinition.kt]
 ktlint_standard_function-signature = disabled
 
-[**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/BasePaneListener.kt]
-ktlint_standard_function-signature = disabled
-
 [**/src/commonMain/kotlin/com/googlecode/lanterna/gui2/ComponentRenderer.kt]
 ktlint_standard_function-signature = disabled
 
