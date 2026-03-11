@@ -30,39 +30,39 @@ import com.googlecode.lanterna.gui2.ComponentRenderer
  * @author Martin
  */
 interface ThemeDefinition {
-/**
+    /**
      * The normal style of the definition, which can be considered the default to be used.
      * @return ThemeStyle representation for the normal style
      */
     val normal: ThemeStyle?
 
-/**
+    /**
      * The pre-light style of this definition, which can be used when a component has input focus but isn't active or
      * selected, similar to mouse-hoovering in modern GUIs
      * @return ThemeStyle representation for the pre-light style
      */
     val preLight: ThemeStyle?
 
-/**
+    /**
      * The "selected" style of this definition, which can used when a component has been actively selected in some way.
      * @return ThemeStyle representation for the selected style
      */
     val selected: ThemeStyle?
 
-/**
+    /**
      * The "active" style of this definition, which can be used when a component is being directly interacted with
      * @return ThemeStyle representation for the active style
      */
     val active: ThemeStyle?
 
-/**
+    /**
      * The insensitive style of this definition, which can be used when a component has been disabled or in some other
      * way isn't able to be interacted with.
      * @return ThemeStyle representation for the insensitive style
      */
     val insensitive: ThemeStyle?
 
-/**
+    /**
      * Asks the theme definition for this component if the theme thinks that the text cursor should be visible or not.
      * Note that certain components might have a visible state depending on the context and the current data set, in
      * those cases it can use [.getBooleanProperty] to allow themes more fine-grained control
@@ -72,7 +72,7 @@ interface ThemeDefinition {
      */
     val isCursorVisible: Boolean
 
-/**
+    /**
      * Retrieves a custom ThemeStyle, if one is available by this name. You can use this if you need more categories
      * than the ones available above.
      * @param name Name of the style to look up
@@ -80,7 +80,7 @@ interface ThemeDefinition {
      */
     fun getCustom(name: String?): ThemeStyle?
 
-/**
+    /**
      * Retrieves a custom [ThemeStyle], if one is available by this name. Will return a supplied default value if
      * no such style could be found within this [ThemeDefinition]. You can use this if you need more categories
      * than the ones available above.
@@ -93,7 +93,7 @@ interface ThemeDefinition {
         defaultValue: ThemeStyle?,
     ): ThemeStyle?
 
-/**
+    /**
      * Retrieves a custom boolean property, if one is available by this name. Will return a supplied default value if
      * no such property could be found within this [ThemeDefinition].
      * @param name Name of the boolean property to look up
@@ -105,7 +105,7 @@ interface ThemeDefinition {
         defaultValue: Boolean,
     ): Boolean
 
-/**
+    /**
      * Retrieves a custom integer property, if one is available by this name. Will return a supplied default value if
      * no such property could be found within this [ThemeDefinition].
      * @param name Name of the integer property to look up
@@ -117,7 +117,7 @@ interface ThemeDefinition {
         defaultValue: Int,
     ): Int
 
-/**
+    /**
      * Retrieves a character from this theme definition by the specified name. This method cannot return `null` so
      * you need to give a fallback in case the definition didn't have any character by this name.
      * @param name Name of the character to look up
@@ -130,7 +130,7 @@ interface ThemeDefinition {
         fallback: Char,
     ): Char
 
-/**
+    /**
      * Returns a [ComponentRenderer] attached to this definition for the specified type. Generally one theme
      * definition is linked to only one component type so it wouldn't need the type parameter to figure out what to
      * return. unlike the other methods of this interface, it will not traverse up in the theme hierarchy if this field
@@ -138,6 +138,6 @@ interface ThemeDefinition {
      * @param type Component class to get the theme's renderer for
      * @return Renderer to use for the `type` component or `null` to use the default
      * @param <T> Type of component
-</T> */
+     */
     fun <T : Component?> getRenderer(type: Class<T?>?): ComponentRenderer<T?>?
 }
