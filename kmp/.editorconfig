@@ -7,12 +7,6 @@ root = true
 [**/src/jvmTest/kotlin/com/googlecode/lanterna/gui2/**/*.kt]
 ktlint_standard_no-wildcard-imports = disabled
 
-[**/src/jvmTest/kotlin/com/googlecode/lanterna/bundle/**/*.kt]
-ktlint_standard_no-wildcard-imports = disabled
-
-[**/src/jvmTest/kotlin/com/googlecode/lanterna/graphics/**/*.kt]
-ktlint_standard_no-wildcard-imports = disabled
-
 [**/src/jvmTest/kotlin/com/googlecode/lanterna/gui2/**/*.kt]
 ktlint_standard_max-line-length = disabled
 

@@ -1,6 +1,5 @@
 package com.googlecode.lanterna.bundle
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.ThemeStyle
 import org.junit.Assert
