@@ -23,48 +23,47 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.table.Table
-import com.googlecode.lanterna.gui2.table.TableModel
-import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
-import com.googlecode.lanterna.terminal.Terminal
-
 import java.io.IOException
 
- object Issue216 {
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-val terminal = DefaultTerminalFactory().createTerminal()!!
-val screen = TerminalScreen(terminal)
-screen.startScreen()
+object Issue216 {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        val terminal = DefaultTerminalFactory().createTerminal()!!
+        val screen = TerminalScreen(terminal)
+        screen.startScreen()
 
- // Create panel to hold components
+        // Create panel to hold components
         val panel = Panel()
-panel.setLayoutManager(GridLayout(2))
+        panel.setLayoutManager(GridLayout(2))
 
-panel.addComponent(Label("Forename"))
-panel.addComponent(TextBox())
+        panel.addComponent(Label("Forename"))
+        panel.addComponent(TextBox())
 
-panel.addComponent(Label("Surname"))
-panel.addComponent(TextBox())
+        panel.addComponent(Label("Surname"))
+        panel.addComponent(TextBox())
 
-panel.addComponent(Label("Table"))
-val table = Table<String?>("Test")
-val tableModel = table.getTableModel()
-tableModel!!.addRow("hi")
-panel.addComponent(table)
+        panel.addComponent(Label("Table"))
+        val table = Table<String?>("Test")
+        val tableModel = table.getTableModel()
+        tableModel!!.addRow("hi")
+        panel.addComponent(table)
 
-panel.addComponent(EmptySpace(TerminalSize(0, 0))) // Empty space underneath labels
-panel.addComponent(Button("Submit", { tableModel!!.addRow("haiiii") 
- //table.invalidate();
-        }))
+        panel.addComponent(EmptySpace(TerminalSize(0, 0))) // Empty space underneath labels
+        panel.addComponent(
+            Button("Submit", {
+                tableModel!!.addRow("haiiii")
+                // table.invalidate();
+            }),
+        )
 
- // Create window to hold the panel
+        // Create window to hold the panel
         val window = BasicWindow()
-window.component = panel
+        window.component = panel
 
- // Create gui and start gui
+        // Create gui and start gui
         val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
-gui.addWindowAndWait(window)
-}
+        gui.addWindowAndWait(window)
+    }
 }

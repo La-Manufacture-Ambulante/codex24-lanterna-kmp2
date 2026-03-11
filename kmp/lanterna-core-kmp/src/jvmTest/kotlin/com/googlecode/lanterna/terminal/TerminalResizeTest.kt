@@ -20,65 +20,57 @@ package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.TestTerminalFactory
 import java.io.IOException
 
 /**
- * 
+ *
  * @author Martin
  */
- class TerminalResizeTest:TerminalResizeListener {
+class TerminalResizeTest : TerminalResizeListener {
+    public override fun onResized(
+        terminal: Terminal?,
+        newSize: TerminalSize?,
+    ) {
+        try {
+            terminal!!.setCursorPosition(0, 0)
+            val string = "${newSize!!.columns}x${newSize.rows}                     "
+            val chars = string.toCharArray()
+            for (c in chars) {
+                terminal.putCharacter(c)
+            }
+            terminal.flush()
+        } catch (e: IOException) {
+            throw RuntimeException(e)
+        }
+    }
 
-public override fun onResized(terminal:Terminal?, newSize:TerminalSize?) {
-try
-{
-terminal!!.setCursorPosition(0, 0)
-val string = "${newSize!!.columns}x${newSize.rows}                     "
-val chars = string.toCharArray()
-for (c in chars)
-{
-terminal.putCharacter(c)
-}
-terminal.flush()
-}
-catch (e:IOException) {
-throw RuntimeException(e)
-}
+    companion object {
+        @Throws(InterruptedException::class, IOException::class)
+        fun main(args: Array<String?>?) {
+            val terminal = TestTerminalFactory(args).createTerminal()
+            terminal!!.enterPrivateMode()
+            terminal!!.clearScreen()
+            terminal!!.setCursorPosition(10, 5)
+            terminal!!.putCharacter('H')
+            terminal!!.putCharacter('e')
+            terminal!!.putCharacter('l')
+            terminal!!.putCharacter('l')
+            terminal!!.putCharacter('o')
+            terminal!!.putCharacter('!')
+            terminal!!.setCursorPosition(0, 0)
+            terminal!!.flush()
+            terminal!!.addResizeListener(TerminalResizeTest())
 
-}
-
-companion object {
-
-@Throws(InterruptedException::class, IOException::class)
- fun main(args:Array<String?>?) {
-val terminal = TestTerminalFactory(args).createTerminal()
-terminal!!.enterPrivateMode()
-terminal!!.clearScreen()
-terminal!!.setCursorPosition(10, 5)
-terminal!!.putCharacter('H')
-terminal!!.putCharacter('e')
-terminal!!.putCharacter('l')
-terminal!!.putCharacter('l')
-terminal!!.putCharacter('o')
-terminal!!.putCharacter('!')
-terminal!!.setCursorPosition(0, 0)
-terminal!!.flush()
-terminal!!.addResizeListener(TerminalResizeTest())
-
-while (true)
-{
-val key = terminal!!.pollInput()
-if (key == null || key!!.character != 'q')
-{
-Thread.sleep(1)
-}
-else
-{
-break
-}
-}
-terminal!!.exitPrivateMode()
-}
-}
+            while (true) {
+                val key = terminal!!.pollInput()
+                if (key == null || key!!.character != 'q') {
+                    Thread.sleep(1)
+                } else {
+                    break
+                }
+            }
+            terminal!!.exitPrivateMode()
+        }
+    }
 }

@@ -19,48 +19,44 @@
 package com.googlecode.lanterna.issue
 
 import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
-import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
-import com.googlecode.lanterna.terminal.Terminal
-
 import java.io.IOException
 
 /**
  * Test case for Issue261
  */
- object Issue261 {
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-val terminal = DefaultTerminalFactory().createTerminal()!!
-val screen = TerminalScreen(terminal)
-screen.startScreen()
+object Issue261 {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        val terminal = DefaultTerminalFactory().createTerminal()!!
+        val screen = TerminalScreen(terminal)
+        screen.startScreen()
 
- // Create panel to hold components
+        // Create panel to hold components
         val panel = Panel()
-panel.setLayoutManager(GridLayout(2))
+        panel.setLayoutManager(GridLayout(2))
 
-panel.addComponent(Label("Forename"))
-panel.addComponent(TextBox())
+        panel.addComponent(Label("Forename"))
+        panel.addComponent(TextBox())
 
-panel.addComponent(Label("Surname"))
-panel.addComponent(TextBox())
+        panel.addComponent(Label("Surname"))
+        panel.addComponent(TextBox())
 
-panel.addComponent(EmptySpace(TerminalSize(0, 0))) // Empty space underneath labels
-panel.addComponent(Button("Submit"))
+        panel.addComponent(EmptySpace(TerminalSize(0, 0))) // Empty space underneath labels
+        panel.addComponent(Button("Submit"))
 
- // Create gui and start gui
+        // Create gui and start gui
         val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
 
- // Create window to hold the panel
+        // Create window to hold the panel
         val window = BasicWindow()
-window.setFixedSize(TerminalSize(500, 700))
-window.component = panel
+        window.setFixedSize(TerminalSize(500, 700))
+        window.component = panel
 
-gui.addWindowAndWait(window)
-}
+        gui.addWindowAndWait(window)
+    }
 }

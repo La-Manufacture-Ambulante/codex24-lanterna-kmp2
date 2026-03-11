@@ -1,13 +1,13 @@
 package com.googlecode.lanterna.terminal.win32
 
 import com.sun.jna.platform.win32.WinNT.HANDLE
-import com.sun.jna.platform.win32.Wincon as JnaWincon
 import com.sun.jna.ptr.IntByReference
 import java.io.ByteArrayOutputStream
 import java.io.EOFException
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.charset.Charset
+import com.sun.jna.platform.win32.Wincon as JnaWincon
 
 class WindowsConsoleOutputStream(
     private val hConsoleOutput: HANDLE?,
@@ -28,7 +28,11 @@ class WindowsConsoleOutputStream(
     }
 
     @Synchronized
-    override fun write(b: ByteArray, off: Int, len: Int) {
+    override fun write(
+        b: ByteArray,
+        off: Int,
+        len: Int,
+    ) {
         buffer.write(b, off, len)
     }
 

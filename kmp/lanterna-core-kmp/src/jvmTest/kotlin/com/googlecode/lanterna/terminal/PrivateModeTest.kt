@@ -22,77 +22,65 @@ import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
-
 import java.awt.*
 import java.io.IOException
 
 /**
- * 
+ *
  * @author martin
  */
- object PrivateModeTest {
+object PrivateModeTest {
+    @Throws(IOException::class, InterruptedException::class)
+    fun main(args: Array<String?>?) {
+        val terminal =
+            TestTerminalFactory(args)
+                .createTerminal() as Terminal
+        var normalTerminal = true
+        printNormalTerminalText(terminal!!)
+        var keyStroke: KeyStroke? = null
+        while (keyStroke == null || keyStroke!!.keyType != KeyType.ESCAPE) {
+            keyStroke = terminal!!.pollInput()
+            if (keyStroke != null && keyStroke!!.keyType == KeyType.CHARACTER && keyStroke!!.character == ' ') {
+                normalTerminal = !normalTerminal
+                if (normalTerminal) {
+                    terminal!!.exitPrivateMode()
+                    printNormalTerminalText(terminal!!)
+                } else {
+                    terminal!!.enterPrivateMode()
+                    printPrivateModeTerminalText(terminal!!)
+                }
+            } else {
+                Thread.sleep(1)
+            }
+        }
+        if (!normalTerminal) {
+            terminal!!.exitPrivateMode()
+        }
+        terminal!!.putCharacter('\n')
+        if (terminal is Window) {
+            (terminal as Window).dispose()
+        }
+    }
 
-@Throws(IOException::class, InterruptedException::class)
- fun main(args:Array<String?>?) {
-val terminal = TestTerminalFactory(args)
-.createTerminal() as Terminal
-var normalTerminal = true
-printNormalTerminalText(terminal!!)
-var keyStroke:KeyStroke? = null
-while (keyStroke == null || keyStroke!!.keyType != KeyType.ESCAPE)
-{
-keyStroke = terminal!!.pollInput()
-if (keyStroke != null && keyStroke!!.keyType == KeyType.CHARACTER && keyStroke!!.character == ' ')
-{
-normalTerminal = !normalTerminal
-if (normalTerminal)
-{
-terminal!!.exitPrivateMode()
-printNormalTerminalText(terminal!!)
-}
-else
-{
-terminal!!.enterPrivateMode()
-printPrivateModeTerminalText(terminal!!)
-}
-}
-else
-{
-Thread.sleep(1)
-}
-}
-if (!normalTerminal)
-{
-terminal!!.exitPrivateMode()
-}
-terminal!!.putCharacter('\n')
-if (terminal is Window)
-{
-(terminal as Window).dispose()
-}
-}
+    @Throws(IOException::class)
+    private fun printNormalTerminalText(terminal: Terminal) {
+        terminal.clearScreen()
+        terminal.setCursorPosition(5, 3)
+        val text = "Normal terminal, press space to switch"
+        for (i in 0 until text.length) {
+            terminal.putCharacter(text[i])
+        }
+        terminal.flush()
+    }
 
-@Throws(IOException::class)
-private fun printNormalTerminalText(terminal:Terminal) {
-terminal.clearScreen()
-terminal.setCursorPosition(5, 3)
-val text = "Normal terminal, press space to switch"
-for (i in 0 until text.length)
-{
-terminal.putCharacter(text[i])
-}
-terminal.flush()
-}
-
-@Throws(IOException::class)
-private fun printPrivateModeTerminalText(terminal:Terminal) {
-terminal.clearScreen()
-terminal.setCursorPosition(5, 3)
-val text = "Private mode terminal, press space to switch"
-for (i in 0 until text.length)
-{
-terminal.putCharacter(text[i])
-}
-terminal.flush()
-}
+    @Throws(IOException::class)
+    private fun printPrivateModeTerminalText(terminal: Terminal) {
+        terminal.clearScreen()
+        terminal.setCursorPosition(5, 3)
+        val text = "Private mode terminal, press space to switch"
+        for (i in 0 until text.length) {
+            terminal.putCharacter(text[i])
+        }
+        terminal.flush()
+    }
 }

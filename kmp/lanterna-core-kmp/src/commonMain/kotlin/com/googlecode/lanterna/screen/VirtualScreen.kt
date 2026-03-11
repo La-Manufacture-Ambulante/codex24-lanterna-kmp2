@@ -41,6 +41,7 @@ class VirtualScreen(private val realScreen: Screen) : AbstractScreen(realScreen.
     private val frameRenderer: FrameRenderer = DefaultFrameRenderer()
     private var minimumSize: TerminalSize? = realScreen.terminalSize
     private var viewportTopLeft: TerminalPosition = TerminalPosition.TOP_LEFT_CORNER
+
     /**
      * Returns the current size of the viewport. This will generally match the dimensions of the underlying terminal.
      * @return Viewport size for this [VirtualScreen]
@@ -263,7 +264,11 @@ class VirtualScreen(private val realScreen: Screen) : AbstractScreen(realScreen.
         return if (scrollWithCTRL) keyStroke.isCtrlDown else keyStroke.isAltDown
     }
 
-    override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int) {
+    override fun scrollLines(
+        firstLine: Int,
+        lastLine: Int,
+        distance: Int,
+    ) {
         super.scrollLines(firstLine, lastLine, distance)
         val vpFirst = viewportTopLeft.row
         val vpRows = viewportSize?.rows ?: 0
@@ -285,7 +290,10 @@ class VirtualScreen(private val realScreen: Screen) : AbstractScreen(realScreen.
          * @param virtualSize Size of the virtual screen
          * @return Size of the viewport where screen content should be drawn
          */
-        fun getViewportSize(realSize: TerminalSize?, virtualSize: TerminalSize?): TerminalSize?
+        fun getViewportSize(
+            realSize: TerminalSize?,
+            virtualSize: TerminalSize?,
+        ): TerminalSize?
 
         /**
          * Returns the top-left coordinate where the viewport starts in the real terminal.
@@ -309,7 +317,10 @@ class VirtualScreen(private val realScreen: Screen) : AbstractScreen(realScreen.
     }
 
     private class DefaultFrameRenderer : FrameRenderer {
-        override fun getViewportSize(realSize: TerminalSize?, virtualSize: TerminalSize?): TerminalSize? {
+        override fun getViewportSize(
+            realSize: TerminalSize?,
+            virtualSize: TerminalSize?,
+        ): TerminalSize? {
             val size = realSize ?: return null
             return if (size.columns > 1 && size.rows > 2) {
                 size.withRelativeColumns(-1)?.withRelativeRows(-2)
@@ -346,10 +357,12 @@ class VirtualScreen(private val realScreen: Screen) : AbstractScreen(realScreen.
                 ((activeViewportSize.columns.toDouble() / actualVirtualSize.columns.toDouble()) * activeViewportSize.columns).toInt()
             val horizontalScrollable = activeViewportSize.columns - horizontalSize - 1
             val horizontalPosition =
-                (horizontalScrollable.toDouble() * (
-                    actualScrollPosition.column.toDouble() /
-                        (actualVirtualSize.columns - activeViewportSize.columns).toDouble()
-                    )).toInt()
+                (
+                    horizontalScrollable.toDouble() * (
+                        actualScrollPosition.column.toDouble() /
+                            (actualVirtualSize.columns - activeViewportSize.columns).toDouble()
+                    )
+                ).toInt()
             activeGraphics.drawLine(
                 TerminalPosition(horizontalPosition, graphicsSize.rows - 2),
                 TerminalPosition(horizontalPosition + horizontalSize, graphicsSize.rows - 2),
@@ -360,10 +373,12 @@ class VirtualScreen(private val realScreen: Screen) : AbstractScreen(realScreen.
                 ((activeViewportSize.rows.toDouble() / actualVirtualSize.rows.toDouble()) * activeViewportSize.rows).toInt()
             val verticalScrollable = activeViewportSize.rows - verticalSize - 1
             val verticalPosition =
-                (verticalScrollable.toDouble() * (
-                    actualScrollPosition.row.toDouble() /
-                        (actualVirtualSize.rows - activeViewportSize.rows).toDouble()
-                    )).toInt()
+                (
+                    verticalScrollable.toDouble() * (
+                        actualScrollPosition.row.toDouble() /
+                            (actualVirtualSize.rows - activeViewportSize.rows).toDouble()
+                    )
+                ).toInt()
             activeGraphics.drawLine(
                 TerminalPosition(graphicsSize.columns - 1, verticalPosition),
                 TerminalPosition(graphicsSize.columns - 1, verticalPosition + verticalSize),

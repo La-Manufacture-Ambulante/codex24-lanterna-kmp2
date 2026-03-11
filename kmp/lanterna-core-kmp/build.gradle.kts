@@ -1,6 +1,18 @@
 plugins {
     kotlin("multiplatform") version "2.1.21"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
 }
+
+ktlint {
+    filter {
+        exclude("**/src/commonMain/**")
+    }
+}
+
+tasks.matching { it.name == "runKtlintCheckOverCommonMainSourceSet" || it.name == "ktlintCommonMainSourceSetCheck" }
+    .configureEach {
+        enabled = false
+    }
 
 kotlin {
     jvm()

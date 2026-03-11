@@ -122,6 +122,9 @@ interface TextGUI {
          * @return If the outcome of this KeyStroke processed by the implementer requires the TextGUI to re-draw, return
          * `true` here, otherwise `false`
          */
-        fun onUnhandledKeyStroke(textGUI: TextGUI?, keyStroke: KeyStroke?): Boolean
+        fun onUnhandledKeyStroke(
+            textGUI: TextGUI?,
+            keyStroke: KeyStroke?,
+        ): Boolean
     }
 }

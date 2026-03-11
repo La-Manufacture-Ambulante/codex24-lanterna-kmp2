@@ -18,7 +18,10 @@ internal class TerminalInputMethodRequests(
         return Rectangle(location.x + offsetX, location.y + offsetY, 0, 0)
     }
 
-    override fun getLocationOffset(x: Int, y: Int): TextHitInfo? = null
+    override fun getLocationOffset(
+        x: Int,
+        y: Int,
+    ): TextHitInfo? = null
 
     override fun getInsertPositionOffset(): Int = 0
 
@@ -30,11 +33,7 @@ internal class TerminalInputMethodRequests(
 
     override fun getCommittedTextLength(): Int = 0
 
-    override fun cancelLatestCommittedText(
-        attributes: Array<AttributedCharacterIterator.Attribute>?,
-    ): AttributedCharacterIterator? = null
+    override fun cancelLatestCommittedText(attributes: Array<AttributedCharacterIterator.Attribute>?): AttributedCharacterIterator? = null
 
-    override fun getSelectedText(
-        attributes: Array<AttributedCharacterIterator.Attribute>?,
-    ): AttributedCharacterIterator? = null
+    override fun getSelectedText(attributes: Array<AttributedCharacterIterator.Attribute>?): AttributedCharacterIterator? = null
 }

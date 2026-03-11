@@ -22,44 +22,50 @@ import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.table.Table
-import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
-import com.googlecode.lanterna.terminal.Terminal
-
 import java.io.IOException
 
- object Issue212 {
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-val table = Table<String?>("Column 1", "Column 2", 
-"Column 3")
-table.getTableModel()!!.addRow("1", "2", "3")
-table.getTableModel()!!.addRow("1", "2", "3")
-table.getTableModel()!!.addRow("1", "2", "3")
-table.getTableModel()!!.addRow("1", "2", "3")
-table.getTableModel()!!.addRow("1", "2", "3")
-table.setSelectAction({ val data = table.getTableModel()!!.getRow(
-table.getSelectedRow())
-for (aData in data!!)
-{
-System.out.println(aData)
-} })
+object Issue212 {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        val table =
+            Table<String?>(
+                "Column 1", "Column 2",
+                "Column 3",
+            )
+        table.getTableModel()!!.addRow("1", "2", "3")
+        table.getTableModel()!!.addRow("1", "2", "3")
+        table.getTableModel()!!.addRow("1", "2", "3")
+        table.getTableModel()!!.addRow("1", "2", "3")
+        table.getTableModel()!!.addRow("1", "2", "3")
+        table.setSelectAction({
+            val data =
+                table.getTableModel()!!.getRow(
+                    table.getSelectedRow(),
+                )
+            for (aData in data!!) {
+                System.out.println(aData)
+            }
+        })
 
-val win = BasicWindow()
-win.component = table
+        val win = BasicWindow()
+        win.component = table
 
-val factory = DefaultTerminalFactory()
-val terminal = factory.createTerminal()!!
+        val factory = DefaultTerminalFactory()
+        val terminal = factory.createTerminal()!!
 
-val screen = TerminalScreen(terminal)
-screen.startScreen()
+        val screen = TerminalScreen(terminal)
+        screen.startScreen()
 
- // Create gui and start gui
-        val gui = MultiWindowTextGUI(screen, 
-DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
-gui.addWindowAndWait(win)
+        // Create gui and start gui
+        val gui =
+            MultiWindowTextGUI(
+                screen,
+                DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE),
+            )
+        gui.addWindowAndWait(win)
 
-screen.stopScreen()
-}
+        screen.stopScreen()
+    }
 }

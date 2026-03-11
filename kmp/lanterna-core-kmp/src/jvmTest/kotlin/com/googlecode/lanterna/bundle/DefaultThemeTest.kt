@@ -3,10 +3,8 @@ package com.googlecode.lanterna.bundle
 import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.ThemeStyle
-
 import org.junit.Assert
 import org.junit.Test
-
 import java.io.IOException
 import java.io.InputStream
 import java.util.Scanner
@@ -15,13 +13,13 @@ import java.util.Scanner
  * To ensure our bundled default theme matches the theme definition file in resources
  */
 class DefaultThemeTest {
-
     private val resourceDefinition: String?
         @Throws(IOException::class)
         get() {
             val classLoader = DefaultThemeTest::class.java.classLoader
-            val resourceAsStream: InputStream = classLoader.getResourceAsStream("default-theme.properties")
-                ?: return null
+            val resourceAsStream: InputStream =
+                classLoader.getResourceAsStream("default-theme.properties")
+                    ?: return null
             resourceAsStream.use { stream ->
                 val scanner = Scanner(stream).useDelimiter("\\A")
                 var definition = if (scanner.hasNext()) scanner.next() else ""

@@ -43,11 +43,11 @@ abstract class AbstractComponent<T : Component?> : Component {
 
     override var parent: Container? = null
 
-    override open val isInvalid: Boolean
+    open override val isInvalid: Boolean
         get() = invalidBacking
     private var invalidBacking: Boolean = true
 
-    override open val renderer: ComponentRenderer<T?>?
+    open override val renderer: ComponentRenderer<T?>?
         @Synchronized get() {
             if (overrideRenderer != null) {
                 return overrideRenderer
@@ -84,7 +84,7 @@ abstract class AbstractComponent<T : Component?> : Component {
     override val position: TerminalPosition?
         get() = positionBacking
 
-    override open val globalPosition: TerminalPosition?
+    open override val globalPosition: TerminalPosition?
         get() = toGlobal(TerminalPosition.TOP_LEFT_CORNER)
 
     override val layoutData: LayoutData?
@@ -93,10 +93,10 @@ abstract class AbstractComponent<T : Component?> : Component {
     override val isVisible: Boolean
         get() = visibleBacking
 
-    override open val textGUI: TextGUI?
+    open override val textGUI: TextGUI?
         get() = parent?.textGUI
 
-    override open val theme: Theme?
+    open override val theme: Theme?
         @Synchronized get() {
             if (themeOverride != null) {
                 return themeOverride
@@ -110,10 +110,10 @@ abstract class AbstractComponent<T : Component?> : Component {
             return LanternaThemes.defaultTheme
         }
 
-    override open val themeDefinition: ThemeDefinition?
+    open override val themeDefinition: ThemeDefinition?
         get() = theme?.getDefinition(javaClass)
 
-    override open val basePane: BasePane?
+    open override val basePane: BasePane?
         get() = parent?.basePane
 
     protected abstract fun createDefaultRenderer(): ComponentRenderer<T?>?
@@ -132,12 +132,12 @@ abstract class AbstractComponent<T : Component?> : Component {
         return self()
     }
 
-    override open fun invalidate() {
+    open override fun invalidate() {
         invalidBacking = true
     }
 
     @Synchronized
-    override open fun setSize(size: TerminalSize?): T? {
+    open override fun setSize(size: TerminalSize?): T? {
         sizeBacking = size
         return self()
     }
@@ -166,7 +166,7 @@ abstract class AbstractComponent<T : Component?> : Component {
     }
 
     @Synchronized
-    override open fun setPosition(position: TerminalPosition?): T? {
+    open override fun setPosition(position: TerminalPosition?): T? {
         positionBacking = position
         return self()
     }
@@ -193,7 +193,7 @@ abstract class AbstractComponent<T : Component?> : Component {
     }
 
     @Synchronized
-    override open fun setLayoutData(data: LayoutData?): T? {
+    open override fun setLayoutData(data: LayoutData?): T? {
         if (layoutDataBacking !== data) {
             layoutDataBacking = data
             invalidate()
@@ -213,7 +213,7 @@ abstract class AbstractComponent<T : Component?> : Component {
     }
 
     @Synchronized
-    override open fun setTheme(theme: Theme?): Component? {
+    open override fun setTheme(theme: Theme?): Component? {
         themeOverride = theme
         invalidate()
         return this
@@ -230,7 +230,7 @@ abstract class AbstractComponent<T : Component?> : Component {
         return false
     }
 
-    override open fun toBasePane(position: TerminalPosition?): TerminalPosition? {
+    open override fun toBasePane(position: TerminalPosition?): TerminalPosition? {
         if (position == null) {
             return null
         }
@@ -238,7 +238,7 @@ abstract class AbstractComponent<T : Component?> : Component {
         return parent?.toBasePane(localPosition.withRelative(position))
     }
 
-    override open fun toGlobal(position: TerminalPosition?): TerminalPosition? {
+    open override fun toGlobal(position: TerminalPosition?): TerminalPosition? {
         if (position == null) {
             return null
         }
@@ -247,19 +247,19 @@ abstract class AbstractComponent<T : Component?> : Component {
     }
 
     @Synchronized
-    override open fun withBorder(border: Border?): Border? {
+    open override fun withBorder(border: Border?): Border? {
         border?.component = this
         return border
     }
 
     @Synchronized
-    override open fun addTo(panel: Panel?): T? {
+    open override fun addTo(panel: Panel?): T? {
         panel?.addComponent(this)
         return self()
     }
 
     @Synchronized
-    override open fun onAdded(container: Container?) {
+    open override fun onAdded(container: Container?) {
         if (parent !== container && parent != null) {
             parent?.removeComponent(this)
         }
@@ -267,7 +267,7 @@ abstract class AbstractComponent<T : Component?> : Component {
     }
 
     @Synchronized
-    override open fun onRemoved(container: Container?) {
+    open override fun onRemoved(container: Container?) {
         if (parent === container) {
             parent = null
             themeRenderer = null

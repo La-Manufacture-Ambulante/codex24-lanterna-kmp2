@@ -27,48 +27,52 @@ import com.googlecode.lanterna.TextColor
  *
  * @author Martin
  */
-open class EmptySpace @JvmOverloads constructor(
-    private var color: TextColor? = null,
-    private val preferredSpaceSize: TerminalSize? = TerminalSize.ONE,
-) : AbstractComponent<EmptySpace?>() {
+open class EmptySpace
+    @JvmOverloads
+    constructor(
+        private var color: TextColor? = null,
+        private val preferredSpaceSize: TerminalSize? = TerminalSize.ONE,
+    ) : AbstractComponent<EmptySpace?>() {
+        /**
+         * Creates an EmptySpace with a specified preferred size (color will be chosen from the theme)
+         * @param size Preferred size
+         */
+        constructor(size: TerminalSize?) : this(null, size)
 
-    /**
-     * Creates an EmptySpace with a specified preferred size (color will be chosen from the theme)
-     * @param size Preferred size
-     */
-    constructor(size: TerminalSize?) : this(null, size)
+        /**
+         * Changes the color this component will use when drawn
+         * @param color New color to draw the component with, if `null` then the component will use the theme's
+         * default color
+         */
+        fun setColor(color: TextColor?) {
+            this.color = color
+        }
 
-    /**
-     * Changes the color this component will use when drawn
-     * @param color New color to draw the component with, if `null` then the component will use the theme's
-     * default color
-     */
-    fun setColor(color: TextColor?) {
-        this.color = color
-    }
+        /**
+         * Returns the color this component is drawn with, or `null` if this component uses whatever the default color
+         * the theme is set to use
+         * @return Color used when drawing or `null` if it's using the theme
+         */
+        fun getColor(): TextColor? {
+            return color
+        }
 
-    /**
-     * Returns the color this component is drawn with, or `null` if this component uses whatever the default color
-     * the theme is set to use
-     * @return Color used when drawing or `null` if it's using the theme
-     */
-    fun getColor(): TextColor? {
-        return color
-    }
-
-    override fun createDefaultRenderer(): ComponentRenderer<EmptySpace?>? {
-        return object : ComponentRenderer<EmptySpace?> {
-            override fun getPreferredSize(component: EmptySpace?): TerminalSize? {
-                return preferredSpaceSize
-            }
-
-            override fun drawComponent(graphics: TextGUIGraphics?, component: EmptySpace?) {
-                graphics!!.applyThemeStyle(component!!.themeDefinition!!.normal)
-                if (color != null) {
-                    graphics.setBackgroundColor(color)
+        override fun createDefaultRenderer(): ComponentRenderer<EmptySpace?>? {
+            return object : ComponentRenderer<EmptySpace?> {
+                override fun getPreferredSize(component: EmptySpace?): TerminalSize? {
+                    return preferredSpaceSize
                 }
-                graphics.fill(' ')
+
+                override fun drawComponent(
+                    graphics: TextGUIGraphics?,
+                    component: EmptySpace?,
+                ) {
+                    graphics!!.applyThemeStyle(component!!.themeDefinition!!.normal)
+                    if (color != null) {
+                        graphics.setBackgroundColor(color)
+                    }
+                    graphics.fill(' ')
+                }
             }
         }
     }
-}

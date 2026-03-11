@@ -19,131 +19,126 @@
 package com.googlecode.lanterna.screen
 
 import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.SGR
-import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.TerminalPosition
-import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextColor
 import java.io.IOException
 
 /**
- * 
+ *
  * @author Martin
  */
- class ScreenResizeTest @Throws(InterruptedException::class, IOException::class)
- constructor(args:Array<String?>?) {
+class ScreenResizeTest
+    @Throws(InterruptedException::class, IOException::class)
+    constructor(args: Array<String?>?) {
+        private val screen: Screen
 
-private val screen:Screen
+        init {
+            screen = TestTerminalFactory(args).createScreen()
+            screen!!.startScreen()
+            screen!!.cursorPosition = TerminalPosition(0, 0)
+            putStrings("Initial setup, please resize the window")
 
-init{
-screen = TestTerminalFactory(args).createScreen()
-screen!!.startScreen()
-screen!!.cursorPosition = TerminalPosition(0, 0)
-putStrings("Initial setup, please resize the window")
+            val now = System.currentTimeMillis()
+            while (System.currentTimeMillis() - now < 20 * 1000) {
+                screen!!.pollInput()
+                if (screen!!.doResizeIfNecessary() != null) {
+                    putStrings("Size: " + screen!!.terminalSize!!.columns + "x" + screen!!.terminalSize!!.rows)
+                }
 
-val now = System.currentTimeMillis()
-while (System.currentTimeMillis() - now < 20 * 1000)
-{
-screen!!.pollInput()
-if (screen!!.doResizeIfNecessary() != null)
-{
-putStrings("Size: " + screen!!.terminalSize!!.columns + "x" + screen!!.terminalSize!!.rows)
-}
+                Thread.sleep(1)
+            }
+            screen!!.stopScreen()
+        }
 
-Thread.sleep(1)
-}
-screen!!.stopScreen()
-}
+        @Throws(IOException::class)
+        private fun putStrings(topTitle: String?) {
+            val writer = ScreenTextGraphics(screen)
+            writer.setForegroundColor(TextColor.ANSI.DEFAULT)
+            writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+            writer.fill(' ')
 
-@Throws(IOException::class)
-private fun putStrings(topTitle:String?) {
-val writer = ScreenTextGraphics(screen)
-writer.setForegroundColor(TextColor.ANSI.DEFAULT)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.fill(' ')
+            writer.setForegroundColor(TextColor.ANSI.DEFAULT)
+            writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+            writer.putString(0, 0, topTitle)
+            writer.putString(10, 1, "Hello World")
 
-writer.setForegroundColor(TextColor.ANSI.DEFAULT)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(0, 0, topTitle)
-writer.putString(10, 1, "Hello World")
+            writer.setForegroundColor(TextColor.ANSI.BLACK)
+            writer.setBackgroundColor(TextColor.ANSI.WHITE)
+            writer.putString(11, 2, "Hello World")
+            writer.setForegroundColor(TextColor.ANSI.WHITE)
+            writer.setBackgroundColor(TextColor.ANSI.BLACK)
+            writer.putString(12, 3, "Hello World")
+            writer.setForegroundColor(TextColor.ANSI.BLACK)
+            writer.setBackgroundColor(TextColor.ANSI.WHITE)
+            writer.putString(13, 4, "Hello World", SGR.BOLD)
+            writer.setForegroundColor(TextColor.ANSI.WHITE)
+            writer.setBackgroundColor(TextColor.ANSI.BLACK)
+            writer.putString(14, 5, "Hello World", SGR.BOLD)
+            writer.setForegroundColor(TextColor.ANSI.DEFAULT)
+            writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+            writer.putString(15, 6, "Hello World", SGR.BOLD)
+            writer.setForegroundColor(TextColor.ANSI.DEFAULT)
+            writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+            writer.putString(16, 7, "Hello World")
 
-writer.setForegroundColor(TextColor.ANSI.BLACK)
-writer.setBackgroundColor(TextColor.ANSI.WHITE)
-writer.putString(11, 2, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.WHITE)
-writer.setBackgroundColor(TextColor.ANSI.BLACK)
-writer.putString(12, 3, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.BLACK)
-writer.setBackgroundColor(TextColor.ANSI.WHITE)
-writer.putString(13, 4, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.WHITE)
-writer.setBackgroundColor(TextColor.ANSI.BLACK)
-writer.putString(14, 5, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.DEFAULT)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(15, 6, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.DEFAULT)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(16, 7, "Hello World")
+            writer.setForegroundColor(TextColor.ANSI.BLUE)
+            writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+            writer.putString(10, 10, "Hello World")
+            writer.setForegroundColor(TextColor.ANSI.BLUE)
+            writer.setBackgroundColor(TextColor.ANSI.WHITE)
+            writer.putString(11, 11, "Hello World")
+            writer.setForegroundColor(TextColor.ANSI.BLUE)
+            writer.setBackgroundColor(TextColor.ANSI.BLACK)
+            writer.putString(12, 12, "Hello World")
+            writer.setForegroundColor(TextColor.ANSI.BLUE)
+            writer.setBackgroundColor(TextColor.ANSI.MAGENTA)
+            writer.putString(13, 13, "Hello World")
+            writer.setForegroundColor(TextColor.ANSI.GREEN)
+            writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+            writer.putString(14, 14, "Hello World")
+            writer.setForegroundColor(TextColor.ANSI.GREEN)
+            writer.setBackgroundColor(TextColor.ANSI.WHITE)
+            writer.putString(15, 15, "Hello World")
+            writer.setForegroundColor(TextColor.ANSI.GREEN)
+            writer.setBackgroundColor(TextColor.ANSI.BLACK)
+            writer.putString(16, 16, "Hello World")
+            writer.setForegroundColor(TextColor.ANSI.GREEN)
+            writer.setBackgroundColor(TextColor.ANSI.MAGENTA)
+            writer.putString(17, 17, "Hello World")
 
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(10, 10, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.WHITE)
-writer.putString(11, 11, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.BLACK)
-writer.putString(12, 12, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.MAGENTA)
-writer.putString(13, 13, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(14, 14, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.WHITE)
-writer.putString(15, 15, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.BLACK)
-writer.putString(16, 16, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.MAGENTA)
-writer.putString(17, 17, "Hello World")
+            writer.setForegroundColor(TextColor.ANSI.BLUE)
+            writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+            writer.putString(10, 20, "Hello World", SGR.BOLD)
+            writer.setForegroundColor(TextColor.ANSI.BLUE)
+            writer.setBackgroundColor(TextColor.ANSI.WHITE)
+            writer.putString(11, 21, "Hello World", SGR.BOLD)
+            writer.setForegroundColor(TextColor.ANSI.BLUE)
+            writer.setBackgroundColor(TextColor.ANSI.BLACK)
+            writer.putString(12, 22, "Hello World", SGR.BOLD)
+            writer.setForegroundColor(TextColor.ANSI.BLUE)
+            writer.setBackgroundColor(TextColor.ANSI.MAGENTA)
+            writer.putString(13, 23, "Hello World", SGR.BOLD)
+            writer.setForegroundColor(TextColor.ANSI.GREEN)
+            writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+            writer.putString(14, 24, "Hello World", SGR.BOLD)
+            writer.setForegroundColor(TextColor.ANSI.GREEN)
+            writer.setBackgroundColor(TextColor.ANSI.WHITE)
+            writer.putString(15, 25, "Hello World", SGR.BOLD)
+            writer.setForegroundColor(TextColor.ANSI.GREEN)
+            writer.setBackgroundColor(TextColor.ANSI.BLACK)
+            writer.putString(16, 26, "Hello World", SGR.BOLD)
+            writer.setForegroundColor(TextColor.ANSI.CYAN)
+            writer.setBackgroundColor(TextColor.ANSI.BLUE)
+            writer.putString(17, 27, "Hello World", SGR.BOLD)
+            screen!!.refresh()
+        }
 
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(10, 20, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.WHITE)
-writer.putString(11, 21, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.BLACK)
-writer.putString(12, 22, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.MAGENTA)
-writer.putString(13, 23, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(14, 24, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.WHITE)
-writer.putString(15, 25, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.BLACK)
-writer.putString(16, 26, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.CYAN)
-writer.setBackgroundColor(TextColor.ANSI.BLUE)
-writer.putString(17, 27, "Hello World", SGR.BOLD)
-screen!!.refresh()
-}
-
-companion object {
-
-@Throws(InterruptedException::class, IOException::class)
- fun main(args:Array<String?>?) {
-ScreenResizeTest(args)
-}
-}
-}
+        companion object {
+            @Throws(InterruptedException::class, IOException::class)
+            fun main(args: Array<String?>?) {
+                ScreenResizeTest(args)
+            }
+        }
+    }

@@ -32,7 +32,7 @@ class InputDecoder(
     /**
      * Reader to read characters from, wrapped by a [BufferedReader].
      */
-    source: Reader?
+    source: Reader?,
 ) {
     private val source: Reader = BufferedReader(requireNotNull(source) { "source" })
     private val bytePatterns: MutableList<CharacterPattern> = ArrayList()
@@ -87,11 +87,12 @@ class InputDecoder(
      * @param units New timeout to use, in 250ms units
      */
     fun setTimeoutUnits(units: Int) {
-        timeoutUnits = when {
-            units < 0 -> 0
-            units > 240 -> 240
-            else -> units
-        }
+        timeoutUnits =
+            when {
+                units < 0 -> 0
+                units > 240 -> 240
+                else -> units
+            }
     }
 
     /**

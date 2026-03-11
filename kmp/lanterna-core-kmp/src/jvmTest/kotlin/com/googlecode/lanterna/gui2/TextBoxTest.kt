@@ -19,50 +19,54 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.TerminalSize
-
 import java.io.IOException
 
- class TextBoxTest:TestBase() {
+class TextBoxTest : TestBase() {
+    fun init(textGUI: WindowBasedTextGUI) {
+        val window = BasicWindow("TextBoxTest")
+        val mainPanel = Panel()
+        mainPanel.setLayoutManager(LinearLayout(Direction.HORIZONTAL))
+        val leftPanel = Panel()
+        val rightPanel = Panel()
 
-fun init(textGUI:WindowBasedTextGUI) {
-val window = BasicWindow("TextBoxTest")
-val mainPanel = Panel()
-mainPanel.setLayoutManager(LinearLayout(Direction.HORIZONTAL))
-val leftPanel = Panel()
-val rightPanel = Panel()
+        leftPanel.addComponent(TextBox().withBorder(Borders.singleLine("Default")))
+        leftPanel.addComponent(TextBox("Some text").withBorder(Borders.singleLine("With init")))
+        leftPanel.addComponent(TextBox(TerminalSize(10, 1), "Here is some text that is too long to fit in the text box").withBorder(Borders.singleLine("Long text")))
+        leftPanel.addComponent(TextBox("password").setMask('*').withBorder(Borders.singleLine("Password")))
 
-leftPanel.addComponent(TextBox().withBorder(Borders.singleLine("Default")))
-leftPanel.addComponent(TextBox("Some text").withBorder(Borders.singleLine("With init")))
-leftPanel.addComponent(TextBox(TerminalSize(10, 1), "Here is some text that is too long to fit in the text box").withBorder(Borders.singleLine("Long text")))
-leftPanel.addComponent(TextBox("password").setMask('*').withBorder(Borders.singleLine("Password")))
+        rightPanel.addComponent(
+            TextBox(
+                TerminalSize(15, 5),
+                (
+                    "Well here we are again\n" +
+                        "It's always such a pleasure\n" +
+                        "Remember when you tried\n" +
+                        "to kill me twice?\n" +
+                        "\n" +
+                        "あのときは笑いが止まりませんでしたね\n" +
+                        "私は笑っていませんが\n" +
+                        "状況を振り返ると\n" +
+                        "自分のやさしさに驚くほどです"
+                ),
+            ).withBorder(Borders.singleLine()),
+        )
 
-rightPanel.addComponent(TextBox(TerminalSize(15, 5), 
-("Well here we are again\n" + 
-"It's always such a pleasure\n" + 
-"Remember when you tried\n" + 
-"to kill me twice?\n" + 
-"\n" + 
-"あのときは笑いが止まりませんでしたね\n" + 
-"私は笑っていませんが\n" + 
-"状況を振り返ると\n" + 
-"自分のやさしさに驚くほどです")).withBorder(Borders.singleLine()))
+        mainPanel.addComponent(leftPanel.withBorder(Borders.singleLine("Single line")))
+        mainPanel.addComponent(rightPanel.withBorder(Borders.singleLine("Multiline")))
 
-mainPanel.addComponent(leftPanel.withBorder(Borders.singleLine("Single line")))
-mainPanel.addComponent(rightPanel.withBorder(Borders.singleLine("Multiline")))
+        window.component =
+            Panels.vertical(
+                mainPanel.withBorder(Borders.singleLine("Main")),
+                Button("OK", Runnable { window.close() }),
+            )
+        textGUI.addWindow(window)
+    }
 
-window.component =
-Panels.vertical(
-mainPanel.withBorder(Borders.singleLine("Main")), 
-Button("OK", Runnable { window.close() }))
-textGUI.addWindow(window)
-}
-
-companion object {
-@Throws(IOException::class, InterruptedException::class)
- fun main(args:Array<String?>?) {
-TextBoxTest().run(args)
-}
-}
+    companion object {
+        @Throws(IOException::class, InterruptedException::class)
+        fun main(args: Array<String?>?) {
+            TextBoxTest().run(args)
+        }
+    }
 }

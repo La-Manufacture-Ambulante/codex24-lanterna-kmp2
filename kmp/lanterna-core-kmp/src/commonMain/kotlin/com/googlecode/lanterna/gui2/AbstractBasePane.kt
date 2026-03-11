@@ -85,6 +85,7 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
             }
             return textGUI?.theme
         }
+
         @Synchronized set(value) {
             themeOverride = value
             invalidate()
@@ -166,21 +167,23 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
                     direction = Interactable.FocusChangeDirection.NEXT
                     nextFocus = activeMenuBar?.nextFocus(null)
                     if (nextFocus == null) {
-                        nextFocus = when (baseComponent) {
-                            is Container -> baseComponent.nextFocus(null)
-                            is Interactable -> baseComponent
-                            else -> null
-                        }
+                        nextFocus =
+                            when (baseComponent) {
+                                is Container -> baseComponent.nextFocus(null)
+                                is Interactable -> baseComponent
+                                else -> null
+                            }
                     }
                 }
 
                 KeyType.REVERSE_TAB, KeyType.ARROW_UP, KeyType.ARROW_LEFT -> {
                     direction = Interactable.FocusChangeDirection.PREVIOUS
-                    nextFocus = when (baseComponent) {
-                        is Container -> baseComponent.previousFocus(null)
-                        is Interactable -> baseComponent
-                        else -> null
-                    }
+                    nextFocus =
+                        when (baseComponent) {
+                            is Container -> baseComponent.previousFocus(null)
+                            is Interactable -> baseComponent
+                            else -> null
+                        }
                     if (nextFocus == null) {
                         nextFocus = activeMenuBar?.previousFocus(null)
                     }
@@ -303,7 +306,10 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
         return target.handleInput(mouseAction) == Result.HANDLED
     }
 
-    protected fun setFocusedInteractable(toFocus: Interactable?, direction: Interactable.FocusChangeDirection) {
+    protected fun setFocusedInteractable(
+        toFocus: Interactable?,
+        direction: Interactable.FocusChangeDirection,
+    ) {
         if (focusedInteractableBacking === toFocus) {
             return
         }
@@ -406,7 +412,10 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
                     return subComponent.preferredSize ?: TerminalSize.ZERO
                 }
 
-                override fun drawComponent(graphics: TextGUIGraphics?, component: Container?) {
+                override fun drawComponent(
+                    graphics: TextGUIGraphics?,
+                    component: Container?,
+                ) {
                     var activeGraphics = graphics ?: return
 
                     if (!internalMenuBar.isEmptyMenuBar) {

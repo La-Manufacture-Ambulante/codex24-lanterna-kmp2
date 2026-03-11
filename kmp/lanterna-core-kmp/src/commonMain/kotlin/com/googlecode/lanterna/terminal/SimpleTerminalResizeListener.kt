@@ -36,7 +36,10 @@ class SimpleTerminalResizeListener(initialSize: TerminalSize?) : TerminalResizeL
         }
 
     @Synchronized
-    override fun onResized(terminal: Terminal?, newSize: TerminalSize?) {
+    override fun onResized(
+        terminal: Terminal?,
+        newSize: TerminalSize?,
+    ) {
         wasResized = true
         lastKnownSize = newSize
     }

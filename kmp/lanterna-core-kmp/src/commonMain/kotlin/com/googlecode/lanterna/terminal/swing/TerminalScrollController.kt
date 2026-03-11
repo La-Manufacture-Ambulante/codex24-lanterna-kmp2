@@ -24,32 +24,38 @@ package com.googlecode.lanterna.terminal.swing
  * some view class, like a scrollbar for example, can update its view accordingly.
  * @author Martin
  */
- interface TerminalScrollController {
+interface TerminalScrollController {
+    /**
+     * Called by the SwingTerminal to know the 'offset' into the backlog. Returning 0 here will always draw the latest
+     * lines; if you return 5, it will draw from five lines into the backlog and skip the 5 most recent lines.
+     * @return According to this scroll controller, how far back into the backlog are we?
+     */
+    val scrollingOffset: Int
 
 /**
- * Called by the SwingTerminal to know the 'offset' into the backlog. Returning 0 here will always draw the latest
- * lines; if you return 5, it will draw from five lines into the backlog and skip the 5 most recent lines.
- * @return According to this scroll controller, how far back into the backlog are we?
- */
-     val scrollingOffset:Int
-/**
- * Called by the SwingTerminal when the terminal has changed or more lines are entered into the terminal
- * @param totalSize Total number of lines in the backlog currently
- * @param screenSize Number of lines covered by the terminal window at its current size
- */
-     fun updateModel(totalSize:Int, screenSize:Int) 
+     * Called by the SwingTerminal when the terminal has changed or more lines are entered into the terminal
+     * @param totalSize Total number of lines in the backlog currently
+     * @param screenSize Number of lines covered by the terminal window at its current size
+     */
+    fun updateModel(
+        totalSize: Int,
+        screenSize: Int,
+    )
 
 /**
- * Implementation of [TerminalScrollController] that does nothing
- */
-     class Null:TerminalScrollController {
+     * Implementation of [TerminalScrollController] that does nothing
+     */
+    class Null : TerminalScrollController {
+        public override val scrollingOffset: Int
+            @Override
+            get() {
+                return 0
+            }
 
-public override val scrollingOffset:Int
-@Override
-get() {
-return 0
-}
-@Override
-public override fun updateModel(totalSize:Int, screenSize:Int) {}
-}
+        @Override
+        public override fun updateModel(
+            totalSize: Int,
+            screenSize: Int,
+        ) {}
+    }
 }

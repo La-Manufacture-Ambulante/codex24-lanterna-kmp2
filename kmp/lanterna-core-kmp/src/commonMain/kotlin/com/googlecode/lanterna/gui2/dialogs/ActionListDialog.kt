@@ -113,12 +113,18 @@ class ActionListDialog internal constructor(
          * @param description Description of the dialog
          * @param items Items in the [ActionListBox], labels are taken from `toString()` on each runnable
          */
-        fun showDialog(textGUI: WindowBasedTextGUI, title: String?, description: String?, vararg items: Runnable) {
-            val actionListDialog = ActionListDialogBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .addActions(*items)
-                .build()
+        fun showDialog(
+            textGUI: WindowBasedTextGUI,
+            title: String?,
+            description: String?,
+            vararg items: Runnable,
+        ) {
+            val actionListDialog =
+                ActionListDialogBuilder()
+                    .setTitle(title)
+                    .setDescription(description)
+                    .addActions(*items)
+                    .build()
             actionListDialog.showDialog(textGUI)
         }
     }

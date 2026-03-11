@@ -20,8 +20,6 @@ package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.*
 import com.googlecode.lanterna.graphics.DoublePrintingTextGraphics
-import com.googlecode.lanterna.graphics.TextGraphics
-
 import java.awt.*
 import java.io.IOException
 
@@ -29,47 +27,47 @@ import java.io.IOException
  * This class tests the Terminal-implementation of TextGraphics
  * @author Martin
  */
- object TerminalTextGraphicsTest {
-@Throws(IOException::class, InterruptedException::class)
- fun main(args:Array<String?>?) {
-val terminal = TestTerminalFactory(args).createTerminal()
-var textGraphics = terminal!!.newTextGraphics()
-if (((args!!.size > 0 && args!![0].equals("--square")) || (args!!.size > 1 && args!![1].equals("--square"))))
-{
-textGraphics = DoublePrintingTextGraphics(textGraphics!!)
-}
-textGraphics!!.setForegroundColor(TextColor.ANSI.BLUE)
-textGraphics!!.putString(3, 3, "Hello World!")
-textGraphics!!.setForegroundColor(TextColor.ANSI.CYAN)
-val lineStart = TerminalPosition(3 + "Hello World!".length, 3)
-textGraphics!!.drawLine(lineStart, lineStart.withRelativeColumn(2)!!.withRelativeRow(6), Symbols.BLOCK_SOLID)
-textGraphics!!.setForegroundColor(TextColor.ANSI.RED)
-textGraphics!!.drawRectangle(lineStart.withRelativeColumn(2)!!.withRelativeRow(6), TerminalSize(5, 3), Symbols.BULLET)
-textGraphics!!.setForegroundColor(TextColor.ANSI.MAGENTA)
-var triangleStart = lineStart.withRelativeColumn(7)!!.withRelativeRow(9)
-textGraphics!!.drawTriangle(
-triangleStart, 
-triangleStart!!.withColumn(0)!!.withRelativeRow(-1), 
-triangleStart!!.withColumn(5)!!.withRelativeRow(3), 
-Symbols.SPADES)
-textGraphics!!.setForegroundColor(TextColor.ANSI.YELLOW)
-textGraphics!!.fillRectangle(TerminalPosition(30, 1), TerminalSize(8, 5), Symbols.DIAMOND)
-textGraphics!!.setForegroundColor(TextColor.ANSI.GREEN)
-triangleStart = TerminalPosition(30, 6)
-textGraphics!!.fillTriangle(
-triangleStart, 
-triangleStart!!.withRelativeRow(5)!!.withRelativeColumn(-2), 
-triangleStart!!.withRelativeRow(5)!!.withRelativeColumn(4), 
-Symbols.CLUB)
+object TerminalTextGraphicsTest {
+    @Throws(IOException::class, InterruptedException::class)
+    fun main(args: Array<String?>?) {
+        val terminal = TestTerminalFactory(args).createTerminal()
+        var textGraphics = terminal!!.newTextGraphics()
+        if (((args!!.size > 0 && args!![0].equals("--square")) || (args!!.size > 1 && args!![1].equals("--square")))) {
+            textGraphics = DoublePrintingTextGraphics(textGraphics!!)
+        }
+        textGraphics!!.setForegroundColor(TextColor.ANSI.BLUE)
+        textGraphics!!.putString(3, 3, "Hello World!")
+        textGraphics!!.setForegroundColor(TextColor.ANSI.CYAN)
+        val lineStart = TerminalPosition(3 + "Hello World!".length, 3)
+        textGraphics!!.drawLine(lineStart, lineStart.withRelativeColumn(2)!!.withRelativeRow(6), Symbols.BLOCK_SOLID)
+        textGraphics!!.setForegroundColor(TextColor.ANSI.RED)
+        textGraphics!!.drawRectangle(lineStart.withRelativeColumn(2)!!.withRelativeRow(6), TerminalSize(5, 3), Symbols.BULLET)
+        textGraphics!!.setForegroundColor(TextColor.ANSI.MAGENTA)
+        var triangleStart = lineStart.withRelativeColumn(7)!!.withRelativeRow(9)
+        textGraphics!!.drawTriangle(
+            triangleStart,
+            triangleStart!!.withColumn(0)!!.withRelativeRow(-1),
+            triangleStart!!.withColumn(5)!!.withRelativeRow(3),
+            Symbols.SPADES,
+        )
+        textGraphics!!.setForegroundColor(TextColor.ANSI.YELLOW)
+        textGraphics!!.fillRectangle(TerminalPosition(30, 1), TerminalSize(8, 5), Symbols.DIAMOND)
+        textGraphics!!.setForegroundColor(TextColor.ANSI.GREEN)
+        triangleStart = TerminalPosition(30, 6)
+        textGraphics!!.fillTriangle(
+            triangleStart,
+            triangleStart!!.withRelativeRow(5)!!.withRelativeColumn(-2),
+            triangleStart!!.withRelativeRow(5)!!.withRelativeColumn(4),
+            Symbols.CLUB,
+        )
 
-terminal!!.resetColorAndSGR()
-terminal!!.flush()
+        terminal!!.resetColorAndSGR()
+        terminal!!.flush()
 
-Thread.sleep(4000)
+        Thread.sleep(4000)
 
-if (terminal is Window)
-{
-(terminal as Window).dispose()
-}
-}
+        if (terminal is Window) {
+            (terminal as Window).dispose()
+        }
+    }
 }

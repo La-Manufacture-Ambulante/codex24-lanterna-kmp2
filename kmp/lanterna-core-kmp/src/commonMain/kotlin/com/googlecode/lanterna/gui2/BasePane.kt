@@ -77,6 +77,7 @@ interface BasePane : Composite {
      * Panels but it could also be a single component.
      * @return Component which is the content of this BasePane
      */
+
     /**
      * Sets the top-level component inside this BasePane. If you want it to contain only one component, you can set it
      * directly, but for more complicated GUIs you probably want to create a hierarchy of panels and set the first one
@@ -148,6 +149,7 @@ interface BasePane : Composite {
      * or `null` if this base pane/window isn't added to any [TextGUI] and doesn't have any override.
      * @return The [Theme] this base pane/window is expected to use when drawing the contents
      */
+
     /**
      * Sets the override [Theme] to use for this base pane/window, rather than the default [Theme]
      * associated with the [TextGUI] it is attached to. If called with `null`, it will clear the override

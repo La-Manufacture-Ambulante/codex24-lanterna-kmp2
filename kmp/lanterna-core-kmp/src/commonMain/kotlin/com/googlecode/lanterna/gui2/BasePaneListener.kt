@@ -19,7 +19,6 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.input.KeyStroke
-
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -28,27 +27,35 @@ import java.util.concurrent.atomic.AtomicBoolean
  * thread that will call these methods. You typically use this through [WindowListener] and calling
  * [Window.addWindowListener]
  */
- interface BasePaneListener<T : BasePane?> {
+interface BasePaneListener<T : BasePane?> {
 /**
- * Called when a user input is about to be delivered to the focused [Interactable] inside the
- * [BasePane], but before it is actually delivered. You can catch it and prevent it from being passed into
- * the component by using the `deliverEvent` parameter and setting it to `false`.
- * 
- * @param basePane Base pane that got the input event
- * @param keyStroke The actual input event
- * @param deliverEvent Set to `true` automatically, if you change it to `false` it will prevent the GUI
- * from passing the input event on to the focused [Interactable]
- */
-     fun onInput(basePane:T?, keyStroke:KeyStroke?, deliverEvent:AtomicBoolean?) 
+     * Called when a user input is about to be delivered to the focused [Interactable] inside the
+     * [BasePane], but before it is actually delivered. You can catch it and prevent it from being passed into
+     * the component by using the `deliverEvent` parameter and setting it to `false`.
+     *
+     * @param basePane Base pane that got the input event
+     * @param keyStroke The actual input event
+     * @param deliverEvent Set to `true` automatically, if you change it to `false` it will prevent the GUI
+     * from passing the input event on to the focused [Interactable]
+     */
+    fun onInput(
+        basePane: T?,
+        keyStroke: KeyStroke?,
+        deliverEvent: AtomicBoolean?,
+    )
 
 /**
- * Called when a user entered some input which wasn't handled by the focused component. This allows you to catch it
- * at a [BasePane] (or [Window]) level and prevent it from being reported to the [TextGUI] as an
- * unhandled input event.
- * @param basePane [BasePane] that got the input event
- * @param keyStroke The unhandled input event
- * @param hasBeenHandled Initially set to `false`, if you change it to `true` then the event
- * will not be reported as an unhandled input to the [TextGUI]
- */
-     fun onUnhandledInput(basePane:T?, keyStroke:KeyStroke?, hasBeenHandled:AtomicBoolean?) 
+     * Called when a user entered some input which wasn't handled by the focused component. This allows you to catch it
+     * at a [BasePane] (or [Window]) level and prevent it from being reported to the [TextGUI] as an
+     * unhandled input event.
+     * @param basePane [BasePane] that got the input event
+     * @param keyStroke The unhandled input event
+     * @param hasBeenHandled Initially set to `false`, if you change it to `true` then the event
+     * will not be reported as an unhandled input to the [TextGUI]
+     */
+    fun onUnhandledInput(
+        basePane: T?,
+        keyStroke: KeyStroke?,
+        hasBeenHandled: AtomicBoolean?,
+    )
 }

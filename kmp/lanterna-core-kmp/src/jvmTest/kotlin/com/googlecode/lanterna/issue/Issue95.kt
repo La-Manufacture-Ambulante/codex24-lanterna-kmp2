@@ -19,41 +19,36 @@
 package com.googlecode.lanterna.issue
 
 import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.screen.TerminalScreen
-import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame
 import com.googlecode.lanterna.terminal.swing.TerminalEmulatorAutoCloseTrigger
-
 import java.io.IOException
 import javax.swing.WindowConstants
 
 /**
- * 
+ *
  * @author martin
  */
- object Issue95 {
-@Throws(InterruptedException::class, IOException::class)
- fun main(args:Array<String?>?) {
-val terminal = SwingTerminalFrame(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_EXIT_PRIVATE_MODE)
-terminal.setCursorVisible(false)
+object Issue95 {
+    @Throws(InterruptedException::class, IOException::class)
+    fun main(args: Array<String?>?) {
+        val terminal = SwingTerminalFrame(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_EXIT_PRIVATE_MODE)
+        terminal.setCursorVisible(false)
 
-val screen = TerminalScreen(terminal)
-screen.startScreen()
+        val screen = TerminalScreen(terminal)
+        screen.startScreen()
 
-terminal.title = "Freedom: An arena-battle roguelike"
-terminal.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-terminal.setResizable(false)
-terminal.setVisible(true)
+        terminal.title = "Freedom: An arena-battle roguelike"
+        terminal.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+        terminal.setResizable(false)
+        terminal.setVisible(true)
 
-while (screen.pollInput() == null)
-{
-if (screen.doResizeIfNecessary() != null)
-{
-screen.refresh()
-}
-Thread.sleep(100)
-}
-screen.stopScreen()
-}
+        while (screen.pollInput() == null) {
+            if (screen.doResizeIfNecessary() != null) {
+                screen.refresh()
+            }
+            Thread.sleep(100)
+        }
+        screen.stopScreen()
+    }
 }

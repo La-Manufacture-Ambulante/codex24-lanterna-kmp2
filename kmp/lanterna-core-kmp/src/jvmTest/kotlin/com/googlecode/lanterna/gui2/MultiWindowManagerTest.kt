@@ -38,33 +38,42 @@ class MultiWindowManagerTest : TestBase() {
         val mainWindow = BasicWindow("Multi Window Test")
         val contentArea = Panel().setLayoutManager(LinearLayout(Direction.VERTICAL))
         contentArea.addComponent(Button("Add new window", Runnable { onNewWindow(textGUI) }))
-        buttonToggleVirtualScreen = Button("Virtual Screen: Enabled", Runnable {
-            virtualScreenEnabled = !virtualScreenEnabled
-            textGUI.setVirtualScreenEnabled(virtualScreenEnabled)
-            buttonToggleVirtualScreen?.setLabel(
-                "Virtual Screen: " + if (virtualScreenEnabled) "Enabled" else "Disabled",
+        buttonToggleVirtualScreen =
+            Button(
+                "Virtual Screen: Enabled",
+                Runnable {
+                    virtualScreenEnabled = !virtualScreenEnabled
+                    textGUI.setVirtualScreenEnabled(virtualScreenEnabled)
+                    buttonToggleVirtualScreen?.setLabel(
+                        "Virtual Screen: " + if (virtualScreenEnabled) "Enabled" else "Disabled",
+                    )
+                },
             )
-        })
         contentArea.addComponent(buttonToggleVirtualScreen)
         contentArea.addComponent(EmptySpace(TerminalSize.ONE))
         contentArea.addComponent(Button("Close", Runnable { mainWindow.close() }))
         mainWindow.component = contentArea
 
-        textGUI.addListener(object : TextGUI.Listener {
-            override fun onUnhandledKeyStroke(textGUI: TextGUI?, keyStroke: KeyStroke?): Boolean {
-                val gui = textGUI as? WindowBasedTextGUI ?: return false
-                val key = keyStroke ?: return false
-                if ((key.isCtrlDown && key.keyType == KeyType.TAB) || key.keyType == KeyType.F6) {
-                    gui.cycleActiveWindow(false)
-                    return true
+        textGUI.addListener(
+            object : TextGUI.Listener {
+                override fun onUnhandledKeyStroke(
+                    textGUI: TextGUI?,
+                    keyStroke: KeyStroke?,
+                ): Boolean {
+                    val gui = textGUI as? WindowBasedTextGUI ?: return false
+                    val key = keyStroke ?: return false
+                    if ((key.isCtrlDown && key.keyType == KeyType.TAB) || key.keyType == KeyType.F6) {
+                        gui.cycleActiveWindow(false)
+                        return true
+                    }
+                    if ((key.isCtrlDown && key.keyType == KeyType.REVERSE_TAB) || key.keyType == KeyType.F7) {
+                        gui.cycleActiveWindow(true)
+                        return true
+                    }
+                    return false
                 }
-                if ((key.isCtrlDown && key.keyType == KeyType.REVERSE_TAB) || key.keyType == KeyType.F7) {
-                    gui.cycleActiveWindow(true)
-                    return true
-                }
-                return false
-            }
-        })
+            },
+        )
 
         textGUI.addWindow(mainWindow)
     }
@@ -95,23 +104,41 @@ class MultiWindowManagerTest : TestBase() {
             labelUnlockWindow = Label("true")
             statsTableContainer.addComponent(labelUnlockWindow)
 
-            addWindowListener(object : WindowListener {
-                override fun onResized(window: Window?, oldSize: TerminalSize?, newSize: TerminalSize?) {
-                    if (newSize != null) {
-                        labelWindowSize.setText(newSize.toString())
+            addWindowListener(
+                object : WindowListener {
+                    override fun onResized(
+                        window: Window?,
+                        oldSize: TerminalSize?,
+                        newSize: TerminalSize?,
+                    ) {
+                        if (newSize != null) {
+                            labelWindowSize.setText(newSize.toString())
+                        }
                     }
-                }
 
-                override fun onMoved(window: Window?, oldPosition: TerminalPosition?, newPosition: TerminalPosition?) {
-                    if (newPosition != null) {
-                        labelWindowPosition.setText(newPosition.toString())
+                    override fun onMoved(
+                        window: Window?,
+                        oldPosition: TerminalPosition?,
+                        newPosition: TerminalPosition?,
+                    ) {
+                        if (newPosition != null) {
+                            labelWindowPosition.setText(newPosition.toString())
+                        }
                     }
-                }
 
-                override fun onInput(basePane: Window?, keyStroke: KeyStroke?, deliverEvent: AtomicBoolean?) = Unit
+                    override fun onInput(
+                        basePane: Window?,
+                        keyStroke: KeyStroke?,
+                        deliverEvent: AtomicBoolean?,
+                    ) = Unit
 
-                override fun onUnhandledInput(basePane: Window?, keyStroke: KeyStroke?, hasBeenHandled: AtomicBoolean?) = Unit
-            })
+                    override fun onUnhandledInput(
+                        basePane: Window?,
+                        keyStroke: KeyStroke?,
+                        hasBeenHandled: AtomicBoolean?,
+                    ) = Unit
+                },
+            )
 
             val contentArea = Panel().setLayoutManager(GridLayout(1))
             contentArea.addComponent(statsTableContainer)
@@ -198,7 +225,10 @@ class MultiWindowManagerTest : TestBase() {
                     return TerminalSize.ONE
                 }
 
-                override fun drawComponent(graphics: TextGUIGraphics?, component: EmptySpace?) {
+                override fun drawComponent(
+                    graphics: TextGUIGraphics?,
+                    component: EmptySpace?,
+                ) {
                     val g = graphics ?: return
                     val c = component ?: return
                     val definition = c.theme?.getDefinition(GUIBackdrop::class.java) ?: return

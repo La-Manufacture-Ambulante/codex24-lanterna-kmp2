@@ -41,24 +41,28 @@ class BorderLayout : LayoutManager {
          * the other components (if any) have allocated their space.
          */
         CENTER,
+
         /**
          * The component with this value as its layout data will occupy the left side of the container, attempting to
          * allocate the preferred width of the component and at least the preferred height, but could be more depending
          * on the other components added.
          */
         LEFT,
+
         /**
          * The component with this value as its layout data will occupy the right side of the container, attempting to
          * allocate the preferred width of the component and at least the preferred height, but could be more depending
          * on the other components added.
          */
         RIGHT,
+
         /**
          * The component with this value as its layout data will occupy the top side of the container, attempting to
          * allocate the preferred height of the component and at least the preferred width, but could be more depending
          * on the other components added.
          */
         TOP,
+
         /**
          * The component with this value as its layout data will occupy the bottom side of the container, attempting to
          * allocate the preferred height of the component and at least the preferred width, but could be more depending
@@ -80,19 +84,23 @@ class BorderLayout : LayoutManager {
                 ) +
                 (if (layout.containsKey(Location.BOTTOM)) layout[Location.BOTTOM]!!.preferredSize?.rows ?: 0 else 0)
 
-        val preferredWidth = maxOf(
-            (if (layout.containsKey(Location.LEFT)) layout[Location.LEFT]!!.preferredSize?.columns ?: 0 else 0) +
-                (if (layout.containsKey(Location.CENTER)) layout[Location.CENTER]!!.preferredSize?.columns ?: 0 else 0) +
-                (if (layout.containsKey(Location.RIGHT)) layout[Location.RIGHT]!!.preferredSize?.columns ?: 0 else 0),
+        val preferredWidth =
             maxOf(
-                if (layout.containsKey(Location.TOP)) layout[Location.TOP]!!.preferredSize?.columns ?: 0 else 0,
-                if (layout.containsKey(Location.BOTTOM)) layout[Location.BOTTOM]!!.preferredSize?.columns ?: 0 else 0,
-            ),
-        )
+                (if (layout.containsKey(Location.LEFT)) layout[Location.LEFT]!!.preferredSize?.columns ?: 0 else 0) +
+                    (if (layout.containsKey(Location.CENTER)) layout[Location.CENTER]!!.preferredSize?.columns ?: 0 else 0) +
+                    (if (layout.containsKey(Location.RIGHT)) layout[Location.RIGHT]!!.preferredSize?.columns ?: 0 else 0),
+                maxOf(
+                    if (layout.containsKey(Location.TOP)) layout[Location.TOP]!!.preferredSize?.columns ?: 0 else 0,
+                    if (layout.containsKey(Location.BOTTOM)) layout[Location.BOTTOM]!!.preferredSize?.columns ?: 0 else 0,
+                ),
+            )
         return TerminalSize(preferredWidth, preferredHeight)
     }
 
-    override fun doLayout(area: TerminalSize?, components: List<Component?>?) {
+    override fun doLayout(
+        area: TerminalSize?,
+        components: List<Component?>?,
+    ) {
         if (area == null || components == null) {
             return
         }
@@ -181,8 +189,9 @@ class BorderLayout : LayoutManager {
 
     companion object {
         // When components don't have a location, we'll assign an available location based on this order.
-        private val AUTO_ASSIGN_ORDER = Collections.unmodifiableList(
-            listOf(Location.CENTER, Location.TOP, Location.BOTTOM, Location.LEFT, Location.RIGHT),
-        )
+        private val AUTO_ASSIGN_ORDER =
+            Collections.unmodifiableList(
+                listOf(Location.CENTER, Location.TOP, Location.BOTTOM, Location.LEFT, Location.RIGHT),
+            )
     }
 }

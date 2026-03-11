@@ -142,11 +142,12 @@ class FileDialog(
         separator.addTo(contentPane)
 
         okButton = Button(requireNotNull(actionLabel), OkHandler())
-        val buttonPanel = Panels.grid(
-            2,
-            okButton,
-            Button(LocalizedString.Cancel.toString(), CancelHandler()),
-        )
+        val buttonPanel =
+            Panels.grid(
+                2,
+                okButton,
+                Button(LocalizedString.Cancel.toString(), CancelHandler()),
+            )
         buttonPanel?.setLayoutData(
             GridLayout.createLayoutData(
                 GridLayout.Alignment.END,

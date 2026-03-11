@@ -32,15 +32,16 @@ class CtrlAndCharacterPattern : CharacterPattern {
             return null
         }
 
-        val ctrlCode = when (ch) {
-            '\n', '\r', '\t', '\b', KeyDecodingProfile.ESC_CODE -> return null
-            '\u0000' -> ' '
-            '\u001c' -> '\\'
-            '\u001d' -> ']'
-            '\u001e' -> '^'
-            '\u001f' -> '_'
-            else -> ('a'.code - 1 + ch.code).toChar()
-        }
+        val ctrlCode =
+            when (ch) {
+                '\n', '\r', '\t', '\b', KeyDecodingProfile.ESC_CODE -> return null
+                '\u0000' -> ' '
+                '\u001c' -> '\\'
+                '\u001d' -> ']'
+                '\u001e' -> '^'
+                '\u001f' -> '_'
+                else -> ('a'.code - 1 + ch.code).toChar()
+            }
         return CharacterPattern.Matching(KeyStroke(ctrlCode, true, false))
     }
 }

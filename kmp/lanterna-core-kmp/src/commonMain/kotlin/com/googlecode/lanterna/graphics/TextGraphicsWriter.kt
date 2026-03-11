@@ -187,23 +187,24 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
      * Writes an explicit control character representation at the cursor.
      */
     fun putControlChar(ch: Char) {
-        val subst = when (ch) {
-            '\u001b' -> '['
-            '\u001c' -> '\\'
-            '\u001d' -> ']'
-            '\u001e' -> '^'
-            '\u001f' -> '_'
-            '\u007f' -> '?'
-            else -> {
-                if (ch.code <= 26) {
-                    (ch.code + '@'.code).toChar()
-                } else {
-                    backend.setCharacter(cursorPosition, ch)
-                    cursorPosition = requireNotNull(cursorPosition.withRelativeColumn(1))
-                    return
+        val subst =
+            when (ch) {
+                '\u001b' -> '['
+                '\u001c' -> '\\'
+                '\u001d' -> ']'
+                '\u001e' -> '^'
+                '\u001f' -> '_'
+                '\u007f' -> '?'
+                else -> {
+                    if (ch.code <= 26) {
+                        (ch.code + '@'.code).toChar()
+                    } else {
+                        backend.setCharacter(cursorPosition, ch)
+                        cursorPosition = requireNotNull(cursorPosition.withRelativeColumn(1))
+                        return
+                    }
                 }
             }
-        }
 
         val active = activeModifiers
         if (active.contains(SGR.REVERSE)) {
@@ -219,7 +220,10 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
         cursorPosition = requireNotNull(cursorPosition.withRelativeColumn(1))
     }
 
-    private fun stash(word: StringBuilder, wordLen: Int) {
+    private fun stash(
+        word: StringBuilder,
+        wordLen: Int,
+    ) {
         if (word.isNotEmpty()) {
             val chunk = WordPart(word.toString(), wordLen, StyleSet.Set(this))
             chunkQueue.add(chunk)
@@ -228,7 +232,10 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
         }
     }
 
-    private fun flush(word: StringBuilder, wordLen: Int) {
+    private fun flush(
+        word: StringBuilder,
+        wordLen: Int,
+    ) {
         stash(word, wordLen)
         if (chunkQueue.isEmpty()) {
             return

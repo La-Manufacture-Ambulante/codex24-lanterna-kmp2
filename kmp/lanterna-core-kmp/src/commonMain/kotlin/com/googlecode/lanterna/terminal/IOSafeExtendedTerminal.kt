@@ -19,14 +19,30 @@
 package com.googlecode.lanterna.terminal
 
 interface IOSafeExtendedTerminal : IOSafeTerminal, ExtendedTerminal {
-    override fun setTerminalSize(columns: Int, rows: Int)
+    override fun setTerminalSize(
+        columns: Int,
+        rows: Int,
+    )
+
     override fun setTitle(title: String?)
+
     override fun pushTitle()
+
     override fun popTitle()
+
     override fun iconify()
+
     override fun deiconify()
+
     override fun maximize()
+
     override fun unmaximize()
+
     override fun setMouseCaptureMode(mouseCaptureMode: MouseCaptureMode?)
-    override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int)
+
+    override fun scrollLines(
+        firstLine: Int,
+        lastLine: Int,
+        distance: Int,
+    )
 }

@@ -20,36 +20,32 @@
 package com.googlecode.lanterna.issue
 
 import com.googlecode.lanterna.*
-
-import java.io.IOException
-
-import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.screen.*
 import com.googlecode.lanterna.terminal.*
+import java.io.IOException
 
- object Issue249 {
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-
- // Setup terminal and screen layers
+object Issue249 {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        // Setup terminal and screen layers
         val terminal = DefaultTerminalFactory().createTerminal()!!
-val screen = TerminalScreen(terminal)
-screen.startScreen()
+        val screen = TerminalScreen(terminal)
+        screen.startScreen()
 
-val screenSize = screen.terminalSize
+        val screenSize = screen.terminalSize
 
- // Create panel to hold components
+        // Create panel to hold components
         val panel = Panel()
-panel.setPreferredSize(screenSize)
+        panel.setPreferredSize(screenSize)
 
- // Create window to hold the panel
+        // Create window to hold the panel
         val window = BasicWindow()
-window.component = panel
+        window.component = panel
 
- // Create gui and start gui
+        // Create gui and start gui
         val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
-gui.addWindowAndWait(window)
-}
+        gui.addWindowAndWait(window)
+    }
 }

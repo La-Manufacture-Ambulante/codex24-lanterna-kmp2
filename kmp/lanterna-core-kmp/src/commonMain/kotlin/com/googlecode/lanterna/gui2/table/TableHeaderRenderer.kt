@@ -26,24 +26,33 @@ import com.googlecode.lanterna.gui2.TextGUIGraphics
  * @param <V> Type of data stored in each table cell
  * @author Martin
 </V> */
- interface TableHeaderRenderer<V> {
+interface TableHeaderRenderer<V> {
 /**
- * Called by the table when it wants to know how big a particular table header should be
- * @param table Table containing the header
- * @param label Label for this header
- * @param columnIndex Column index of the header
- * @return Size this renderer would like the header to have
- */
-     fun getPreferredSize(table:Table<V?>?, label:String?, columnIndex:Int):TerminalSize? 
+     * Called by the table when it wants to know how big a particular table header should be
+     * @param table Table containing the header
+     * @param label Label for this header
+     * @param columnIndex Column index of the header
+     * @return Size this renderer would like the header to have
+     */
+    fun getPreferredSize(
+        table: Table<V?>?,
+        label: String?,
+        columnIndex: Int,
+    ): TerminalSize?
 
 /**
- * Called by the table when it's time to draw a header, you can see how much size is available by checking the size
- * of the `textGUIGraphics`. The top-left position of the graphics object is the top-left position of this
- * header.
- * @param table Table containing the header
- * @param label Label for this header
- * @param index Column index of the header
- * @param textGUIGraphics Graphics object to header with
- */
-     fun drawHeader(table:Table<V?>?, label:String?, index:Int, textGUIGraphics:TextGUIGraphics?) 
+     * Called by the table when it's time to draw a header, you can see how much size is available by checking the size
+     * of the `textGUIGraphics`. The top-left position of the graphics object is the top-left position of this
+     * header.
+     * @param table Table containing the header
+     * @param label Label for this header
+     * @param index Column index of the header
+     * @param textGUIGraphics Graphics object to header with
+     */
+    fun drawHeader(
+        table: Table<V?>?,
+        label: String?,
+        index: Int,
+        textGUIGraphics: TextGUIGraphics?,
+    )
 }

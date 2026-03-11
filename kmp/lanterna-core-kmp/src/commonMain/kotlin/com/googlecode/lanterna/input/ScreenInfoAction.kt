@@ -28,9 +28,8 @@ class ScreenInfoAction(
      * The location of the mouse cursor when this event was generated.
      * @return Location of the mouse cursor
      */
-    val position: TerminalPosition?
+    val position: TerminalPosition?,
 ) : KeyStroke(KeyType.CURSOR_LOCATION) {
-
     override fun toString(): String {
         return "ScreenInfoAction{position=$position}"
     }

@@ -22,58 +22,47 @@ import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.graphics.TextGraphics
-import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
-
 import java.io.IOException
 
 /**
  * Test for VirtualScreen class
  * @author Martin
  */
- class VirtualScreenTest @Throws(InterruptedException::class, IOException::class)
- constructor(args:Array<String?>?) {
+class VirtualScreenTest
+    @Throws(InterruptedException::class, IOException::class)
+    constructor(args: Array<String?>?) {
+        init {
+            var screen: Screen? = TestTerminalFactory(args).createScreen()
+            screen = VirtualScreen(screen!!)
+            screen!!.startScreen()
 
-init{
-var screen:Screen? = TestTerminalFactory(args).createScreen()
-screen = VirtualScreen(screen!!)
-screen!!.startScreen()
+            val textGraphics = screen!!.newTextGraphics()
+            textGraphics!!.setBackgroundColor(TextColor.ANSI.GREEN)
+            textGraphics!!.fillTriangle(TerminalPosition(40, 0), TerminalPosition(25, 19), TerminalPosition(65, 19), ' ')
+            textGraphics!!.setBackgroundColor(TextColor.ANSI.RED)
+            textGraphics!!.drawRectangle(TerminalPosition.TOP_LEFT_CORNER, screen!!.terminalSize, ' ')
+            screen!!.refresh()
 
-val textGraphics = screen!!.newTextGraphics()
-textGraphics!!.setBackgroundColor(TextColor.ANSI.GREEN)
-textGraphics!!.fillTriangle(TerminalPosition(40, 0), TerminalPosition(25, 19), TerminalPosition(65, 19), ' ')
-textGraphics!!.setBackgroundColor(TextColor.ANSI.RED)
-textGraphics!!.drawRectangle(TerminalPosition.TOP_LEFT_CORNER, screen!!.terminalSize, ' ')
-screen!!.refresh()
+            while (true) {
+                val keyStroke = screen!!.pollInput()
+                if (keyStroke != null) {
+                    if (keyStroke!!.keyType == KeyType.ESCAPE) {
+                        break
+                    }
+                } else if (screen!!.doResizeIfNecessary() != null) {
+                    screen!!.refresh()
+                } else {
+                    Thread.sleep(1)
+                }
+            }
+            screen!!.stopScreen()
+        }
 
-while (true)
-{
-val keyStroke = screen!!.pollInput()
-if (keyStroke != null)
-{
-if (keyStroke!!.keyType == KeyType.ESCAPE)
-{
-break
-}
-}
-else if (screen!!.doResizeIfNecessary() != null)
-{
-screen!!.refresh()
-}
-else
-{
-Thread.sleep(1)
-}
-}
-screen!!.stopScreen()
-}
-
-companion object {
-
-@Throws(InterruptedException::class, IOException::class)
- fun main(args:Array<String?>?) {
-VirtualScreenTest(args)
-}
-}
-}
+        companion object {
+            @Throws(InterruptedException::class, IOException::class)
+            fun main(args: Array<String?>?) {
+                VirtualScreenTest(args)
+            }
+        }
+    }

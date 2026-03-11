@@ -22,56 +22,54 @@ import com.googlecode.lanterna.*
 import java.io.IOException
 import java.util.Collections
 
- class LinearLayoutTest:TestBase() {
+class LinearLayoutTest : TestBase() {
+    fun init(textGUI: WindowBasedTextGUI) {
+        val window = BasicWindow("Linear layout test")
+        val mainPanel = Panel()
+        val labelPanel = Panel()
+        val linearLayout = LinearLayout(Direction.VERTICAL)
+        linearLayout.setSpacing(1)
+        labelPanel.setLayoutManager(linearLayout)
 
-fun init(textGUI:WindowBasedTextGUI) {
-val window = BasicWindow("Linear layout test")
-val mainPanel = Panel()
-val labelPanel = Panel()
-val linearLayout = LinearLayout(Direction.VERTICAL)
-linearLayout.setSpacing(1)
-labelPanel.setLayoutManager(linearLayout)
+        for (i in 0..4) {
+            Label("LABEL COMPONENT")
+                .setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW))!!
+                .addTo(labelPanel)
+        }
+        mainPanel.addComponent(labelPanel.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW)))
 
-for (i in 0..4)
-{
-Label("LABEL COMPONENT")
-.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW))!!
-.addTo(labelPanel)
-}
-mainPanel.addComponent(labelPanel.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW)))
+        Separator(Direction.HORIZONTAL)
+            .setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL))!!
+            .addTo(mainPanel)
 
-Separator(Direction.HORIZONTAL)
-.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL))!!
-.addTo(mainPanel)
+        mainPanel.addComponent(
+            Panels.horizontal(
+                Button("Add", { Label("LABEL COMPONENT").addTo(labelPanel) }),
+                Button("Spacing", { linearLayout.setSpacing(if (linearLayout.getSpacing() == 1) 0 else 1) }),
+                Button("Toggle Hide Odd #", { toggleVisibleOnOddNumberLabels(labelPanel) }),
+                Button("Expand", { window.setHints(Collections.singletonList(Window.Hint.EXPANDED)) }),
+                Button("Collapse", { window.setHints(Collections.emptySet()) }),
+                Button("Close", Runnable { window.close() }),
+            ),
+        )
 
-mainPanel.addComponent(Panels.horizontal(
-Button("Add", { Label("LABEL COMPONENT").addTo(labelPanel) }), 
-Button("Spacing", { linearLayout.setSpacing(if (linearLayout.getSpacing() == 1) 0 else 1) }), 
-Button("Toggle Hide Odd #", { toggleVisibleOnOddNumberLabels(labelPanel) }), 
-Button("Expand", { window.setHints(Collections.singletonList(Window.Hint.EXPANDED)) }), 
-Button("Collapse", { window.setHints(Collections.emptySet()) }), 
-Button("Close", Runnable { window.close() })
-))
+        window.component = mainPanel
+        textGUI.addWindow(window)
+    }
 
-window.component = mainPanel
-textGUI.addWindow(window)
-}
+    internal fun toggleVisibleOnOddNumberLabels(panel: Panel) {
+        for (i in 0 until panel.childCount) {
+            if ((i + 1) % 2 == 1) {
+                val component = panel.childrenList?.get(i) ?: continue
+                component.setVisible(!component.isVisible)
+            }
+        }
+    }
 
-internal fun toggleVisibleOnOddNumberLabels(panel:Panel) {
-for (i in 0 until panel.childCount)
-{
-if ((i + 1) % 2 == 1)
-{
-val component = panel.childrenList?.get(i) ?: continue
-component.setVisible(!component.isVisible)
-}
-}
-}
-
-companion object {
-@Throws(InterruptedException::class, IOException::class)
- fun main(args:Array<String?>?) {
-LinearLayoutTest().run(args)
-}
-}
+    companion object {
+        @Throws(InterruptedException::class, IOException::class)
+        fun main(args: Array<String?>?) {
+            LinearLayoutTest().run(args)
+        }
+    }
 }

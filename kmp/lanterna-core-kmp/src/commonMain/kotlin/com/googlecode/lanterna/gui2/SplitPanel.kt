@@ -33,7 +33,6 @@ class SplitPanel protected constructor(
     private val compB: Component,
     private val isHorizontal: Boolean,
 ) : Panel() {
-
     private val thumb: ImageComponent = makeThumb()
     private var ratio: Double = 0.5
 
@@ -122,7 +121,10 @@ class SplitPanel protected constructor(
             }
         }
 
-        override fun doLayout(area: TerminalSize?, components: List<Component?>?) {
+        override fun doLayout(
+            area: TerminalSize?,
+            components: List<Component?>?,
+        ) {
             val panelSize = size ?: TerminalSize.ZERO
 
             val length = if (isHorizontal) panelSize.rows else panelSize.columns
@@ -130,11 +132,12 @@ class SplitPanel protected constructor(
             val textImage: TextImage = BasicTextImage(thumbImageSize)
             val themeDefinition = theme?.defaultDefinition
             val themeStyle = themeDefinition?.normal
-            var thumbRenderer = TextCharacter.fromCharacter(
-                if (isHorizontal) Symbols.SINGLE_LINE_VERTICAL else Symbols.SINGLE_LINE_HORIZONTAL,
-                themeStyle?.foreground,
-                themeStyle?.background,
-            )
+            var thumbRenderer =
+                TextCharacter.fromCharacter(
+                    if (isHorizontal) Symbols.SINGLE_LINE_VERTICAL else Symbols.SINGLE_LINE_HORIZONTAL,
+                    themeStyle?.foreground,
+                    themeStyle?.background,
+                )
             if (thumb.isFocused && thumbRenderer != null) {
                 thumbRenderer = thumbRenderer.withModifier(SGR.BOLD)
             }
@@ -197,7 +200,10 @@ class SplitPanel protected constructor(
         override fun hasChanged(): Boolean = changed
     }
 
-    fun setRatio(left: Int, right: Int) {
+    fun setRatio(
+        left: Int,
+        right: Int,
+    ) {
         ratio =
             if (left == 0 || right == 0) {
                 0.5
@@ -216,13 +222,19 @@ class SplitPanel protected constructor(
     }
 
     companion object {
-        fun ofHorizontal(left: Component?, right: Component?): SplitPanel {
+        fun ofHorizontal(
+            left: Component?,
+            right: Component?,
+        ): SplitPanel {
             requireNotNull(left) { "Left component cannot be null" }
             requireNotNull(right) { "Right component cannot be null" }
             return SplitPanel(left, right, true)
         }
 
-        fun ofVertical(top: Component?, bottom: Component?): SplitPanel {
+        fun ofVertical(
+            top: Component?,
+            bottom: Component?,
+        ): SplitPanel {
             requireNotNull(top) { "Top component cannot be null" }
             requireNotNull(bottom) { "Bottom component cannot be null" }
             return SplitPanel(top, bottom, false)

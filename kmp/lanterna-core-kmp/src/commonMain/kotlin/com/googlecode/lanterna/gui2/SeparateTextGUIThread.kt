@@ -43,98 +43,101 @@ import java.util.concurrent.TimeUnit
 class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
     AbstractTextGUIThread(textGUI),
     AsynchronousTextGUIThread {
+        @Volatile
+        override var state: AsynchronousTextGUIThread.State? = AsynchronousTextGUIThread.State.CREATED
+            private set
 
-    @Volatile
-    override var state: AsynchronousTextGUIThread.State? = AsynchronousTextGUIThread.State.CREATED
-        private set
+        private val waitLatch = CountDownLatch(1)
 
-    private val waitLatch = CountDownLatch(1)
-
-    override val thread: Thread = object : Thread("LanternaGUI") {
-        override fun run() {
-            mainGUILoop()
-        }
-    }
-
-    override fun start() {
-        thread.start()
-        state = AsynchronousTextGUIThread.State.STARTED
-    }
-
-    override fun stop() {
-        if (state != AsynchronousTextGUIThread.State.STARTED) {
-            return
-        }
-        state = AsynchronousTextGUIThread.State.STOPPING
-    }
-
-    @Throws(InterruptedException::class)
-    override fun waitForStop() {
-        waitLatch.await()
-    }
-
-    @Throws(InterruptedException::class)
-    override fun waitForStop(time: Long, unit: TimeUnit?) {
-        waitLatch.await(time, unit)
-    }
-
-    override fun invokeLater(runnable: Runnable?) {
-        if (state != AsynchronousTextGUIThread.State.STARTED) {
-            throw IllegalStateException(
-                "Cannot schedule $runnable for execution on the TextGUIThread because the thread is in $state state",
-            )
-        }
-        super.invokeLater(runnable)
-    }
-
-    private fun mainGUILoop() {
-        try {
-            try {
-                textGUI.updateScreen()
-            } catch (e: IOException) {
-                exceptionHandlerRef?.onIOException(e)
-            } catch (e: RuntimeException) {
-                exceptionHandlerRef?.onRuntimeException(e)
-            }
-
-            while (state == AsynchronousTextGUIThread.State.STARTED) {
-                try {
-                    if (!processEventsAndUpdate()) {
-                        try {
-                            Thread.sleep(1)
-                        } catch (_: InterruptedException) {
-                            // Ignore and continue loop processing.
-                        }
-                    }
-                } catch (e: EOFException) {
-                    stop()
-                    if (textGUI is WindowBasedTextGUI) {
-                        for (window in textGUI.windows.orEmpty()) {
-                            window?.close()
-                        }
-                    }
-                    break
-                } catch (e: IOException) {
-                    if (exceptionHandlerRef?.onIOException(e) == true) {
-                        stop()
-                        break
-                    }
-                } catch (e: RuntimeException) {
-                    if (exceptionHandlerRef?.onRuntimeException(e) == true) {
-                        stop()
-                        break
-                    }
+        override val thread: Thread =
+            object : Thread("LanternaGUI") {
+                override fun run() {
+                    mainGUILoop()
                 }
             }
-        } finally {
-            state = AsynchronousTextGUIThread.State.STOPPED
-            waitLatch.countDown()
-        }
-    }
 
-    class Factory : TextGUIThreadFactory {
-        override fun createTextGUIThread(textGUI: TextGUI?): TextGUIThread? {
-            return SeparateTextGUIThread(textGUI!!)
+        override fun start() {
+            thread.start()
+            state = AsynchronousTextGUIThread.State.STARTED
+        }
+
+        override fun stop() {
+            if (state != AsynchronousTextGUIThread.State.STARTED) {
+                return
+            }
+            state = AsynchronousTextGUIThread.State.STOPPING
+        }
+
+        @Throws(InterruptedException::class)
+        override fun waitForStop() {
+            waitLatch.await()
+        }
+
+        @Throws(InterruptedException::class)
+        override fun waitForStop(
+            time: Long,
+            unit: TimeUnit?,
+        ) {
+            waitLatch.await(time, unit)
+        }
+
+        override fun invokeLater(runnable: Runnable?) {
+            if (state != AsynchronousTextGUIThread.State.STARTED) {
+                throw IllegalStateException(
+                    "Cannot schedule $runnable for execution on the TextGUIThread because the thread is in $state state",
+                )
+            }
+            super.invokeLater(runnable)
+        }
+
+        private fun mainGUILoop() {
+            try {
+                try {
+                    textGUI.updateScreen()
+                } catch (e: IOException) {
+                    exceptionHandlerRef?.onIOException(e)
+                } catch (e: RuntimeException) {
+                    exceptionHandlerRef?.onRuntimeException(e)
+                }
+
+                while (state == AsynchronousTextGUIThread.State.STARTED) {
+                    try {
+                        if (!processEventsAndUpdate()) {
+                            try {
+                                Thread.sleep(1)
+                            } catch (_: InterruptedException) {
+                                // Ignore and continue loop processing.
+                            }
+                        }
+                    } catch (e: EOFException) {
+                        stop()
+                        if (textGUI is WindowBasedTextGUI) {
+                            for (window in textGUI.windows.orEmpty()) {
+                                window?.close()
+                            }
+                        }
+                        break
+                    } catch (e: IOException) {
+                        if (exceptionHandlerRef?.onIOException(e) == true) {
+                            stop()
+                            break
+                        }
+                    } catch (e: RuntimeException) {
+                        if (exceptionHandlerRef?.onRuntimeException(e) == true) {
+                            stop()
+                            break
+                        }
+                    }
+                }
+            } finally {
+                state = AsynchronousTextGUIThread.State.STOPPED
+                waitLatch.countDown()
+            }
+        }
+
+        class Factory : TextGUIThreadFactory {
+            override fun createTextGUIThread(textGUI: TextGUI?): TextGUIThread? {
+                return SeparateTextGUIThread(textGUI!!)
+            }
         }
     }
-}

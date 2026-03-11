@@ -20,38 +20,36 @@
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextColor
-
 import java.io.IOException
 
 /**
- * 
+ *
  * @author martin
  */
- object ResetAllTest {
-@Throws(InterruptedException::class, IOException::class)
- fun main(args:Array<String?>?) {
-val terminal = TestTerminalFactory(args).createTerminal()!!
-terminal!!.enterPrivateMode()
-terminal!!.clearScreen()
-terminal!!.setCursorPosition(10, 5)
-terminal!!.putCharacter('H')
-terminal!!.putCharacter('e')
-terminal!!.enableSGR(SGR.BOLD)
-terminal!!.putCharacter('l')
-terminal!!.setForegroundColor(TextColor.ANSI.CYAN)
-terminal!!.putCharacter('l')
-terminal!!.enableSGR(SGR.REVERSE)
-terminal!!.putCharacter('o')
-terminal!!.resetColorAndSGR()
-terminal!!.putCharacter('!')
-terminal!!.setCursorPosition(0, 0)
-terminal!!.flush()
+object ResetAllTest {
+    @Throws(InterruptedException::class, IOException::class)
+    fun main(args: Array<String?>?) {
+        val terminal = TestTerminalFactory(args).createTerminal()!!
+        terminal!!.enterPrivateMode()
+        terminal!!.clearScreen()
+        terminal!!.setCursorPosition(10, 5)
+        terminal!!.putCharacter('H')
+        terminal!!.putCharacter('e')
+        terminal!!.enableSGR(SGR.BOLD)
+        terminal!!.putCharacter('l')
+        terminal!!.setForegroundColor(TextColor.ANSI.CYAN)
+        terminal!!.putCharacter('l')
+        terminal!!.enableSGR(SGR.REVERSE)
+        terminal!!.putCharacter('o')
+        terminal!!.resetColorAndSGR()
+        terminal!!.putCharacter('!')
+        terminal!!.setCursorPosition(0, 0)
+        terminal!!.flush()
 
-Thread.sleep(5000)
-terminal!!.exitPrivateMode()
-}
+        Thread.sleep(5000)
+        terminal!!.exitPrivateMode()
+    }
 }

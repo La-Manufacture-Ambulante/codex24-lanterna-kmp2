@@ -19,65 +19,59 @@
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.*
-
-import com.googlecode.lanterna.input.KeyStroke
-import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.input.KeyType
 import java.io.IOException
 
 /**
- * 
+ *
  * @author martin
  */
- object TerminalInputTest {
-
-@Throws(InterruptedException::class, IOException::class)
- fun main(args:Array<String?>?) {
- // For IDE users: either set runtime arguments or uncomment this line:
-        //args = new String[] { "--mouse-move", "--telnet-port=1024", "--with-timeout=12" };
+object TerminalInputTest {
+    @Throws(InterruptedException::class, IOException::class)
+    fun main(args: Array<String?>?) {
+        // For IDE users: either set runtime arguments or uncomment this line:
+        // args = new String[] { "--mouse-move", "--telnet-port=1024", "--with-timeout=12" };
 
         val rawTerminal = TestTerminalFactory(args).createTerminal()!!
-rawTerminal!!.enterPrivateMode()
+        rawTerminal!!.enterPrivateMode()
 
-var currentRow = 0
-rawTerminal!!.setCursorPosition(0, 0)
-while (true)
-{
-val key = rawTerminal!!.pollInput()
-if (key == null)
-{
-Thread.sleep(1)
-continue
-}
+        var currentRow = 0
+        rawTerminal!!.setCursorPosition(0, 0)
+        while (true) {
+            val key = rawTerminal!!.pollInput()
+            if (key == null) {
+                Thread.sleep(1)
+                continue
+            }
 
-if (key!!.keyType == KeyType.ESCAPE || key!!.keyType == KeyType.EOF)
-{
-break
-}
+            if (key!!.keyType == KeyType.ESCAPE || key!!.keyType == KeyType.EOF) {
+                break
+            }
 
-if (currentRow == 0)
-{
-rawTerminal!!.clearScreen()
-}
+            if (currentRow == 0) {
+                rawTerminal!!.clearScreen()
+            }
 
-rawTerminal!!.setCursorPosition(0, currentRow++)
-putString(rawTerminal, key!!.toString())
+            rawTerminal!!.setCursorPosition(0, currentRow++)
+            putString(rawTerminal, key!!.toString())
 
-if (currentRow >= rawTerminal!!.terminalSize!!.rows)
-{
-currentRow = 0
-}
-}
+            if (currentRow >= rawTerminal!!.terminalSize!!.rows) {
+                currentRow = 0
+            }
+        }
 
-rawTerminal!!.exitPrivateMode()
-}
+        rawTerminal!!.exitPrivateMode()
+    }
 
-@Throws(IOException::class)
-private fun putString(rawTerminal:Terminal, string:String) {
-for (i in 0 until string.length)
-{
-rawTerminal!!.putCharacter(string[i])
-}
-rawTerminal!!.flush()
-}
+    @Throws(IOException::class)
+    private fun putString(
+        rawTerminal: Terminal,
+        string: String,
+    ) {
+        for (i in 0 until string.length) {
+            rawTerminal!!.putCharacter(string[i])
+        }
+        rawTerminal!!.flush()
+    }
 }

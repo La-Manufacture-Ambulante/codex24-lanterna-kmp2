@@ -21,46 +21,46 @@ package com.googlecode.lanterna.issue
 import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
-import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
-import com.googlecode.lanterna.terminal.Terminal
-
 import java.io.IOException
 
- object Issue221 {
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-
- // Setup terminal and screen layers
+object Issue221 {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        // Setup terminal and screen layers
         val terminal = DefaultTerminalFactory().createTerminal()!!
-val screen = TerminalScreen(terminal)
-screen.startScreen()
+        val screen = TerminalScreen(terminal)
+        screen.startScreen()
 
- // Create panel to hold components
+        // Create panel to hold components
         val panel = Panel()
-panel.setLayoutManager(GridLayout(2))
+        panel.setLayoutManager(GridLayout(2))
 
-panel.addComponent(Label("The List"))
-val box = RadioBoxList<String>()
-box.addItem("Item 1")
-box.addItem("Item 2")
-box.addItem("Item 3")
-box.addListener(object : RadioBoxList.Listener {
-override fun onSelectionChanged(selectedIndex: Int, previousSelection: Int) {
-System.out.println("Selected Index: " + selectedIndex + ", previous: " + previousSelection)
-}
-})
+        panel.addComponent(Label("The List"))
+        val box = RadioBoxList<String>()
+        box.addItem("Item 1")
+        box.addItem("Item 2")
+        box.addItem("Item 3")
+        box.addListener(
+            object : RadioBoxList.Listener {
+                override fun onSelectionChanged(
+                    selectedIndex: Int,
+                    previousSelection: Int,
+                ) {
+                    System.out.println("Selected Index: " + selectedIndex + ", previous: " + previousSelection)
+                }
+            },
+        )
 
-panel.addComponent(box)
+        panel.addComponent(box)
 
- // Create window to hold the panel
+        // Create window to hold the panel
         val window = BasicWindow()
-window.component = panel
+        window.component = panel
 
- // Create gui and start gui
+        // Create gui and start gui
         val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
-gui.addWindowAndWait(window)
-}
-
+        gui.addWindowAndWait(window)
+    }
 }

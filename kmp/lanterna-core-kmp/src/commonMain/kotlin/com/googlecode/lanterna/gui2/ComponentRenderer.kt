@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
@@ -28,20 +28,23 @@ import com.googlecode.lanterna.TerminalSize
  * @param <T> Type of the component which this renderer is designed for
  * @author Martin
 </T> */
- interface ComponentRenderer<T : Component?> {
+interface ComponentRenderer<T : Component?> {
 /**
- * Given the supplied component, how large does this renderer want the component to be? Notice that this is the
- * responsibility of the renderer and not the component itself, since the component has no idea what its visual
- * representation looks like.
- * @param component Component to calculate the preferred size of
- * @return The size this renderer would like the component to take up
- */
-     fun getPreferredSize(component:T?):TerminalSize? 
+     * Given the supplied component, how large does this renderer want the component to be? Notice that this is the
+     * responsibility of the renderer and not the component itself, since the component has no idea what its visual
+     * representation looks like.
+     * @param component Component to calculate the preferred size of
+     * @return The size this renderer would like the component to take up
+     */
+    fun getPreferredSize(component: T?): TerminalSize?
 
 /**
- * Using the supplied graphics object, draws the component passed in.
- * @param graphics Graphics object to use for drawing
- * @param component Component to draw
- */
-     fun drawComponent(graphics:TextGUIGraphics?, component:T?) 
+     * Using the supplied graphics object, draws the component passed in.
+     * @param graphics Graphics object to use for drawing
+     * @param component Component to draw
+     */
+    fun drawComponent(
+        graphics: TextGUIGraphics?,
+        component: T?,
+    )
 }

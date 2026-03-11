@@ -21,7 +21,6 @@ package com.googlecode.lanterna.terminal
 import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.terminal.ansi.TelnetTerminal
 import com.googlecode.lanterna.terminal.ansi.TelnetTerminalServer
@@ -30,102 +29,96 @@ import java.nio.charset.StandardCharsets
 import java.util.Random
 
 /**
- * 
+ *
  * @author martin
  */
- object TelnetTerminalTest {
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-val server = TelnetTerminalServer(1024, StandardCharsets.UTF_8)
+object TelnetTerminalTest {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        val server = TelnetTerminalServer(1024, StandardCharsets.UTF_8)
 
-        while (true)
-{
-val telnetTerminal = server.acceptConnection()
-if (telnetTerminal != null)
-{
-spawnColorTest(telnetTerminal)
-}
-}
-}
+        while (true) {
+            val telnetTerminal = server.acceptConnection()
+            if (telnetTerminal != null) {
+                spawnColorTest(telnetTerminal)
+            }
+        }
+    }
 
-private fun spawnColorTest(terminal:TelnetTerminal?) {
-object:Thread() {
+    private fun spawnColorTest(terminal: TelnetTerminal?) {
+        object : Thread() {
+            @Volatile private var terminalSizeCurrent: TerminalSize? = null
 
-@Volatile private var terminalSizeCurrent:TerminalSize? = null
+            override fun run() {
+                try {
+                    val string = "Hello!"
+                    val random = Random()
+                    terminal!!.enterPrivateMode()
+                    terminal!!.clearScreen()
+                    terminal!!.addResizeListener(
+                        object : TerminalResizeListener {
+                            override fun onResized(
+                                terminal1: Terminal?,
+                                newSize: TerminalSize?,
+                            ) {
+                                System.err.println("Resized to " + newSize)
+                                terminalSizeCurrent = newSize
+                            }
+                        },
+                    )
+                    terminalSizeCurrent = terminal!!.terminalSize
 
-  override fun run() {
-try
-{
-val string = "Hello!"
-val random = Random()
-terminal!!.enterPrivateMode()
-terminal!!.clearScreen()
-terminal!!.addResizeListener(object : TerminalResizeListener {
-override fun onResized(terminal1: Terminal?, newSize: TerminalSize?) {
-System.err.println("Resized to " + newSize)
-terminalSizeCurrent = newSize
-}
-})
-terminalSizeCurrent = terminal!!.terminalSize
+                    terminal!!.setCursorPosition(3, 3)
+                    printString(terminal, "Press any key to start")
+                    terminal!!.readInput() // Test blocking input
 
-terminal!!.setCursorPosition(3, 3)
-printString(terminal, "Press any key to start")
-terminal!!.readInput() // Test blocking input
+                    while (true) {
+                        val key = terminal!!.pollInput()
+                        if (key != null) {
+                            System.out.println(key)
+                            if (key!!.keyType == KeyType.ESCAPE) {
+                                terminal!!.exitPrivateMode()
+                                return
+                            }
+                        }
 
-while (true)
-{
-val key = terminal!!.pollInput()
-if (key != null)
-{
-System.out.println(key)
-if (key!!.keyType == KeyType.ESCAPE)
-{
-terminal!!.exitPrivateMode()
-return 
-}
-}
+                        val foregroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255))
+                        val backgroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255))
 
-val foregroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255))
-val backgroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255))
+                        terminal!!.setForegroundColor(foregroundIndex)
+                        terminal!!.setBackgroundColor(backgroundIndex)
+                        terminal!!.setCursorPosition(
+                            random.nextInt(terminalSizeCurrent!!.columns - string.length),
+                            random.nextInt(terminalSizeCurrent!!.rows),
+                        )
+                        printString(terminal, string)
 
-terminal!!.setForegroundColor(foregroundIndex)
-terminal!!.setBackgroundColor(backgroundIndex)
-terminal!!.setCursorPosition(
-random.nextInt(terminalSizeCurrent!!.columns - string.length),
-random.nextInt(terminalSizeCurrent!!.rows)
-)
-printString(terminal, string)
+                        try {
+                            Thread.sleep(200)
+                        } catch (e: InterruptedException) {
+                        }
+                    }
+                } catch (e: IOException) {
+                    e!!.printStackTrace()
+                } finally
+                {
+                    try {
+                        terminal!!.close()
+                    } catch (e: IOException) {
+                        e!!.printStackTrace()
+                    }
+                }
+            }
+        }.start()
+    }
 
-try
-{
-Thread.sleep(200)
-}
-catch (e:InterruptedException) {}
-
-}
-}
-catch (e:IOException) {
-e!!.printStackTrace()
-}
-finally
-{
-try
-{
-terminal!!.close()
-}
-catch (e:IOException) {
-e!!.printStackTrace()
-}
-
-}
-}
-}.start()
-}
-
-@Throws(IOException::class)
-private fun printString(terminal:Terminal?, string:String) {
-for (i in 0 until string.length)
-terminal!!.putCharacter(string[i])
-terminal!!.flush()
-}
+    @Throws(IOException::class)
+    private fun printString(
+        terminal: Terminal?,
+        string: String,
+    ) {
+        for (i in 0 until string.length)
+            terminal!!.putCharacter(string[i])
+        terminal!!.flush()
+    }
 }

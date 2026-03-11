@@ -43,7 +43,10 @@ interface AsynchronousTextGUIThread : TextGUIThread {
      * @throws InterruptedException In case this thread was interrupted while waiting for the GUI thread to exit
      */
     @Throws(InterruptedException::class)
-    fun waitForStop(time: Long, unit: TimeUnit?)
+    fun waitForStop(
+        time: Long,
+        unit: TimeUnit?,
+    )
 
     /**
      * Returns the current status of this GUI thread
@@ -59,14 +62,17 @@ interface AsynchronousTextGUIThread : TextGUIThread {
          * The instance has been created but not yet started
          */
         CREATED,
+
         /**
          * The thread has started an is running
          */
         STARTED,
+
         /**
          * The thread is trying to stop but is still running
          */
         STOPPING,
+
         /**
          * The thread has stopped
          */

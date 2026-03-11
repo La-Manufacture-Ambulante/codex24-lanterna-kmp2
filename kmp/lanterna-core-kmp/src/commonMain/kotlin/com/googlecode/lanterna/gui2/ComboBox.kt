@@ -22,7 +22,6 @@ import com.googlecode.lanterna.Symbols
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
-import com.googlecode.lanterna.graphics.Theme
 import com.googlecode.lanterna.graphics.ThemeDefinition
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
@@ -47,7 +46,11 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
          * @param changedByUserInteraction If `true` then this selection change happened because of user
          * interaction with the combo box. If `false` then the selected item was set programmatically.
          */
-        fun onSelectionChanged(selectedIndex: Int, previousSelection: Int, changedByUserInteraction: Boolean)
+        fun onSelectionChanged(
+            selectedIndex: Int,
+            previousSelection: Int,
+            changedByUserInteraction: Boolean,
+        )
     }
 
     private val items: MutableList<V> = ArrayList()
@@ -60,6 +63,7 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
 
     private var readOnly: Boolean = true
     private var dropDownFocused: Boolean = true
+
     /**
      * For writable combo boxes, this method returns the position where the text input cursor is right now. Meaning, if
      * the user types some character, where are those are going to be inserted in the string that is currently
@@ -70,6 +74,7 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
      */
     var textInputPosition: Int = 0
         private set
+
     /**
      * Returns the number of items to display in drop down at one time, if there are more items in the model there will
      * be a scrollbar to help the user navigate. If this returns 0, the combo box will always grow to show all items in
@@ -117,7 +122,10 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
     }
 
     @Synchronized
-    fun addItem(index: Int, item: V?): ComboBox<V> {
+    fun addItem(
+        index: Int,
+        item: V?,
+    ): ComboBox<V> {
         if (item == null) {
             throw IllegalArgumentException("Cannot add null elements to a ComboBox")
         }
@@ -159,7 +167,10 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
     }
 
     @Synchronized
-    fun setItem(index: Int, item: V?): ComboBox<V> {
+    fun setItem(
+        index: Int,
+        item: V?,
+    ): ComboBox<V> {
         if (item == null) {
             throw IllegalArgumentException("Cannot add null elements to a ComboBox")
         }
@@ -200,7 +211,10 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
     }
 
     @Synchronized
-    private fun setSelectedIndex(selectedIndex: Int, changedByUserInteraction: Boolean) {
+    private fun setSelectedIndex(
+        selectedIndex: Int,
+        changedByUserInteraction: Boolean,
+    ) {
         if (items.size <= selectedIndex || selectedIndex < -1) {
             throw IndexOutOfBoundsException("Illegal argument to ComboBox.setSelectedIndex: $selectedIndex")
         }
@@ -263,7 +277,10 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return this
     }
 
-    override fun afterEnterFocus(direction: Interactable.FocusChangeDirection?, previouslyInFocus: Interactable?) {
+    override fun afterEnterFocus(
+        direction: Interactable.FocusChangeDirection?,
+        previouslyInFocus: Interactable?,
+    ) {
         if (direction == Interactable.FocusChangeDirection.RIGHT && !isReadOnly()) {
             dropDownFocused = false
             selectedIndex = 0
@@ -271,7 +288,10 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
     }
 
     @Synchronized
-    override fun afterLeaveFocus(direction: Interactable.FocusChangeDirection?, nextInFocus: Interactable?) {
+    override fun afterLeaveFocus(
+        direction: Interactable.FocusChangeDirection?,
+        nextInFocus: Interactable?,
+    ) {
         popupWindow?.close()
     }
 
@@ -410,10 +430,13 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
             for (i in 0 until getItemCount()) {
                 val item = items[i]
                 val index = i
-                listBox.addItem(item.toString(), Runnable {
-                    setSelectedIndex(index, true)
-                    close()
-                })
+                listBox.addItem(
+                    item.toString(),
+                    Runnable {
+                        setSelectedIndex(index, true)
+                        close()
+                    },
+                )
             }
             listBox.setSelectedIndex(getSelectedIndex())
             val dropDownListPreferredSize = listBox.preferredSize ?: TerminalSize.ZERO
@@ -461,8 +484,9 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
 
         override fun getPreferredSize(comboBox: ComboBox<V>?): TerminalSize {
             val cb = comboBox ?: return TerminalSize.ONE
-            var size = TerminalSize.ONE.withColumns((if (cb.getItemCount() == 0) TerminalTextUtils.getColumnWidth(cb.text) else 0) + 2)
-                ?: TerminalSize.ONE
+            var size =
+                TerminalSize.ONE.withColumns((if (cb.getItemCount() == 0) TerminalTextUtils.getColumnWidth(cb.text) else 0) + 2)
+                    ?: TerminalSize.ONE
             synchronized(cb) {
                 for (i in 0 until cb.getItemCount()) {
                     val item = cb.getItem(i)
@@ -472,7 +496,10 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
             return size
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, comboBox: ComboBox<V>?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            comboBox: ComboBox<V>?,
+        ) {
             val g = graphics ?: return
             val cb = comboBox ?: return
             val themeDefinition: ThemeDefinition = cb.themeDefinition ?: return

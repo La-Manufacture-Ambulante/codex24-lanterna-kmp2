@@ -19,32 +19,30 @@
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.TestTerminalFactory
 import java.io.IOException
 
 /**
- * 
+ *
  * @author Martin
  */
- object RawTerminalTest {
+object RawTerminalTest {
+    @Throws(InterruptedException::class, IOException::class)
+    fun main(args: Array<String?>?) {
+        val terminal = TestTerminalFactory(args).createTerminal()!!
+        terminal!!.enterPrivateMode()
+        terminal!!.clearScreen()
+        terminal!!.setCursorPosition(10, 5)
+        terminal!!.putCharacter('H')
+        terminal!!.putCharacter('e')
+        terminal!!.putCharacter('l')
+        terminal!!.putCharacter('l')
+        terminal!!.putCharacter('o')
+        terminal!!.putCharacter('!')
+        terminal!!.setCursorPosition(0, 0)
+        terminal!!.flush()
 
-@Throws(InterruptedException::class, IOException::class)
- fun main(args:Array<String?>?) {
-val terminal = TestTerminalFactory(args).createTerminal()!!
-terminal!!.enterPrivateMode()
-terminal!!.clearScreen()
-terminal!!.setCursorPosition(10, 5)
-terminal!!.putCharacter('H')
-terminal!!.putCharacter('e')
-terminal!!.putCharacter('l')
-terminal!!.putCharacter('l')
-terminal!!.putCharacter('o')
-terminal!!.putCharacter('!')
-terminal!!.setCursorPosition(0, 0)
-terminal!!.flush()
-
-Thread.sleep(5000)
-terminal!!.exitPrivateMode()
-}
+        Thread.sleep(5000)
+        terminal!!.exitPrivateMode()
+    }
 }

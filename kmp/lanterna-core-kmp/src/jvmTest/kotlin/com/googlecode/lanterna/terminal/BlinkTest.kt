@@ -20,40 +20,37 @@
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextColor
-
 import java.io.IOException
 
 /**
- * 
+ *
  * @author Martin
  */
- object BlinkTest {
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-val rawTerminal = TestTerminalFactory(args).createTerminal()!!
-rawTerminal!!.enterPrivateMode()
-rawTerminal!!.clearScreen()
-rawTerminal!!.setForegroundColor(TextColor.ANSI.RED)
-rawTerminal!!.enableSGR(SGR.BLINK)
-rawTerminal!!.setCursorPosition(10, 10)
-rawTerminal!!.putCharacter('H')
-rawTerminal!!.putCharacter('e')
-rawTerminal!!.putCharacter('l')
-rawTerminal!!.putCharacter('l')
-rawTerminal!!.putCharacter('o')
-rawTerminal!!.putCharacter('!')
-rawTerminal!!.setCursorPosition(0, 0)
-rawTerminal!!.flush()
-try
-{
-Thread.sleep(5000)
-}
-catch (e:InterruptedException) {}
+object BlinkTest {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        val rawTerminal = TestTerminalFactory(args).createTerminal()!!
+        rawTerminal!!.enterPrivateMode()
+        rawTerminal!!.clearScreen()
+        rawTerminal!!.setForegroundColor(TextColor.ANSI.RED)
+        rawTerminal!!.enableSGR(SGR.BLINK)
+        rawTerminal!!.setCursorPosition(10, 10)
+        rawTerminal!!.putCharacter('H')
+        rawTerminal!!.putCharacter('e')
+        rawTerminal!!.putCharacter('l')
+        rawTerminal!!.putCharacter('l')
+        rawTerminal!!.putCharacter('o')
+        rawTerminal!!.putCharacter('!')
+        rawTerminal!!.setCursorPosition(0, 0)
+        rawTerminal!!.flush()
+        try {
+            Thread.sleep(5000)
+        } catch (e: InterruptedException) {
+        }
 
-rawTerminal!!.exitPrivateMode()
-}
+        rawTerminal!!.exitPrivateMode()
+    }
 }

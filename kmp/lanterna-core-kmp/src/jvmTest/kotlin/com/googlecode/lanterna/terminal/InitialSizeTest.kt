@@ -19,50 +19,49 @@
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.SGR
-import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestTerminalFactory
 import java.io.IOException
 
 /**
- * 
+ *
  * @author Martin
  */
- object InitialSizeTest {
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-val rawTerminal = TestTerminalFactory(args).createTerminal()!!
-rawTerminal!!.enterPrivateMode()
-rawTerminal!!.clearScreen()
+object InitialSizeTest {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        val rawTerminal = TestTerminalFactory(args).createTerminal()!!
+        rawTerminal!!.enterPrivateMode()
+        rawTerminal!!.clearScreen()
 
-rawTerminal!!.setCursorPosition(5, 5)
-printString(rawTerminal, "Waiting for initial size...")
-rawTerminal!!.flush()
+        rawTerminal!!.setCursorPosition(5, 5)
+        printString(rawTerminal, "Waiting for initial size...")
+        rawTerminal!!.flush()
 
-val initialSize = rawTerminal!!.terminalSize
-rawTerminal!!.clearScreen()
-rawTerminal!!.setCursorPosition(5, 5)
-printString(rawTerminal, "Initial size: ")
-rawTerminal!!.enableSGR(SGR.BOLD)
-printString(rawTerminal, initialSize!!.toString())
-rawTerminal!!.resetColorAndSGR()
-rawTerminal!!.flush()
+        val initialSize = rawTerminal!!.terminalSize
+        rawTerminal!!.clearScreen()
+        rawTerminal!!.setCursorPosition(5, 5)
+        printString(rawTerminal, "Initial size: ")
+        rawTerminal!!.enableSGR(SGR.BOLD)
+        printString(rawTerminal, initialSize!!.toString())
+        rawTerminal!!.resetColorAndSGR()
+        rawTerminal!!.flush()
 
-try
-{
-Thread.sleep(5000)
-}
-catch (e:InterruptedException) {}
+        try {
+            Thread.sleep(5000)
+        } catch (e: InterruptedException) {
+        }
 
-rawTerminal!!.exitPrivateMode()
-}
+        rawTerminal!!.exitPrivateMode()
+    }
 
-@Throws(IOException::class)
-private fun printString(rawTerminal:Terminal, string:String) {
-for (i in 0 until string.length)
-{
-rawTerminal!!.putCharacter(string[i])
-}
-}
+    @Throws(IOException::class)
+    private fun printString(
+        rawTerminal: Terminal,
+        string: String,
+    ) {
+        for (i in 0 until string.length) {
+            rawTerminal!!.putCharacter(string[i])
+        }
+    }
 }

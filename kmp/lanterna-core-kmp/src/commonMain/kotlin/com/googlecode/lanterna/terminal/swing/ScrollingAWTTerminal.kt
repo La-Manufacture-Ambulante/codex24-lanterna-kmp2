@@ -78,7 +78,10 @@ class ScrollingAWTTerminal(
         override var scrollingOffset: Int = 0
             private set
 
-        override fun updateModel(totalSize: Int, screenSize: Int) {
+        override fun updateModel(
+            totalSize: Int,
+            screenSize: Int,
+        ) {
             if (!EventQueue.isDispatchThread()) {
                 EventQueue.invokeLater { updateModel(totalSize, screenSize) }
                 return
@@ -158,7 +161,10 @@ class ScrollingAWTTerminal(
         awtTerminal.clearScreen()
     }
 
-    override fun setCursorPosition(x: Int, y: Int) {
+    override fun setCursorPosition(
+        x: Int,
+        y: Int,
+    ) {
         awtTerminal.setCursorPosition(x, y)
     }
 
@@ -196,7 +202,10 @@ class ScrollingAWTTerminal(
         awtTerminal.setBackgroundColor(color)
     }
 
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+    override fun enquireTerminal(
+        timeout: Int,
+        timeoutUnit: TimeUnit?,
+    ): ByteArray? {
         return awtTerminal.enquireTerminal(timeout, timeoutUnit)
     }
 

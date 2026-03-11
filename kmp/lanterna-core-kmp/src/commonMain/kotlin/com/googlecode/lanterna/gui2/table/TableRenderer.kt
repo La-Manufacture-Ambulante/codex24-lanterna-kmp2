@@ -26,46 +26,49 @@ import com.googlecode.lanterna.gui2.TextGUIGraphics
  * Formalized interactable renderer for tables
  * @author Martin
  */
- interface TableRenderer<V>:InteractableRenderer<Table<V?>?> {
-
- var isScrollBarsHidden:Boolean
-
-/**
- * Returns the number of rows visible in the table cell area on the last draw operation
- * @return The number of rows visible in the table cell area on the last draw operation
- */
-     val visibleRowsOnLastDraw:Int
+interface TableRenderer<V> : InteractableRenderer<Table<V?>?> {
+    var isScrollBarsHidden: Boolean
 
 /**
- * Returns the index of the first visible row with the renderers current state
- * @return Index of the first visible row of the table
- */
+     * Returns the number of rows visible in the table cell area on the last draw operation
+     * @return The number of rows visible in the table cell area on the last draw operation
+     */
+    val visibleRowsOnLastDraw: Int
+
+/**
+     * Returns the index of the first visible row with the renderers current state
+     * @return Index of the first visible row of the table
+     */
     /**
- * Modifies which row is the first visible, this may be overwritten depending on the circumstances when drawing the
- * table.
- * @param viewTopRow First row to be displayed when drawing the table
- */
-     var viewTopRow:Int
+     * Modifies which row is the first visible, this may be overwritten depending on the circumstances when drawing the
+     * table.
+     * @param viewTopRow First row to be displayed when drawing the table
+     */
+    var viewTopRow: Int
 
 /**
- * Returns the index of the first visible column with the renderers current state
- * @return Index of the first visible column of the table
- */
+     * Returns the index of the first visible column with the renderers current state
+     * @return Index of the first visible column of the table
+     */
     /**
- * Modifies which column is the first visible, this may be overwritten depending on the circumstances when drawing the
- * table.
- * @param viewLeftColumn First column to be displayed when drawing the table
- */
-     var viewLeftColumn:Int
+     * Modifies which column is the first visible, this may be overwritten depending on the circumstances when drawing the
+     * table.
+     * @param viewLeftColumn First column to be displayed when drawing the table
+     */
+    var viewLeftColumn: Int
 
 /** @see .setAllowPartialColumn
- */
+     */
     /**
- * @param allowPartialColumn when not all columns fit on the screen, whether to render part of a column, or skip rendering that column entirely
- */
-     var allowPartialColumn:Boolean
-@Override
- override fun drawComponent(graphics:TextGUIGraphics?, component:Table<V?>?) 
+     * @param allowPartialColumn when not all columns fit on the screen, whether to render part of a column, or skip rendering that column entirely
+     */
+    var allowPartialColumn: Boolean
 
- override fun getPreferredSize(component:Table<V?>?):TerminalSize? 
+    @Override
+    override fun drawComponent(
+        graphics: TextGUIGraphics?,
+        component: Table<V?>?,
+    )
+
+    override fun getPreferredSize(component: Table<V?>?): TerminalSize?
 }

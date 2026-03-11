@@ -19,51 +19,46 @@
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
-
+import org.junit.Assert.*
 import org.junit.Test
 
-import org.junit.Assert.*
-
- class KeyTest {
-
-@Test
-  fun testFromVim() {
-kotlin.run {
-val k = KeyStroke.fromString("a")
-assertEquals(KeyType.CHARACTER, k!!.keyType)
-assertEquals(Character('a'), k.character)
-assertFalse(k.isCtrlDown)
-assertFalse(k.isAltDown)
-}
-kotlin.run {
-val k = KeyStroke.fromString("<c-a>")
-assertEquals(KeyType.CHARACTER, k!!.keyType)
-assertEquals(Character('a'), k.character)
-assertTrue(k.isCtrlDown)
-assertFalse(k.isAltDown)
-}
-kotlin.run {
-val k = KeyStroke.fromString("<a-a>")
-assertEquals(KeyType.CHARACTER, k!!.keyType)
-assertEquals(Character('a'), k.character)
-assertFalse(k.isCtrlDown)
-assertTrue(k.isAltDown)
-}
-kotlin.run {
-val k = KeyStroke.fromString("<c-a-a>")
-assertEquals(k!!.keyType, KeyType.CHARACTER)
-assertEquals(Character('a'), k.character)
-assertTrue(k.isCtrlDown)
-assertTrue(k.isAltDown)
-}
-assertEquals(KeyType.REVERSE_TAB, KeyStroke.fromString("<s-tab>").keyType)
-assertEquals(KeyType.REVERSE_TAB, KeyStroke.fromString("<S-tab>").keyType)
-assertEquals(KeyType.REVERSE_TAB, KeyStroke.fromString("<S-Tab>").keyType)
-assertEquals(KeyType.ENTER, KeyStroke.fromString("<cr>").keyType)
-assertEquals(KeyType.PAGE_UP, KeyStroke.fromString("<PageUp>").keyType)
-}
-
+class KeyTest {
+    @Test
+    fun testFromVim() {
+        kotlin.run {
+            val k = KeyStroke.fromString("a")
+            assertEquals(KeyType.CHARACTER, k!!.keyType)
+            assertEquals(Character('a'), k.character)
+            assertFalse(k.isCtrlDown)
+            assertFalse(k.isAltDown)
+        }
+        kotlin.run {
+            val k = KeyStroke.fromString("<c-a>")
+            assertEquals(KeyType.CHARACTER, k!!.keyType)
+            assertEquals(Character('a'), k.character)
+            assertTrue(k.isCtrlDown)
+            assertFalse(k.isAltDown)
+        }
+        kotlin.run {
+            val k = KeyStroke.fromString("<a-a>")
+            assertEquals(KeyType.CHARACTER, k!!.keyType)
+            assertEquals(Character('a'), k.character)
+            assertFalse(k.isCtrlDown)
+            assertTrue(k.isAltDown)
+        }
+        kotlin.run {
+            val k = KeyStroke.fromString("<c-a-a>")
+            assertEquals(k!!.keyType, KeyType.CHARACTER)
+            assertEquals(Character('a'), k.character)
+            assertTrue(k.isCtrlDown)
+            assertTrue(k.isAltDown)
+        }
+        assertEquals(KeyType.REVERSE_TAB, KeyStroke.fromString("<s-tab>").keyType)
+        assertEquals(KeyType.REVERSE_TAB, KeyStroke.fromString("<S-tab>").keyType)
+        assertEquals(KeyType.REVERSE_TAB, KeyStroke.fromString("<S-Tab>").keyType)
+        assertEquals(KeyType.ENTER, KeyStroke.fromString("<cr>").keyType)
+        assertEquals(KeyType.PAGE_UP, KeyStroke.fromString("<PageUp>").keyType)
+    }
 }

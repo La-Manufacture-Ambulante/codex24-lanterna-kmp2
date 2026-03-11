@@ -28,11 +28,27 @@ import java.util.concurrent.atomic.AtomicBoolean
  * interface method.
  */
 class WindowListenerAdapter : WindowListener {
-    override fun onResized(window: Window?, oldSize: TerminalSize?, newSize: TerminalSize?) {}
+    override fun onResized(
+        window: Window?,
+        oldSize: TerminalSize?,
+        newSize: TerminalSize?,
+    ) {}
 
-    override fun onMoved(window: Window?, oldPosition: TerminalPosition?, newPosition: TerminalPosition?) {}
+    override fun onMoved(
+        window: Window?,
+        oldPosition: TerminalPosition?,
+        newPosition: TerminalPosition?,
+    ) {}
 
-    override fun onInput(basePane: Window?, keyStroke: KeyStroke?, deliverEvent: AtomicBoolean?) {}
+    override fun onInput(
+        basePane: Window?,
+        keyStroke: KeyStroke?,
+        deliverEvent: AtomicBoolean?,
+    ) {}
 
-    override fun onUnhandledInput(basePane: Window?, keyStroke: KeyStroke?, hasBeenHandled: AtomicBoolean?) {}
+    override fun onUnhandledInput(
+        basePane: Window?,
+        keyStroke: KeyStroke?,
+        hasBeenHandled: AtomicBoolean?,
+    ) {}
 }

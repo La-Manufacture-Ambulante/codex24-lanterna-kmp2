@@ -1,141 +1,145 @@
 package com.googlecode.lanterna.graphics
 
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TextColor
 import java.util.Arrays
 import java.util.EnumSet
 
-import com.googlecode.lanterna.SGR
-import com.googlecode.lanterna.TextColor
-
- interface StyleSet<T : StyleSet<T?>?> {
-
-/**
- * Returns the current background color
- * @return Current background color
- */
-     val backgroundColor:TextColor?
+interface StyleSet<T : StyleSet<T?>?> {
+    /**
+     * Returns the current background color
+     * @return Current background color
+     */
+    val backgroundColor: TextColor?
 
 /**
- * Returns the current foreground color
- * @return Current foreground color
- */
-     val foregroundColor:TextColor?
+     * Returns the current foreground color
+     * @return Current foreground color
+     */
+    val foregroundColor: TextColor?
 
 /**
- * Returns all the SGR codes that are currently active
- * @return Currently active SGR modifiers
- */
-     val activeModifiers:EnumSet<SGR>?
+     * Returns all the SGR codes that are currently active
+     * @return Currently active SGR modifiers
+     */
+    val activeModifiers: EnumSet<SGR>?
 
 /**
- * Updates the current background color
- * @param backgroundColor New background color
- * @return Itself
- */
-     fun setBackgroundColor(backgroundColor:TextColor?):T? 
+     * Updates the current background color
+     * @param backgroundColor New background color
+     * @return Itself
+     */
+    fun setBackgroundColor(backgroundColor: TextColor?): T?
 
 /**
- * Updates the current foreground color
- * @param foregroundColor New foreground color
- * @return Itself
- */
-     fun setForegroundColor(foregroundColor:TextColor?):T? 
+     * Updates the current foreground color
+     * @param foregroundColor New foreground color
+     * @return Itself
+     */
+    fun setForegroundColor(foregroundColor: TextColor?): T?
 
 /**
- * Adds zero or more modifiers to the set of currently active modifiers
- * @param modifiers Modifiers to add to the set of currently active modifiers
- * @return Itself
- */
-     fun enableModifiers(vararg modifiers:SGR?):T? 
+     * Adds zero or more modifiers to the set of currently active modifiers
+     * @param modifiers Modifiers to add to the set of currently active modifiers
+     * @return Itself
+     */
+    fun enableModifiers(vararg modifiers: SGR?): T?
 
 /**
- * Removes zero or more modifiers from the set of currently active modifiers
- * @param modifiers Modifiers to remove from the set of currently active modifiers
- * @return Itself
- */
-     fun disableModifiers(vararg modifiers:SGR?):T? 
+     * Removes zero or more modifiers from the set of currently active modifiers
+     * @param modifiers Modifiers to remove from the set of currently active modifiers
+     * @return Itself
+     */
+    fun disableModifiers(vararg modifiers: SGR?): T?
 
 /**
- * Sets the active modifiers to exactly the set passed in to this method. Any previous state of which modifiers are
- * enabled doesn't matter.
- * @param modifiers Modifiers to set as active
- * @return Itself
- */
-     fun setModifiers(modifiers:EnumSet<SGR>?):T? 
+     * Sets the active modifiers to exactly the set passed in to this method. Any previous state of which modifiers are
+     * enabled doesn't matter.
+     * @param modifiers Modifiers to set as active
+     * @return Itself
+     */
+    fun setModifiers(modifiers: EnumSet<SGR>?): T?
 
 /**
- * Removes all active modifiers
- * @return Itself
- */
-     fun clearModifiers():T? 
+     * Removes all active modifiers
+     * @return Itself
+     */
+    fun clearModifiers(): T?
 
 /**
- * copy colors and set of SGR codes
- * @param source Modifiers to set as active
- * @return Itself
- */
-     fun setStyleFrom(source:StyleSet<*>?):T? 
+     * copy colors and set of SGR codes
+     * @param source Modifiers to set as active
+     * @return Itself
+     */
+    fun setStyleFrom(source: StyleSet<*>?): T?
 
+    class Set : StyleSet<Set?> {
+        @get:Override
+        public override var foregroundColor: TextColor? = null
+            private set
 
- class Set:StyleSet<Set?> {
-@get:Override
-public override var foregroundColor:TextColor? = null
-private set
-@get:Override
-public override var backgroundColor:TextColor? = null
-private set
-private val style = EnumSet.noneOf(SGR::class.java)
-public override val activeModifiers:EnumSet<SGR>?
-@Override
-get() {
-return EnumSet.copyOf(style)
-}
+        @get:Override
+        public override var backgroundColor: TextColor? = null
+            private set
+        private val style = EnumSet.noneOf(SGR::class.java)
+        public override val activeModifiers: EnumSet<SGR>?
+            @Override
+            get() {
+                return EnumSet.copyOf(style)
+            }
 
- constructor() {}
- constructor(source:StyleSet<*>?) {
-setStyleFrom(source!!)
-}
-@Override
-public override fun setBackgroundColor(backgroundColor:TextColor?):Set {
-this.backgroundColor = backgroundColor
-return this
-}
-@Override
-public override fun setForegroundColor(foregroundColor:TextColor?):Set {
-this.foregroundColor = foregroundColor
-return this
-}
-@Override
-public override fun enableModifiers(vararg modifiers:SGR?):Set {
-style.addAll(Arrays.asList(*modifiers).filterNotNull())
-return this
-}
-@Override
-public override fun disableModifiers(vararg modifiers:SGR?):Set {
-style.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
-return this
-}
-@Override
-public override fun setModifiers(modifiers:EnumSet<SGR>?):Set {
-style.clear()
-if (modifiers != null) {
-    style.addAll(modifiers)
-}
-return this
-}
-@Override
-public override fun clearModifiers():Set {
-style.clear()
-return this
-}
+        constructor() {}
+        constructor(source: StyleSet<*>?) {
+            setStyleFrom(source!!)
+        }
 
-@Override
-public override fun setStyleFrom(source:StyleSet<*>?):Set {
-if (source != null) {
-setBackgroundColor(source.backgroundColor)
-setForegroundColor(source.foregroundColor)
-setModifiers(source.activeModifiers)
-}
-return this
-}
-}
+        @Override
+        public override fun setBackgroundColor(backgroundColor: TextColor?): Set {
+            this.backgroundColor = backgroundColor
+            return this
+        }
+
+        @Override
+        public override fun setForegroundColor(foregroundColor: TextColor?): Set {
+            this.foregroundColor = foregroundColor
+            return this
+        }
+
+        @Override
+        public override fun enableModifiers(vararg modifiers: SGR?): Set {
+            style.addAll(Arrays.asList(*modifiers).filterNotNull())
+            return this
+        }
+
+        @Override
+        public override fun disableModifiers(vararg modifiers: SGR?): Set {
+            style.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
+            return this
+        }
+
+        @Override
+        public override fun setModifiers(modifiers: EnumSet<SGR>?): Set {
+            style.clear()
+            if (modifiers != null) {
+                style.addAll(modifiers)
+            }
+            return this
+        }
+
+        @Override
+        public override fun clearModifiers(): Set {
+            style.clear()
+            return this
+        }
+
+        @Override
+        public override fun setStyleFrom(source: StyleSet<*>?): Set {
+            if (source != null) {
+                setBackgroundColor(source.backgroundColor)
+                setForegroundColor(source.foregroundColor)
+                setModifiers(source.activeModifiers)
+            }
+            return this
+        }
+    }
 }

@@ -39,7 +39,10 @@ abstract class AbstractTerminal protected constructor() : Terminal {
     }
 
     @Synchronized
-    protected fun onResized(columns: Int, rows: Int) {
+    protected fun onResized(
+        columns: Int,
+        rows: Int,
+    ) {
         onResized(TerminalSize(columns, rows))
     }
 
