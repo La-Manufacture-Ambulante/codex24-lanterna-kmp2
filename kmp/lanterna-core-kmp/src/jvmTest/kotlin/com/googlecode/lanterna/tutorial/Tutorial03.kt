@@ -1,6 +1,10 @@
 package com.googlecode.lanterna.tutorial
 
-import com.googlecode.lanterna.*
+import com.googlecode.lanterna.Symbols
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.TerminalScreen
@@ -142,7 +146,8 @@ object Tutorial03 {
   */
                     var characterInBackBuffer = screen!!.getBackCharacter(cellToModify)
                     characterInBackBuffer = characterInBackBuffer!!.withBackgroundColor(color)
-                    characterInBackBuffer = characterInBackBuffer!!.withCharacter(' ') // Because of the label box further down, if it shrinks
+                    characterInBackBuffer =
+                        characterInBackBuffer!!.withCharacter(' ') // Because of the label box further down, if it shrinks
                     screen!!.setCharacter(cellToModify, characterInBackBuffer)
                 }
 
