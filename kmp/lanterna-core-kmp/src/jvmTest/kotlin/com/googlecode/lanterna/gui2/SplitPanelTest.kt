@@ -51,7 +51,7 @@ mainPanel.setLayoutManager(GridLayout(2))
 val splitboth = SplitPanel.ofHorizontal(splitH.withBorder(Borders.singleLine("horiontal split")), splitV.withBorder(Borders.singleLine("vertical split")))
 mainPanel.addComponent(splitboth)
 
-window.setComponent(mainPanel)
+window.component = mainPanel
 textGUI.addWindow(window)
 }
 
@@ -72,7 +72,7 @@ return imageComponent
 internal fun fillImageLine(textImage:TextImage?, row:Int, line:String) {
 for (x in 0 until line.length)
 {
-val c = line.charAt(x)
+val c = line[x]
 val textCharacter = TextCharacter(c)
 textImage!!.setCharacterAt(x, row, textCharacter)
 }

@@ -68,7 +68,7 @@ Separator(Direction.HORIZONTAL)
 LinearLayout.createLayoutData(LinearLayout.Alignment.FILL)))
 mainPanel.addComponent(controlPanel)
 
-window.setComponent(mainPanel)
+window.component = mainPanel
 textGUI.addWindow(window)
 }
 
@@ -138,9 +138,9 @@ textGUI,
 "Pre-populate grid with how many dummy components?", 
 columns!!.toString())
 gridPanel?.removeAllComponents()
-gridPanel?.setLayoutManager(newGridLayout(columns.intValue()))
+gridPanel?.setLayoutManager(newGridLayout(columns.toInt()))
 
-for (i in 0 until (prepopulate?.intValue() ?: 0))
+for (i in 0 until (prepopulate?.toInt() ?: 0))
 {
 gridPanel?.addComponent(EmptySpace(randomColor, TerminalSize(4, 1)))
 }
@@ -222,7 +222,7 @@ val cancelButton = Button("Cancel", Runnable({ this.close() }))
 contentPane.addComponent(
 Panels.horizontal(okButton, cancelButton)
 .setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)))
-this.setComponent(contentPane)
+this.component = contentPane
 }
 
 
@@ -231,7 +231,7 @@ this.setComponent(contentPane)
 private class GridLayoutDataEditor(component:Component):DialogWindow("GridLayoutData Editor") {
 init{
 
-var gridLayoutData:GridLayout.GridLayoutData? = component.getLayoutData() as GridLayout.GridLayoutData
+var gridLayoutData:GridLayout.GridLayoutData? = component.layoutData as? GridLayout.GridLayoutData
 if (gridLayoutData == null)
 {
 gridLayoutData = GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING) as GridLayout.GridLayoutData
@@ -312,7 +312,7 @@ val cancelButton = Button("Cancel", Runnable({ this.close() }))
 contentPane.addComponent(
 Panels.horizontal(okButton, cancelButton)
 .setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)))
-this.setComponent(contentPane)
+this.component = contentPane
 }
 }
 

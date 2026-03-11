@@ -114,7 +114,7 @@ model.removeColumn(Integer.parseInt(numberAsText))
 buttonPanel.addComponent(Button("Close", Runnable { window.close() }))
 
 table.withBorder(Borders.singleLineBevel("Table"))
-window.setComponent(Panels.vertical(table, buttonPanel))
+window.component = Panels.vertical(table, buttonPanel)
 textGUI.addWindow(window)
 }
 

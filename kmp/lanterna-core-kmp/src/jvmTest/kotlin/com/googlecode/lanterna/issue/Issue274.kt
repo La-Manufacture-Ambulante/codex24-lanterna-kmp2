@@ -43,7 +43,7 @@ menubar.addComponent(text)
 
 menubar.addComponent(Button("Open", {
 val op = BasicWindow("Select file")
-op.setComponent(Button("Close", Runnable { op.close() }))
+op.component = Button("Close", Runnable { op.close() })
 gui.addWindow(op)
 }))
 
@@ -52,7 +52,7 @@ menubar.addComponent(Button("Save"))
 menubar.addComponent(Button("Exit", { gui.getActiveWindow()!!.close() }))
 
 val main = BasicWindow("Test")
-main.setComponent(menubar)
+main.component = menubar
 try
 {
 gui.addWindowAndWait(main)

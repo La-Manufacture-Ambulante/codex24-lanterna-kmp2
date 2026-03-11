@@ -41,7 +41,7 @@ terminal.setCursorVisible(false)
 val screen = TerminalScreen(terminal)
 screen.startScreen()
 
-terminal.setTitle("Freedom: An arena-battle roguelike")
+terminal.title = "Freedom: An arena-battle roguelike"
 terminal.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
 terminal.setResizable(false)
 terminal.setVisible(true)

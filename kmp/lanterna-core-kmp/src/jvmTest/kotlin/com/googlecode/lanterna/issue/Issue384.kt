@@ -74,7 +74,7 @@ EXPANDABLE_COLUMNS.add(i)
 }
 tableRenderer!!.setExpandableColumns(EXPANDABLE_COLUMNS)
 dialogWindow.close() }), LinearLayout.createLayoutData(LinearLayout.Alignment.END))
-dialogWindow.setComponent(contentPanel)
+dialogWindow.component = contentPanel
 dialogWindow.showDialog(textGUI!!)
 }
 }

@@ -69,7 +69,7 @@ options.addComponent(send)
 panel.addComponent(options.withBorder(Borders.singleLine("Send Message")))
 
 val window = BasicWindow()
-window.setComponent(panel.withBorder(Borders.doubleLine("DarkOwlBot")))
+window.component = panel.withBorder(Borders.doubleLine("DarkOwlBot"))
 
 window.setHints(Arrays.asList(Window.Hint.EXPANDED, Window.Hint.FIT_TERMINAL_WINDOW))
 

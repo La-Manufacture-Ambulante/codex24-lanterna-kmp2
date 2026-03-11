@@ -50,7 +50,7 @@ bigTextLabel.withBorder(Borders.doubleLine())
 contentPane.addComponent(bigTextLabel.setLayoutData(BorderLayout.Location.CENTER))
 contentPane.addComponent(Button("Close", Runnable { window.close() }).setLayoutData(BorderLayout.Location.BOTTOM))
 
-window.setComponent(contentPane)
+window.component = contentPane
 
 textGUI.addListener(object : TextGUI.Listener {
 override fun onUnhandledKeyStroke(textGUI1: TextGUI?, keyStroke: com.googlecode.lanterna.input.KeyStroke?): Boolean {

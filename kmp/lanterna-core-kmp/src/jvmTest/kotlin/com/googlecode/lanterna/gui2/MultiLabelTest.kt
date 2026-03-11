@@ -58,7 +58,7 @@ contentArea.addComponent(AnimatedLabel.createClassicSpinningLine())
 contentArea.addComponent(EmptySpace())
 contentArea.addComponent(Button("Close", Runnable { window.close() }).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.CENTER)))
 
-window.setComponent(contentArea)
+window.component = contentArea
 textGUI.addWindow(window)
 textGUI.updateScreen()
 while (textGUI.windows.isNotEmpty())

@@ -53,8 +53,8 @@ window = BasicWindow("Issue452Test")
 content = Panel(GridLayout(GRID_WIDTH))
 val gridLayout = content!!.getLayoutManager() as GridLayout?
 gridLayout!!.setVerticalSpacing(1)
-window!!.setPosition(TerminalPosition.TOP_LEFT_CORNER)
-window!!.setComponent(content)
+window!!.position = TerminalPosition.TOP_LEFT_CORNER
+window!!.component = content
 }
 
 /**
@@ -69,7 +69,7 @@ val screen = TerminalScreen(terminal)
 screen.startScreen()
 val textGUI = MultiWindowTextGUI(screen)
 val window = BasicWindow("needing to get the table drawn")
-window.setComponent(component)
+window.component = component
 textGUI.addWindow(window)
 textGUI.updateScreen()
  // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

@@ -35,7 +35,7 @@ gui = MultiWindowTextGUI(SeparateTextGUIThread.Factory(), screen, windowManager,
 window = BasicWindow()
 window.setHints(Arrays.asList(Hint.NO_DECORATIONS, Hint.FIT_TERMINAL_WINDOW, Hint.FULL_SCREEN))
 table = Table<String?>("a", "b")
-window.setComponent(Panel(LinearLayout().setSpacing(0)).addComponent(table, LinearLayout.createLayoutData(LinearLayout.Alignment.FILL)))
+window.component = Panel(LinearLayout().setSpacing(0)).addComponent(table, LinearLayout.createLayoutData(LinearLayout.Alignment.FILL))
 gui.addWindow(window)
 model = table.getTableModel()
 }

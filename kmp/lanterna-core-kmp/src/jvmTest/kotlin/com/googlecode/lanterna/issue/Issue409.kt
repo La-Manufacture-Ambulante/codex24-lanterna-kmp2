@@ -49,7 +49,7 @@ panel.addComponent(cyclingThemesTextBox)
 panel.addComponent(EmptySpace())
 panel.addComponent(Button("Close", Runnable { window.close() }))
 
-window.setComponent(panel)
+window.component = panel
 val gui = MultiWindowTextGUI(screen)
 gui.addWindow(window)
 Thread({ var counter = 0

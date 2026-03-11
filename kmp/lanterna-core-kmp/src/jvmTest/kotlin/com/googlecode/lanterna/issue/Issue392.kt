@@ -27,7 +27,7 @@ val button = Button("test")
 button.addListener({
 setExceptionHandler()
 throw RuntimeException("This should be caught in the uncaght exception handler!") })
-window.setComponent(button)
+window.component = button
 
 textGUI!!.addWindowAndWait(window)
 screen.stopScreen()

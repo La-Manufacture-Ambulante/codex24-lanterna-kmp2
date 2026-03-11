@@ -41,10 +41,10 @@ contentPane.addComponent(Panels.vertical(
 Separator(Direction.HORIZONTAL).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL)),
 MultiColorComponent(),
 Button("Close", Runnable { window.close() })))
-window.setComponent(contentPane)
+window.component = contentPane
 
 val menubar = MenuBar()
-window.setMenuBar(menubar)
+window.menuBar = menubar
 
  // "File" menu
         val menuFile = Menu("File")

@@ -35,8 +35,8 @@ fun defaultsAfterConstruction() {
 val root = TreeNode<String?>("root", true)
 val tree = Tree(root, 20, 5)
 
-assertSame(root, tree.getRoot())
-assertSame(root, tree.getSelectedNode())
+assertSame(root, tree.root)
+assertSame(root, tree.selectedNode)
 assertTrue(root.isFocused())
 }
 
@@ -47,15 +47,15 @@ val c1 = root.addChild("c1", true)
 root.addChild("c2", true)
 val tree = Tree(root, 20, 5)
 
-assertSame(root, tree.getSelectedNode())
+assertSame(root, tree.selectedNode)
 tree.setDisplayRoot(false)
-assertSame(c1, tree.getSelectedNode())
+assertSame(c1, tree.selectedNode)
 assertTrue(c1!!.isFocused())
 
  // Toggling back shouldn't break anything
         tree.setDisplayRoot(true)
  // When re-enabling root display, we don't automatically move focus back to root
-        assertSame(c1, tree.getSelectedNode())
+        assertSame(c1, tree.selectedNode)
 }
 
 @Test
@@ -71,10 +71,10 @@ c1!!.addChild("c1-1", true)
 c1!!.addChild("c1-2", true)
 
  // Last direct child of root is c2 (collapsed), so last expanded in that branch is c2 itself
-        // Depth is computed from root.getLastDirectChildren().getLastExpandedChildren().computeDepth()
+        // Depth is computed from root.getLastDirectChildren().lastExpandedChildren().computeDepth()
         // which counts visible nodes from the start
         assertTrue(root.isExpanded())
-assertEquals(c2!!.getLastExpandedChildren().computeDepth(), tree1.computeTreeDepth())
+assertEquals(c2!!.lastExpandedChildren().computeDepth(), tree1.computeTreeDepth())
 }
 
 @Test
@@ -90,7 +90,7 @@ c1!!.setVisible(false)
 
  // c1 is not visible, so depth is still 1
         assertTrue(root.isExpanded())
-assertEquals(1, root.getLastExpandedChildren().computeDepth())
+assertEquals(1, root.lastExpandedChildren().computeDepth())
 }
 
 @Test
@@ -106,24 +106,24 @@ val tree = Tree(root, 20, 10)
  // No-op consumer to avoid NPE on activation strokes
         tree.setNodeSelectedConsumer({ n->  })
 
-assertSame(root, tree.getSelectedNode())
+assertSame(root, tree.selectedNode)
  // Down -> c1
         dispatch(tree, KeyStroke(KeyType.ARROW_DOWN))
-assertSame(c1, tree.getSelectedNode())
+assertSame(c1, tree.selectedNode)
  // Down -> c1a (because c1 is expanded)
         dispatch(tree, KeyStroke(KeyType.ARROW_DOWN))
-assertSame(c1a, tree.getSelectedNode())
+assertSame(c1a, tree.selectedNode)
  // Up -> c1
         dispatch(tree, KeyStroke(KeyType.ARROW_UP))
-assertSame(c1, tree.getSelectedNode())
+assertSame(c1, tree.selectedNode)
 
  // Home selects first visible node depending on displayRoot (default true)
         dispatch(tree, KeyStroke(KeyType.HOME))
-assertSame(root, tree.getSelectedNode())
+assertSame(root, tree.selectedNode)
 
  // Avoid END key path here; selectLastNode/END currently loops in KMP tree impl.
         dispatch(tree, KeyStroke(KeyType.ARROW_DOWN))
-assertSame(c1, tree.getSelectedNode())
+assertSame(c1, tree.selectedNode)
 }
 
 @Test
@@ -142,11 +142,11 @@ tree.setNodeSelectedConsumer(Consumer { _ -> })
         dispatch(tree, KeyStroke(KeyType.PAGE_DOWN))
  // We started at root, after 5 downs we should be at the 5th visible node from start
         val expected = root.getNodeAtDepth(5)
-assertSame(expected, tree.getSelectedNode())
+assertSame(expected, tree.selectedNode)
 
  // Page up goes back up
         dispatch(tree, KeyStroke(KeyType.PAGE_UP))
-assertSame(root, tree.getSelectedNode())
+assertSame(root, tree.selectedNode)
 }
 
 @Test
@@ -160,23 +160,23 @@ tree.setNodeSelectedConsumer(Consumer { _ -> })
  // Move to last using arrow keys (END currently loops in tree impl)
         dispatch(tree, KeyStroke(KeyType.ARROW_DOWN))
 dispatch(tree, KeyStroke(KeyType.ARROW_DOWN))
-assertSame(c2, tree.getSelectedNode())
+assertSame(c2, tree.selectedNode)
 
  // Without overflow, pressing down does not move
-        tree.setOverflowCircle(false)
-val selectedBeforeOverflow = tree.getSelectedNode()
+        tree.isOverflowCircle = false
+val selectedBeforeOverflow = tree.selectedNode
         dispatch(tree, KeyStroke(KeyType.ARROW_DOWN))
 assertNotNull(selectedBeforeOverflow)
-assertNotNull(tree.getSelectedNode())
+assertNotNull(tree.selectedNode)
 
  // Enable overflow and press down -> wraps to first
-        tree.setOverflowCircle(true)
+        tree.isOverflowCircle = true
 dispatch(tree, KeyStroke(KeyType.ARROW_DOWN))
-assertNotNull(tree.getSelectedNode())
+assertNotNull(tree.selectedNode)
 
  // From first, pressing up wraps to last
         dispatch(tree, KeyStroke(KeyType.ARROW_UP))
-assertNotNull(tree.getSelectedNode())
+assertNotNull(tree.selectedNode)
 }
 
 @Test
@@ -187,16 +187,16 @@ c1!!.addChild("c2", true)
 val tree = Tree(root, 20, 5)
 tree.setNodeSelectedConsumer(Consumer { _ -> })
 
-assertSame(root, tree.getSelectedNode())
+assertSame(root, tree.selectedNode)
  // Scroll down behaves as arrow down
         val scrollDown = MouseAction(MouseActionType.SCROLL_DOWN, 0, TerminalPosition(0, 0))
 dispatch(tree, scrollDown)
-assertSame(c1, tree.getSelectedNode())
+assertSame(c1, tree.selectedNode)
 
  // Scroll up behaves as arrow up
         val scrollUp = MouseAction(MouseActionType.SCROLL_UP, 0, TerminalPosition(0, 0))
 dispatch(tree, scrollUp)
-assertSame(root, tree.getSelectedNode())
+assertSame(root, tree.selectedNode)
 }
 
 @Test
@@ -209,19 +209,19 @@ val tree = Tree(root, 20, 5)
 val renderer = Tree.DefaultTreeRenderer<String>()
 
 val preferred = renderer.getPreferredSize(tree)
- // Height follows current implementation: if root is expanded, use root.getExpandedLength(), else 1
-        val expectedHeight = if (root.isExpanded()) root.getExpandedLength() else 1
+ // Height follows current implementation: if root is expanded, use root.expandedLength, else 1
+        val expectedHeight = if (root.isExpanded()) root.expandedLength else 1
 assertEquals(expectedHeight.toLong(), preferred!!.rows.toLong())
 
  // Cursor should be at row equal to the distance from scrollingNode to selectedNode
-        assertEquals(0, renderer.getCursorLocation(tree).getRow())
+        assertEquals(0, renderer.getCursorLocation(tree).row)
 
  // Move selection down and verify cursor row changes
         tree.setNodeSelectedConsumer(Consumer { _ -> })
 dispatch(tree, KeyStroke(KeyType.ARROW_DOWN))
  // Scrolling node remains at the root, so selected at depth 1
-        assertEquals(1, renderer.getCursorLocation(tree).getRow())
+        assertEquals(1, renderer.getCursorLocation(tree).row)
 dispatch(tree, KeyStroke(KeyType.ARROW_DOWN))
-assertEquals(2, renderer.getCursorLocation(tree).getRow())
+assertEquals(2, renderer.getCursorLocation(tree).row)
 }
 }

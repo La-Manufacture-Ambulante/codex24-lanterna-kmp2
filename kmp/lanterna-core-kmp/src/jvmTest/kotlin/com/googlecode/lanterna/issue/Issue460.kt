@@ -32,7 +32,7 @@ true,
 contentPanel.addComponent(Button("Close", Runnable {
 window1.close()
 }), GridLayout.createHorizontallyFilledLayoutData(2))
-window1.setComponent(contentPanel)
+window1.component = contentPanel
 
  // Create gui and start gui
         val gui = MultiWindowTextGUI(screen)

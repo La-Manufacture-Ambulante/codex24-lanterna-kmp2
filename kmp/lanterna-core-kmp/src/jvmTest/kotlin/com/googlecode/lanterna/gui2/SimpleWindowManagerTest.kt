@@ -44,7 +44,7 @@ contentArea.addComponent(Button("Undecorated + Full-screen window", { textGUI.ad
 contentArea.addComponent(Button("Expanded window", { textGUI.addWindow(ExpandedWindow(true)) }))
 contentArea.addComponent(Button("Undecorated + Expanded window", { textGUI.addWindow(ExpandedWindow(false)) }))
 contentArea.addComponent(Button("Close", Runnable { mainWindow.close() }))
-mainWindow.setComponent(contentArea)
+mainWindow.component = contentArea
 textGUI.addWindow(mainWindow)
 }
 

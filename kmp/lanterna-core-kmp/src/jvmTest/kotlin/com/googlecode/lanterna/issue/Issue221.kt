@@ -56,7 +56,7 @@ panel.addComponent(box)
 
  // Create window to hold the panel
         val window = BasicWindow()
-window.setComponent(panel)
+window.component = panel
 
  // Create gui and start gui
         val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
