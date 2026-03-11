@@ -16,6 +16,8 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
+@file:Suppress("ktlint:standard:function-signature")
+
 package com.googlecode.lanterna.issue
 
 import com.googlecode.lanterna.*
