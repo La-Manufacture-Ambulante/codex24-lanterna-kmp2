@@ -11,7 +11,6 @@ ktlint_experimental_value-argument-comment = disabled
 ktlint_standard_if-else-wrapping = disabled
 ktlint_standard_discouraged-comment-location = disabled
 ktlint_experimental_discouraged-comment-location = disabled
-ktlint_standard_trailing-comma-on-declaration-site = disabled
 ktlint_standard_function-signature = disabled
 ktlint_standard_kdoc = disabled
 ktlint_standard_enum-wrapping = disabled
