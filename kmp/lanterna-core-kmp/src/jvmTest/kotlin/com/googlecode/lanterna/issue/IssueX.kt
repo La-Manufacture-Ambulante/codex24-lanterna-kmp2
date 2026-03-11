@@ -16,50 +16,55 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.screen.Screen;
-import java.io.IOException;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.screen.Screen
+import java.io.IOException
 
-class IssueX {
+internal object IssueX {
 
-    public static void main(String[] args) throws InterruptedException, IOException {
-        LanternaTerminalWriter writer = new LanternaTerminalWriter(args);
-        for (int i = 0; i < 1000; i++) {
-            writer.write(String.valueOf(i), SGR.BOLD);
-            Thread.sleep(100);
-        }
-        writer.close();
-    }
-
-    public static class LanternaTerminalWriter {
-
-        private Screen screen;
-        private TextGraphics screenWriter;
-
-        public LanternaTerminalWriter(String[] args) throws IOException {
-            screen = new TestTerminalFactory(args).createScreen();
-            screen.startScreen();
-
-            screenWriter = screen.newTextGraphics();
-        }
-
-        public void close() throws IOException {
-            screen.stopScreen();
-        }
-
-        public void write(String string, SGR... styles) throws IOException {
-            screenWriter.enableModifiers(styles);
-            int current_y = 1;
-            int default_x = 3;
-            screenWriter.putString(default_x, current_y, string);
-            screen.pollInput();
-            screen.refresh();
-        }
-
-    }
+@Throws(InterruptedException::class, IOException::class)
+ fun main(args:Array<String?>?) {
+val writer = LanternaTerminalWriter(args)
+for (i in 0..999)
+{
+writer.write(i.toString(), SGR.BOLD)
+Thread.sleep(100)
+}
+writer.close()
 }
 
+ class LanternaTerminalWriter @Throws(IOException::class)
+ constructor(args:Array<String?>?) {
+
+private val screen:Screen?
+private val screenWriter:TextGraphics?
+
+init{
+screen = TestTerminalFactory(args).createScreen()
+screen!!.startScreen()
+
+screenWriter = screen!!.newTextGraphics()
+}
+
+@Throws(IOException::class)
+ fun close() {
+screen!!.stopScreen()
+}
+
+@Throws(IOException::class)
+ fun write(string:String?, vararg styles:SGR?) {
+screenWriter!!.enableModifiers(*styles)
+val current_y = 1
+val default_x = 3
+screenWriter!!.putString(default_x, current_y, string)
+screen!!.pollInput()
+screen!!.refresh()
+}
+
+}
+}

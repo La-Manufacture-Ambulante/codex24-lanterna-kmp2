@@ -1,153 +1,126 @@
-package com.googlecode.lanterna.terminal.win32;
+package com.googlecode.lanterna.terminal.win32
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.function.Consumer;
+import com.googlecode.lanterna.terminal.win32.WinDef.INPUT_RECORD
+import com.googlecode.lanterna.terminal.win32.WinDef.KEY_EVENT_RECORD
+import com.googlecode.lanterna.terminal.win32.WinDef.MOUSE_EVENT_RECORD
+import com.googlecode.lanterna.terminal.win32.WinDef.WINDOW_BUFFER_SIZE_RECORD
+import com.sun.jna.platform.win32.WinNT.HANDLE
+import com.sun.jna.platform.win32.Wincon as JnaWincon
+import com.sun.jna.ptr.IntByReference
+import java.io.EOFException
+import java.io.IOException
+import java.io.InputStream
+import java.nio.ByteBuffer
+import java.nio.CharBuffer
+import java.nio.charset.Charset
+import java.util.Arrays
+import java.util.function.Consumer
 
-import com.googlecode.lanterna.terminal.win32.WinDef.INPUT_RECORD;
-import com.googlecode.lanterna.terminal.win32.WinDef.KEY_EVENT_RECORD;
-import com.googlecode.lanterna.terminal.win32.WinDef.MOUSE_EVENT_RECORD;
-import com.googlecode.lanterna.terminal.win32.WinDef.WINDOW_BUFFER_SIZE_RECORD;
-import com.sun.jna.platform.win32.WinNT.HANDLE;
-import com.sun.jna.ptr.IntByReference;
+class WindowsConsoleInputStream(
+    private val hConsoleInput: HANDLE?,
+    val encoderCharset: Charset,
+) : InputStream() {
+    private var buffer: ByteBuffer = ByteBuffer.allocate(0)
+    private var keyEventHandler: Consumer<KEY_EVENT_RECORD>? = null
+    private var mouseEventHandler: Consumer<MOUSE_EVENT_RECORD>? = null
+    private var windowBufferSizeEventHandler: Consumer<WINDOW_BUFFER_SIZE_RECORD>? = null
 
-public class WindowsConsoleInputStream extends InputStream {
+    constructor(encoderCharset: Charset) : this(
+        Wincon.INSTANCE.GetStdHandle(JnaWincon.STD_INPUT_HANDLE),
+        encoderCharset,
+    )
 
-	private final HANDLE hConsoleInput;
-	private final Charset encoderCharset;
-	private ByteBuffer buffer = ByteBuffer.allocate(0);
+    fun getHandle(): HANDLE? = hConsoleInput
 
-	public WindowsConsoleInputStream(Charset encoderCharset) {
-		this(Wincon.INSTANCE.GetStdHandle(Wincon.STD_INPUT_HANDLE), encoderCharset);
-	}
+    @Throws(IOException::class)
+    private fun readConsoleInput(): Array<INPUT_RECORD?> {
+        val lpBuffer = arrayOfNulls<INPUT_RECORD>(64)
+        val lpNumberOfEventsRead = IntByReference()
+        if (Wincon.INSTANCE.ReadConsoleInput(hConsoleInput, lpBuffer, lpBuffer.size, lpNumberOfEventsRead)) {
+            val n = lpNumberOfEventsRead.value
+            return Arrays.copyOfRange(lpBuffer, 0, n)
+        }
+        throw EOFException()
+    }
 
-	public WindowsConsoleInputStream(HANDLE hConsoleInput, Charset encoderCharset) {
-		this.hConsoleInput = hConsoleInput;
-		this.encoderCharset = encoderCharset;
-	}
+    private fun availableConsoleInput(): Int {
+        val numberOfEvents = IntByReference()
+        return if (Wincon.INSTANCE.GetNumberOfConsoleInputEvents(hConsoleInput, numberOfEvents)) {
+            numberOfEvents.value
+        } else {
+            0
+        }
+    }
 
-	public HANDLE getHandle() {
-		return hConsoleInput;
-	}
+    @Synchronized
+    @Throws(IOException::class)
+    override fun read(): Int {
+        while (!buffer.hasRemaining()) {
+            buffer = readKeyEvents(true)
+        }
+        return buffer.get().toInt() and 0xff
+    }
 
-	public Charset getEncoderCharset() {
-		return encoderCharset;
-	}
+    @Synchronized
+    @Throws(IOException::class)
+    override fun read(b: ByteArray, offset: Int, length: Int): Int {
+        while (length > 0 && !buffer.hasRemaining()) {
+            buffer = readKeyEvents(true)
+        }
+        val n = minOf(buffer.remaining(), length)
+        buffer.get(b, offset, n)
+        return n
+    }
 
-	private INPUT_RECORD[] readConsoleInput() throws IOException {
-		INPUT_RECORD[] lpBuffer = new INPUT_RECORD[64];
-		IntByReference lpNumberOfEventsRead = new IntByReference();
-		if (Wincon.INSTANCE.ReadConsoleInput(hConsoleInput, lpBuffer, lpBuffer.length, lpNumberOfEventsRead)) {
-			int n = lpNumberOfEventsRead.getValue();
-			return Arrays.copyOfRange(lpBuffer, 0, n);
-		}
-		throw new EOFException();
-	}
+    @Synchronized
+    @Throws(IOException::class)
+    override fun available(): Int {
+        if (buffer.hasRemaining()) {
+            return buffer.remaining()
+        }
+        buffer = readKeyEvents(false)
+        return buffer.remaining()
+    }
 
-	private int availableConsoleInput() {
-		IntByReference lpcNumberOfEvents = new IntByReference();
-		if (Wincon.INSTANCE.GetNumberOfConsoleInputEvents(hConsoleInput, lpcNumberOfEvents)) {
-			return lpcNumberOfEvents.getValue();
-		}
-		return 0;
-	}
+    @Throws(IOException::class)
+    private fun readKeyEvents(blocking: Boolean): ByteBuffer {
+        val keyEvents = StringBuilder()
+        if (blocking || availableConsoleInput() > 0) {
+            for (inputRecord in readConsoleInput()) {
+                if (inputRecord != null) {
+                    filter(inputRecord, keyEvents)
+                }
+            }
+        }
+        return encoderCharset.encode(CharBuffer.wrap(keyEvents))
+    }
 
-	@Override
-	public synchronized int read() throws IOException {
-		while (!buffer.hasRemaining()) {
-			buffer = readKeyEvents(true);
-		}
+    @Throws(IOException::class)
+    private fun filter(input: INPUT_RECORD, keyEvents: Appendable) {
+        when (input.EventType) {
+            INPUT_RECORD.KEY_EVENT -> {
+                if (input.Event.KeyEvent.uChar.code != 0 && input.Event.KeyEvent.bKeyDown) {
+                    keyEvents.append(input.Event.KeyEvent.uChar)
+                }
+                keyEventHandler?.accept(input.Event.KeyEvent)
+            }
+            INPUT_RECORD.MOUSE_EVENT -> mouseEventHandler?.accept(input.Event.MouseEvent)
+            INPUT_RECORD.WINDOW_BUFFER_SIZE_EVENT -> {
+                windowBufferSizeEventHandler?.accept(input.Event.WindowBufferSizeEvent)
+            }
+        }
+    }
 
-		return buffer.get();
-	}
+    fun onKeyEvent(handler: Consumer<KEY_EVENT_RECORD>) {
+        keyEventHandler = if (keyEventHandler == null) handler else keyEventHandler!!.andThen(handler)
+    }
 
-	@Override
-	public synchronized int read(byte[] b, int offset, int length) throws IOException {
-		while (length > 0 && !buffer.hasRemaining()) {
-			buffer = readKeyEvents(true);
-		}
+    fun onMouseEvent(handler: Consumer<MOUSE_EVENT_RECORD>) {
+        mouseEventHandler = if (mouseEventHandler == null) handler else mouseEventHandler!!.andThen(handler)
+    }
 
-		int n = Math.min(buffer.remaining(), length);
-		buffer.get(b, offset, n);
-		return n;
-	}
-
-	@Override
-	public synchronized int available() throws IOException {
-		if (buffer.hasRemaining()) {
-			return buffer.remaining();
-		}
-
-		buffer = readKeyEvents(false);
-		return buffer.remaining();
-	}
-
-	private ByteBuffer readKeyEvents(boolean blocking) throws IOException {
-		StringBuilder keyEvents = new StringBuilder();
-
-		if (blocking || availableConsoleInput() > 0) {
-			for (INPUT_RECORD i : readConsoleInput()) {
-				filter(i, keyEvents);
-			}
-		}
-
-		return encoderCharset.encode(CharBuffer.wrap(keyEvents));
-	}
-
-	private void filter(INPUT_RECORD input, Appendable keyEvents) throws IOException {
-		switch (input.EventType) {
-		case INPUT_RECORD.KEY_EVENT:
-			if (input.Event.KeyEvent.uChar != 0 && input.Event.KeyEvent.bKeyDown) {
-				keyEvents.append(input.Event.KeyEvent.uChar);
-			}
-			if (keyEventHandler != null) {
-				keyEventHandler.accept(input.Event.KeyEvent);
-			}
-			break;
-		case INPUT_RECORD.MOUSE_EVENT:
-			if (mouseEventHandler != null) {
-				mouseEventHandler.accept(input.Event.MouseEvent);
-			}
-			break;
-		case INPUT_RECORD.WINDOW_BUFFER_SIZE_EVENT:
-			if (windowBufferSizeEventHandler != null) {
-				windowBufferSizeEventHandler.accept(input.Event.WindowBufferSizeEvent);
-			}
-			break;
-		}
-	}
-
-	private Consumer<KEY_EVENT_RECORD> keyEventHandler = null;
-	private Consumer<MOUSE_EVENT_RECORD> mouseEventHandler = null;
-	private Consumer<WINDOW_BUFFER_SIZE_RECORD> windowBufferSizeEventHandler = null;
-
-	public void onKeyEvent(Consumer<KEY_EVENT_RECORD> handler) {
-		if (keyEventHandler == null) {
-			keyEventHandler = handler;
-		} else {
-			keyEventHandler = keyEventHandler.andThen(handler);
-		}
-	}
-
-	public void onMouseEvent(Consumer<MOUSE_EVENT_RECORD> handler) {
-		if (mouseEventHandler == null) {
-			mouseEventHandler = handler;
-		} else {
-			mouseEventHandler = mouseEventHandler.andThen(handler);
-		}
-	}
-
-	public void onWindowBufferSizeEvent(Consumer<WINDOW_BUFFER_SIZE_RECORD> handler) {
-		if (windowBufferSizeEventHandler == null) {
-			windowBufferSizeEventHandler = handler;
-		} else {
-			windowBufferSizeEventHandler = windowBufferSizeEventHandler.andThen(handler);
-		}
-	}
-
+    fun onWindowBufferSizeEvent(handler: Consumer<WINDOW_BUFFER_SIZE_RECORD>) {
+        windowBufferSizeEventHandler =
+            if (windowBufferSizeEventHandler == null) handler else windowBufferSizeEventHandler!!.andThen(handler)
+    }
 }

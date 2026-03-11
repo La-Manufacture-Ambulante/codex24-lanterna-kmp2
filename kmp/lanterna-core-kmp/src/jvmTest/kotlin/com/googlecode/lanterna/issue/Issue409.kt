@@ -16,117 +16,116 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.bundle.LanternaThemes;
-import com.googlecode.lanterna.graphics.*;
-import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.bundle.LanternaThemes
+import com.googlecode.lanterna.graphics.*
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.screen.Screen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException
+import java.util.ArrayList
 
-public class Issue409 {
-    public static void main(String[] args) {
-        try {
-            Screen screen = new DefaultTerminalFactory().createScreen();
-            screen.startScreen();
+ object Issue409 {
+ fun main(args:Array<String?>?) {
+try
+{
+val screen = DefaultTerminalFactory().createScreen()
+screen.startScreen()
 
-            final Window window = new BasicWindow();
+val window = BasicWindow()
 
-            Panel panel = new Panel();
-            panel.addComponent(new CustomBackgroundTextBox(TextColor.ANSI.RED));
-            panel.addComponent(new EmptySpace());
-            panel.addComponent(new CustomBackgroundTextBox(TextColor.ANSI.GREEN));
-            panel.addComponent(new EmptySpace());
-            final CyclingThemesTextBox cyclingThemesTextBox = new CyclingThemesTextBox();
-            panel.addComponent(cyclingThemesTextBox);
-            panel.addComponent(new EmptySpace());
-            panel.addComponent(new Button("Close", window::close));
+val panel = Panel()
+panel.addComponent(CustomBackgroundTextBox(TextColor.ANSI.RED))
+panel.addComponent(EmptySpace())
+panel.addComponent(CustomBackgroundTextBox(TextColor.ANSI.GREEN))
+panel.addComponent(EmptySpace())
+val cyclingThemesTextBox = CyclingThemesTextBox()
+panel.addComponent(cyclingThemesTextBox)
+panel.addComponent(EmptySpace())
+panel.addComponent(Button("Close", Runnable { window.close() }))
 
-            window.setComponent(panel);
-            final MultiWindowTextGUI gui = new MultiWindowTextGUI(screen);
-            gui.addWindow(window);
-            new Thread(() -> {
-                int counter = 0;
-                while(cyclingThemesTextBox.getTextGUI() != null) {
-                    if (++counter % 200 == 0) {
-                        gui.getGUIThread().invokeLater(cyclingThemesTextBox::nextTheme);
-                    }
-                    else {
-                        try {
-                            Thread.sleep(10);
-                        } catch (InterruptedException e) {
-                            break;
-                        }
-                    }
-                }
-            }).start();
+window.component = panel
+val gui = MultiWindowTextGUI(screen)
+gui.addWindow(window)
+Thread({ var counter = 0
+while (cyclingThemesTextBox.textGUI != null)
+{
+if (++counter % 200 == 0)
+{
+gui.guiThread!!.invokeLater(Runnable { cyclingThemesTextBox.nextTheme() })
+}
+else
+{
+try
+{
+Thread.sleep(10)
+}
+catch (e:InterruptedException) {
+break
+}
 
-            window.waitUntilClosed();
-            screen.stopScreen();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+}
+} }).start()
 
-    private static class CustomBackgroundTextBox extends TextBox {
-        public CustomBackgroundTextBox(final TextColor.ANSI color) {
-            super("Custom " + color.name());
-            setTheme(new DelegatingTheme(getTheme()) {
-                @Override
-                public ThemeDefinition getDefinition(Class<?> clazz) {
-                    ThemeDefinition themeDefinition = super.getDefinition(clazz);
-                    return new FixedBackgroundTextBoxThemeStyle(themeDefinition, color);
-                }
-            });
-        }
-    }
+window.waitUntilClosed()
+screen.stopScreen()
+}
+catch (e:IOException) {
+e!!.printStackTrace()
+}
 
-    private static class CyclingThemesTextBox extends TextBox {
-        private final List<String> systemThemes;
-        private int index;
+}
 
-        public CyclingThemesTextBox() {
-            super("Cycling themes: default");
-            setPreferredSize(new TerminalSize(40, 1));
-            systemThemes = new ArrayList<>(LanternaThemes.getRegisteredThemes());
-            index = 0;
-        }
+private class CustomBackgroundTextBox(color:TextColor.ANSI):TextBox("Custom " + color.name) {
+init{
+setTheme(object:DelegatingTheme(theme ?: LanternaThemes.defaultTheme!!) {
+public override fun getDefinition(clazz:Class<*>?):ThemeDefinition {
+val themeDefinition = super.getDefinition(clazz)
+return FixedBackgroundTextBoxThemeStyle(themeDefinition!!, color)
+}
+})
+}
+}
 
-        void nextTheme() {
-            if (++index == systemThemes.size()) {
-                index = 0;
-            }
-            String name = systemThemes.get(index);
-            Theme theme = LanternaThemes.getRegisteredTheme(name);
-            setTheme(theme);
-            setText("Cycling themes: " + name);
-        }
-    }
+private class CyclingThemesTextBox:TextBox("Cycling themes: default") {
+private val systemThemes:List<String>
+private var index:Int = 0
+init{
+setPreferredSize(TerminalSize(40, 1))
+@Suppress("UNCHECKED_CAST")
+systemThemes = ArrayList(LanternaThemes.registeredThemes as Collection<String>)
+index = 0
+}
 
-    private static class FixedBackgroundTextBoxThemeStyle extends DelegatingThemeDefinition {
-        private final TextColor.ANSI color;
+internal fun nextTheme() {
+if (++index == systemThemes.size)
+{
+index = 0
+}
+val name = systemThemes[index]
+val theme = LanternaThemes.getRegisteredTheme(name)
+setTheme(theme)
+setText("Cycling themes: " + name)
+}
+}
 
-        public FixedBackgroundTextBoxThemeStyle(ThemeDefinition definition, TextColor.ANSI color) {
-            super(definition);
-            this.color = color;
-        }
+private class FixedBackgroundTextBoxThemeStyle(definition:ThemeDefinition, private val color:TextColor.ANSI?):DelegatingThemeDefinition(definition) {
 
-        @Override
-        public ThemeStyle getNormal() {
-            DefaultMutableThemeStyle mutableThemeStyle = new DefaultMutableThemeStyle(super.getNormal());
-            return mutableThemeStyle.setBackground(color);
-        }
+override val normal: ThemeStyle?
+get() {
+ val mutableThemeStyle = DefaultMutableThemeStyle(super.normal!!)
+return mutableThemeStyle.setBackground(color)
+}
 
-        @Override
-        public ThemeStyle getActive() {
-            DefaultMutableThemeStyle mutableThemeStyle = new DefaultMutableThemeStyle(super.getActive());
-            return mutableThemeStyle.setBackground(color);
-        }
-    }
+override val active: ThemeStyle?
+get() {
+ val mutableThemeStyle = DefaultMutableThemeStyle(super.active!!)
+return mutableThemeStyle.setBackground(color)
+}
+}
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,14 +13,14 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.Symbols;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.graphics.ThemeDefinition;
+import com.googlecode.lanterna.Symbols
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.graphics.ThemeDefinition
 
 /**
  * Static non-interactive component that is typically rendered as a single line. Normally this component is used to
@@ -29,60 +29,45 @@ import com.googlecode.lanterna.graphics.ThemeDefinition;
  * preferred size.
  * @author Martin
  */
-public class Separator extends AbstractComponent<Separator> {
-
-    private final Direction direction;
-
-    /**
-     * Creates a new {@code Separator} for a specific direction, which will decide whether to draw a horizontal line or
-     * a vertical line
-     *
-     * @param direction Direction of the line to draw within the separator
-     */
-    public Separator(Direction direction) {
-        if(direction == null) {
-            throw new IllegalArgumentException("Cannot create a separator with a null direction");
-        }
-        this.direction = direction;
+class Separator(val direction: Direction?) : AbstractComponent<Separator>() {
+    init {
+        require(direction != null) { "Cannot create a separator with a null direction" }
     }
 
-    /**
-     * Returns the direction of the line drawn for this separator
-     * @return Direction of the line drawn for this separator
-     */
-    public Direction getDirection() {
-        return direction;
-    }
-
-    @Override
-    protected DefaultSeparatorRenderer createDefaultRenderer() {
-        return new DefaultSeparatorRenderer();
+    override fun createDefaultRenderer(): DefaultSeparatorRenderer {
+        return DefaultSeparatorRenderer()
     }
 
     /**
      * Helper interface that doesn't add any new methods but makes coding new button renderers a little bit more clear
      */
-    public static abstract class SeparatorRenderer implements ComponentRenderer<Separator> {
-    }
+    abstract class SeparatorRenderer : ComponentRenderer<Separator?>
 
     /**
      * This is the default separator renderer that is used if you don't override anything. With this renderer, the
      * separator has a preferred size of one but will take up the whole area it is given and fill that space with either
-     * horizontal or vertical lines, depending on the direction of the {@code Separator}
+     * horizontal or vertical lines, depending on the direction of the `Separator`
      */
-    public static class DefaultSeparatorRenderer extends SeparatorRenderer {
-        @Override
-        public TerminalSize getPreferredSize(Separator component) {
-            return TerminalSize.ONE;
+    class DefaultSeparatorRenderer : SeparatorRenderer() {
+        override fun getPreferredSize(component: Separator?): TerminalSize {
+            return TerminalSize.ONE
         }
 
-        @Override
-        public void drawComponent(TextGUIGraphics graphics, Separator component) {
-            ThemeDefinition themeDefinition = component.getThemeDefinition();
-            graphics.applyThemeStyle(themeDefinition.getNormal());
-            char character = themeDefinition.getCharacter(component.getDirection().name().toUpperCase(),
-                    component.getDirection() == Direction.HORIZONTAL ? Symbols.SINGLE_LINE_HORIZONTAL : Symbols.SINGLE_LINE_VERTICAL);
-            graphics.fill(character);
+        override fun drawComponent(graphics: TextGUIGraphics?, component: Separator?) {
+            val activeGraphics = graphics ?: return
+            val activeComponent = component ?: return
+            val themeDefinition: ThemeDefinition = activeComponent.themeDefinition ?: return
+            activeGraphics.applyThemeStyle(themeDefinition.normal)
+            val character =
+                themeDefinition.getCharacter(
+                    activeComponent.direction!!.name.uppercase(),
+                    if (activeComponent.direction == Direction.HORIZONTAL) {
+                        Symbols.SINGLE_LINE_HORIZONTAL
+                    } else {
+                        Symbols.SINGLE_LINE_VERTICAL
+                    },
+                )
+            activeGraphics.fill(character)
         }
     }
 }

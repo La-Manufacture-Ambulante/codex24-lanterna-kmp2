@@ -17,30 +17,29 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 
-package com.googlecode.lanterna;
+package com.googlecode.lanterna
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Properties;
+import java.util.ArrayList
+import java.util.Collections
+import java.util.Properties
 
 /**
- *
+ * 
  * @author martin
  */
-public class Environment
-{
-	public static void main(String[] args)
-    {
-        Properties properties = System.getProperties();
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-		ArrayList<String> keys = new ArrayList(properties.keySet());
-        Collections.sort(keys);
-        for(String key: keys)
-            System.out.println(key + " = " + properties.getProperty(key));
+ object Environment {
+    fun main(args: Array<String?>?) {
+        val properties: Properties = System.getProperties()
+        val propertyKeys = ArrayList(properties.stringPropertyNames())
+        Collections.sort(propertyKeys)
+        for (key in propertyKeys) {
+            println("$key = ${properties.getProperty(key)}")
+        }
 
-        keys = new ArrayList<>(System.getenv().keySet());
-        Collections.sort(keys);
-        for(String key: keys)
-            System.out.println(key + " = " + System.getenv(key));
+        val envKeys = ArrayList(System.getenv().keys)
+        Collections.sort(envKeys)
+        for (key in envKeys) {
+            println("$key = ${System.getenv(key)}")
+        }
     }
 }

@@ -16,113 +16,71 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.dialogs;
+package com.googlecode.lanterna.gui2.dialogs
 
-import com.googlecode.lanterna.TerminalSize;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.googlecode.lanterna.TerminalSize
+import java.util.ArrayList
+import java.util.Arrays
 
 /**
- * Dialog builder for the {@code ListSelectDialog} class, use this to create instances of that class and to customize
- * them
+ * Dialog builder for the [ListSelectDialog] class, use this to create instances of that class and customize them.
  * @author Martin
  */
-public class ListSelectDialogBuilder<T> extends AbstractDialogBuilder<ListSelectDialogBuilder<T>, ListSelectDialog<T>> {
-    private final List<T> content;
-    private TerminalSize listBoxSize;
-    private boolean canCancel;
+class ListSelectDialogBuilder<T> : AbstractDialogBuilder<ListSelectDialogBuilder<T>, ListSelectDialog<T>>("ListSelectDialog") {
+    private val content: MutableList<T> = ArrayList()
+    private var listBoxSize: TerminalSize? = null
+    private var canCancel: Boolean = true
 
-    /**
-     * Default constructor
-     */
-    public ListSelectDialogBuilder() {
-        super("ListSelectDialog");
-        this.listBoxSize = null;
-        this.canCancel = true;
-        this.content = new ArrayList<>();
-    }
+    override fun self(): ListSelectDialogBuilder<T> = this
 
-    @Override
-    protected ListSelectDialogBuilder<T> self() {
-        return this;
-    }
-
-    @Override
-    protected ListSelectDialog<T> buildDialog() {
-        return new ListSelectDialog<>(
-                title,
-                description,
-                listBoxSize,
-                canCancel,
-                content);
+    override fun buildDialog(): ListSelectDialog<T> {
+        return ListSelectDialog(getTitle(), getDescription(), listBoxSize, canCancel, content)
     }
 
     /**
-     * Sets the size of the list box in the dialog, scrollbars will be used if there is not enough space to draw all
-     * items. If set to {@code null}, the dialog will ask for enough space to be able to draw all items.
-     * @param listBoxSize Size of the list box in the dialog
-     * @return Itself
+     * Sets preferred list-box size.
      */
-    public ListSelectDialogBuilder<T> setListBoxSize(TerminalSize listBoxSize) {
-        this.listBoxSize = listBoxSize;
-        return this;
+    fun setListBoxSize(listBoxSize: TerminalSize?): ListSelectDialogBuilder<T> {
+        this.listBoxSize = listBoxSize
+        return this
     }
 
     /**
-     * Size of the list box in the dialog or {@code null} if the dialog will ask for enough space to draw all items
-     * @return Size of the list box in the dialog or {@code null} if the dialog will ask for enough space to draw all items
+     * Returns preferred list-box size.
      */
-    public TerminalSize getListBoxSize() {
-        return listBoxSize;
+    fun getListBoxSize(): TerminalSize? = listBoxSize
+
+    /**
+     * Controls whether cancel controls are enabled.
+     */
+    fun setCanCancel(canCancel: Boolean): ListSelectDialogBuilder<T> {
+        this.canCancel = canCancel
+        return this
     }
 
     /**
-     * Sets if the dialog can be cancelled or not (default: {@code true})
-     * @param canCancel If {@code true}, the user has the option to cancel the dialog, if {@code false} there is no such
-     *                  button in the dialog
-     * @return Itself
+     * Returns whether cancel controls are enabled.
      */
-    public ListSelectDialogBuilder<T> setCanCancel(boolean canCancel) {
-        this.canCancel = canCancel;
-        return this;
+    fun isCanCancel(): Boolean = canCancel
+
+    /**
+     * Adds a selectable list item.
+     */
+    fun addListItem(item: T): ListSelectDialogBuilder<T> {
+        content.add(item)
+        return this
     }
 
     /**
-     * Returns {@code true} if the dialog can be cancelled once it's opened
-     * @return {@code true} if the dialog can be cancelled once it's opened
+     * Adds multiple selectable list items.
      */
-    public boolean isCanCancel() {
-        return canCancel;
+    fun addListItems(vararg items: T): ListSelectDialogBuilder<T> {
+        content.addAll(Arrays.asList(*items))
+        return this
     }
 
     /**
-     * Adds an item to the list box at the end
-     * @param item Item to add to the list box
-     * @return Itself
+     * Returns a copy of configured list items.
      */
-    public ListSelectDialogBuilder<T> addListItem(T item) {
-        this.content.add(item);
-        return this;
-    }
-
-    /**
-     * Adds a list of items to the list box at the end, in the order they are passed in
-     * @param items Items to add to the list box
-     * @return Itself
-     */
-    @SafeVarargs
-    public final ListSelectDialogBuilder<T> addListItems(T... items) {
-        this.content.addAll(Arrays.asList(items));
-        return this;
-    }
-
-    /**
-     * Returns a copy of the list of items in the list box
-     * @return Copy of the list of items in the list box
-     */
-    public List<T> getListItems() {
-        return new ArrayList<>(content);
-    }
+    fun getListItems(): List<T> = ArrayList(content)
 }

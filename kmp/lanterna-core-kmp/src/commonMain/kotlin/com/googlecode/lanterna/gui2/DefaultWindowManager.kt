@@ -16,12 +16,10 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-
-import java.util.List;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
 
 /**
  * The default window manager implementation used by Lanterna. New windows will be generally added in a tiled manner,
@@ -30,176 +28,118 @@ import java.util.List;
  *
  * @author Martin
  */
-public class DefaultWindowManager implements WindowManager {
+open class DefaultWindowManager(
+    private val windowDecorationRendererOverride: WindowDecorationRenderer?,
+    initialScreenSize: TerminalSize?,
+) : WindowManager {
 
-    private final WindowDecorationRenderer windowDecorationRendererOverride;
-    private TerminalSize lastKnownScreenSize;
+    private var lastKnownScreenSize: TerminalSize = initialScreenSize ?: TerminalSize(80, 24)
 
-    /**
-     * Default constructor, will create a window manager that uses {@code DefaultWindowDecorationRenderer} for drawing
-     * window decorations, unless the current theme has an override. Any size calculations done before the text GUI has
-     * actually been started and displayed on the terminal will assume the terminal size is 80x24.
-     */
-    public DefaultWindowManager() {
-        this(null);
-    }
+    constructor() : this(null, null)
 
-    /**
-     * Creates a new {@code DefaultWindowManager} using a {@code DefaultWindowDecorationRenderer} for drawing window
-     * decorations, unless the current theme has an override. Any size calculations done before the text GUI has
-     * actually been started and displayed on the terminal will use the size passed in with the
-     * {@code initialScreenSize} parameter (if {@code null} then size will be assumed to be 80x24)
-     *
-     * @param initialScreenSize Size to assume the terminal has until the text GUI is started and can be notified of the
-     *                          correct size
-     */
-    public DefaultWindowManager(TerminalSize initialScreenSize) {
-        this(null, initialScreenSize);
-    }
+    constructor(initialScreenSize: TerminalSize?) : this(null, initialScreenSize)
 
-    /**
-     * Creates a new {@code DefaultWindowManager} using a specified {@code windowDecorationRendererOverride} for drawing window
-     * decorations. Any size calculations done before the text GUI has actually been started and displayed on the
-     * terminal will use the size passed in with the {@code initialScreenSize} parameter
-     *
-     * @param windowDecorationRenderer Window decoration renderer to use when drawing windows
-     * @param initialScreenSize Size to assume the terminal has until the text GUI is started and can be notified of the
-     *                          correct size
-     */
-    public DefaultWindowManager(WindowDecorationRenderer windowDecorationRenderer, TerminalSize initialScreenSize) {
-        this.windowDecorationRendererOverride = windowDecorationRenderer;
-        if(initialScreenSize != null) {
-            this.lastKnownScreenSize = initialScreenSize;
-        }
-        else {
-            this.lastKnownScreenSize = new TerminalSize(80, 24);
+    override val isInvalid: Boolean
+        get() = false
+
+    override fun getWindowDecorationRenderer(window: Window?): WindowDecorationRenderer? {
+        val w = window!!
+        return when {
+            w.hints?.contains(Window.Hint.NO_DECORATIONS) == true -> EmptyWindowDecorationRenderer()
+            windowDecorationRendererOverride != null -> windowDecorationRendererOverride
+            w.theme?.windowDecorationRenderer != null -> w.theme?.windowDecorationRenderer
+            else -> DefaultWindowDecorationRenderer()
         }
     }
 
-    @Override
-    public boolean isInvalid() {
-        return false;
-    }
+    override fun onAdded(textGUI: WindowBasedTextGUI?, window: Window?, allWindows: List<Window?>?) {
+        val w = window!!
+        val windows = allWindows!!
+        val decorationRenderer = getWindowDecorationRenderer(w) ?: DefaultWindowDecorationRenderer()
+        val expectedDecoratedSize = decorationRenderer.getDecoratedSize(w, w.preferredSize) ?: TerminalSize.ZERO
+        w.decoratedSize = expectedDecoratedSize
 
-    @Override
-    public WindowDecorationRenderer getWindowDecorationRenderer(Window window) {
-        if(window.getHints().contains(Window.Hint.NO_DECORATIONS)) {
-            return new EmptyWindowDecorationRenderer();
-        }
-        else if(windowDecorationRendererOverride != null) {
-            return windowDecorationRendererOverride;
-        }
-        else if(window.getTheme() != null && window.getTheme().getWindowDecorationRenderer() != null) {
-            return window.getTheme().getWindowDecorationRenderer();
-        }
-        else {
-            return new DefaultWindowDecorationRenderer();
-        }
-    }
-
-    @Override
-    public void onAdded(WindowBasedTextGUI textGUI, Window window, List<Window> allWindows) {
-        WindowDecorationRenderer decorationRenderer = getWindowDecorationRenderer(window);
-        TerminalSize expectedDecoratedSize = decorationRenderer.getDecoratedSize(window, window.getPreferredSize());
-        window.setDecoratedSize(expectedDecoratedSize);
-
-        //noinspection StatementWithEmptyBody
-        if(window.getHints().contains(Window.Hint.FIXED_POSITION)) {
-            //Don't place the window, assume the position is already set
-        }
-        else if(allWindows.isEmpty()) {
-            window.setPosition(TerminalPosition.OFFSET_1x1);
-        }
-        else if(window.getHints().contains(Window.Hint.CENTERED)) {
-            int left = (lastKnownScreenSize.getColumns() - expectedDecoratedSize.getColumns()) / 2;
-            int top = (lastKnownScreenSize.getRows() - expectedDecoratedSize.getRows()) / 2;
-            window.setPosition(new TerminalPosition(left, top));
-        }
-        else {
-            TerminalPosition nextPosition = allWindows.get(allWindows.size() - 1).getPosition().withRelative(2, 1);
-            if(nextPosition.getColumn() + expectedDecoratedSize.getColumns() > lastKnownScreenSize.getColumns() ||
-                    nextPosition.getRow() + expectedDecoratedSize.getRows() > lastKnownScreenSize.getRows()) {
-                nextPosition = TerminalPosition.OFFSET_1x1;
+        if (w.hints?.contains(Window.Hint.FIXED_POSITION) == true) {
+            // Assume already placed.
+        } else if (windows.isEmpty()) {
+            w.position = TerminalPosition.OFFSET_1x1
+        } else if (w.hints?.contains(Window.Hint.CENTERED) == true) {
+            val left = (lastKnownScreenSize.columns - expectedDecoratedSize.columns) / 2
+            val top = (lastKnownScreenSize.rows - expectedDecoratedSize.rows) / 2
+            w.position = TerminalPosition(left, top)
+        } else {
+            val prev = windows[windows.size - 1]
+            var nextPosition = (prev?.position ?: TerminalPosition.OFFSET_1x1).withRelative(2, 1)
+                ?: TerminalPosition.OFFSET_1x1
+            if (nextPosition.column + expectedDecoratedSize.columns > lastKnownScreenSize.columns ||
+                nextPosition.row + expectedDecoratedSize.rows > lastKnownScreenSize.rows
+            ) {
+                nextPosition = TerminalPosition.OFFSET_1x1
             }
-            window.setPosition(nextPosition);
+            w.position = nextPosition
         }
 
-        // Finally, run through the usual calculations so the window manager's usual prepare method can have it's say
-        prepareWindow(lastKnownScreenSize, window);
+        prepareWindow(lastKnownScreenSize, w)
     }
 
-    @Override
-    public void onRemoved(WindowBasedTextGUI textGUI, Window window, List<Window> allWindows) {
-        //NOP
+    override fun onRemoved(textGUI: WindowBasedTextGUI?, window: Window?, allWindows: List<Window?>?) {
+        // NOP
     }
 
-    @Override
-    public void prepareWindows(WindowBasedTextGUI textGUI, List<Window> allWindows, TerminalSize screenSize) {
-        this.lastKnownScreenSize = screenSize;
-        for(Window window: allWindows) {
-            prepareWindow(screenSize, window);
+    override fun prepareWindows(textGUI: WindowBasedTextGUI?, allWindows: List<Window?>?, screenSize: TerminalSize?) {
+        lastKnownScreenSize = screenSize!!
+        for (window in allWindows!!) {
+            if (window != null) {
+                prepareWindow(lastKnownScreenSize, window)
+            }
         }
     }
 
-    /**
-     * Called by {@link DefaultWindowManager} when iterating through all windows to decide their size and position. If
-     * you override {@link DefaultWindowManager} to add your own logic to how windows are placed on the screen, you can
-     * override this method and selectively choose which window to interfere with. Note that the two key properties that
-     * are read by the GUI system after preparing all windows are the position and decorated size. Your custom
-     * implementation should set these two fields directly on the window. You can infer the decorated size from the
-     * content size by using the window decoration renderer that is attached to the window manager.
-     *
-     * @param screenSize Size of the terminal that is available to draw on
-     * @param window Window to prepare decorated size and position for
-     */
-    protected void prepareWindow(TerminalSize screenSize, Window window) {
-        TerminalSize contentAreaSize;
-        if(window.getHints().contains(Window.Hint.FIXED_SIZE)) {
-            contentAreaSize = window.getSize();
+    protected fun prepareWindow(screenSize: TerminalSize, window: Window) {
+        val contentAreaSize = if (window.hints?.contains(Window.Hint.FIXED_SIZE) == true) {
+            window.size
+        } else {
+            window.preferredSize
         }
-        else {
-            contentAreaSize = window.getPreferredSize();
-        }
-        TerminalSize size = getWindowDecorationRenderer(window).getDecoratedSize(window, contentAreaSize);
-        TerminalPosition position = window.getPosition();
 
-        if(window.getHints().contains(Window.Hint.FULL_SCREEN)) {
-            position = TerminalPosition.TOP_LEFT_CORNER;
-            size = screenSize;
-        }
-        else if(window.getHints().contains(Window.Hint.EXPANDED)) {
-            position = TerminalPosition.OFFSET_1x1;
+        var size = getWindowDecorationRenderer(window)?.getDecoratedSize(window, contentAreaSize) ?: TerminalSize.ZERO
+        var position = window.position ?: TerminalPosition.TOP_LEFT_CORNER
+
+        if (window.hints?.contains(Window.Hint.FULL_SCREEN) == true) {
+            position = TerminalPosition.TOP_LEFT_CORNER
+            size = screenSize
+        } else if (window.hints?.contains(Window.Hint.EXPANDED) == true) {
+            position = TerminalPosition.OFFSET_1x1
             size = screenSize.withRelative(
-                    -Math.min(4, screenSize.getColumns()),
-                    -Math.min(3, screenSize.getRows()));
-            if(!size.equals(window.getDecoratedSize())) {
-                window.invalidate();
+                -kotlin.math.min(4, screenSize.columns),
+                -kotlin.math.min(3, screenSize.rows),
+            ) ?: screenSize
+            if (size != window.decoratedSize) {
+                window.invalidate()
             }
-        }
-        else if(window.getHints().contains(Window.Hint.FIT_TERMINAL_WINDOW) ||
-                window.getHints().contains(Window.Hint.CENTERED)) {
-            //If the window is too big for the terminal, move it up towards 0x0 and if that's not enough then shrink
-            //it instead
-            while(position.getRow() > 0 && position.getRow() + size.getRows() > screenSize.getRows()) {
-                position = position.withRelativeRow(-1);
+        } else if (window.hints?.contains(Window.Hint.FIT_TERMINAL_WINDOW) == true ||
+            window.hints?.contains(Window.Hint.CENTERED) == true
+        ) {
+            while (position.row > 0 && position.row + size.rows > screenSize.rows) {
+                position = position.withRelativeRow(-1) ?: position
             }
-            while(position.getColumn() > 0 && position.getColumn() + size.getColumns() > screenSize.getColumns()) {
-                position = position.withRelativeColumn(-1);
+            while (position.column > 0 && position.column + size.columns > screenSize.columns) {
+                position = position.withRelativeColumn(-1) ?: position
             }
-            if(position.getRow() + size.getRows() > screenSize.getRows()) {
-                size = size.withRows(screenSize.getRows() - position.getRow());
+            if (position.row + size.rows > screenSize.rows) {
+                size = size.withRows(screenSize.rows - position.row) ?: size
             }
-            if(position.getColumn() + size.getColumns() > screenSize.getColumns()) {
-                size = size.withColumns(screenSize.getColumns() - position.getColumn());
+            if (position.column + size.columns > screenSize.columns) {
+                size = size.withColumns(screenSize.columns - position.column) ?: size
             }
-            if(window.getHints().contains(Window.Hint.CENTERED)) {
-                int left = (lastKnownScreenSize.getColumns() - size.getColumns()) / 2;
-                int top = (lastKnownScreenSize.getRows() - size.getRows()) / 2;
-                position = new TerminalPosition(left, top);
+            if (window.hints?.contains(Window.Hint.CENTERED) == true) {
+                val left = (lastKnownScreenSize.columns - size.columns) / 2
+                val top = (lastKnownScreenSize.rows - size.rows) / 2
+                position = TerminalPosition(left, top)
             }
         }
 
-        window.setPosition(position);
-        window.setDecoratedSize(size);
+        window.position = position
+        window.decoratedSize = size
     }
 }

@@ -16,137 +16,109 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.table;
+package com.googlecode.lanterna.gui2.table
 
-import com.googlecode.lanterna.TerminalTextUtils;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.graphics.ThemeDefinition;
-import com.googlecode.lanterna.gui2.TextGUIGraphics;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TerminalTextUtils
+import com.googlecode.lanterna.gui2.TextGUIGraphics
 
 /**
- * Default implementation of {@code TableCellRenderer}
- * @param <V> Type of data stored in each table cell
+ * Default implementation of `TableCellRenderer`
+ * @param V Type of data stored in each table cell
  * @author Martin
  */
-public class DefaultTableCellRenderer<V> implements TableCellRenderer<V> {
-    @Override
-    public TerminalSize getPreferredSize(Table<V> table, V cell, int columnIndex, int rowIndex) {
-        String[] lines = getContent(cell);
-        int maxWidth = 0;
-        for(String line: lines) {
-            int length = TerminalTextUtils.getColumnWidth(line);
-            if(maxWidth < length) {
-                maxWidth = length;
+open class DefaultTableCellRenderer<V> : TableCellRenderer<V?> {
+    override fun getPreferredSize(table: Table<V?>?, cell: V?, columnIndex: Int, rowIndex: Int): TerminalSize {
+        val lines = getContent(cell)
+        var maxWidth = 0
+        for (line in lines) {
+            val length = TerminalTextUtils.getColumnWidth(line)
+            if (maxWidth < length) {
+                maxWidth = length
             }
         }
-        return new TerminalSize(maxWidth, lines.length);
+        return TerminalSize(maxWidth, lines.size)
     }
 
-    @Override
-    public void drawCell(Table<V> table, V cell, int columnIndex, int rowIndex, TextGUIGraphics textGUIGraphics) {
-        boolean isSelected = (table.getSelectedColumn() == columnIndex && table.getSelectedRow() == rowIndex) ||
-                (table.getSelectedRow() == rowIndex && !table.isCellSelection());
-        applyStyle(table, cell, columnIndex, rowIndex, isSelected, textGUIGraphics);
-        beforeRender(table, cell, columnIndex, rowIndex, isSelected, textGUIGraphics);
-        render(table, cell, columnIndex, rowIndex, isSelected, textGUIGraphics);
-        afterRender(table, cell, columnIndex, rowIndex, isSelected, textGUIGraphics);
+    override fun drawCell(
+        table: Table<V?>?,
+        cell: V?,
+        columnIndex: Int,
+        rowIndex: Int,
+        textGUIGraphics: TextGUIGraphics?,
+    ) {
+        val activeTable = table!!
+        val activeGraphics = textGUIGraphics!!
+        val isSelected =
+            (activeTable.getSelectedColumn() == columnIndex && activeTable.getSelectedRow() == rowIndex) ||
+                (activeTable.getSelectedRow() == rowIndex && !activeTable.isCellSelection())
+        applyStyle(activeTable, cell, columnIndex, rowIndex, isSelected, activeGraphics)
+        beforeRender(activeTable, cell, columnIndex, rowIndex, isSelected, activeGraphics)
+        render(activeTable, cell, columnIndex, rowIndex, isSelected, activeGraphics)
+        afterRender(activeTable, cell, columnIndex, rowIndex, isSelected, activeGraphics)
     }
 
-    /**
-     * Called by the cell renderer to setup all the styling (colors and SGRs) before rendering the cell. This method
-     * exists as protected in order to make it easier to extend and customize {@link DefaultTableCellRenderer}. Unless
-     * {@link DefaultTableCellRenderer#drawCell(Table, Object, int, int, TextGUIGraphics)} it overridden, it will be
-     * called when the cell is rendered.
-     * @param table Table the cell belongs to
-     * @param cell Cell being rendered
-     * @param columnIndex Column index of the cell being rendered
-     * @param rowIndex Row index of the cell being rendered
-     * @param isSelected Set to {@code true} if the cell is currently selected by the user
-     * @param textGUIGraphics {@link TextGUIGraphics} object to set the style on, this will be used in the rendering later
-     */
-    protected void applyStyle(Table<V> table, V cell, int columnIndex, int rowIndex, boolean isSelected, TextGUIGraphics textGUIGraphics) {
-        ThemeDefinition themeDefinition = table.getThemeDefinition();
-        if(isSelected) {
-            if(table.isFocused()) {
-                textGUIGraphics.applyThemeStyle(themeDefinition.getActive());
+    protected open fun applyStyle(
+        table: Table<V?>,
+        cell: V?,
+        columnIndex: Int,
+        rowIndex: Int,
+        isSelected: Boolean,
+        textGUIGraphics: TextGUIGraphics,
+    ) {
+        val themeDefinition = table.themeDefinition ?: return
+        if (isSelected) {
+            if (table.isFocused) {
+                textGUIGraphics.applyThemeStyle(themeDefinition.active)
+            } else {
+                textGUIGraphics.applyThemeStyle(themeDefinition.selected)
             }
-            else {
-                textGUIGraphics.applyThemeStyle(themeDefinition.getSelected());
-            }
-        }
-        else {
-            textGUIGraphics.applyThemeStyle(themeDefinition.getNormal());
+        } else {
+            textGUIGraphics.applyThemeStyle(themeDefinition.normal)
         }
     }
 
-    /**
-     * Called by the cell renderer to prepare the cell area before rendering the cell. In the default implementation
-     * it will clear the area with whitespaces. This method exists as protected in order to make it easier to extend and
-     * customize {@link DefaultTableCellRenderer}. Unless
-     * {@link DefaultTableCellRenderer#drawCell(Table, Object, int, int, TextGUIGraphics)} it overridden, it will be
-     * called when the cell is rendered, after setting up the styling but before the cell content text is drawn.
-     * @param table Table the cell belongs to
-     * @param cell Cell being rendered
-     * @param columnIndex Column index of the cell being rendered
-     * @param rowIndex Row index of the cell being rendered
-     * @param isSelected Set to {@code true} if the cell is currently selected by the user
-     * @param textGUIGraphics {@link TextGUIGraphics} object for the cell, already having been prepared with styling
-     */
-    protected void beforeRender(Table<V> table, V cell, int columnIndex, int rowIndex, boolean isSelected, TextGUIGraphics textGUIGraphics) {
-        textGUIGraphics.fill(' ');
+    protected open fun beforeRender(
+        table: Table<V?>?,
+        cell: V?,
+        columnIndex: Int,
+        rowIndex: Int,
+        isSelected: Boolean,
+        textGUIGraphics: TextGUIGraphics,
+    ) {
+        textGUIGraphics.fill(' ')
     }
 
-    /**
-     * Called by the cell renderer to draw the content of the cell into the assigned area. In the default implementation
-     * it will transform the content to multilines are draw them one by one. This method exists as protected in order to
-     * make it easier to extend and customize {@link DefaultTableCellRenderer}. Unless
-     * {@link DefaultTableCellRenderer#drawCell(Table, Object, int, int, TextGUIGraphics)} it overridden, it will be
-     * called when the cell is rendered, after setting up the styling and preparing the cell.
-     * @param table Table the cell belongs to
-     * @param cell Cell being rendered
-     * @param columnIndex Column index of the cell being rendered
-     * @param rowIndex Row index of the cell being rendered
-     * @param isSelected Set to {@code true} if the cell is currently selected by the user
-     * @param textGUIGraphics {@link TextGUIGraphics} object for the cell, already having been prepared with styling
-     */
-    protected void render(Table<V> table, V cell, int columnIndex, int rowIndex, boolean isSelected, TextGUIGraphics textGUIGraphics) {
-        String[] lines = getContent(cell);
-        int rowCount = 0;
-        for(String line: lines) {
-            textGUIGraphics.putString(0, rowCount++, line);
+    protected open fun render(
+        table: Table<V?>?,
+        cell: V?,
+        columnIndex: Int,
+        rowIndex: Int,
+        isSelected: Boolean,
+        textGUIGraphics: TextGUIGraphics,
+    ) {
+        val lines = getContent(cell)
+        var rowCount = 0
+        for (line in lines) {
+            textGUIGraphics.putString(0, rowCount++, line)
         }
     }
 
-    /**
-     * Called by the cell renderer after the cell content has been drawn into the assigned area. In the default
-     * implementation it will do nothing. This method exists as protected in order to make it easier to extend and
-     * customize {@link DefaultTableCellRenderer}. Unless
-     * {@link DefaultTableCellRenderer#drawCell(Table, Object, int, int, TextGUIGraphics)} it overridden, it will be
-     * called after the cell has been rendered but before the table moves on to the next cell.
-     * @param table Table the cell belongs to
-     * @param cell Cell being rendered
-     * @param columnIndex Column index of the cell being rendered
-     * @param rowIndex Row index of the cell being rendered
-     * @param isSelected Set to {@code true} if the cell is currently selected by the user
-     * @param textGUIGraphics {@link TextGUIGraphics} object for the cell, already having been prepared with styling
-     */
-    protected void afterRender(Table<V> table, V cell, int columnIndex, int rowIndex, boolean isSelected, TextGUIGraphics textGUIGraphics) {
-
+    protected open fun afterRender(
+        table: Table<V?>?,
+        cell: V?,
+        columnIndex: Int,
+        rowIndex: Int,
+        isSelected: Boolean,
+        textGUIGraphics: TextGUIGraphics,
+    ) {
     }
 
-    /**
-     * Turns a cell into a multiline string, as an array.
-     * @param cell Cell to turn into string content
-     * @return The cell content turned into a multiline string, where each element in the array is one row.
-     */
-    protected String[] getContent(V cell) {
-        String[] lines;
-        if(cell == null) {
-            lines = new String[] { "" };
+    protected open fun getContent(cell: V?): Array<String> {
+        return if (cell == null) {
+            arrayOf("")
+        } else {
+            cell.toString().split(Regex("\r?\n")).toTypedArray()
         }
-        else {
-            lines = cell.toString().split("\r?\n");
-        }
-        return lines;
     }
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,155 +13,128 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.io.EOFException
+import java.io.IOException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Default implementation of TextGUIThread, this class runs the GUI event processing on a dedicated thread. The GUI
- * needs to be explicitly started in order for the event processing loop to begin, so you must call {@code start()}
- * for this. The GUI thread will stop if {@code stop()} is called, the input stream returns EOF or an exception is
+ * needs to be explicitly started in order for the event processing loop to begin, so you must call `start()`
+ * for this. The GUI thread will stop if `stop()` is called, the input stream returns EOF or an exception is
  * thrown from inside the event handling loop.
  * <p>
- * Here is an example of how to use this {@code TextGUIThread}:
+ * Here is an example of how to use this `TextGUIThread`:
  * <pre>
- *     {@code
- *     MultiWindowTextGUI textGUI = new MultiWindowTextGUI(new SeparateTextGUIThread.Factory(), screen);
+ *     `MultiWindowTextGUI textGUI = new MultiWindowTextGUI(new SeparateTextGUIThread.Factory(), screen);
  *     // ... add components ...
  *     ((AsynchronousTextGUIThread)textGUI.getGUIThread()).start();
- *     // ... this thread will continue while the GUI runs on a separate thread ...
- *     }
+ *     // ... this thread will continue while the GUI runs on a separate thread ...`
  * </pre>
  * @see TextGUIThread
  * @see SameTextGUIThread
  * @author Martin
  */
-public class SeparateTextGUIThread extends AbstractTextGUIThread implements AsynchronousTextGUIThread {
-    private volatile State state;
-    private final Thread textGUIThread;
-    private final CountDownLatch waitLatch;
+class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
+    AbstractTextGUIThread(textGUI),
+    AsynchronousTextGUIThread {
 
-    private SeparateTextGUIThread(TextGUI textGUI) {
-        super(textGUI);
-        this.waitLatch = new CountDownLatch(1);
-        this.textGUIThread = new Thread("LanternaGUI") {
-            @Override
-            public void run() {
-                mainGUILoop();
-            }
-        };
-        state = State.CREATED;
-    }
+    @Volatile
+    override var state: AsynchronousTextGUIThread.State? = AsynchronousTextGUIThread.State.CREATED
+        private set
 
-    @Override
-    public void start() {
-        textGUIThread.start();
-        state = State.STARTED;
-    }
+    private val waitLatch = CountDownLatch(1)
 
-    @Override
-    public void stop() {
-        if(state != State.STARTED) {
-            return;
+    override val thread: Thread = object : Thread("LanternaGUI") {
+        override fun run() {
+            mainGUILoop()
         }
-
-        state = State.STOPPING;
     }
 
-    @Override
-    public void waitForStop() throws InterruptedException {
-        waitLatch.await();
+    override fun start() {
+        thread.start()
+        state = AsynchronousTextGUIThread.State.STARTED
     }
 
-    @Override
-    public void waitForStop(long time, TimeUnit unit) throws InterruptedException {
-        waitLatch.await(time, unit);
-    }
-
-    @Override
-    public State getState() {
-        return state;
-    }
-
-    @Override
-    public Thread getThread() {
-        return textGUIThread;
-    }
-
-    @Override
-    public void invokeLater(Runnable runnable) throws IllegalStateException {
-        if(state != State.STARTED) {
-            throw new IllegalStateException("Cannot schedule " + runnable + " for execution on the TextGUIThread " +
-                    "because the thread is in " + state + " state");
+    override fun stop() {
+        if (state != AsynchronousTextGUIThread.State.STARTED) {
+            return
         }
-        super.invokeLater(runnable);
+        state = AsynchronousTextGUIThread.State.STOPPING
     }
 
-    private void mainGUILoop() {
+    @Throws(InterruptedException::class)
+    override fun waitForStop() {
+        waitLatch.await()
+    }
+
+    @Throws(InterruptedException::class)
+    override fun waitForStop(time: Long, unit: TimeUnit?) {
+        waitLatch.await(time, unit)
+    }
+
+    override fun invokeLater(runnable: Runnable?) {
+        if (state != AsynchronousTextGUIThread.State.STARTED) {
+            throw IllegalStateException(
+                "Cannot schedule $runnable for execution on the TextGUIThread because the thread is in $state state",
+            )
+        }
+        super.invokeLater(runnable)
+    }
+
+    private fun mainGUILoop() {
         try {
-            //Draw initial screen, after this only draw when the GUI is marked as invalid
             try {
-                textGUI.updateScreen();
+                textGUI.updateScreen()
+            } catch (e: IOException) {
+                exceptionHandlerRef?.onIOException(e)
+            } catch (e: RuntimeException) {
+                exceptionHandlerRef?.onRuntimeException(e)
             }
-            catch(IOException e) {
-                exceptionHandler.onIOException(e);
-            }
-            catch(RuntimeException e) {
-                exceptionHandler.onRuntimeException(e);
-            }
-            while(state == State.STARTED) {
+
+            while (state == AsynchronousTextGUIThread.State.STARTED) {
                 try {
                     if (!processEventsAndUpdate()) {
                         try {
-                            Thread.sleep(1);
-                        }
-                        catch(InterruptedException ignored) {}
-                    }
-                }
-                catch(EOFException e) {
-                    stop();
-                    if (textGUI instanceof WindowBasedTextGUI) {
-                        // Close all windows on EOF
-                        for (Window window: ((WindowBasedTextGUI) textGUI).getWindows()) {
-                            window.close();
+                            Thread.sleep(1)
+                        } catch (_: InterruptedException) {
+                            // Ignore and continue loop processing.
                         }
                     }
-                    break; //Break out quickly from the main loop
-                }
-                catch(IOException e) {
-                    if(exceptionHandler.onIOException(e)) {
-                        stop();
-                        break;
+                } catch (e: EOFException) {
+                    stop()
+                    if (textGUI is WindowBasedTextGUI) {
+                        for (window in textGUI.windows.orEmpty()) {
+                            window?.close()
+                        }
                     }
-                }
-                catch(RuntimeException e) {
-                    if(exceptionHandler.onRuntimeException(e)) {
-                        stop();
-                        break;
+                    break
+                } catch (e: IOException) {
+                    if (exceptionHandlerRef?.onIOException(e) == true) {
+                        stop()
+                        break
+                    }
+                } catch (e: RuntimeException) {
+                    if (exceptionHandlerRef?.onRuntimeException(e) == true) {
+                        stop()
+                        break
                     }
                 }
             }
-        }
-        finally {
-            state = State.STOPPED;
-            waitLatch.countDown();
+        } finally {
+            state = AsynchronousTextGUIThread.State.STOPPED
+            waitLatch.countDown()
         }
     }
 
-
-    /**
-     * Factory class for creating SeparateTextGUIThread objects
-     */
-    public static class Factory implements TextGUIThreadFactory {
-        @Override
-        public TextGUIThread createTextGUIThread(TextGUI textGUI) {
-            return new SeparateTextGUIThread(textGUI);
+    class Factory : TextGUIThreadFactory {
+        override fun createTextGUIThread(textGUI: TextGUI?): TextGUIThread? {
+            return SeparateTextGUIThread(textGUI!!)
         }
     }
 }

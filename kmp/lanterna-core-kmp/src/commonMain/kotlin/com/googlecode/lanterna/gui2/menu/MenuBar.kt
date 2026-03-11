@@ -18,214 +18,157 @@
  * Copyright (C) 2017 Bruno Eberhard
  * Copyright (C) 2017 University of Waikato, Hamilton, NZ
  */
-package com.googlecode.lanterna.gui2.menu;
+package com.googlecode.lanterna.gui2.menu
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.gui2.AbstractComponent;
-import com.googlecode.lanterna.gui2.Component;
-import com.googlecode.lanterna.gui2.ComponentRenderer;
-import com.googlecode.lanterna.gui2.Container;
-import com.googlecode.lanterna.gui2.Interactable;
-import com.googlecode.lanterna.gui2.InteractableLookupMap;
-import com.googlecode.lanterna.gui2.TextGUIGraphics;
-import com.googlecode.lanterna.gui2.Window;
-import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.gui2.AbstractComponent
+import com.googlecode.lanterna.gui2.Component
+import com.googlecode.lanterna.gui2.ComponentRenderer
+import com.googlecode.lanterna.gui2.Container
+import com.googlecode.lanterna.gui2.Interactable
+import com.googlecode.lanterna.gui2.InteractableLookupMap
+import com.googlecode.lanterna.gui2.TextGUIGraphics
+import com.googlecode.lanterna.input.KeyStroke
+import java.util.ArrayList
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * A menu bar offering drop-down menus. You can attach a menu bar to a {@link Window} by using the
- * {@link Window#setMenuBar(MenuBar)} method, then use {@link MenuBar#add(Menu)} to add sub-menus to the menu bar.
- *
- * @author FracPete (fracpete at waikato dot ac dot nz)
- * @author Bruno Eberhard
- * @author Martin Berglund
+ * A menu bar offering drop-down menus.
  */
-@SuppressWarnings("SuspiciousMethodCalls")
-public class MenuBar extends AbstractComponent<MenuBar> implements Container {
-    private static final int EXTRA_PADDING = 0;
-    private final List<Menu> menus;
-
-    /**
-     * Creates a new menu bar
-     */
-    public MenuBar() {
-        this.menus = new CopyOnWriteArrayList<>();
+@Suppress("SuspiciousMethodCalls")
+open class MenuBar : AbstractComponent<MenuBar?>(), Container {
+    companion object {
+        private const val EXTRA_PADDING = 0
     }
 
-    /**
-     * Adds a new drop-down menu to the menu bar, at the end
-     * @param menu Menu to add to the menu bar
-     * @return Itself
-     */
-    public MenuBar add(Menu menu) {
-        menus.add(menu);
-        menu.onAdded(this);
-        return this;
+    private val menus: MutableList<Menu> = CopyOnWriteArrayList()
+
+    fun add(menu: Menu): MenuBar {
+        menus.add(menu)
+        menu.onAdded(this)
+        return this
     }
 
-    @Override
-    public int getChildCount() {
-        return getMenuCount();
+    override val childCount: Int
+        get() = menuCount
+
+    override val childrenList: List<Component?>
+        get() = ArrayList(menus)
+
+    override val children: Collection<Component?>
+        get() = childrenList
+
+    override fun containsComponent(component: Component?): Boolean {
+        return menus.contains(component)
     }
 
-    @Override
-    public List<Component> getChildrenList() {
-        return new ArrayList<>(menus);
-    }
-
-    @Override
-    public Collection<Component> getChildren() {
-        return getChildrenList();
-    }
-
-    @Override
-    public boolean containsComponent(Component component) {
-        return menus.contains(component);
-    }
-
-    @Override
-    public synchronized boolean removeComponent(Component component) {
-        boolean hadMenu = menus.remove(component);
+    @Synchronized
+    override fun removeComponent(component: Component?): Boolean {
+        val hadMenu = menus.remove(component)
         if (hadMenu) {
-            component.onRemoved(this);
+            component?.onRemoved(this)
         }
-        return hadMenu;
+        return hadMenu
     }
 
-    @Override
-    public synchronized Interactable nextFocus(Interactable fromThis) {
+    @Synchronized
+    override fun nextFocus(fromThis: Interactable?): Interactable? {
         if (menus.isEmpty()) {
-            return null;
+            return null
+        } else if (fromThis == null) {
+            return menus[0]
+        } else if (!menus.contains(fromThis) || menus.indexOf(fromThis) == menus.size - 1) {
+            return null
         }
-        else if (fromThis == null) {
-            return menus.get(0);
-        }
-        else if (!menus.contains(fromThis) || menus.indexOf(fromThis) == menus.size() - 1) {
-            return null;
-        }
-        else {
-            return menus.get(menus.indexOf(fromThis) + 1);
-        }
+        return menus[menus.indexOf(fromThis) + 1]
     }
 
-    @Override
-    public Interactable previousFocus(Interactable fromThis) {
+    override fun previousFocus(fromThis: Interactable?): Interactable? {
         if (menus.isEmpty()) {
-            return null;
+            return null
+        } else if (fromThis == null) {
+            return menus[menus.size - 1]
+        } else if (!menus.contains(fromThis) || menus.indexOf(fromThis) == 0) {
+            return null
         }
-        else if (fromThis == null) {
-            return menus.get(menus.size() - 1);
-        }
-        else if (!menus.contains(fromThis) || menus.indexOf(fromThis) == 0) {
-            return null;
-        }
-        else {
-            return menus.get(menus.indexOf(fromThis) - 1);
-        }
+        return menus[menus.indexOf(fromThis) - 1]
     }
 
-    @Override
-    public boolean handleInput(KeyStroke key) 
-    {
-    	// Process top level menus
-    	for (Menu mnu : menus)
-    	{   		
-    		// Check to see if handled by accelerator 
-    		if (mnu.isKeyboardAcceleratorStroke(key))
-    		{    			
-    			mnu.handleKeyStroke(key);
-    			return true;
-    		}
-    	}    	
-        return false;
+    override fun handleInput(key: KeyStroke?): Boolean {
+        return false
     }
 
-    /**
-     * Returns the drop-down menu at the specified index. This method will throw an Array
-     * @param index Index of the menu to return
-     * @return The drop-down menu at the specified index
-     * @throws IndexOutOfBoundsException if the index is out of range
-     */
-    public Menu getMenu(int index) {
-        return menus.get(index);
+    fun getMenu(index: Int): Menu? {
+        return menus[index]
     }
 
-    /**
-     * Returns the number of menus this menu bar currently has
-     * @return The number of menus this menu bar currently has
-     */
-    public int getMenuCount() {
-        return menus.size();
+    val menuCount: Int
+        get() = menus.size
+
+    override fun createDefaultRenderer(): ComponentRenderer<MenuBar?> {
+        return DefaultMenuBarRenderer()
     }
 
-    @Override
-    protected ComponentRenderer<MenuBar> createDefaultRenderer() {
-        return new DefaultMenuBarRenderer();
-    }
-
-    @Override
-    public synchronized void updateLookupMap(InteractableLookupMap interactableLookupMap) {
-        for (Menu menu: menus) {
-            interactableLookupMap.add(menu);
+    @Synchronized
+    override fun updateLookupMap(interactableLookupMap: InteractableLookupMap?) {
+        for (menu in menus) {
+            interactableLookupMap?.add(menu)
         }
     }
 
-    @Override
-    public TerminalPosition toBasePane(TerminalPosition position) {
-        // Assume the menu is always at the top of the content panel
-        return position;
-    }
-    
-    public boolean isEmptyMenuBar() {
-        return false;
+    override fun toBasePane(position: TerminalPosition?): TerminalPosition? {
+        return position
     }
 
-    /**
-     * The default implementation for rendering a {@link MenuBar}
-     */
-    public class DefaultMenuBarRenderer implements ComponentRenderer<MenuBar> {
-        @Override
-        public TerminalSize getPreferredSize(MenuBar menuBar) {
-            int maxHeight = 1;
-            int totalWidth = EXTRA_PADDING;
-            for (int i = 0; i < menuBar.getMenuCount(); i++) {
-                Menu menu = menuBar.getMenu(i);
-                TerminalSize preferredSize = menu.getPreferredSize();
-                maxHeight = Math.max(maxHeight, preferredSize.getRows());
-                totalWidth += preferredSize.getColumns();
+    open val isEmptyMenuBar: Boolean
+        get() = false
+
+    inner class DefaultMenuBarRenderer : ComponentRenderer<MenuBar?> {
+        override fun getPreferredSize(menuBar: MenuBar?): TerminalSize {
+            var maxHeight = 1
+            var totalWidth = EXTRA_PADDING
+            if (menuBar != null) {
+                for (i in 0 until menuBar.menuCount) {
+                    val menu = menuBar.getMenu(i) ?: continue
+                    val preferredSize = menu.preferredSize ?: continue
+                    maxHeight = kotlin.math.max(maxHeight, preferredSize.rows)
+                    totalWidth += preferredSize.columns
+                }
             }
-            totalWidth += EXTRA_PADDING;
-            return new TerminalSize(totalWidth, maxHeight);
+            totalWidth += EXTRA_PADDING
+            return TerminalSize(totalWidth, maxHeight)
         }
 
-        @Override
-        public void drawComponent(TextGUIGraphics graphics, MenuBar menuBar) {
-            // Reset the area
-            graphics.applyThemeStyle(getThemeDefinition().getNormal());
-            graphics.fill(' ');
+        override fun drawComponent(graphics: TextGUIGraphics?, menuBar: MenuBar?) {
+            val activeGraphics = graphics ?: return
+            val activeMenuBar = menuBar ?: return
 
-            int leftPosition = EXTRA_PADDING;
-            TerminalSize size = graphics.getSize();
-            int remainingSpace = size.getColumns() - EXTRA_PADDING;
-            for (int i = 0; i < menuBar.getMenuCount() && remainingSpace > 0; i++) {
-                Menu menu = menuBar.getMenu(i);
-                TerminalSize preferredSize = menu.getPreferredSize();
-                menu.setPosition(menu.getPosition()
-                        .withColumn(leftPosition)
-                        .withRow(0));
-                int finalWidth = Math.min(preferredSize.getColumns(), remainingSpace);
-                menu.setSize(menu.getSize()
-                                .withColumns(finalWidth)
-                                .withRows(size.getRows()));
-                remainingSpace -= finalWidth + EXTRA_PADDING;
-                leftPosition += finalWidth + EXTRA_PADDING;
-                TextGUIGraphics componentGraphics = graphics.newTextGraphics(menu.getPosition(), menu.getSize());
-                menu.draw(componentGraphics);
+            activeGraphics.applyThemeStyle(themeDefinition?.normal)
+            activeGraphics.fill(' ')
+
+            var leftPosition = EXTRA_PADDING
+            val size = activeGraphics.size ?: TerminalSize.ZERO
+            var remainingSpace = size.columns - EXTRA_PADDING
+            for (i in 0 until activeMenuBar.menuCount) {
+                if (remainingSpace <= 0) {
+                    break
+                }
+                val menu = activeMenuBar.getMenu(i) ?: continue
+                val preferredSize = menu.preferredSize ?: continue
+                val menuPosition = menu.position ?: TerminalPosition.TOP_LEFT_CORNER
+                val finalPosition =
+                    menuPosition.withColumn(leftPosition)?.withRow(0) ?: TerminalPosition(leftPosition, 0)
+                menu.setPosition(finalPosition)
+                val finalWidth = kotlin.math.min(preferredSize.columns, remainingSpace)
+                val menuSize = menu.size ?: TerminalSize.ZERO
+                val finalSize =
+                    menuSize.withColumns(finalWidth)?.withRows(size.rows) ?: TerminalSize(finalWidth, size.rows)
+                menu.setSize(finalSize)
+                remainingSpace -= finalWidth + EXTRA_PADDING
+                leftPosition += finalWidth + EXTRA_PADDING
+                val componentGraphics = activeGraphics.newTextGraphics(finalPosition, finalSize)
+                menu.draw(componentGraphics)
             }
         }
     }

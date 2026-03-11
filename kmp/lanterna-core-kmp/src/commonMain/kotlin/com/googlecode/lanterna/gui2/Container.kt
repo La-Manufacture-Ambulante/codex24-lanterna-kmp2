@@ -16,103 +16,102 @@
  * 
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.input.KeyStroke;
-import java.util.Collection;
-import java.util.List;
+import com.googlecode.lanterna.input.KeyStroke
 
 /**
- * Container is a component that contains a collection of child components. The basic example of an implementation of 
- * this is the {@code Panel} class which uses a layout manager to size and position the children over its area. Note
+ * Container is a component that contains a collection of child components. The basic example of an implementation of
+ * this is the `Panel` class which uses a layout manager to size and position the children over its area. Note
  * that there is no method for adding components to the container, since this depends on the implementation. In general,
- * composites that contains one one (or zero) children, the method for specifying the child is in {@code Composite}.
- * Multi-child containers are generally using the {@code Panel} implementation which has an {@code addComponent(..)}
+ * composites that contains one one (or zero) children, the method for specifying the child is in `Composite`.
+ * Multi-child containers are generally using the `Panel` implementation which has an `addComponent(..)`
  * method.
  * @author Martin
  */
-public interface Container extends Component {
+ interface Container:Component {
 
-    /**
-     * Returns the number of children this container currently has
-     * @return Number of children currently in this container
-     */
-    int getChildCount();
+/**
+ * Returns the number of children this container currently has
+ * @return Number of children currently in this container
+ */
+     val childCount:Int
 
-    /**
-     * Returns collection that is to be considered a copy of the list of children contained inside of this object. 
-     * Modifying this collection will not affect any internal state.
-     * <p>
-     * This method isn't deprecated but it should have originally been defined as returning a List instead of a
-     * Collection. See {@code getChildrenList} for a method with this signature.
-     * @return Child-components inside of this Container
-     * @see Container#getChildrenList()
-     */
-    Collection<Component> getChildren();
+/**
+ * Returns collection that is to be considered a copy of the list of children contained inside of this object.
+ * Modifying this collection will not affect any internal state.
+ * 
+ * 
+ * This method isn't deprecated but it should have originally been defined as returning a List instead of a
+ * Collection. See `getChildrenList` for a method with this signature.
+ * @return Child-components inside of this Container
+ * @see Container.getChildrenList
+ */
+     val children:Collection<Component?>?
 
-    /**
-     * Returns list that is to be considered a copy of the list of children inside of this container.
-     * Modifying this list will not affect any internal state. This method is essentially the same as getChildren but
-     * the returned collection is a list.
-     * @return Child-components inside of this Container
-     * @see Container#getChildren()
-     */
-    List<Component> getChildrenList();
+/**
+ * Returns list that is to be considered a copy of the list of children inside of this container.
+ * Modifying this list will not affect any internal state. This method is essentially the same as getChildren but
+ * the returned collection is a list.
+ * @return Child-components inside of this Container
+ * @see Container.getChildren
+ */
+     val childrenList:List<Component?>?
 
-    /**
-     * Returns {@code true} if this container contains the supplied component either directly or indirectly through
-     * intermediate containers.
-     * @param component Component to check if it's part of this container
-     * @return {@code true} if the component is inside this Container, otherwise {@code false}
-     */
-    boolean containsComponent(Component component);
-    
-    /**
-     * Removes the component from the container. This should remove the component from the Container's internal data 
-     * structure as well as call the onRemoved(..) method on the component itself if it was found inside the container.
-     * @param component Component to remove from the Container
-     * @return {@code true} if the component existed inside the container and was removed, {@code false} otherwise
-     */
-    boolean removeComponent(Component component);
-    
-    /**
-     * Given an interactable, find the next one in line to receive focus. If the interactable isn't inside this 
-     * container, this method should return {@code null}.
-     *
-     * @param fromThis Component from which to get the next interactable, or if
-     *                 null, pick the first available interactable
-     * @return The next interactable component, or null if there are no more
-     * interactables in the list
-     */
-    Interactable nextFocus(Interactable fromThis);
+/**
+ * Returns `true` if this container contains the supplied component either directly or indirectly through
+ * intermediate containers.
+ * @param component Component to check if it's part of this container
+ * @return `true` if the component is inside this Container, otherwise `false`
+ */
+     fun containsComponent(component:Component?):Boolean 
 
-    /**
-     * Given an interactable, find the previous one in line to receive focus. If the interactable isn't inside this 
-     * container, this method should return {@code null}.
-     *
-     * @param fromThis Component from which to get the previous interactable,
-     *                 or if null, pick the last interactable in the list
-     * @return The previous interactable component, or null if there are no more
-     * interactables in the list
-     */
-    Interactable previousFocus(Interactable fromThis);
-    
-    /**
-     * If an interactable component inside this container received a keyboard event that wasn't handled, the GUI system
-     * will recursively send the event to each parent container to give each of them a chance to consume the event. 
-     * Return {@code false} if the implementer doesn't care about this particular keystroke and it will be automatically
-     * sent up the hierarchy the to next container. If you return {@code true}, the event will stop here and won't be 
-     * reported as unhandled.
-     * @param key Keystroke that was ignored by the interactable inside this container
-     * @return {@code true} if this event was handled by this container and shouldn't be processed anymore, 
-     * {@code false} if the container didn't take any action on the event and want to pass it on
-     */
-    boolean handleInput(KeyStroke key);
-    
-    /**
-     * Takes a lookup map and updates it with information about where all the interactables inside of this container
-     * are located.
-     * @param interactableLookupMap Interactable map to update
-     */
-    void updateLookupMap(InteractableLookupMap interactableLookupMap);
+/**
+ * Removes the component from the container. This should remove the component from the Container's internal data
+ * structure as well as call the onRemoved(..) method on the component itself if it was found inside the container.
+ * @param component Component to remove from the Container
+ * @return `true` if the component existed inside the container and was removed, `false` otherwise
+ */
+     fun removeComponent(component:Component?):Boolean 
+
+/**
+ * Given an interactable, find the next one in line to receive focus. If the interactable isn't inside this
+ * container, this method should return `null`.
+ * 
+ * @param fromThis Component from which to get the next interactable, or if
+ * null, pick the first available interactable
+ * @return The next interactable component, or null if there are no more
+ * interactables in the list
+ */
+     fun nextFocus(fromThis:Interactable?):Interactable? 
+
+/**
+ * Given an interactable, find the previous one in line to receive focus. If the interactable isn't inside this
+ * container, this method should return `null`.
+ * 
+ * @param fromThis Component from which to get the previous interactable,
+ * or if null, pick the last interactable in the list
+ * @return The previous interactable component, or null if there are no more
+ * interactables in the list
+ */
+     fun previousFocus(fromThis:Interactable?):Interactable? 
+
+/**
+ * If an interactable component inside this container received a keyboard event that wasn't handled, the GUI system
+ * will recursively send the event to each parent container to give each of them a chance to consume the event.
+ * Return `false` if the implementer doesn't care about this particular keystroke and it will be automatically
+ * sent up the hierarchy the to next container. If you return `true`, the event will stop here and won't be
+ * reported as unhandled.
+ * @param key Keystroke that was ignored by the interactable inside this container
+ * @return `true` if this event was handled by this container and shouldn't be processed anymore,
+ * `false` if the container didn't take any action on the event and want to pass it on
+ */
+     fun handleInput(key:KeyStroke?):Boolean 
+
+/**
+ * Takes a lookup map and updates it with information about where all the interactables inside of this container
+ * are located.
+ * @param interactableLookupMap Interactable map to update
+ */
+     fun updateLookupMap(interactableLookupMap:InteractableLookupMap?) 
 }

@@ -16,55 +16,62 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import java.io.IOException;
-import java.util.Collections;
+import com.googlecode.lanterna.*
+import java.io.IOException
+import java.util.Collections
 
-public class LinearLayoutTest extends TestBase {
-    public static void main(String[] args) throws InterruptedException, IOException {
-        new LinearLayoutTest().run(args);
-    }
+ class LinearLayoutTest:TestBase() {
 
-    @Override
-    public void init(WindowBasedTextGUI textGUI) {
-        final BasicWindow window = new BasicWindow("Linear layout test");
-        final Panel mainPanel = new Panel();
-        final Panel labelPanel = new Panel();
-        final LinearLayout linearLayout = new LinearLayout(Direction.VERTICAL);
-        linearLayout.setSpacing(1);
-        labelPanel.setLayoutManager(linearLayout);
+fun init(textGUI:WindowBasedTextGUI) {
+val window = BasicWindow("Linear layout test")
+val mainPanel = Panel()
+val labelPanel = Panel()
+val linearLayout = LinearLayout(Direction.VERTICAL)
+linearLayout.setSpacing(1)
+labelPanel.setLayoutManager(linearLayout)
 
-        for(int i = 0; i < 5; i++) {
-            new Label("LABEL COMPONENT")
-                    .setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW))
-                    .addTo(labelPanel);
-        }
-        mainPanel.addComponent(labelPanel.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW)));
+for (i in 0..4)
+{
+Label("LABEL COMPONENT")
+.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW))!!
+.addTo(labelPanel)
+}
+mainPanel.addComponent(labelPanel.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.BEGINNING, LinearLayout.GrowPolicy.CAN_GROW)))
 
-        new Separator(Direction.HORIZONTAL)
-                .setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL))
-                .addTo(mainPanel);
+Separator(Direction.HORIZONTAL)
+.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL))!!
+.addTo(mainPanel)
 
-        mainPanel.addComponent(Panels.horizontal(
-                new Button("Add", () -> new Label("LABEL COMPONENT").addTo(labelPanel)),
-                new Button("Spacing", () -> linearLayout.setSpacing(linearLayout.getSpacing() == 1 ? 0 : 1)),
-                new Button("Toggle Hide Odd #", () -> toggleVisibleOnOddNumberLabels(labelPanel)),
-                new Button("Expand", () -> window.setHints(Collections.singletonList(Window.Hint.EXPANDED))),
-                new Button("Collapse", () -> window.setHints(Collections.emptySet())),
-                new Button("Close", window::close)
-        ));
+mainPanel.addComponent(Panels.horizontal(
+Button("Add", { Label("LABEL COMPONENT").addTo(labelPanel) }), 
+Button("Spacing", { linearLayout.setSpacing(if (linearLayout.getSpacing() == 1) 0 else 1) }), 
+Button("Toggle Hide Odd #", { toggleVisibleOnOddNumberLabels(labelPanel) }), 
+Button("Expand", { window.setHints(Collections.singletonList(Window.Hint.EXPANDED)) }), 
+Button("Collapse", { window.setHints(Collections.emptySet()) }), 
+Button("Close", Runnable { window.close() })
+))
 
-        window.setComponent(mainPanel);
-        textGUI.addWindow(window);
-    }
+window.component = mainPanel
+textGUI.addWindow(window)
+}
 
-    void toggleVisibleOnOddNumberLabels(Panel panel) {
-        for (int i = 0; i < panel.getChildCount(); i++) {
-            if ((i + 1) % 2 == 1) {
-                Component component = panel.getChildrenList().get(i);
-                component.setVisible(!component.isVisible());
-            }
-        }
-    }
+internal fun toggleVisibleOnOddNumberLabels(panel:Panel) {
+for (i in 0 until panel.childCount)
+{
+if ((i + 1) % 2 == 1)
+{
+val component = panel.childrenList?.get(i) ?: continue
+component.setVisible(!component.isVisible)
+}
+}
+}
+
+companion object {
+@Throws(InterruptedException::class, IOException::class)
+ fun main(args:Array<String?>?) {
+LinearLayoutTest().run(args)
+}
+}
 }

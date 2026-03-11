@@ -16,23 +16,25 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import java.io.IOException;
+import java.io.IOException
 
 /**
- * This interface is for abstracting the creation of your Terminal object. The bundled implementation is 
- * DefaultTerminalFactory, which will use a simple auto-detection mechanism for figuring out which terminal 
+ * This interface is for abstracting the creation of your Terminal object. The bundled implementation is
+ * DefaultTerminalFactory, which will use a simple auto-detection mechanism for figuring out which terminal
  * implementation to create based on characteristics of the system the program is running on.
- * <p>
+ * 
+ * 
  * @author martin
  */
 @SuppressWarnings("WeakerAccess")
-public interface TerminalFactory {
-    /**
-     * Instantiates a Terminal according to the factory implementation.
-     * @return Terminal implementation
-     * @throws IOException If there was an I/O error with the underlying input/output system
-     */
-    Terminal createTerminal() throws IOException;
+ interface TerminalFactory {
+/**
+ * Instantiates a Terminal according to the factory implementation.
+ * @return Terminal implementation
+ * @throws IOException If there was an I/O error with the underlying input/output system
+ */
+    @Throws(IOException::class)
+ fun createTerminal():Terminal? 
 }

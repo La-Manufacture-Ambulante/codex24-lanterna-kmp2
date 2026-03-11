@@ -16,53 +16,64 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.screen;
+package com.googlecode.lanterna.screen
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
 
-import java.io.IOException;
+import java.io.IOException
 
 /**
  * Test for VirtualScreen class
  * @author Martin
  */
-public class VirtualScreenTest {
+ class VirtualScreenTest @Throws(InterruptedException::class, IOException::class)
+ constructor(args:Array<String?>?) {
 
-    public static void main(String[] args) throws InterruptedException, IOException {
-        new VirtualScreenTest(args);
-    }
+init{
+var screen:Screen? = TestTerminalFactory(args).createScreen()
+screen = VirtualScreen(screen!!)
+screen!!.startScreen()
 
-    public VirtualScreenTest(String[] args) throws InterruptedException, IOException {
-        Screen screen = new TestTerminalFactory(args).createScreen();
-        screen = new VirtualScreen(screen);
-        screen.startScreen();
+val textGraphics = screen!!.newTextGraphics()
+textGraphics!!.setBackgroundColor(TextColor.ANSI.GREEN)
+textGraphics!!.fillTriangle(TerminalPosition(40, 0), TerminalPosition(25, 19), TerminalPosition(65, 19), ' ')
+textGraphics!!.setBackgroundColor(TextColor.ANSI.RED)
+textGraphics!!.drawRectangle(TerminalPosition.TOP_LEFT_CORNER, screen!!.terminalSize, ' ')
+screen!!.refresh()
 
-        TextGraphics textGraphics = screen.newTextGraphics();
-        textGraphics.setBackgroundColor(TextColor.ANSI.GREEN);
-        textGraphics.fillTriangle(new TerminalPosition(40, 0), new TerminalPosition(25,19), new TerminalPosition(65, 19), ' ');
-        textGraphics.setBackgroundColor(TextColor.ANSI.RED);
-        textGraphics.drawRectangle(TerminalPosition.TOP_LEFT_CORNER, screen.getTerminalSize(), ' ');
-        screen.refresh();
+while (true)
+{
+val keyStroke = screen!!.pollInput()
+if (keyStroke != null)
+{
+if (keyStroke!!.keyType == KeyType.ESCAPE)
+{
+break
+}
+}
+else if (screen!!.doResizeIfNecessary() != null)
+{
+screen!!.refresh()
+}
+else
+{
+Thread.sleep(1)
+}
+}
+screen!!.stopScreen()
+}
 
-        while(true) {
-            KeyStroke keyStroke = screen.pollInput();
-            if(keyStroke != null) {
-                if(keyStroke.getKeyType() == KeyType.ESCAPE) {
-                    break;
-                }
-            }
-            else if(screen.doResizeIfNecessary() != null) {
-                screen.refresh();
-            }
-            else {
-                Thread.sleep(1);
-            }
-        }
-        screen.stopScreen();
-    }
+companion object {
+
+@Throws(InterruptedException::class, IOException::class)
+ fun main(args:Array<String?>?) {
+VirtualScreenTest(args)
+}
+}
 }

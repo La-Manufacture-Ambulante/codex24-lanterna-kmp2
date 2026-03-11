@@ -16,305 +16,201 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal.swing;
+package com.googlecode.lanterna.terminal.swing
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.terminal.IOSafeTerminal;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.terminal.TerminalResizeListener;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.terminal.IOSafeTerminal
+import com.googlecode.lanterna.terminal.TerminalResizeListener
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Frame
+import java.awt.HeadlessException
+import java.util.EnumSet
+import java.util.concurrent.TimeUnit
 
-import java.awt.*;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+@Suppress("serial")
+open class AWTTerminalFrame : Frame, IOSafeTerminal {
+    val awtTerminal: AWTTerminal
+    private val autoCloseTriggers: EnumSet<TerminalEmulatorAutoCloseTrigger>
+    private var disposed: Boolean = false
 
-/**
- * This class is similar to what SwingTerminal used to be before Lanterna 3.0; a Frame that contains a terminal
- * emulator. In Lanterna 3, this class is just an AWT Frame containing a {@link AWTTerminal} component, but it also
- * implements the {@link com.googlecode.lanterna.terminal.Terminal} interface and delegates all calls to the internal
- * {@link AWTTerminal}. You can tweak the class a bit to have special behaviours when exiting private mode or when the
- * user presses ESC key.
- *
- * <p>Please note that this is the AWT version and there is a Swing counterpart: {@link SwingTerminalFrame}
- * @see AWTTerminal
- * @see SwingTerminalFrame
- * @author martin
- */
-@SuppressWarnings("serial")
-public class AWTTerminalFrame extends Frame implements IOSafeTerminal {
-    private final AWTTerminal awtTerminal;
-    private final EnumSet<TerminalEmulatorAutoCloseTrigger> autoCloseTriggers;
+    constructor(vararg autoCloseTriggers: TerminalEmulatorAutoCloseTrigger) : this("AwtTerminalFrame", *autoCloseTriggers)
 
-    private boolean disposed;
+    @Throws(HeadlessException::class)
+    constructor(title: String?, vararg autoCloseTriggers: TerminalEmulatorAutoCloseTrigger) :
+        this(title, AWTTerminal(), *autoCloseTriggers)
 
-    /**
-     * Creates a new AWTTerminalFrame with an optional list of auto-close triggers
-     * @param autoCloseTriggers What to trigger automatic disposal of the Frame
-     */
-    @SuppressWarnings({"SameParameterValue", "WeakerAccess"})
-    public AWTTerminalFrame(TerminalEmulatorAutoCloseTrigger... autoCloseTriggers) {
-        this("AwtTerminalFrame", autoCloseTriggers);
-    }
+    constructor(
+        title: String?,
+        deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+        fontConfiguration: AWTTerminalFontConfiguration?,
+        colorConfiguration: TerminalEmulatorColorConfiguration?,
+        vararg autoCloseTriggers: TerminalEmulatorAutoCloseTrigger,
+    ) : this(title, null, deviceConfiguration, fontConfiguration, colorConfiguration, *autoCloseTriggers)
 
-    /**
-     * Creates a new AWTTerminalFrame with a given window title and an optional list of auto-close triggers
-     * @param title Title to use for the window
-     * @param autoCloseTriggers What to trigger automatic disposal of the Frame
-     */
-    @SuppressWarnings("WeakerAccess")
-    public AWTTerminalFrame(String title, TerminalEmulatorAutoCloseTrigger... autoCloseTriggers) throws HeadlessException {
-        this(title, new AWTTerminal(), autoCloseTriggers);
-    }
+    constructor(
+        title: String?,
+        terminalSize: TerminalSize?,
+        deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+        fontConfiguration: AWTTerminalFontConfiguration?,
+        colorConfiguration: TerminalEmulatorColorConfiguration?,
+        vararg autoCloseTriggers: TerminalEmulatorAutoCloseTrigger,
+    ) : this(
+        title,
+        AWTTerminal(terminalSize, deviceConfiguration, fontConfiguration, colorConfiguration),
+        *autoCloseTriggers,
+    )
 
-    /**
-     * Creates a new AWTTerminalFrame using a specified title and a series of AWT terminal configuration objects
-     * @param title What title to use for the window
-     * @param deviceConfiguration Device configuration for the embedded AWTTerminal
-     * @param fontConfiguration Font configuration for the embedded AWTTerminal
-     * @param colorConfiguration Color configuration for the embedded AWTTerminal
-     * @param autoCloseTriggers What to trigger automatic disposal of the Frame
-     */
-    public AWTTerminalFrame(String title,
-                            TerminalEmulatorDeviceConfiguration deviceConfiguration,
-                            AWTTerminalFontConfiguration fontConfiguration,
-                            TerminalEmulatorColorConfiguration colorConfiguration,
-                            TerminalEmulatorAutoCloseTrigger... autoCloseTriggers) {
-        this(title, null, deviceConfiguration, fontConfiguration, colorConfiguration, autoCloseTriggers);
-    }
-
-    /**
-     * Creates a new AWTTerminalFrame using a specified title and a series of AWT terminal configuration objects
-     * @param title What title to use for the window
-     * @param terminalSize Initial size of the terminal, in rows and columns. If null, it will default to 80x25.
-     * @param deviceConfiguration Device configuration for the embedded AWTTerminal
-     * @param fontConfiguration Font configuration for the embedded AWTTerminal
-     * @param colorConfiguration Color configuration for the embedded AWTTerminal
-     * @param autoCloseTriggers What to trigger automatic disposal of the Frame
-     */
-    public AWTTerminalFrame(String title,
-                            TerminalSize terminalSize,
-                            TerminalEmulatorDeviceConfiguration deviceConfiguration,
-                            AWTTerminalFontConfiguration fontConfiguration,
-                            TerminalEmulatorColorConfiguration colorConfiguration,
-                            TerminalEmulatorAutoCloseTrigger... autoCloseTriggers) {
-        this(title,
-                new AWTTerminal(terminalSize, deviceConfiguration, fontConfiguration, colorConfiguration),
-                autoCloseTriggers);
-    }
-    
-    private AWTTerminalFrame(String title, AWTTerminal awtTerminal, TerminalEmulatorAutoCloseTrigger... autoCloseTrigger) {
-        super(title != null ? title : "AWTTerminalFrame");
-        this.awtTerminal = awtTerminal;
-        this.autoCloseTriggers = EnumSet.copyOf(Arrays.asList(autoCloseTrigger));
-        this.disposed = false;
-
-        setLayout(new BorderLayout());
-        add(awtTerminal, BorderLayout.CENTER);
-        setBackground(Color.BLACK); //This will reduce white flicker when resizing the window
-        pack();
-
-        //Put input focus on the terminal component by default
-        awtTerminal.requestFocusInWindow();
-    }
-
-    /**
-     * Returns the wrapped AWTTerminal which is holding the actual terminal content. This can be useful if you want to
-     * add custom AWT listeners to it, etc.
-     * @return The inner AWTTerminal
-     */
-    public AWTTerminal getAWTTerminal() {
-        return awtTerminal;
-    }
-
-    /**
-     * Returns the current font configuration. Note that it is immutable and cannot be changed.
-     * @return This {@link AWTTerminalFrame}'s current font configuration
-     */
-    public AWTTerminalFontConfiguration getFontConfiguration() {
-        return awtTerminal.getFontConfiguration();
-    }
-
-    /**
-     * Returns this terminal emulator's color configuration. Note that it is immutable and cannot be changed.
-     * @return This {@link AWTTerminalFrame}'s color configuration
-     */
-    public TerminalEmulatorColorConfiguration getColorConfiguration() {
-        return awtTerminal.getColorConfiguration();
-    }
-
-    /**
-     * Returns this terminal emulator's device configuration. Note that it is immutable and cannot be changed.
-     * @return This {@link AWTTerminalFrame}'s device configuration
-     */
-    public TerminalEmulatorDeviceConfiguration getDeviceConfiguration() {
-        return awtTerminal.getDeviceConfiguration();
-    }
-
-    /**
-     * Returns the auto-close triggers used by the AWTTerminalFrame
-     * @return Current auto-close trigger
-     */
-    public Set<TerminalEmulatorAutoCloseTrigger> getAutoCloseTrigger() {
-        return EnumSet.copyOf(autoCloseTriggers);
-    }
-
-    public void addAutoCloseTrigger(TerminalEmulatorAutoCloseTrigger autoCloseTrigger) {
-        autoCloseTriggers.add(autoCloseTrigger);
-    }
-
-    @Override
-    public void dispose() {
-        super.dispose();
-        disposed = true;
-    }
-
-    @Override
-    public void close() {
-        dispose();
-    }
-
-    /**
-     * Takes a KeyStroke and puts it on the input queue of the terminal emulator. This way you can insert synthetic
-     * input events to be processed as if they came from the user typing on the keyboard.
-     * @param keyStroke Key stroke input event to put on the queue
-     */
-    public void addInput(KeyStroke keyStroke) {
-        awtTerminal.addInput(keyStroke);
-    }
-
-    ///////////
-    // Delegate all Terminal interface implementations to AWTTerminal
-    ///////////
-    @Override
-    public KeyStroke pollInput() {
-        if(disposed) {
-            return new KeyStroke(KeyType.EOF);
+    private constructor(
+        title: String?,
+        awtTerminal: AWTTerminal,
+        vararg autoCloseTrigger: TerminalEmulatorAutoCloseTrigger,
+    ) : super(title ?: "AWTTerminalFrame") {
+        this.awtTerminal = awtTerminal
+        this.autoCloseTriggers = if (autoCloseTrigger.isEmpty()) {
+            EnumSet.noneOf(TerminalEmulatorAutoCloseTrigger::class.java)
+        } else {
+            EnumSet.copyOf(autoCloseTrigger.asList())
         }
-        KeyStroke keyStroke = awtTerminal.pollInput();
-        if(autoCloseTriggers.contains(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_ESCAPE) &&
-                keyStroke != null && 
-                keyStroke.getKeyType() == KeyType.ESCAPE) {
-            dispose();
+
+        layout = BorderLayout()
+        add(awtTerminal, BorderLayout.CENTER)
+        background = Color.BLACK
+        pack()
+        awtTerminal.requestFocusInWindow()
+    }
+
+    val fontConfiguration: AWTTerminalFontConfiguration
+        get() = awtTerminal.fontConfiguration
+
+    val colorConfiguration: TerminalEmulatorColorConfiguration
+        get() = awtTerminal.colorConfiguration
+
+    val deviceConfiguration: TerminalEmulatorDeviceConfiguration
+        get() = awtTerminal.deviceConfiguration
+
+    val autoCloseTrigger: Set<TerminalEmulatorAutoCloseTrigger>
+        get() = EnumSet.copyOf(autoCloseTriggers)
+
+    fun addAutoCloseTrigger(autoCloseTrigger: TerminalEmulatorAutoCloseTrigger) {
+        autoCloseTriggers.add(autoCloseTrigger)
+    }
+
+    override fun dispose() {
+        super.dispose()
+        disposed = true
+    }
+
+    override fun close() {
+        dispose()
+    }
+
+    fun addInput(keyStroke: KeyStroke?) {
+        awtTerminal.addInput(keyStroke)
+    }
+
+    override fun pollInput(): KeyStroke? {
+        if (disposed) {
+            return KeyStroke(KeyType.EOF)
         }
-        return keyStroke;
+        val keyStroke = awtTerminal.pollInput()
+        if (
+            autoCloseTriggers.contains(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_ESCAPE) &&
+            keyStroke != null &&
+            keyStroke.keyType == KeyType.ESCAPE
+        ) {
+            dispose()
+        }
+        return keyStroke
     }
 
-    @Override
-    public KeyStroke readInput() {
-        return awtTerminal.readInput();
+    override fun readInput(): KeyStroke? = awtTerminal.readInput()
+
+    override fun enterPrivateMode() {
+        awtTerminal.enterPrivateMode()
     }
 
-    @Override
-    public void enterPrivateMode() {
-        awtTerminal.enterPrivateMode();
-    }
-
-    @Override
-    public void exitPrivateMode() {
-        awtTerminal.exitPrivateMode();
-        if(autoCloseTriggers.contains(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_EXIT_PRIVATE_MODE)) {
-            dispose();
+    override fun exitPrivateMode() {
+        awtTerminal.exitPrivateMode()
+        if (autoCloseTriggers.contains(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_EXIT_PRIVATE_MODE)) {
+            dispose()
         }
     }
 
-    @Override
-    public void clearScreen() {
-        awtTerminal.clearScreen();
+    override fun clearScreen() {
+        awtTerminal.clearScreen()
     }
 
-    @Override
-    public void setCursorPosition(int x, int y) {
-        awtTerminal.setCursorPosition(x, y);
+    override fun setCursorPosition(x: Int, y: Int) {
+        awtTerminal.setCursorPosition(x, y)
     }
 
-    @Override
-    public void setCursorPosition(TerminalPosition position) {
-        awtTerminal.setCursorPosition(position);
+    override var cursorPosition: TerminalPosition?
+        get() = awtTerminal.cursorPosition
+        set(position) {
+            awtTerminal.cursorPosition = position
+        }
+
+    override fun setCursorVisible(visible: Boolean) {
+        awtTerminal.setCursorVisible(visible)
     }
 
-    @Override
-    public TerminalPosition getCursorPosition() {
-        return awtTerminal.getCursorPosition();
+    override fun putCharacter(c: Char) {
+        awtTerminal.putCharacter(c)
     }
 
-    @Override
-    public void setCursorVisible(boolean visible) {
-        awtTerminal.setCursorVisible(visible);
+    override fun putString(string: String?) {
+        awtTerminal.putString(string)
     }
 
-    @Override
-    public void putCharacter(char c) {
-        awtTerminal.putCharacter(c);
+    override fun newTextGraphics(): TextGraphics? = awtTerminal.newTextGraphics()
+
+    override fun enableSGR(sgr: SGR?) {
+        awtTerminal.enableSGR(sgr)
     }
 
-    @Override
-    public void putString(String string) {
-        awtTerminal.putString(string);
+    override fun disableSGR(sgr: SGR?) {
+        awtTerminal.disableSGR(sgr)
     }
 
-    @Override
-    public TextGraphics newTextGraphics() {
-        return awtTerminal.newTextGraphics();
+    override fun resetColorAndSGR() {
+        awtTerminal.resetColorAndSGR()
     }
 
-    @Override
-    public void enableSGR(SGR sgr) {
-        awtTerminal.enableSGR(sgr);
+    override fun setForegroundColor(color: TextColor?) {
+        awtTerminal.setForegroundColor(color)
     }
 
-    @Override
-    public void disableSGR(SGR sgr) {
-        awtTerminal.disableSGR(sgr);
+    override fun setBackgroundColor(color: TextColor?) {
+        awtTerminal.setBackgroundColor(color)
     }
 
-    @Override
-    public void resetColorAndSGR() {
-        awtTerminal.resetColorAndSGR();
+    override val terminalSize: TerminalSize?
+        get() = awtTerminal.terminalSize
+
+    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+        return awtTerminal.enquireTerminal(timeout, timeoutUnit)
     }
 
-    @Override
-    public void setForegroundColor(TextColor color) {
-        awtTerminal.setForegroundColor(color);
+    override fun bell() {
+        awtTerminal.bell()
     }
 
-    @Override
-    public void setBackgroundColor(TextColor color) {
-        awtTerminal.setBackgroundColor(color);
+    override fun flush() {
+        awtTerminal.flush()
     }
 
-    @Override
-    public TerminalSize getTerminalSize() {
-        return awtTerminal.getTerminalSize();
+    override fun addResizeListener(listener: TerminalResizeListener?) {
+        awtTerminal.addResizeListener(listener)
     }
 
-    @Override
-    public byte[] enquireTerminal(int timeout, TimeUnit timeoutUnit) {
-        return awtTerminal.enquireTerminal(timeout, timeoutUnit);
-    }
-
-    @Override
-    public void bell() {
-        awtTerminal.bell();
-    }
-
-    @Override
-    public void flush() {
-        awtTerminal.flush();
-    }
-
-    @Override
-    public void addResizeListener(TerminalResizeListener listener) {
-        awtTerminal.addResizeListener(listener);
-    }
-
-    @Override
-    public void removeResizeListener(TerminalResizeListener listener) {
-        awtTerminal.removeResizeListener(listener);
+    override fun removeResizeListener(listener: TerminalResizeListener?) {
+        awtTerminal.removeResizeListener(listener)
     }
 }

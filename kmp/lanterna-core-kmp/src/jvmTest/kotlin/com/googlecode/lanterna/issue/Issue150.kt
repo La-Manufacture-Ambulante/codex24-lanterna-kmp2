@@ -16,38 +16,41 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.screen.Screen
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.terminal.Terminal
 
-import java.io.IOException;
+import java.io.IOException
 
-public class Issue150 {
-    public static void main(String... args) throws IOException {
-        Terminal term = new DefaultTerminalFactory().createTerminal();
-        Screen screen = new TerminalScreen(term);
-        WindowManager windowManager = new DefaultWindowManager();
-        Component background = new EmptySpace(TextColor.ANSI.DEFAULT);
-        final WindowBasedTextGUI gui = new MultiWindowTextGUI(screen, windowManager, background);
-        screen.startScreen();
-        gui.addWindowAndWait(new BasicWindow("Issue150") {{
-            setComponent(createUi());
-        }});
-        screen.stopScreen();
-    }
+ object Issue150 {
+@Throws(IOException::class)
+ fun main(vararg args:String?) {
+val term = DefaultTerminalFactory().createTerminal()!!
+val screen = TerminalScreen(term)
+val windowManager = DefaultWindowManager()
+val background = EmptySpace(TextColor.ANSI.DEFAULT)
+val gui = MultiWindowTextGUI(screen, windowManager, background)
+screen.startScreen()
+gui.addWindowAndWait(object:BasicWindow("Issue150") {
+init{
+component = createUi()
+}
+})
+screen.stopScreen()
+}
 
-    private static Component createUi() {
-        ActionListBox actions = new ActionListBox();
-        actions.addItem("Enter terminal in a strange state", Issue150::stub);
-        return actions;
-    }
-
-    private static <T> T stub() {
-        throw new UnsupportedOperationException("What a terrible failure!");
-    }
+private fun createUi():Component {
+val actions = ActionListBox()
+actions.addItem("Enter terminal in a strange state", Runnable {
+ // Intentional repro action for issue 150.
+ throw UnsupportedOperationException("What a terrible failure!")
+})
+return actions
+}
 }

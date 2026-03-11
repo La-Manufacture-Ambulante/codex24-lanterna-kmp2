@@ -1,43 +1,42 @@
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.gui2.BasicWindow;
-import com.googlecode.lanterna.gui2.Button;
-import com.googlecode.lanterna.gui2.GridLayout;
-import com.googlecode.lanterna.gui2.Label;
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
-import com.googlecode.lanterna.gui2.Panel;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.gui2.BasicWindow
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.GridLayout
+import com.googlecode.lanterna.gui2.Label
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.screen.Screen
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.terminal.Terminal
 
-public class Issue460 {
-    public static void main(String[] args) throws Exception {
-        Terminal terminal = new DefaultTerminalFactory().createTerminal();
-        Screen screen = new TerminalScreen(terminal);
-        screen.startScreen();
+ object Issue460 {
+@Throws(Exception::class)
+ fun main(args:Array<String?>?) {
+val terminal = DefaultTerminalFactory().createTerminal()!!
+val screen = TerminalScreen(terminal)
+screen.startScreen()
 
-        final BasicWindow window1 = new BasicWindow();
-        Panel contentPanel = new Panel(new GridLayout(1));
-        contentPanel.addComponent(new Label("VERTICAL"), GridLayout.createLayoutData(
-                GridLayout.Alignment.CENTER,
-                GridLayout.Alignment.CENTER,
-                true,
-                true,
-                1,
-                4
-        ));
-        contentPanel.addComponent(new Button("Close", new Runnable() {
-            @Override
-            public void run() {
-                window1.close();
-            }
-        }), GridLayout.createHorizontallyFilledLayoutData(2));
-        window1.setComponent(contentPanel);
+val window1 = BasicWindow()
+val contentPanel = Panel(GridLayout(1))
+contentPanel.addComponent(Label("VERTICAL"), GridLayout.createLayoutData(
+GridLayout.Alignment.CENTER, 
+GridLayout.Alignment.CENTER, 
+true, 
+true, 
+1, 
+4
+))
+contentPanel.addComponent(Button("Close", Runnable {
+window1.close()
+}), GridLayout.createHorizontallyFilledLayoutData(2))
+window1.component = contentPanel
 
-        // Create gui and start gui
-        MultiWindowTextGUI gui = new MultiWindowTextGUI(screen);
-        gui.addWindowAndWait(window1);
-        screen.stopScreen();
-    }
+ // Create gui and start gui
+        val gui = MultiWindowTextGUI(screen)
+gui.addWindowAndWait(window1)
+screen.stopScreen()
+}
 }

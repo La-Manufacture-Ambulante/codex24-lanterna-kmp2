@@ -16,43 +16,32 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.screen;
-import com.googlecode.lanterna.TextCharacter;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.graphics.AbstractTextGraphics;
-import com.googlecode.lanterna.graphics.TextGraphics;
+package com.googlecode.lanterna.screen
+
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.graphics.AbstractTextGraphics
+import com.googlecode.lanterna.graphics.TextGraphics
 
 /**
  * This is an implementation of TextGraphics that targets the output to a Screen. The ScreenTextGraphics object is valid
  * after screen resizing.
  * @author Martin
  */
-class ScreenTextGraphics extends AbstractTextGraphics {
-    private final Screen screen;
-
+internal open class ScreenTextGraphics(private val screen: Screen) : AbstractTextGraphics() {
     /**
-     * Creates a new {@code ScreenTextGraphics} targeting the specified screen
+     * Creates a new `ScreenTextGraphics` targeting the specified screen
      * @param screen Screen we are targeting
      */
-    ScreenTextGraphics(Screen screen) {
-        super();
-        this.screen = screen;
+    override val size: TerminalSize?
+        get() = screen.terminalSize
+
+    override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics? {
+        screen.setCharacter(columnIndex, rowIndex, textCharacter)
+        return this
     }
 
-    @Override
-    public TextGraphics setCharacter(int columnIndex, int rowIndex, TextCharacter textCharacter) {
-        //Let the screen do culling
-        screen.setCharacter(columnIndex, rowIndex, textCharacter);
-        return this;
-    }
-
-    @Override
-    public TextCharacter getCharacter(int column, int row) {
-        return screen.getBackCharacter(column, row);
-    }
-
-    @Override
-    public TerminalSize getSize() {
-        return screen.getTerminalSize();
+    override fun getCharacter(column: Int, row: Int): TextCharacter? {
+        return screen.getBackCharacter(column, row)
     }
 }

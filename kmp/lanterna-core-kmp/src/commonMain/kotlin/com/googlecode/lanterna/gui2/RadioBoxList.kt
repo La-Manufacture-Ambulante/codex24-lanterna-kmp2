@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,21 +13,19 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.graphics.ThemeDefinition;
-import com.googlecode.lanterna.graphics.ThemeStyle;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.input.MouseAction;
-import com.googlecode.lanterna.input.MouseActionType;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.graphics.ThemeDefinition
+import com.googlecode.lanterna.graphics.ThemeStyle
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.input.MouseAction
+import com.googlecode.lanterna.input.MouseActionType
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * The list box will display a number of items, of which one and only one can be marked as selected.
@@ -36,288 +34,241 @@ import com.googlecode.lanterna.input.MouseActionType;
  * deselected and the highlighted item will be the selected one instead.
  * @author Martin
  */
-public class RadioBoxList<V> extends AbstractListBox<V, RadioBoxList<V>> {
+class RadioBoxList<V> @JvmOverloads constructor(preferredSize: TerminalSize? = null) :
+    AbstractListBox<V, RadioBoxList<V>>(preferredSize) {
+
     /**
-     * Listener interface that can be attached to the {@code RadioBoxList} in order to be notified on user actions
+     * Listener interface that can be attached to the `RadioBoxList` in order to be notified on user actions.
      */
-    public interface Listener {
+    interface Listener {
         /**
-         * Called by the {@code RadioBoxList} when the user changes which item is selected
+         * Called by the `RadioBoxList` when the user changes which item is selected.
          * @param selectedIndex Index of the newly selected item, or -1 if the selection has been cleared (can only be
-         *                      done programmatically)
+         * done programmatically)
          * @param previousSelection The index of the previously selected item which is now no longer selected, or -1 if
-         *                          nothing was previously selected
+         * nothing was previously selected
          */
-        void onSelectionChanged(int selectedIndex, int previousSelection);
+        fun onSelectionChanged(selectedIndex: Int, previousSelection: Int)
     }
 
-    private final List<Listener> listeners;
-    private int checkedIndex;
+    private val listeners = CopyOnWriteArrayList<Listener>()
+    private var checkedIndex: Int = -1
 
-    /**
-     * Creates a new RadioCheckBoxList with no items. The size of the {@code RadioBoxList} will be as big as is required
-     * to display all items.
-     */
-    public RadioBoxList() {
-        this(null);
+    var checkedItemIndex: Int
+        get() = checkedIndex
+        @Synchronized set(index) {
+            if (index < -1 || index >= itemCount) {
+                return
+            }
+            setCheckedIndex(index)
+        }
+
+    var checkedItem: V?
+        @Synchronized get() {
+            if (checkedIndex == -1 || checkedIndex >= itemCount) {
+                return null
+            }
+            return getItemAt(checkedIndex)
+        }
+        @Synchronized set(item) {
+            if (item == null) {
+                setCheckedIndex(-1)
+            } else {
+                checkedItemIndex = indexOf(item)
+            }
+        }
+
+    override fun createDefaultListItemRenderer(): ListItemRenderer<V, RadioBoxList<V>> {
+        return RadioBoxListItemRenderer()
     }
 
-    /**
-     * Creates a new RadioCheckBoxList with a specified size. If the items in the {@code RadioBoxList} cannot fit in the
-     * size specified, scrollbars will be used
-     * @param preferredSize Size of the {@code RadioBoxList} or {@code null} to have it try to be as big as necessary to
-     *                      be able to draw all items
-     */
-    public RadioBoxList(TerminalSize preferredSize) {
-        super(preferredSize);
-        this.listeners = new CopyOnWriteArrayList<>();
-        this.checkedIndex = -1;
-    }
-
-    @Override
-    protected ListItemRenderer<V,RadioBoxList<V>> createDefaultListItemRenderer() {
-        return new RadioBoxListItemRenderer<>();
-    }
-
-    @Override
-    public synchronized Result handleKeyStroke(KeyStroke keyStroke) {
+    @Synchronized
+    override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
         if (isKeyboardActivationStroke(keyStroke)) {
-            setCheckedIndex(getSelectedIndex());
-        } else if (keyStroke.getKeyType() == KeyType.MOUSE_EVENT) {
-            MouseAction mouseAction = (MouseAction) keyStroke;
-            MouseActionType actionType = mouseAction.getActionType();
-            
-            if (isMouseMove(keyStroke)
-                    || actionType == MouseActionType.CLICK_RELEASE
-                    || actionType == MouseActionType.SCROLL_UP
-                    || actionType == MouseActionType.SCROLL_DOWN) {
-                return super.handleKeyStroke(keyStroke);
+            setCheckedIndex(getSelectedIndex())
+            return super.handleKeyStroke(keyStroke)
+        }
+
+        if (keyStroke.keyType == KeyType.MOUSE_EVENT) {
+            val mouseAction = keyStroke as MouseAction
+            val actionType = mouseAction.actionType
+            if (isMouseMove(keyStroke) ||
+                actionType == MouseActionType.CLICK_RELEASE ||
+                actionType == MouseActionType.SCROLL_UP ||
+                actionType == MouseActionType.SCROLL_DOWN
+            ) {
+                return super.handleKeyStroke(keyStroke)
             }
-            
-            // includes mouse drag
-            int existingIndex = getSelectedIndex();
-            int newIndex = getIndexByMouseAction(mouseAction);
-            if (existingIndex != newIndex || !isFocused()) {
-                Result result = super.handleKeyStroke(keyStroke);
-                setCheckedIndex(getSelectedIndex());
-                return result;
+
+            val existingIndex = getSelectedIndex()
+            val newIndex = getIndexByMouseAction(mouseAction)
+            if (existingIndex != newIndex || !isFocused) {
+                val result = super.handleKeyStroke(keyStroke)
+                setCheckedIndex(getSelectedIndex())
+                return result
             }
-            setCheckedIndex(getSelectedIndex());
-            return Result.HANDLED;
-        }
-        return super.handleKeyStroke(keyStroke);
-    }
-
-    @Override
-    public synchronized V removeItem(int index) {
-        V item = super.removeItem(index);
-        if(index < checkedIndex) {
-            checkedIndex--;
-        }
-        while(checkedIndex >= getItemCount()) {
-            checkedIndex--;
-        }
-        return item;
-    }
-
-    @Override
-    public synchronized RadioBoxList<V> clearItems() {
-        setCheckedIndex(-1);
-        return super.clearItems();
-    }
-
-    /**
-     * This method will see if an object is the currently selected item in this RadioCheckBoxList
-     * @param object Object to test if it's the selected one
-     * @return {@code true} if the supplied object is what's currently selected in the list box,
-     * {@code false} otherwise. Returns null if the supplied object is not an item in the list box.
-     */
-    public synchronized Boolean isChecked(V object) {
-        if(object == null)
-            return null;
-
-        if(indexOf(object) == -1)
-            return null;
-
-        return checkedIndex == indexOf(object);
-    }
-
-    /**
-     * This method will see if an item, addressed by index, is the currently selected item in this
-     * RadioCheckBoxList
-     * @param index Index of the item to check if it's currently selected
-     * @return {@code true} if the currently selected object is at the supplied index,
-     * {@code false} otherwise. Returns false if the index is out of range.
-     */
-    @SuppressWarnings("SimplifiableIfStatement")
-    public synchronized boolean isChecked(int index) {
-        if(index < 0 || index >= getItemCount()) {
-            return false;
+            setCheckedIndex(getSelectedIndex())
+            return Interactable.Result.HANDLED
         }
 
-        return checkedIndex == index;
+        return super.handleKeyStroke(keyStroke)
     }
 
-    /**
-     * Sets the currently checked item by the value itself. If null, the selection is cleared. When changing selection,
-     * any previously selected item is deselected.
-     * @param item Item to be checked
-     */
-    public synchronized void setCheckedItem(V item) {
-        if(item == null) {
-            setCheckedIndex(-1);
+    @Synchronized
+    override fun removeItem(index: Int): V {
+        val item = super.removeItem(index)
+        if (index < checkedIndex) {
+            checkedIndex--
         }
-        else {
-            setCheckedItemIndex(indexOf(item));
+        while (checkedIndex >= itemCount) {
+            checkedIndex--
         }
+        return item
+    }
+
+    @Synchronized
+    override fun clearItems(): RadioBoxList<V>? {
+        setCheckedIndex(-1)
+        return super.clearItems()
+    }
+
+    @Synchronized
+    fun isChecked(item: V?): Boolean? {
+        if (item == null) {
+            return null
+        }
+        if (indexOf(item) == -1) {
+            return null
+        }
+        return checkedIndex == indexOf(item)
+    }
+
+    @Synchronized
+    fun isChecked(index: Int): Boolean {
+        if (index < 0 || index >= itemCount) {
+            return false
+        }
+        return checkedIndex == index
+    }
+
+    @Synchronized
+    fun clearSelection() {
+        setCheckedIndex(-1)
     }
 
     /**
-     * Sets the currently selected item by index. If the index is out of range, it does nothing.
-     * @param index Index of the item to be selected
-     */
-    public synchronized void setCheckedItemIndex(int index) {
-        if(index < -1 || index >= getItemCount())
-            return;
-
-        setCheckedIndex(index);
-    }
-
-    /**
-     * @return The index of the item which is currently selected, or -1 if there is no selection
-     */
-    public int getCheckedItemIndex() {
-        return checkedIndex;
-    }
-
-    /**
-     * @return The object currently selected, or null if there is no selection
-     */
-    public synchronized V getCheckedItem() {
-        if(checkedIndex == -1 || checkedIndex >= getItemCount())
-            return null;
-
-        return getItemAt(checkedIndex);
-    }
-
-    /**
-     * Un-checks the currently checked item (if any) and leaves the radio check box in a state where no item is checked.
-     */
-    public synchronized void clearSelection() {
-        setCheckedIndex(-1);
-    }
-
-    /**
-     * Adds a new listener to the {@code RadioBoxList} that will be called on certain user actions
-     * @param listener Listener to attach to this {@code RadioBoxList}
+     * Adds a new listener to the `RadioBoxList` that will be called on certain user actions.
+     * @param listener Listener to attach to this `RadioBoxList`
      * @return Itself
      */
-    public RadioBoxList<V> addListener(Listener listener) {
-        if(listener != null && !listeners.contains(listener)) {
-            listeners.add(listener);
+    fun addListener(listener: Listener?): RadioBoxList<V> {
+        if (listener != null && !listeners.contains(listener)) {
+            listeners.add(listener)
         }
-        return this;
+        return this
     }
 
     /**
-     * Removes a listener from this {@code RadioBoxList} so that if it had been added earlier, it will no longer be
-     * called on user actions
-     * @param listener Listener to remove from this {@code RadioBoxList}
+     * Removes a listener from this `RadioBoxList` so that if it had been added earlier, it will no longer be called
+     * on user actions.
+     * @param listener Listener to remove from this `RadioBoxList`
      * @return Itself
      */
-    public RadioBoxList<V> removeListener(Listener listener) {
-        listeners.remove(listener);
-        return this;
+    fun removeListener(listener: Listener?): RadioBoxList<V> {
+        if (listener != null) {
+            listeners.remove(listener)
+        }
+        return this
     }
 
-    private void setCheckedIndex(int index) {
-        final int previouslyChecked = checkedIndex;
-        this.checkedIndex = index;
-        invalidate();
-        runOnGUIThreadIfExistsOtherwiseRunDirect(() -> {
-            for(Listener listener: listeners) {
-                listener.onSelectionChanged(checkedIndex, previouslyChecked);
-            }
-        });
+    private fun setCheckedIndex(index: Int) {
+        val previouslyChecked = checkedIndex
+        checkedIndex = index
+        invalidate()
+        runOnGUIThreadIfExistsOtherwiseRunDirect(
+            Runnable {
+                for (listener in listeners) {
+                    listener.onSelectionChanged(checkedIndex, previouslyChecked)
+                }
+            },
+        )
     }
 
     /**
      * Default renderer for this component which is used unless overridden. The selected state is drawn on the left side
-     * of the item label using a "&lt; &gt;" block filled with an "o" if the item is the selected one
-     * @param <V> Type of items in the {@link RadioBoxList}
+     * of the item label using a "< >" block filled with an "o" if the item is the selected one.
+     * @param <V> Type of items in the [RadioBoxList]
      */
-    public static class RadioBoxListItemRenderer<V> extends ListItemRenderer<V,RadioBoxList<V>> {
-        @Override
-        public int getHotSpotPositionOnLine(int selectedIndex) {
-            return 1;
+    class RadioBoxListItemRenderer<V> : ListItemRenderer<V, RadioBoxList<V>>() {
+        override fun getHotSpotPositionOnLine(selectedIndex: Int): Int {
+            return 1
         }
 
-        protected String getItemText(RadioBoxList<V> listBox, int index, V item) {
-            return (item != null ? item : "<null>").toString();
-        }
-        
-        @Override
-        public String getLabel(RadioBoxList<V> listBox, int index, V item) {
-            String check = " ";
-            if(listBox.checkedIndex == index)
-                check = "o";
-
-            String text = getItemText(listBox, index, item);
-            return "<" + check + "> " + text;
+        protected fun getItemText(listBox: RadioBoxList<V>, index: Int, item: V?): String {
+            return (item ?: "<null>").toString()
         }
 
-        @Override
-        public void drawItem(TextGUIGraphics graphics, RadioBoxList<V> listBox, int index, V item, boolean selected, boolean focused) {
-            ThemeDefinition themeDefinition = listBox.getTheme().getDefinition(RadioBoxList.class);
-            ThemeStyle itemStyle;
-            if(selected && !focused) {
-                itemStyle = themeDefinition.getSelected();
-            }
-            else if(selected) {
-                itemStyle = themeDefinition.getActive();
-            }
-            else if(focused) {
-                itemStyle = themeDefinition.getInsensitive();
-            }
-            else {
-                itemStyle = themeDefinition.getNormal();
+        override fun getLabel(listBox: RadioBoxList<V>?, index: Int, item: V?): String {
+            val activeListBox = listBox ?: return "< > ${getItemTextFallback(item)}"
+            val check = if (activeListBox.checkedItemIndex == index) "o" else " "
+            return "<$check> ${getItemText(activeListBox, index, item)}"
+        }
+
+        override fun drawItem(
+            graphics: TextGUIGraphics?,
+            listBox: RadioBoxList<V>?,
+            index: Int,
+            item: V?,
+            selected: Boolean,
+            focused: Boolean,
+        ) {
+            val activeGraphics = graphics ?: return
+            val activeListBox = listBox ?: return
+            val themeDefinition: ThemeDefinition =
+                activeListBox.theme?.getDefinition(RadioBoxList::class.java) ?: return
+            val itemStyle: ThemeStyle =
+                when {
+                    selected && !focused -> themeDefinition.selected
+                    selected -> themeDefinition.active
+                    focused -> themeDefinition.insensitive
+                    else -> themeDefinition.normal
+                } ?: return
+
+            if (themeDefinition.getBooleanProperty("CLEAR_WITH_NORMAL", false)) {
+                activeGraphics.applyThemeStyle(themeDefinition.normal)
+                activeGraphics.fill(' ')
+                activeGraphics.applyThemeStyle(itemStyle)
+            } else {
+                activeGraphics.applyThemeStyle(itemStyle)
+                activeGraphics.fill(' ')
             }
 
-            if(themeDefinition.getBooleanProperty("CLEAR_WITH_NORMAL", false)) {
-                graphics.applyThemeStyle(themeDefinition.getNormal());
-                graphics.fill(' ');
-                graphics.applyThemeStyle(itemStyle);
-            }
-            else {
-                graphics.applyThemeStyle(itemStyle);
-                graphics.fill(' ');
-            }
-
-            String brackets = themeDefinition.getCharacter("LEFT_BRACKET", '<') +
-                    " " +
-                    themeDefinition.getCharacter("RIGHT_BRACKET", '>');
-            if(themeDefinition.getBooleanProperty("FIXED_BRACKET_COLOR", false)) {
-                graphics.applyThemeStyle(themeDefinition.getPreLight());
-                graphics.putString(0, 0, brackets);
-                graphics.applyThemeStyle(itemStyle);
-            }
-            else {
-                graphics.putString(0, 0, brackets);
+            val brackets =
+                "${themeDefinition.getCharacter("LEFT_BRACKET", '<')} ${themeDefinition.getCharacter("RIGHT_BRACKET", '>')}"
+            if (themeDefinition.getBooleanProperty("FIXED_BRACKET_COLOR", false)) {
+                activeGraphics.applyThemeStyle(themeDefinition.preLight)
+                activeGraphics.putString(0, 0, brackets)
+                activeGraphics.applyThemeStyle(itemStyle)
+            } else {
+                activeGraphics.putString(0, 0, brackets)
             }
 
-            String text = getItemText(listBox, index, item);
-            graphics.putString(4, 0, text);
+            val text = getItemText(activeListBox, index, item)
+            activeGraphics.putString(4, 0, text)
 
-            boolean itemChecked = listBox.checkedIndex == index;
-            char marker = themeDefinition.getCharacter("MARKER", 'o');
-            if(themeDefinition.getBooleanProperty("MARKER_WITH_NORMAL", false)) {
-                graphics.applyThemeStyle(themeDefinition.getNormal());
+            val itemChecked = activeListBox.checkedItemIndex == index
+            val marker = themeDefinition.getCharacter("MARKER", 'o')
+            if (themeDefinition.getBooleanProperty("MARKER_WITH_NORMAL", false)) {
+                activeGraphics.applyThemeStyle(themeDefinition.normal)
             }
-            if(selected && focused && themeDefinition.getBooleanProperty("HOTSPOT_PRELIGHT", false)) {
-                graphics.applyThemeStyle(themeDefinition.getPreLight());
+            if (selected && focused && themeDefinition.getBooleanProperty("HOTSPOT_PRELIGHT", false)) {
+                activeGraphics.applyThemeStyle(themeDefinition.preLight)
             }
-            graphics.setCharacter(1, 0, (itemChecked ? marker : ' '));
+            activeGraphics.setCharacter(1, 0, if (itemChecked) marker else ' ')
+        }
+
+        private fun getItemTextFallback(item: V?): String {
+            return (item ?: "<null>").toString()
         }
     }
-
 }

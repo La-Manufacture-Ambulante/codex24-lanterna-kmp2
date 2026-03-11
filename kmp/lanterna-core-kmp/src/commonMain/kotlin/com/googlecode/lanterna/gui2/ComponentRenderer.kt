@@ -16,9 +16,9 @@
  * 
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TerminalSize
 
 /**
  * This interface defines a renderer for a component, an external class that does the sizing and rendering. All
@@ -27,21 +27,21 @@ import com.googlecode.lanterna.TerminalSize;
  * associated components.
  * @param <T> Type of the component which this renderer is designed for
  * @author Martin
+</T> */
+ interface ComponentRenderer<T : Component?> {
+/**
+ * Given the supplied component, how large does this renderer want the component to be? Notice that this is the
+ * responsibility of the renderer and not the component itself, since the component has no idea what its visual
+ * representation looks like.
+ * @param component Component to calculate the preferred size of
+ * @return The size this renderer would like the component to take up
  */
-public interface ComponentRenderer<T extends Component> {
-    /**
-     * Given the supplied component, how large does this renderer want the component to be? Notice that this is the
-     * responsibility of the renderer and not the component itself, since the component has no idea what its visual
-     * representation looks like.
-     * @param component Component to calculate the preferred size of
-     * @return The size this renderer would like the component to take up
-     */
-    TerminalSize getPreferredSize(T component);
+     fun getPreferredSize(component:T?):TerminalSize? 
 
-    /**
-     * Using the supplied graphics object, draws the component passed in.
-     * @param graphics Graphics object to use for drawing
-     * @param component Component to draw
-     */
-    void drawComponent(TextGUIGraphics graphics, T component);
+/**
+ * Using the supplied graphics object, draws the component passed in.
+ * @param graphics Graphics object to use for drawing
+ * @param component Component to draw
+ */
+     fun drawComponent(graphics:TextGUIGraphics?, component:T?) 
 }

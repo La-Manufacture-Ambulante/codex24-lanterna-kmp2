@@ -16,99 +16,116 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.terminal.ansi.TelnetTerminal;
-import com.googlecode.lanterna.terminal.ansi.TelnetTerminalServer;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Random;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.terminal.ansi.TelnetTerminal
+import com.googlecode.lanterna.terminal.ansi.TelnetTerminalServer
+import java.io.IOException
+import java.nio.charset.StandardCharsets
+import java.util.Random
 
 /**
- *
+ * 
  * @author martin
  */
-public class TelnetTerminalTest {
-    public static void main(String[] args) throws IOException {
-        TelnetTerminalServer server = new TelnetTerminalServer(1024, StandardCharsets.UTF_8);
-        //noinspection InfiniteLoopStatement
-        while(true) {
-            TelnetTerminal telnetTerminal = server.acceptConnection();
-            if(telnetTerminal != null) {
-                spawnColorTest(telnetTerminal);
-            }
-        }
-    }
+ object TelnetTerminalTest {
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
+val server = TelnetTerminalServer(1024, StandardCharsets.UTF_8)
 
-    private static void spawnColorTest(final TelnetTerminal terminal) {
-        new Thread() {
-            
-            private volatile TerminalSize size;
-            
-            @Override
-            public void run() {
-                try {
-                    final String string = "Hello!";
-                    Random random = new Random();
-                    terminal.enterPrivateMode();
-                    terminal.clearScreen();
-                    terminal.addResizeListener((terminal1, newSize) -> {
-                        System.err.println("Resized to " + newSize);
-                        size = newSize;
-                    });
-                    size = terminal.getTerminalSize();
+        while (true)
+{
+val telnetTerminal = server.acceptConnection()
+if (telnetTerminal != null)
+{
+spawnColorTest(telnetTerminal)
+}
+}
+}
 
-                    terminal.setCursorPosition(3, 3);
-                    printString(terminal, "Press any key to start");
-                    terminal.readInput(); // Test blocking input
+private fun spawnColorTest(terminal:TelnetTerminal?) {
+object:Thread() {
 
-                    while(true) {
-                        KeyStroke key = terminal.pollInput();
-                        if(key != null) {
-                            System.out.println(key);
-                            if(key.getKeyType() == KeyType.ESCAPE) {
-                                terminal.exitPrivateMode();
-                                return;
-                            }
-                        }
+@Volatile private var terminalSizeCurrent:TerminalSize? = null
 
-                        TextColor.Indexed foregroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255));
-                        TextColor.Indexed backgroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255));
+  override fun run() {
+try
+{
+val string = "Hello!"
+val random = Random()
+terminal!!.enterPrivateMode()
+terminal!!.clearScreen()
+terminal!!.addResizeListener(object : TerminalResizeListener {
+override fun onResized(terminal1: Terminal?, newSize: TerminalSize?) {
+System.err.println("Resized to " + newSize)
+terminalSizeCurrent = newSize
+}
+})
+terminalSizeCurrent = terminal!!.terminalSize
 
-                        terminal.setForegroundColor(foregroundIndex);
-                        terminal.setBackgroundColor(backgroundIndex);
-                        terminal.setCursorPosition(random.nextInt(size.getColumns() - string.length()), random.nextInt(size.getRows()));
-                        printString(terminal, string);
+terminal!!.setCursorPosition(3, 3)
+printString(terminal, "Press any key to start")
+terminal!!.readInput() // Test blocking input
 
-                        try {
-                            Thread.sleep(200);
-                        }
-                        catch(InterruptedException e) {
-                        }
-                    }
-                }
-                catch(IOException e) {
-                    e.printStackTrace();
-                }
-                finally {
-                    try {
-                        terminal.close();
-                    }
-                    catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }.start();
-    }
-    
-    private static void printString(Terminal terminal, String string) throws IOException {
-        for(int i = 0; i < string.length(); i++)
-            terminal.putCharacter(string.charAt(i));
-        terminal.flush();
-    }
+while (true)
+{
+val key = terminal!!.pollInput()
+if (key != null)
+{
+System.out.println(key)
+if (key!!.keyType == KeyType.ESCAPE)
+{
+terminal!!.exitPrivateMode()
+return 
+}
+}
+
+val foregroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255))
+val backgroundIndex = TextColor.Indexed.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255))
+
+terminal!!.setForegroundColor(foregroundIndex)
+terminal!!.setBackgroundColor(backgroundIndex)
+terminal!!.setCursorPosition(
+random.nextInt(terminalSizeCurrent!!.columns - string.length),
+random.nextInt(terminalSizeCurrent!!.rows)
+)
+printString(terminal, string)
+
+try
+{
+Thread.sleep(200)
+}
+catch (e:InterruptedException) {}
+
+}
+}
+catch (e:IOException) {
+e!!.printStackTrace()
+}
+finally
+{
+try
+{
+terminal!!.close()
+}
+catch (e:IOException) {
+e!!.printStackTrace()
+}
+
+}
+}
+}.start()
+}
+
+@Throws(IOException::class)
+private fun printString(terminal:Terminal?, string:String) {
+for (i in 0 until string.length)
+terminal!!.putCharacter(string[i])
+terminal!!.flush()
+}
 }

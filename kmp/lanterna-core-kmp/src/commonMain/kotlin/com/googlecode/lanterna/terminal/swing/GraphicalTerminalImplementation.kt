@@ -16,1161 +16,950 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal.swing;
+package com.googlecode.lanterna.terminal.swing
 
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.input.DefaultKeyDecodingProfile;
-import com.googlecode.lanterna.input.InputDecoder;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.input.MouseAction;
-import com.googlecode.lanterna.input.MouseActionType;
-import com.googlecode.lanterna.terminal.IOSafeTerminal;
-import com.googlecode.lanterna.terminal.MouseCaptureMode;
-import com.googlecode.lanterna.terminal.TerminalResizeListener;
-import com.googlecode.lanterna.terminal.virtual.DefaultVirtualTerminal;
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.input.DefaultKeyDecodingProfile
+import com.googlecode.lanterna.input.InputDecoder
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.input.MouseAction
+import com.googlecode.lanterna.input.MouseActionType
+import com.googlecode.lanterna.terminal.IOSafeTerminal
+import com.googlecode.lanterna.terminal.MouseCaptureMode
+import com.googlecode.lanterna.terminal.TerminalResizeListener
+import com.googlecode.lanterna.terminal.virtual.DefaultVirtualTerminal
+import java.awt.Color
+import java.awt.Font
+import java.awt.FontMetrics
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.MouseInfo
+import java.awt.Rectangle
+import java.awt.RenderingHints
+import java.awt.Toolkit
+import java.awt.datatransfer.Clipboard
+import java.awt.datatransfer.DataFlavor
+import java.awt.event.InputEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.MouseWheelEvent
+import java.awt.image.BufferedImage
+import java.io.IOException
+import java.io.StringReader
+import java.util.ArrayList
+import java.util.Arrays
+import java.util.BitSet
+import java.util.HashSet
+import java.util.LinkedList
+import java.util.Timer
+import java.util.TimerTask
+import java.util.TreeSet
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
-import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.event.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+internal abstract class GraphicalTerminalImplementation(
+    initialTerminalSize: TerminalSize?,
+    val deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+    val colorConfiguration: TerminalEmulatorColorConfiguration?,
+    private val scrollController: TerminalScrollController?,
+) : IOSafeTerminal {
+    private val virtualTerminal: DefaultVirtualTerminal
+    private val keyQueue: BlockingQueue<KeyStroke>
+    private val dirtyCellsLookupTable: DirtyCellsLookupTable
+    private val enquiryString: String
 
-/**
- * This is the class that does the heavy lifting for both {@link AWTTerminal} and {@link SwingTerminal}. It maintains
- * most of the external terminal state and also the main back buffer that is copied to the components area on draw
- * operations.
- *
- * @author martin
- */
-abstract class GraphicalTerminalImplementation implements IOSafeTerminal {
-    private final TerminalEmulatorDeviceConfiguration deviceConfiguration;
-    private final TerminalEmulatorColorConfiguration colorConfiguration;
-    private final DefaultVirtualTerminal virtualTerminal;
-    private final BlockingQueue<KeyStroke> keyQueue;
-    private final TerminalScrollController scrollController;
-    private final DirtyCellsLookupTable dirtyCellsLookupTable;
+    private var cursorIsVisible: Boolean
+    private var enableInput: Boolean
+    private var blinkTimer: Timer?
+    private var hasBlinkingText: Boolean
+    private var blinkOn: Boolean
+    private var bellOn: Boolean
+    private var needFullRedraw: Boolean
 
-    private final String enquiryString;
+    private var lastDrawnCursorPosition: TerminalPosition?
+    private var lastBufferUpdateScrollPosition: Int
+    private var lastComponentWidth: Int
+    private var lastComponentHeight: Int
 
-    private boolean cursorIsVisible;
-    private boolean enableInput;
-    private Timer blinkTimer;
-    private boolean hasBlinkingText;
-    private boolean blinkOn;
-    private boolean bellOn;
-    private boolean needFullRedraw;
+    protected var activeMouseCaptureMode: MouseCaptureMode? = null
 
-    private TerminalPosition lastDrawnCursorPosition;
-    private int lastBufferUpdateScrollPosition;
-    private int lastComponentWidth;
-    private int lastComponentHeight;
+    private var backbuffer: BufferedImage? = null
+    private var copybuffer: BufferedImage? = null
 
-    protected MouseCaptureMode mouseCaptureMode;
+    init {
+        val resolvedInitialTerminalSize = initialTerminalSize ?: TerminalSize(80, 24)
+        virtualTerminal = DefaultVirtualTerminal(resolvedInitialTerminalSize)
+        keyQueue = LinkedBlockingQueue()
+        dirtyCellsLookupTable = DirtyCellsLookupTable()
 
-    // We use two different data structures to optimize drawing
-    //  * A list of modified characters since the last draw (stored in VirtualTerminal)
-    //  * A backbuffer with the graphics content
-    //
-    // The buffer is the most important one as it allows us to re-use what was drawn earlier. It is not reset on every
-    // drawing operation but updates just in those places where the map tells us the character has changed.
-    private BufferedImage backbuffer;
+        cursorIsVisible = true
+        enableInput = false
+        enquiryString = "TerminalEmulator"
+        lastDrawnCursorPosition = null
+        lastBufferUpdateScrollPosition = 0
+        lastComponentWidth = 0
+        lastComponentHeight = 0
+        blinkTimer = null
+        hasBlinkingText = false
+        blinkOn = true
+        bellOn = false
+        needFullRedraw = false
 
-    // Used as a middle-ground when copying large segments when scrolling
-    private BufferedImage copybuffer;
+        virtualTerminal.setBacklogSize(requireNotNull(deviceConfiguration).lineBufferScrollbackSize)
+    }
 
-    /**
-     * Creates a new GraphicalTerminalImplementation component using custom settings and a custom scroll controller. The
-     * scrolling controller will be notified when the terminal's history size grows and will be called when this class
-     * needs to figure out the current scrolling position.
-     * @param initialTerminalSize Initial size of the terminal, which will be used when calculating the preferred size
-     *                            of the component. If null, it will default to 80x25. If the AWT layout manager forces
-     *                            the component to a different size, the value of this parameter won't have any meaning
-     * @param deviceConfiguration Device configuration to use for this SwingTerminal
-     * @param colorConfiguration Color configuration to use for this SwingTerminal
-     * @param scrollController Controller to use for scrolling, the object passed in will be notified whenever the
-     *                         scrollable area has changed
-     */
-    GraphicalTerminalImplementation(
-            TerminalSize initialTerminalSize,
-            TerminalEmulatorDeviceConfiguration deviceConfiguration,
-            TerminalEmulatorColorConfiguration colorConfiguration,
-            TerminalScrollController scrollController) {
+    internal abstract val fontHeight: Int
+    internal abstract val fontWidth: Int
+    internal abstract val height: Int
+    internal abstract val width: Int
+    internal abstract val isTextAntiAliased: Boolean
+    internal abstract fun getFontForCharacter(character: TextCharacter): Font
+    internal abstract fun repaint()
 
-        //This is kind of meaningless since we don't know how large the
-        //component is at this point, but we should set it to something
-        if(initialTerminalSize == null) {
-            initialTerminalSize = new TerminalSize(80, 24);
+    internal val preferredSize: java.awt.Dimension
+        @Synchronized get() = java.awt.Dimension(
+            fontWidth * requireNotNull(virtualTerminal.terminalSize).columns,
+            fontHeight * requireNotNull(virtualTerminal.terminalSize).rows,
+        )
+
+    @Synchronized
+    fun onCreated() {
+        startBlinkTimer()
+        enableInput = true
+        keyQueue.clear()
+    }
+
+    @Synchronized
+    fun onDestroyed() {
+        stopBlinkTimer()
+        enableInput = false
+        keyQueue.add(KeyStroke(KeyType.EOF))
+    }
+
+    @Synchronized
+    fun startBlinkTimer() {
+        if (blinkTimer != null) {
+            return
         }
-        this.virtualTerminal = new DefaultVirtualTerminal(initialTerminalSize);
-        this.keyQueue = new LinkedBlockingQueue<>();
-        this.deviceConfiguration = deviceConfiguration;
-        this.colorConfiguration = colorConfiguration;
-        this.scrollController = scrollController;
-        this.dirtyCellsLookupTable = new DirtyCellsLookupTable();
-
-        this.cursorIsVisible = true;        //Always start with an activate and visible cursor
-        this.enableInput = false;           //Start with input disabled and activate it once the window is visible
-        this.enquiryString = "TerminalEmulator";
-        this.lastDrawnCursorPosition = null;
-        this.lastBufferUpdateScrollPosition = 0;
-        this.lastComponentHeight = 0;
-        this.lastComponentWidth = 0;
-        this.backbuffer = null;  // We don't know the dimensions yet
-        this.copybuffer = null;
-        this.blinkTimer = null;
-        this.hasBlinkingText = false;   // Assume initial content doesn't have any blinking text
-        this.blinkOn = true;
-        this.needFullRedraw = false;
-
-
-        virtualTerminal.setBacklogSize(deviceConfiguration.getLineBufferScrollbackSize());
-    }
-
-    TerminalEmulatorDeviceConfiguration getDeviceConfiguration() {
-        return deviceConfiguration;
-    }
-
-    TerminalEmulatorColorConfiguration getColorConfiguration() {
-        return colorConfiguration;
-    }
-
-    ///////////
-    // First abstract methods that are implemented in AWTTerminalImplementation and SwingTerminalImplementation
-    ///////////
-
-    /**
-     * Used to find out the font height, in pixels
-     * @return Terminal font height in pixels
-     */
-    abstract int getFontHeight();
-
-    /**
-     * Used to find out the font width, in pixels
-     * @return Terminal font width in pixels
-     */
-    abstract int getFontWidth();
-
-    /**
-     * Used when requiring the total height of the terminal component, in pixels
-     * @return Height of the terminal component, in pixels
-     */
-    abstract int getHeight();
-
-    /**
-     * Used when requiring the total width of the terminal component, in pixels
-     * @return Width of the terminal component, in pixels
-     */
-    abstract int getWidth();
-
-    /**
-     * Returning the AWT font to use for the specific character. This might not always be the same, in case a we are
-     * trying to draw an unusual character (probably CJK) which isn't contained in the standard terminal font.
-     * @param character Character to get the font for
-     * @return Font to be used for this character
-     */
-    abstract Font getFontForCharacter(TextCharacter character);
-
-    /**
-     * Returns {@code true} if anti-aliasing is enabled, {@code false} otherwise
-     * @return {@code true} if anti-aliasing is enabled, {@code false} otherwise
-     */
-    abstract boolean isTextAntiAliased();
-
-    /**
-     * Called by the {@code GraphicalTerminalImplementation} when it would like the OS to schedule a repaint of the
-     * window
-     */
-    abstract void repaint();
-
-    synchronized void onCreated() {
-        startBlinkTimer();
-        enableInput = true;
-
-        // Reset the queue, just be to sure
-        keyQueue.clear();
-    }
-
-    synchronized void onDestroyed() {
-        stopBlinkTimer();
-        enableInput = false;
-
-        // If a thread is blocked, waiting on something in the keyQueue...
-        keyQueue.add(new KeyStroke(KeyType.EOF));
-    }
-
-    /**
-     * Start the timer that triggers blinking
-     */
-    synchronized void startBlinkTimer() {
-        if(blinkTimer != null) {
-            // Already on!
-            return;
-        }
-        blinkTimer = new Timer("LanternaTerminalBlinkTimer", true);
-        blinkTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                blinkOn = !blinkOn;
-                if(hasBlinkingText) {
-                    repaint();
+        blinkTimer = Timer("LanternaTerminalBlinkTimer", true)
+        val blinkLength = requireNotNull(deviceConfiguration).blinkLengthInMilliSeconds.toLong()
+        blinkTimer!!.schedule(object : TimerTask() {
+            override fun run() {
+                blinkOn = !blinkOn
+                if (hasBlinkingText) {
+                    repaint()
                 }
             }
-        }, deviceConfiguration.getBlinkLengthInMilliSeconds(), deviceConfiguration.getBlinkLengthInMilliSeconds());
+        }, blinkLength, blinkLength)
     }
 
-    /**
-     * Stops the timer the triggers blinking
-     */
-    synchronized void stopBlinkTimer() {
-        if(blinkTimer == null) {
-            // Already off!
-            return;
-        }
-        blinkTimer.cancel();
-        blinkTimer = null;
+    @Synchronized
+    fun stopBlinkTimer() {
+        blinkTimer?.cancel()
+        blinkTimer = null
     }
 
-    ///////////
-    // Implement all the Swing-related methods
-    ///////////
-    /**
-     * Calculates the preferred size of this terminal
-     * @return Preferred size of this terminal
-     */
-    synchronized Dimension getPreferredSize() {
-        return new Dimension(getFontWidth() * virtualTerminal.getTerminalSize().getColumns(),
-                getFontHeight() * virtualTerminal.getTerminalSize().getRows());
-    }
+    @Synchronized
+    fun paintComponent(componentGraphics: Graphics) {
+        val currentWidth = width
+        val currentHeight = height
 
-    /**
-     * Updates the back buffer (if necessary) and draws it to the component's surface
-     * @param componentGraphics Object to use when drawing to the component's surface
-     */
-    synchronized void paintComponent(Graphics componentGraphics) {
-        int width = getWidth();
-        int height = getHeight();
+        requireNotNull(scrollController).updateModel(virtualTerminal.bufferLineCount * fontHeight, currentHeight)
 
-        this.scrollController.updateModel(
-                virtualTerminal.getBufferLineCount() * getFontHeight(),
-                height);
+        var needToUpdateBackBuffer =
+            lastBufferUpdateScrollPosition != scrollController.scrollingOffset ||
+                hasBlinkingText ||
+                needFullRedraw
 
-        boolean needToUpdateBackBuffer =
-                // User has used the scrollbar, we need to update the back buffer to reflect this
-                lastBufferUpdateScrollPosition != scrollController.getScrollingOffset() ||
-                        // There is blinking text to update
-                        hasBlinkingText ||
-                        // We simply have a hint that we should update everything
-                        needFullRedraw;
-
-        // Detect resize
-        if(width != lastComponentWidth || height != lastComponentHeight) {
-            int columns = width / getFontWidth();
-            int rows = height / getFontHeight();
-            TerminalSize terminalSize = virtualTerminal.getTerminalSize().withColumns(columns).withRows(rows);
-            virtualTerminal.setTerminalSize(terminalSize);
-
-            // Back buffer needs to be updated since the component size has changed
-            needToUpdateBackBuffer = true;
+        if (currentWidth != lastComponentWidth || currentHeight != lastComponentHeight) {
+            val columns = currentWidth / fontWidth
+            val rows = currentHeight / fontHeight
+            val terminalSize = requireNotNull(
+                requireNotNull(virtualTerminal.terminalSize).withColumns(columns),
+            ).withRows(rows)
+            virtualTerminal.setTerminalSize(terminalSize)
+            needToUpdateBackBuffer = true
         }
 
-        if(needToUpdateBackBuffer) {
-            updateBackBuffer(scrollController.getScrollingOffset());
+        if (needToUpdateBackBuffer) {
+            updateBackBuffer(scrollController.scrollingOffset)
         }
 
-        ensureGraphicBufferHasRightSize();
-        Rectangle clipBounds = componentGraphics.getClipBounds();
-        if(clipBounds == null) {
-            clipBounds = new Rectangle(0, 0, getWidth(), getHeight());
-        }
+        ensureGraphicBufferHasRightSize()
+        val clipBounds = componentGraphics.clipBounds ?: Rectangle(0, 0, width, height)
         componentGraphics.drawImage(
-                backbuffer,
-                // Destination coordinates
-                clipBounds.x,
-                clipBounds.y,
-                clipBounds.width,
-                clipBounds.height,
-                // Source coordinates
-                clipBounds.x,
-                clipBounds.y,
-                clipBounds.width,
-                clipBounds.height,
-                null);
+            backbuffer,
+            clipBounds.x,
+            clipBounds.y,
+            clipBounds.width,
+            clipBounds.height,
+            clipBounds.x,
+            clipBounds.y,
+            clipBounds.width,
+            clipBounds.height,
+            null,
+        )
 
-        // Take care of the left-over area at the bottom and right of the component where no character can fit
-        //int leftoverHeight = getHeight() % getFontHeight();
-        int leftoverWidth = getWidth() % getFontWidth();
-        componentGraphics.setColor(Color.BLACK);
-        if(leftoverWidth > 0) {
-            componentGraphics.fillRect(getWidth() - leftoverWidth, 0, leftoverWidth, getHeight());
+        val leftoverWidth = width % fontWidth
+        componentGraphics.color = Color.BLACK
+        if (leftoverWidth > 0) {
+            componentGraphics.fillRect(width - leftoverWidth, 0, leftoverWidth, height)
         }
 
-        //0, 0, getWidth(), getHeight(), 0, 0, getWidth(), getHeight(), null);
-        this.lastComponentWidth = width;
-        this.lastComponentHeight = height;
-        componentGraphics.dispose();
-        notifyAll();
+        lastComponentWidth = currentWidth
+        lastComponentHeight = currentHeight
+        componentGraphics.dispose()
+        (this as java.lang.Object).notifyAll()
     }
 
-    private synchronized void updateBackBuffer(final int scrollOffsetFromTopInPixels) {
-        //long startTime = System.currentTimeMillis();
-        final int fontWidth = getFontWidth();
-        final int fontHeight = getFontHeight();
+    @Synchronized
+    private fun updateBackBuffer(scrollOffsetFromTopInPixels: Int) {
+        val currentFontWidth = fontWidth
+        val currentFontHeight = fontHeight
+        val cursorPosition = requireNotNull(virtualTerminal.cursorBufferPosition)
+        val viewportSize = requireNotNull(virtualTerminal.terminalSize)
+        val firstVisibleRowIndex = scrollOffsetFromTopInPixels / currentFontHeight
+        val lastVisibleRowIndex = (scrollOffsetFromTopInPixels + height) / currentFontHeight
 
-        //Retrieve the position of the cursor, relative to the scrolling state
-        final TerminalPosition cursorPosition = virtualTerminal.getCursorBufferPosition();
-        final TerminalSize viewportSize = virtualTerminal.getTerminalSize();
-
-        final int firstVisibleRowIndex = scrollOffsetFromTopInPixels / fontHeight;
-        final int lastVisibleRowIndex = (scrollOffsetFromTopInPixels + getHeight()) / fontHeight;
-
-        //Setup the graphics object
-        ensureGraphicBufferHasRightSize();
-        final Graphics2D backbufferGraphics = backbuffer.createGraphics();
-
-        if(isTextAntiAliased()) {
-            backbufferGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            backbufferGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        ensureGraphicBufferHasRightSize()
+        val backbufferGraphics = requireNotNull(backbuffer).createGraphics()
+        if (isTextAntiAliased) {
+            backbufferGraphics.setRenderingHint(
+                RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON,
+            )
+            backbufferGraphics.setRenderingHint(
+                RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_QUALITY,
+            )
         }
 
-        final AtomicBoolean foundBlinkingCharacters = new AtomicBoolean(deviceConfiguration.isCursorBlinking());
-        buildDirtyCellsLookupTable(firstVisibleRowIndex, lastVisibleRowIndex);
+        val foundBlinkingCharacters = AtomicBoolean(requireNotNull(deviceConfiguration).isCursorBlinking)
+        buildDirtyCellsLookupTable(firstVisibleRowIndex, lastVisibleRowIndex)
 
-        // Detect scrolling
-        if(lastBufferUpdateScrollPosition < scrollOffsetFromTopInPixels) {
-            int gap = scrollOffsetFromTopInPixels - lastBufferUpdateScrollPosition;
-            if(gap / fontHeight < viewportSize.getRows()) {
-                Graphics2D graphics = copybuffer.createGraphics();
-                graphics.setClip(0, 0, getWidth(), getHeight() - gap);
-                graphics.drawImage(backbuffer, 0, -gap, null);
-                graphics.dispose();
-                backbufferGraphics.drawImage(copybuffer, 0, 0, getWidth(), getHeight(), 0, 0, getWidth(), getHeight(), null);
-                if(!dirtyCellsLookupTable.isAllDirty()) {
-                    //Mark bottom rows as dirty so they are repainted
-                    int previousLastVisibleRowIndex = (lastBufferUpdateScrollPosition + getHeight()) / fontHeight;
-                    for(int row = previousLastVisibleRowIndex; row <= lastVisibleRowIndex; row++) {
-                        dirtyCellsLookupTable.setRowDirty(row);
+        if (lastBufferUpdateScrollPosition < scrollOffsetFromTopInPixels) {
+            val gap = scrollOffsetFromTopInPixels - lastBufferUpdateScrollPosition
+            if (gap / currentFontHeight < viewportSize.rows) {
+                val graphics = requireNotNull(copybuffer).createGraphics()
+                graphics.setClip(0, 0, width, height - gap)
+                graphics.drawImage(backbuffer, 0, -gap, null)
+                graphics.dispose()
+                backbufferGraphics.drawImage(copybuffer, 0, 0, width, height, 0, 0, width, height, null)
+                if (!dirtyCellsLookupTable.isAllDirty()) {
+                    val previousLastVisibleRowIndex = (lastBufferUpdateScrollPosition + height) / currentFontHeight
+                    for (row in previousLastVisibleRowIndex..lastVisibleRowIndex) {
+                        dirtyCellsLookupTable.setRowDirty(row)
                     }
                 }
+            } else {
+                dirtyCellsLookupTable.setAllDirty()
             }
-            else {
-                dirtyCellsLookupTable.setAllDirty();
-            }
-        }
-        else if(lastBufferUpdateScrollPosition > scrollOffsetFromTopInPixels) {
-            int gap = lastBufferUpdateScrollPosition - scrollOffsetFromTopInPixels;
-            if(gap / fontHeight < viewportSize.getRows()) {
-                Graphics2D graphics = copybuffer.createGraphics();
-                graphics.setClip(0, 0, getWidth(), getHeight() - gap);
-                graphics.drawImage(backbuffer, 0, 0, null);
-                graphics.dispose();
-                backbufferGraphics.drawImage(copybuffer, 0, gap, getWidth(), getHeight(), 0, 0, getWidth(), getHeight() - gap, null);
-                if(!dirtyCellsLookupTable.isAllDirty()) {
-                    //Mark top rows as dirty so they are repainted
-                    int previousFirstVisibleRowIndex = lastBufferUpdateScrollPosition / fontHeight;
-                    for(int row = firstVisibleRowIndex; row <= previousFirstVisibleRowIndex; row++) {
-                        dirtyCellsLookupTable.setRowDirty(row);
+        } else if (lastBufferUpdateScrollPosition > scrollOffsetFromTopInPixels) {
+            val gap = lastBufferUpdateScrollPosition - scrollOffsetFromTopInPixels
+            if (gap / currentFontHeight < viewportSize.rows) {
+                val graphics = requireNotNull(copybuffer).createGraphics()
+                graphics.setClip(0, 0, width, height - gap)
+                graphics.drawImage(backbuffer, 0, 0, null)
+                graphics.dispose()
+                backbufferGraphics.drawImage(copybuffer, 0, gap, width, height, 0, 0, width, height - gap, null)
+                if (!dirtyCellsLookupTable.isAllDirty()) {
+                    val previousFirstVisibleRowIndex = lastBufferUpdateScrollPosition / currentFontHeight
+                    for (row in firstVisibleRowIndex..previousFirstVisibleRowIndex) {
+                        dirtyCellsLookupTable.setRowDirty(row)
                     }
                 }
-            }
-            else {
-                dirtyCellsLookupTable.setAllDirty();
-            }
-        }
-
-        // Detect component resize
-        if(lastComponentWidth < getWidth()) {
-            if(!dirtyCellsLookupTable.isAllDirty()) {
-                //Mark right columns as dirty so they are repainted
-                int lastVisibleColumnIndex = getWidth() / fontWidth;
-                int previousLastVisibleColumnIndex = lastComponentWidth / fontWidth;
-                for(int column = previousLastVisibleColumnIndex; column <= lastVisibleColumnIndex; column++) {
-                    dirtyCellsLookupTable.setColumnDirty(column);
-                }
-            }
-        }
-        if(lastComponentHeight < getHeight()) {
-            if(!dirtyCellsLookupTable.isAllDirty()) {
-                //Mark bottom rows as dirty so they are repainted
-                int previousLastVisibleRowIndex = (scrollOffsetFromTopInPixels + lastComponentHeight) / fontHeight;
-                for(int row = previousLastVisibleRowIndex; row <= lastVisibleRowIndex; row++) {
-                    dirtyCellsLookupTable.setRowDirty(row);
-                }
+            } else {
+                dirtyCellsLookupTable.setAllDirty()
             }
         }
 
-        virtualTerminal.forEachLine(firstVisibleRowIndex, lastVisibleRowIndex, (rowNumber, bufferLine) -> {
-            for(int column = 0; column < viewportSize.getColumns(); column++) {
-                TextCharacter textCharacter = bufferLine.getCharacterAt(column);
-                boolean atCursorLocation = cursorPosition.equals(column, rowNumber);
-                //If next position is the cursor location and this is a double-width character (i.e. cursor is on the padding),
-                //consider this location the cursor position since otherwise the cursor will be skipped
-                if(!atCursorLocation &&
-                        cursorPosition.getColumn() == column + 1 &&
-                        cursorPosition.getRow() == rowNumber &&
-                        textCharacter.isDoubleWidth()) {
-                    atCursorLocation = true;
-                }
-                boolean isBlinking = textCharacter.getModifiers().contains(SGR.BLINK);
-                if(isBlinking) {
-                    foundBlinkingCharacters.set(true);
-                }
-                if(dirtyCellsLookupTable.isAllDirty() || dirtyCellsLookupTable.isDirty(rowNumber, column) || isBlinking) {
-                    int characterWidth = fontWidth * (textCharacter.isDoubleWidth() ? 2 : 1);
-                    Color foregroundColor = deriveTrueForegroundColor(textCharacter, atCursorLocation);
-                    Color backgroundColor = deriveTrueBackgroundColor(textCharacter, atCursorLocation);
-                    //Always draw if the cursor isn't blinking
-                    boolean drawCursor = atCursorLocation && cursorIsVisible && (!deviceConfiguration.isCursorBlinking() || blinkOn);    //If the cursor should be displayed and is blinking, only draw when blinkOn is true
+        if (lastComponentWidth < width && !dirtyCellsLookupTable.isAllDirty()) {
+            val lastVisibleColumnIndex = width / currentFontWidth
+            val previousLastVisibleColumnIndex = lastComponentWidth / currentFontWidth
+            for (column in previousLastVisibleColumnIndex..lastVisibleColumnIndex) {
+                dirtyCellsLookupTable.setColumnDirty(column)
+            }
+        }
+        if (lastComponentHeight < height && !dirtyCellsLookupTable.isAllDirty()) {
+            val previousLastVisibleRowIndex = (scrollOffsetFromTopInPixels + lastComponentHeight) / currentFontHeight
+            for (row in previousLastVisibleRowIndex..lastVisibleRowIndex) {
+                dirtyCellsLookupTable.setRowDirty(row)
+            }
+        }
 
-                    // Visualize bell as all colors inverted
-                    if(bellOn) {
-                        Color temp = foregroundColor;
-                        foregroundColor = backgroundColor;
-                        backgroundColor = temp;
+        (virtualTerminal as com.googlecode.lanterna.terminal.virtual.VirtualTerminal).forEachLine(
+            firstVisibleRowIndex,
+            lastVisibleRowIndex,
+            object : com.googlecode.lanterna.terminal.virtual.VirtualTerminal.BufferWalker {
+                override fun onLine(
+                    rowNumber: Int,
+                    bufferLine: com.googlecode.lanterna.terminal.virtual.VirtualTerminal.BufferLine?,
+                ) {
+            var column = 0
+            while (column < viewportSize.columns) {
+                val textCharacter = requireNotNull(requireNotNull(bufferLine).getCharacterAt(column))
+                var atCursorLocation = cursorPosition.equals(column, rowNumber)
+                if (
+                    !atCursorLocation &&
+                    cursorPosition.column == column + 1 &&
+                    cursorPosition.row == rowNumber &&
+                    textCharacter.isDoubleWidth
+                ) {
+                    atCursorLocation = true
+                }
+                val isBlinking = textCharacter.getModifiers().contains(SGR.BLINK)
+                if (isBlinking) {
+                    foundBlinkingCharacters.set(true)
+                }
+                if (dirtyCellsLookupTable.isAllDirty() || dirtyCellsLookupTable.isDirty(rowNumber, column) || isBlinking) {
+                    val characterWidth = currentFontWidth * if (textCharacter.isDoubleWidth) 2 else 1
+                    var foregroundColor = deriveTrueForegroundColor(textCharacter, atCursorLocation)
+                    var backgroundColor = deriveTrueBackgroundColor(textCharacter, atCursorLocation)
+                    val drawCursor =
+                        atCursorLocation &&
+                            cursorIsVisible &&
+                            (!requireNotNull(deviceConfiguration).isCursorBlinking || blinkOn)
+                    if (bellOn) {
+                        val temp = foregroundColor
+                        foregroundColor = backgroundColor
+                        backgroundColor = temp
                     }
-
-                    drawCharacter(backbufferGraphics,
-                            textCharacter,
-                            column,
-                            rowNumber,
-                            foregroundColor,
-                            backgroundColor,
-                            fontWidth,
-                            fontHeight,
-                            characterWidth,
-                            scrollOffsetFromTopInPixels,
-                            drawCursor);
+                    drawCharacter(
+                        backbufferGraphics,
+                        textCharacter,
+                        column,
+                        rowNumber,
+                        foregroundColor,
+                        backgroundColor,
+                        currentFontWidth,
+                        currentFontHeight,
+                        characterWidth,
+                        scrollOffsetFromTopInPixels,
+                        drawCursor,
+                    )
                 }
-                if(textCharacter.isDoubleWidth()) {
-                    column++; //Skip the trailing space after a CJK character
+                if (textCharacter.isDoubleWidth) {
+                    column++
                 }
+                column++
             }
-        });
+                }
+            },
+        )
 
-        backbufferGraphics.dispose();
-
-        // Update the blink status according to if there were any blinking characters or not
-        this.hasBlinkingText = foundBlinkingCharacters.get();
-        this.lastDrawnCursorPosition = cursorPosition;
-        this.lastBufferUpdateScrollPosition = scrollOffsetFromTopInPixels;
-        this.needFullRedraw = false;
-
-        //System.out.println("Updated backbuffer in " + (System.currentTimeMillis() - startTime) + " ms");
+        backbufferGraphics.dispose()
+        hasBlinkingText = foundBlinkingCharacters.get()
+        lastDrawnCursorPosition = cursorPosition
+        lastBufferUpdateScrollPosition = scrollOffsetFromTopInPixels
+        needFullRedraw = false
     }
 
-    private void buildDirtyCellsLookupTable(int firstRowOffset, int lastRowOffset) {
-        if(virtualTerminal.isWholeBufferDirtyThenReset() || needFullRedraw) {
-            dirtyCellsLookupTable.setAllDirty();
-            return;
+    private fun buildDirtyCellsLookupTable(firstRowOffset: Int, lastRowOffset: Int) {
+        if (virtualTerminal.isWholeBufferDirtyThenReset || needFullRedraw) {
+            dirtyCellsLookupTable.setAllDirty()
+            return
         }
 
-        TerminalSize viewportSize = virtualTerminal.getTerminalSize();
-        TerminalPosition cursorPosition = virtualTerminal.getCursorBufferPosition();
+        val viewportSize = requireNotNull(virtualTerminal.terminalSize)
+        val cursorPosition = requireNotNull(virtualTerminal.cursorBufferPosition)
+        dirtyCellsLookupTable.resetAndInitialize(firstRowOffset, lastRowOffset, viewportSize.columns)
+        dirtyCellsLookupTable.setDirty(cursorPosition)
 
-        dirtyCellsLookupTable.resetAndInitialize(firstRowOffset, lastRowOffset, viewportSize.getColumns());
-        dirtyCellsLookupTable.setDirty(cursorPosition);
-        if(lastDrawnCursorPosition != null && !lastDrawnCursorPosition.equals(cursorPosition)) {
-            if(virtualTerminal.getCharacter(lastDrawnCursorPosition).isDoubleWidth()) {
-                dirtyCellsLookupTable.setDirty(lastDrawnCursorPosition.withRelativeColumn(1));
+        val previousCursorPosition = lastDrawnCursorPosition
+        if (previousCursorPosition != null && previousCursorPosition != cursorPosition) {
+            if (requireNotNull(virtualTerminal.getCharacter(previousCursorPosition)).isDoubleWidth) {
+                dirtyCellsLookupTable.setDirty(requireNotNull(previousCursorPosition.withRelativeColumn(1)))
             }
-            if(lastDrawnCursorPosition.getColumn() > 0 && virtualTerminal.getCharacter(lastDrawnCursorPosition.withRelativeColumn(-1)).isDoubleWidth()) {
-                dirtyCellsLookupTable.setDirty(lastDrawnCursorPosition.withRelativeColumn(-1));
+            if (
+                previousCursorPosition.column > 0 &&
+                requireNotNull(virtualTerminal.getCharacter(requireNotNull(previousCursorPosition.withRelativeColumn(-1)))).isDoubleWidth
+            ) {
+                dirtyCellsLookupTable.setDirty(requireNotNull(previousCursorPosition.withRelativeColumn(-1)))
             }
-            dirtyCellsLookupTable.setDirty(lastDrawnCursorPosition);
+            dirtyCellsLookupTable.setDirty(previousCursorPosition)
         }
 
-        TreeSet<TerminalPosition> dirtyCells = virtualTerminal.getAndResetDirtyCells();
-        for(TerminalPosition position: dirtyCells) {
-            dirtyCellsLookupTable.setDirty(position);
-        }
-    }
-
-    private void ensureGraphicBufferHasRightSize() {
-        if(backbuffer == null) {
-            backbuffer = new BufferedImage(getWidth() * 2, getHeight() * 2, BufferedImage.TYPE_INT_RGB);
-            copybuffer = new BufferedImage(getWidth() * 2, getHeight() * 2, BufferedImage.TYPE_INT_RGB);
-
-            // We only need to set the content of the backbuffer during initialization time
-            Graphics2D graphics = backbuffer.createGraphics();
-            graphics.setColor(colorConfiguration.toAWTColor(TextColor.ANSI.DEFAULT, false, false));
-            graphics.fillRect(0, 0, getWidth() * 2, getHeight() * 2);
-            graphics.dispose();
-        }
-        if(backbuffer.getWidth() < getWidth() || backbuffer.getWidth() > getWidth() * 4 ||
-                backbuffer.getHeight() < getHeight() || backbuffer.getHeight() > getHeight() * 4) {
-
-            BufferedImage newBackbuffer = new BufferedImage(Math.max(getWidth(), 1) * 2, Math.max(getHeight(), 1) * 2, BufferedImage.TYPE_INT_RGB);
-            Graphics2D graphics = newBackbuffer.createGraphics();
-            graphics.fillRect(0, 0, newBackbuffer.getWidth(), newBackbuffer.getHeight());
-            graphics.drawImage(backbuffer, 0, 0, null);
-            graphics.dispose();
-            backbuffer = newBackbuffer;
-
-            // Re-initialize the copy buffer, but we don't need to set any content
-            copybuffer = new BufferedImage(Math.max(getWidth(), 1) * 2, Math.max(getHeight(), 1) * 2, BufferedImage.TYPE_INT_RGB);
+        val dirtyCells: TreeSet<TerminalPosition> = virtualTerminal.andResetDirtyCells
+        for (position in dirtyCells) {
+            dirtyCellsLookupTable.setDirty(position)
         }
     }
 
-    private void drawCharacter(
-            Graphics g,
-            TextCharacter character,
-            int columnIndex,
-            int rowIndex,
-            Color foregroundColor,
-            Color backgroundColor,
-            int fontWidth,
-            int fontHeight,
-            int characterWidth,
-            int scrollingOffsetInPixels,
-            boolean drawCursor) {
-
-        int x = columnIndex * fontWidth;
-        int y = rowIndex * fontHeight - scrollingOffsetInPixels;
-        g.setColor(backgroundColor);
-        g.setClip(x, y, characterWidth, fontHeight);
-        g.fillRect(x, y, characterWidth, fontHeight);
-
-        g.setColor(foregroundColor);
-        Font font = getFontForCharacter(character);
-        g.setFont(font);
-        FontMetrics fontMetrics = g.getFontMetrics();
-        g.drawString(character.getCharacterString(), x, y + fontHeight - fontMetrics.getDescent() + 1);
-
-        if(character.isCrossedOut()) {
-            //noinspection UnnecessaryLocalVariable
-            int lineStartX = x;
-            int lineStartY = y + (fontHeight / 2);
-            int lineEndX = lineStartX + characterWidth;
-            g.drawLine(lineStartX, lineStartY, lineEndX, lineStartY);
-        }
-        if(character.isUnderlined()) {
-            //noinspection UnnecessaryLocalVariable
-            int lineStartX = x;
-            int lineStartY = y + fontHeight - fontMetrics.getDescent() + 1;
-            int lineEndX = lineStartX + characterWidth;
-            g.drawLine(lineStartX, lineStartY, lineEndX, lineStartY);
+    private fun ensureGraphicBufferHasRightSize() {
+        if (backbuffer == null) {
+            backbuffer = BufferedImage(width * 2, height * 2, BufferedImage.TYPE_INT_RGB)
+            copybuffer = BufferedImage(width * 2, height * 2, BufferedImage.TYPE_INT_RGB)
+            val graphics = requireNotNull(backbuffer).createGraphics()
+            graphics.color = requireNotNull(colorConfiguration).toAWTColor(TextColor.ANSI.DEFAULT, false, false)
+            graphics.fillRect(0, 0, width * 2, height * 2)
+            graphics.dispose()
         }
 
-        if(drawCursor) {
-            if(deviceConfiguration.getCursorColor() == null) {
-                g.setColor(foregroundColor);
-            }
-            else {
-                g.setColor(colorConfiguration.toAWTColor(deviceConfiguration.getCursorColor(), false, false));
-            }
-            if(deviceConfiguration.getCursorStyle() == TerminalEmulatorDeviceConfiguration.CursorStyle.UNDER_BAR) {
-                g.fillRect(x, y + fontHeight - 3, characterWidth, 2);
-            }
-            else if(deviceConfiguration.getCursorStyle() == TerminalEmulatorDeviceConfiguration.CursorStyle.VERTICAL_BAR) {
-                g.fillRect(x, y + 1, 2, fontHeight - 2);
+        if (
+            requireNotNull(backbuffer).width < width ||
+            requireNotNull(backbuffer).width > width * 4 ||
+            requireNotNull(backbuffer).height < height ||
+            requireNotNull(backbuffer).height > height * 4
+        ) {
+            val newBackbuffer = BufferedImage(
+                maxOf(width, 1) * 2,
+                maxOf(height, 1) * 2,
+                BufferedImage.TYPE_INT_RGB,
+            )
+            val graphics = newBackbuffer.createGraphics()
+            graphics.fillRect(0, 0, newBackbuffer.width, newBackbuffer.height)
+            graphics.drawImage(backbuffer, 0, 0, null)
+            graphics.dispose()
+            backbuffer = newBackbuffer
+            copybuffer = BufferedImage(maxOf(width, 1) * 2, maxOf(height, 1) * 2, BufferedImage.TYPE_INT_RGB)
+        }
+    }
+
+    private fun drawCharacter(
+        graphics: Graphics,
+        character: TextCharacter,
+        columnIndex: Int,
+        rowIndex: Int,
+        foregroundColor: Color,
+        backgroundColor: Color,
+        currentFontWidth: Int,
+        currentFontHeight: Int,
+        characterWidth: Int,
+        scrollingOffsetInPixels: Int,
+        drawCursor: Boolean,
+    ) {
+        val x = columnIndex * currentFontWidth
+        val y = rowIndex * currentFontHeight - scrollingOffsetInPixels
+        graphics.color = backgroundColor
+        graphics.clipRect(x, y, characterWidth, currentFontHeight)
+        graphics.fillRect(x, y, characterWidth, currentFontHeight)
+
+        graphics.color = foregroundColor
+        val font = getFontForCharacter(character)
+        graphics.font = font
+        val fontMetrics: FontMetrics = graphics.getFontMetrics()
+        graphics.drawString(character.characterString, x, y + currentFontHeight - fontMetrics.descent + 1)
+
+        if (character.isCrossedOut) {
+            val lineStartY = y + (currentFontHeight / 2)
+            graphics.drawLine(x, lineStartY, x + characterWidth, lineStartY)
+        }
+        if (character.isUnderlined) {
+            val lineStartY = y + currentFontHeight - fontMetrics.descent + 1
+            graphics.drawLine(x, lineStartY, x + characterWidth, lineStartY)
+        }
+
+        if (drawCursor) {
+            graphics.color =
+                if (requireNotNull(deviceConfiguration).cursorColor == null) {
+                    foregroundColor
+                } else {
+                    requireNotNull(requireNotNull(colorConfiguration).toAWTColor(deviceConfiguration.cursorColor, false, false))
+                }
+            when (deviceConfiguration.cursorStyle) {
+                TerminalEmulatorDeviceConfiguration.CursorStyle.UNDER_BAR ->
+                    graphics.fillRect(x, y + currentFontHeight - 3, characterWidth, 2)
+                TerminalEmulatorDeviceConfiguration.CursorStyle.VERTICAL_BAR ->
+                    graphics.fillRect(x, y + 1, 2, currentFontHeight - 2)
+                else -> Unit
             }
         }
     }
 
+    private fun deriveTrueForegroundColor(character: TextCharacter, atCursorLocation: Boolean): Color {
+        val foregroundColor = character.foregroundColor
+        val backgroundColor = character.backgroundColor
+        var reverse = character.isReversed
+        val blink = character.isBlinking
 
-    private Color deriveTrueForegroundColor(TextCharacter character, boolean atCursorLocation) {
-        TextColor foregroundColor = character.getForegroundColor();
-        TextColor backgroundColor = character.getBackgroundColor();
-        boolean reverse = character.isReversed();
-        boolean blink = character.isBlinking();
+        if (
+            cursorIsVisible &&
+            atCursorLocation &&
+            deviceConfiguration?.cursorStyle == TerminalEmulatorDeviceConfiguration.CursorStyle.REVERSED &&
+            (!requireNotNull(deviceConfiguration).isCursorBlinking || !blinkOn)
+        ) {
+            reverse = true
+        }
 
-        if(cursorIsVisible && atCursorLocation) {
-            if(deviceConfiguration.getCursorStyle() == TerminalEmulatorDeviceConfiguration.CursorStyle.REVERSED &&
-                    (!deviceConfiguration.isCursorBlinking() || !blinkOn)) {
-                reverse = true;
+        return when {
+            reverse && (!blink || !blinkOn) ->
+                requireNotNull(requireNotNull(colorConfiguration).toAWTColor(
+                    backgroundColor,
+                    backgroundColor != TextColor.ANSI.DEFAULT,
+                    character.isBold,
+                ))
+            !reverse && blink && blinkOn ->
+                requireNotNull(requireNotNull(colorConfiguration).toAWTColor(backgroundColor, false, character.isBold))
+            else ->
+                requireNotNull(requireNotNull(colorConfiguration).toAWTColor(foregroundColor, true, character.isBold))
+        }
+    }
+
+    private fun deriveTrueBackgroundColor(character: TextCharacter, atCursorLocation: Boolean): Color {
+        val foregroundColor = character.foregroundColor
+        var backgroundColor: TextColor? = character.backgroundColor
+        var reverse = character.isReversed
+
+        if (cursorIsVisible && atCursorLocation) {
+            when (deviceConfiguration?.cursorStyle) {
+                TerminalEmulatorDeviceConfiguration.CursorStyle.REVERSED ->
+                    if (!requireNotNull(deviceConfiguration).isCursorBlinking || !blinkOn) {
+                        reverse = true
+                    }
+                TerminalEmulatorDeviceConfiguration.CursorStyle.FIXED_BACKGROUND ->
+                    backgroundColor = deviceConfiguration.cursorColor
+                else -> Unit
             }
         }
 
-        if(reverse && (!blink || !blinkOn)) {
-            return colorConfiguration.toAWTColor(backgroundColor, backgroundColor != TextColor.ANSI.DEFAULT, character.isBold());
-        }
-        else if(!reverse && blink && blinkOn) {
-            return colorConfiguration.toAWTColor(backgroundColor, false, character.isBold());
-        }
-        else {
-            return colorConfiguration.toAWTColor(foregroundColor, true, character.isBold());
-        }
-    }
-
-    private Color deriveTrueBackgroundColor(TextCharacter character, boolean atCursorLocation) {
-        TextColor foregroundColor = character.getForegroundColor();
-        TextColor backgroundColor = character.getBackgroundColor();
-        boolean reverse = character.isReversed();
-
-        if(cursorIsVisible && atCursorLocation) {
-            if(deviceConfiguration.getCursorStyle() == TerminalEmulatorDeviceConfiguration.CursorStyle.REVERSED &&
-                    (!deviceConfiguration.isCursorBlinking() || !blinkOn)) {
-                reverse = true;
-            }
-            else if(deviceConfiguration.getCursorStyle() == TerminalEmulatorDeviceConfiguration.CursorStyle.FIXED_BACKGROUND) {
-                backgroundColor = deviceConfiguration.getCursorColor();
-            }
-        }
-
-        if(reverse) {
-            return colorConfiguration.toAWTColor(foregroundColor, backgroundColor == TextColor.ANSI.DEFAULT, character.isBold());
-        }
-        else {
-            return colorConfiguration.toAWTColor(backgroundColor, false, false);
+        return if (reverse) {
+            requireNotNull(requireNotNull(colorConfiguration).toAWTColor(
+                foregroundColor,
+                backgroundColor == TextColor.ANSI.DEFAULT,
+                character.isBold,
+            ))
+        } else {
+            requireNotNull(requireNotNull(colorConfiguration).toAWTColor(backgroundColor, false, false))
         }
     }
 
-    void addInput(KeyStroke keyStroke) {
-        keyQueue.add(keyStroke);
-    }
-
-    ///////////
-    // Then delegate all Terminal interface methods to the virtual terminal implementation
-    //
-    // Some of these methods we need to pass to the AWT-thread, which makes the call asynchronous. Hopefully this isn't
-    // causing too much problem...
-    ///////////
-    @Override
-    public KeyStroke pollInput() {
-        if(!enableInput) {
-            return new KeyStroke(KeyType.EOF);
+    fun addInput(keyStroke: KeyStroke?) {
+        if (keyStroke != null) {
+            keyQueue.add(keyStroke)
         }
-        return keyQueue.poll();
     }
 
-    @Override
-    public KeyStroke readInput() {
-        // Synchronize on keyQueue here so only one thread is inside keyQueue.take()
+    override fun pollInput(): KeyStroke {
+        return if (!enableInput) KeyStroke(KeyType.EOF) else keyQueue.poll() ?: KeyStroke(KeyType.EOF)
+    }
+
+    override fun readInput(): KeyStroke {
         synchronized(keyQueue) {
-            if(!enableInput) {
-                return new KeyStroke(KeyType.EOF);
+            if (!enableInput) {
+                return KeyStroke(KeyType.EOF)
             }
             try {
-                return keyQueue.take();
+                return keyQueue.take()
+            } catch (_: InterruptedException) {
+                throw RuntimeException("Blocking input was interrupted")
             }
-            catch(InterruptedException ignore) {
-                throw new RuntimeException("Blocking input was interrupted");
+        }
+    }
+
+    override fun enterPrivateMode() {
+        virtualTerminal.enterPrivateMode()
+        clearBackBuffer()
+        flush()
+    }
+
+    override fun exitPrivateMode() {
+        virtualTerminal.exitPrivateMode()
+        clearBackBuffer()
+        flush()
+    }
+
+    override fun clearScreen() {
+        virtualTerminal.clearScreen()
+        clearBackBuffer()
+    }
+
+    private fun clearBackBuffer() {
+        backbuffer?.let {
+            val graphics = it.createGraphics()
+            graphics.color = requireNotNull(colorConfiguration).toAWTColor(TextColor.ANSI.DEFAULT, false, false)
+            graphics.fillRect(0, 0, width, height)
+            graphics.dispose()
+        }
+    }
+
+    override fun setCursorPosition(x: Int, y: Int) {
+        cursorPosition = TerminalPosition(x, y)
+    }
+
+    override var cursorPosition: TerminalPosition?
+        get() = virtualTerminal.cursorPosition
+        set(position) {
+            var adjustedPosition = requireNotNull(position)
+            if (adjustedPosition.column < 0) {
+                adjustedPosition = requireNotNull(adjustedPosition.withColumn(0))
             }
-        }
-    }
-
-    @Override
-    public synchronized void enterPrivateMode() {
-        virtualTerminal.enterPrivateMode();
-        clearBackBuffer();
-        flush();
-    }
-
-    @Override
-    public synchronized void exitPrivateMode() {
-        virtualTerminal.exitPrivateMode();
-        clearBackBuffer();
-        flush();
-    }
-
-    @Override
-    public synchronized void clearScreen() {
-        virtualTerminal.clearScreen();
-        clearBackBuffer();
-    }
-
-    /**
-     * Clears out the back buffer and the resets the visual state so next paint operation will do a full repaint of
-     * everything
-     */
-    private void clearBackBuffer() {
-        // Manually clear the backbuffer
-        if(backbuffer != null) {
-            Graphics2D graphics = backbuffer.createGraphics();
-            Color backgroundColor = colorConfiguration.toAWTColor(TextColor.ANSI.DEFAULT, false, false);
-            graphics.setColor(backgroundColor);
-            graphics.fillRect(0, 0, getWidth(), getHeight());
-            graphics.dispose();
-        }
-    }
-
-    @Override
-    public synchronized void setCursorPosition(int x, int y) {
-        setCursorPosition(new TerminalPosition(x, y));
-    }
-
-    @Override
-    public synchronized void setCursorPosition(TerminalPosition position) {
-        if(position.getColumn() < 0) {
-            position = position.withColumn(0);
-        }
-        if(position.getRow() < 0) {
-            position = position.withRow(0);
-        }
-        virtualTerminal.setCursorPosition(position);
-    }
-
-    @Override
-    public TerminalPosition getCursorPosition() {
-        return virtualTerminal.getCursorPosition();
-    }
-
-    @Override
-    public void setCursorVisible(final boolean visible) {
-        cursorIsVisible = visible;
-    }
-
-    @Override
-    public synchronized void putCharacter(final char c) {
-        virtualTerminal.putCharacter(c);
-    }
-
-    @Override
-    public void putString(String string) {
-        virtualTerminal.putString(string);
-    }
-
-    @Override
-    public TextGraphics newTextGraphics() {
-        return virtualTerminal.newTextGraphics();
-    }
-
-    @Override
-    public void enableSGR(final SGR sgr) {
-        virtualTerminal.enableSGR(sgr);
-    }
-
-    @Override
-    public void disableSGR(final SGR sgr) {
-        virtualTerminal.disableSGR(sgr);
-    }
-
-    @Override
-    public void resetColorAndSGR() {
-        virtualTerminal.resetColorAndSGR();
-    }
-
-    @Override
-    public void setForegroundColor(final TextColor color) {
-        virtualTerminal.setForegroundColor(color);
-    }
-
-    @Override
-    public void setBackgroundColor(final TextColor color) {
-        virtualTerminal.setBackgroundColor(color);
-    }
-
-    @Override
-    public synchronized TerminalSize getTerminalSize() {
-        return virtualTerminal.getTerminalSize();
-    }
-
-    @Override
-    public byte[] enquireTerminal(int timeout, TimeUnit timeoutUnit) {
-        return enquiryString.getBytes();
-    }
-
-    @Override
-    public void bell() {
-        if(bellOn) {
-            return;
+            if (adjustedPosition.row < 0) {
+                adjustedPosition = requireNotNull(adjustedPosition.withRow(0))
+            }
+            virtualTerminal.cursorPosition = adjustedPosition
         }
 
-        // Flash the screen...
-        bellOn = true;
-        needFullRedraw = true;
-        updateBackBuffer(scrollController.getScrollingOffset());
-        repaint();
-        // Unify this with the blink timer and just do the whole timer logic ourselves?
-        new Thread("BellSilencer") {
-            @Override
-            public void run() {
+    override fun setCursorVisible(visible: Boolean) {
+        cursorIsVisible = visible
+    }
+
+    override fun putCharacter(c: Char) {
+        virtualTerminal.putCharacter(c)
+    }
+
+    override fun putString(string: String?) {
+        virtualTerminal.putString(string)
+    }
+
+    override fun newTextGraphics(): TextGraphics? = virtualTerminal.newTextGraphics()
+
+    override fun enableSGR(sgr: SGR?) {
+        virtualTerminal.enableSGR(sgr)
+    }
+
+    override fun disableSGR(sgr: SGR?) {
+        virtualTerminal.disableSGR(sgr)
+    }
+
+    override fun resetColorAndSGR() {
+        virtualTerminal.resetColorAndSGR()
+    }
+
+    override fun setForegroundColor(color: TextColor?) {
+        virtualTerminal.setForegroundColor(color)
+    }
+
+    override fun setBackgroundColor(color: TextColor?) {
+        virtualTerminal.setBackgroundColor(color)
+    }
+
+    override val terminalSize: TerminalSize?
+        get() = virtualTerminal.terminalSize
+
+    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray = enquiryString.toByteArray()
+
+    override fun bell() {
+        if (bellOn) {
+            return
+        }
+        bellOn = true
+        needFullRedraw = true
+        updateBackBuffer(requireNotNull(scrollController).scrollingOffset)
+        repaint()
+        object : Thread("BellSilencer") {
+            override fun run() {
                 try {
-                    Thread.sleep(100);
+                    sleep(100)
+                } catch (_: InterruptedException) {
                 }
-                catch(InterruptedException ignore) {}
-                bellOn = false;
-                needFullRedraw = true;
-                updateBackBuffer(scrollController.getScrollingOffset());
-                repaint();
+                bellOn = false
+                needFullRedraw = true
+                updateBackBuffer(requireNotNull(scrollController).scrollingOffset)
+                repaint()
             }
-        }.start();
-
-        // ...and make a sound
-        Toolkit.getDefaultToolkit().beep();
+        }.start()
+        Toolkit.getDefaultToolkit().beep()
     }
 
-    @Override
-    public synchronized void flush() {
-        updateBackBuffer(scrollController.getScrollingOffset());
-        repaint();
+    override fun flush() {
+        updateBackBuffer(requireNotNull(scrollController).scrollingOffset)
+        repaint()
     }
 
-    @Override
-    public void close() {
-        // No action
+    override fun close() = Unit
+
+    override fun addResizeListener(listener: TerminalResizeListener?) {
+        virtualTerminal.addResizeListener(listener)
     }
 
-    @Override
-    public void addResizeListener(TerminalResizeListener listener) {
-        virtualTerminal.addResizeListener(listener);
+    override fun removeResizeListener(listener: TerminalResizeListener?) {
+        virtualTerminal.removeResizeListener(listener)
     }
 
-    @Override
-    public void removeResizeListener(TerminalResizeListener listener) {
-        virtualTerminal.removeResizeListener(listener);
+    fun setMouseCaptureMode(mouseCaptureMode: MouseCaptureMode?) {
+        this.activeMouseCaptureMode = mouseCaptureMode
+        updateMouseCaptureMode(mouseCaptureMode)
     }
 
-    public void setMouseCaptureMode(MouseCaptureMode mouseCaptureMode) {
-        this.mouseCaptureMode = mouseCaptureMode;
-        updateMouseCaptureMode(mouseCaptureMode);
-    }
+    protected open fun updateMouseCaptureMode(mouseCaptureMode: MouseCaptureMode?) = Unit
 
-    protected void updateMouseCaptureMode(MouseCaptureMode mouseCaptureMode) {
-        // Let the AWT and Swing implementations do the job here
-    }
+    protected inner class TerminalInputListener : KeyAdapter() {
+        override fun keyTyped(e: KeyEvent) {
+            var character = e.keyChar
+            val altDown = (e.modifiersEx and InputEvent.ALT_DOWN_MASK) != 0
+            val ctrlDown = (e.modifiersEx and InputEvent.CTRL_DOWN_MASK) != 0
+            val shiftDown = (e.modifiersEx and InputEvent.SHIFT_DOWN_MASK) != 0
 
-    ///////////
-    // Remaining are private internal classes used by SwingTerminal
-    ///////////
-    private static final Set<Character> TYPED_KEYS_TO_IGNORE = new HashSet<>(Arrays.asList('\n', '\t', '\r', '\b', '\33', (char) 127));
-
-    /**
-     * Class that translates AWT key events into Lanterna {@link KeyStroke}
-     */
-    protected class TerminalInputListener extends KeyAdapter {
-        @Override
-        public void keyTyped(KeyEvent e) {
-            char character = e.getKeyChar();
-            boolean altDown = (e.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0;
-            boolean ctrlDown = (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) != 0;
-            boolean shiftDown = (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0;
-
-            if(!TYPED_KEYS_TO_IGNORE.contains(character)) {
-                //We need to re-adjust alphabet characters if ctrl was pressed, just like for the AnsiTerminal
-                if(ctrlDown && character > 0 && character < 0x1a) {
-                    character = (char) ('a' - 1 + character);
-                    if(shiftDown) {
-                        character = Character.toUpperCase(character);
+            if (!TYPED_KEYS_TO_IGNORE.contains(character)) {
+                if (ctrlDown && character.code > 0 && character.code < 0x1a) {
+                    character = ('a'.code - 1 + character.code).toChar()
+                    if (shiftDown) {
+                        character = character.uppercaseChar()
                     }
                 }
-
-                // Check if clipboard is avavilable and this was a paste (ctrl + shift + v) before
-                // adding the key to the input queue
-                if(!altDown && ctrlDown && shiftDown && character == 'V' && deviceConfiguration.isClipboardAvailable()) {
-                    pasteClipboardContent();
-                }
-                else {
-                    keyQueue.add(new KeyStroke(character, ctrlDown, altDown, shiftDown));
-                }
-            }
-        }
-
-        @Override
-        public void keyPressed(KeyEvent e) {
-            boolean altDown = (e.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0;
-            boolean ctrlDown = (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) != 0;
-            boolean shiftDown = (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0;
-            if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-                keyQueue.add(new KeyStroke(KeyType.ENTER, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                keyQueue.add(new KeyStroke(KeyType.ESCAPE, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-                keyQueue.add(new KeyStroke(KeyType.BACKSPACE, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-                keyQueue.add(new KeyStroke(KeyType.ARROW_LEFT, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                keyQueue.add(new KeyStroke(KeyType.ARROW_RIGHT, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_UP) {
-                keyQueue.add(new KeyStroke(KeyType.ARROW_UP, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-                keyQueue.add(new KeyStroke(KeyType.ARROW_DOWN, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_INSERT) {
-                // This could be a paste (shift+insert) if the clipboard is available
-                if(!altDown && !ctrlDown && shiftDown && deviceConfiguration.isClipboardAvailable()) {
-                    pasteClipboardContent();
-                }
-                else {
-                    keyQueue.add(new KeyStroke(KeyType.INSERT, ctrlDown, altDown, shiftDown));
-                }
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_DELETE) {
-                keyQueue.add(new KeyStroke(KeyType.DELETE, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_HOME) {
-                keyQueue.add(new KeyStroke(KeyType.HOME, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_END) {
-                keyQueue.add(new KeyStroke(KeyType.END, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_PAGE_UP) {
-                keyQueue.add(new KeyStroke(KeyType.PAGE_UP, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_PAGE_DOWN) {
-                keyQueue.add(new KeyStroke(KeyType.PAGE_DOWN, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_F1) {
-                keyQueue.add(new KeyStroke(KeyType.F1, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_F2) {
-                keyQueue.add(new KeyStroke(KeyType.F2, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_F3) {
-                keyQueue.add(new KeyStroke(KeyType.F3, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_F4) {
-                keyQueue.add(new KeyStroke(KeyType.F4, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_F5) {
-                keyQueue.add(new KeyStroke(KeyType.F5, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_F6) {
-                keyQueue.add(new KeyStroke(KeyType.F6, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_F7) {
-                keyQueue.add(new KeyStroke(KeyType.F7, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_F8) {
-                keyQueue.add(new KeyStroke(KeyType.F8, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_F9) {
-                keyQueue.add(new KeyStroke(KeyType.F9, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_F10) {
-                keyQueue.add(new KeyStroke(KeyType.F10, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_F11) {
-                keyQueue.add(new KeyStroke(KeyType.F11, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_F12) {
-                keyQueue.add(new KeyStroke(KeyType.F12, ctrlDown, altDown, shiftDown));
-            }
-            else if(e.getKeyCode() == KeyEvent.VK_TAB) {
-                if(e.isShiftDown()) {
-                    keyQueue.add(new KeyStroke(KeyType.REVERSE_TAB, ctrlDown, altDown, false));
-                }
-                else {
-                    keyQueue.add(new KeyStroke(KeyType.TAB, ctrlDown, altDown, shiftDown));
-                }
-            }
-            else {
-                //keyTyped doesn't catch this scenario (for whatever reason...) so we have to do it here
-                if(altDown && ctrlDown && e.getKeyCode() >= 'A' && e.getKeyCode() <= 'Z') {
-                    char character = (char) e.getKeyCode();
-                    if(!shiftDown) {
-                        character = Character.toLowerCase(character);
-                    }
-                    keyQueue.add(new KeyStroke(character, true, true, shiftDown));
-                }
-            }
-        }
-    }
-
-    // This is mostly unimplemented, we could hook more of this into ExtendedTerminal's mouse functions
-    protected class TerminalMouseListener extends MouseAdapter {
-        private MouseCaptureMode mouseCaptureMode=null;
-
-        public TerminalMouseListener() {
-            super();
-        }
-
-        public TerminalMouseListener(MouseCaptureMode mouseCaptureMode)
-        {
-            super();
-            this.mouseCaptureMode=mouseCaptureMode;
-        }
-
-        private int convertButton(int awtButton)
-        {
-            int button=0;
-            switch (awtButton) {
-                case MouseEvent.BUTTON1:
-                    button=1;
-                    break;
-                case MouseEvent.BUTTON2:
-                    button=3;
-                    break;
-                case MouseEvent.BUTTON3:
-                    button=2;
-                    break;
-                default:
-                    break;
-            }
-            return button;
-        }
-
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            if(MouseInfo.getNumberOfButtons() > 2 &&
-                    e.getButton() == MouseEvent.BUTTON2 &&
-                    deviceConfiguration.isClipboardAvailable()) {
-                pasteSelectionContent();
-            }
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e) {
-            if(mouseCaptureMode!=null)
-            {
-                keyQueue.add(new MouseAction(MouseActionType.CLICK_DOWN, convertButton(e.getButton()), new TerminalPosition(e.getX()/getFontWidth(), e.getY()/getFontHeight()),e.isControlDown(),e.isAltDown(),e.isShiftDown()));
-            }
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            if(mouseCaptureMode!=null)
-            {
-                keyQueue.add(new MouseAction(MouseActionType.CLICK_RELEASE, convertButton(e.getButton()), new TerminalPosition(e.getX()/getFontWidth(), e.getY()/getFontHeight()),e.isControlDown(),e.isAltDown(),e.isShiftDown()));
-            }
-        }
-
-        @Override
-        public void mouseWheelMoved(MouseWheelEvent e){
-            if(mouseCaptureMode!=null)
-            {
-                int rotation = e.getWheelRotation();
-                if(rotation > 0){
-                    keyQueue.add(new MouseAction(MouseActionType.SCROLL_DOWN, 5, new TerminalPosition(e.getX()/getFontWidth(), e.getY()/getFontHeight()),e.isControlDown(),e.isAltDown(),e.isShiftDown()));
+                if (!altDown && ctrlDown && shiftDown && character == 'V' && requireNotNull(deviceConfiguration).isClipboardAvailable) {
+                    pasteClipboardContent()
                 } else {
-                    keyQueue.add(new MouseAction(MouseActionType.SCROLL_UP, 4, new TerminalPosition(e.getX()/getFontWidth(), e.getY()/getFontHeight()),e.isControlDown(),e.isAltDown(),e.isShiftDown()));
+                    keyQueue.add(KeyStroke(character, ctrlDown, altDown, shiftDown))
                 }
             }
         }
 
-        @Override
-        public void mouseMoved(MouseEvent e) {
-            if(mouseCaptureMode==MouseCaptureMode.CLICK_RELEASE_DRAG_MOVE || mouseCaptureMode==MouseCaptureMode.CLICK_AUTODETECT)
-            {
-                keyQueue.add(new MouseAction(MouseActionType.MOVE, 0, new TerminalPosition(e.getX()/getFontWidth(), e.getY()/getFontHeight()),e.isControlDown(),e.isAltDown(),e.isShiftDown()));
-            }
-        }
-
-        @Override
-        public void mouseDragged(MouseEvent e) {
-            if(mouseCaptureMode==MouseCaptureMode.CLICK_RELEASE_DRAG || mouseCaptureMode==MouseCaptureMode.CLICK_RELEASE_DRAG_MOVE || mouseCaptureMode==MouseCaptureMode.CLICK_AUTODETECT)
-            {
-                keyQueue.add(new MouseAction(MouseActionType.DRAG, convertButton(e.getButton()), new TerminalPosition(e.getX()/getFontWidth(), e.getY()/getFontHeight()),e.isControlDown(),e.isAltDown(),e.isShiftDown()));
+        override fun keyPressed(e: KeyEvent) {
+            val altDown = (e.modifiersEx and InputEvent.ALT_DOWN_MASK) != 0
+            val ctrlDown = (e.modifiersEx and InputEvent.CTRL_DOWN_MASK) != 0
+            val shiftDown = (e.modifiersEx and InputEvent.SHIFT_DOWN_MASK) != 0
+            when (e.keyCode) {
+                KeyEvent.VK_ENTER -> keyQueue.add(KeyStroke(KeyType.ENTER, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_ESCAPE -> keyQueue.add(KeyStroke(KeyType.ESCAPE, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_BACK_SPACE -> keyQueue.add(KeyStroke(KeyType.BACKSPACE, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_LEFT -> keyQueue.add(KeyStroke(KeyType.ARROW_LEFT, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_RIGHT -> keyQueue.add(KeyStroke(KeyType.ARROW_RIGHT, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_UP -> keyQueue.add(KeyStroke(KeyType.ARROW_UP, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_DOWN -> keyQueue.add(KeyStroke(KeyType.ARROW_DOWN, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_INSERT ->
+                    if (!altDown && !ctrlDown && shiftDown && requireNotNull(deviceConfiguration).isClipboardAvailable) {
+                        pasteClipboardContent()
+                    } else {
+                        keyQueue.add(KeyStroke(KeyType.INSERT, ctrlDown, altDown, shiftDown))
+                    }
+                KeyEvent.VK_DELETE -> keyQueue.add(KeyStroke(KeyType.DELETE, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_HOME -> keyQueue.add(KeyStroke(KeyType.HOME, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_END -> keyQueue.add(KeyStroke(KeyType.END, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_PAGE_UP -> keyQueue.add(KeyStroke(KeyType.PAGE_UP, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_PAGE_DOWN -> keyQueue.add(KeyStroke(KeyType.PAGE_DOWN, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_F1 -> keyQueue.add(KeyStroke(KeyType.F1, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_F2 -> keyQueue.add(KeyStroke(KeyType.F2, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_F3 -> keyQueue.add(KeyStroke(KeyType.F3, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_F4 -> keyQueue.add(KeyStroke(KeyType.F4, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_F5 -> keyQueue.add(KeyStroke(KeyType.F5, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_F6 -> keyQueue.add(KeyStroke(KeyType.F6, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_F7 -> keyQueue.add(KeyStroke(KeyType.F7, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_F8 -> keyQueue.add(KeyStroke(KeyType.F8, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_F9 -> keyQueue.add(KeyStroke(KeyType.F9, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_F10 -> keyQueue.add(KeyStroke(KeyType.F10, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_F11 -> keyQueue.add(KeyStroke(KeyType.F11, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_F12 -> keyQueue.add(KeyStroke(KeyType.F12, ctrlDown, altDown, shiftDown))
+                KeyEvent.VK_TAB ->
+                    if (e.isShiftDown) {
+                        keyQueue.add(KeyStroke(KeyType.REVERSE_TAB, ctrlDown, altDown, false))
+                    } else {
+                        keyQueue.add(KeyStroke(KeyType.TAB, ctrlDown, altDown, shiftDown))
+                    }
+                else ->
+                    if (altDown && ctrlDown && e.keyCode >= 'A'.code && e.keyCode <= 'Z'.code) {
+                        var character = e.keyCode.toChar()
+                        if (!shiftDown) {
+                            character = character.lowercaseChar()
+                        }
+                        keyQueue.add(KeyStroke(character, true, true, shiftDown))
+                    }
             }
         }
     }
 
-    private void pasteClipboardContent() {
+    protected open inner class TerminalMouseListener(
+        private val activeMouseCaptureMode: MouseCaptureMode? = null,
+    ) : MouseAdapter() {
+        private fun convertButton(awtButton: Int): Int =
+            when (awtButton) {
+                MouseEvent.BUTTON1 -> 1
+                MouseEvent.BUTTON2 -> 3
+                MouseEvent.BUTTON3 -> 2
+                else -> 0
+            }
+
+        override fun mouseClicked(e: MouseEvent) {
+            if (
+                MouseInfo.getNumberOfButtons() > 2 &&
+                e.button == MouseEvent.BUTTON2 &&
+                requireNotNull(deviceConfiguration).isClipboardAvailable
+            ) {
+                pasteSelectionContent()
+            }
+        }
+
+        override fun mousePressed(e: MouseEvent) {
+            if (activeMouseCaptureMode != null) {
+                keyQueue.add(
+                    MouseAction(
+                        MouseActionType.CLICK_DOWN,
+                        convertButton(e.button),
+                        TerminalPosition(e.x / fontWidth, e.y / fontHeight),
+                        e.isControlDown,
+                        e.isAltDown,
+                        e.isShiftDown,
+                    ),
+                )
+            }
+        }
+
+        override fun mouseReleased(e: MouseEvent) {
+            if (activeMouseCaptureMode != null) {
+                keyQueue.add(
+                    MouseAction(
+                        MouseActionType.CLICK_RELEASE,
+                        convertButton(e.button),
+                        TerminalPosition(e.x / fontWidth, e.y / fontHeight),
+                        e.isControlDown,
+                        e.isAltDown,
+                        e.isShiftDown,
+                    ),
+                )
+            }
+        }
+
+        override fun mouseWheelMoved(e: MouseWheelEvent) {
+            if (activeMouseCaptureMode != null) {
+                keyQueue.add(
+                    MouseAction(
+                        if (e.wheelRotation > 0) MouseActionType.SCROLL_DOWN else MouseActionType.SCROLL_UP,
+                        if (e.wheelRotation > 0) 5 else 4,
+                        TerminalPosition(e.x / fontWidth, e.y / fontHeight),
+                        e.isControlDown,
+                        e.isAltDown,
+                        e.isShiftDown,
+                    ),
+                )
+            }
+        }
+
+        override fun mouseMoved(e: MouseEvent) {
+            if (
+                activeMouseCaptureMode == MouseCaptureMode.CLICK_RELEASE_DRAG_MOVE ||
+                activeMouseCaptureMode == MouseCaptureMode.CLICK_AUTODETECT
+            ) {
+                keyQueue.add(
+                    MouseAction(
+                        MouseActionType.MOVE,
+                        0,
+                        TerminalPosition(e.x / fontWidth, e.y / fontHeight),
+                        e.isControlDown,
+                        e.isAltDown,
+                        e.isShiftDown,
+                    ),
+                )
+            }
+        }
+
+        override fun mouseDragged(e: MouseEvent) {
+            if (
+                activeMouseCaptureMode == MouseCaptureMode.CLICK_RELEASE_DRAG ||
+                activeMouseCaptureMode == MouseCaptureMode.CLICK_RELEASE_DRAG_MOVE ||
+                activeMouseCaptureMode == MouseCaptureMode.CLICK_AUTODETECT
+            ) {
+                keyQueue.add(
+                    MouseAction(
+                        MouseActionType.DRAG,
+                        convertButton(e.button),
+                        TerminalPosition(e.x / fontWidth, e.y / fontHeight),
+                        e.isControlDown,
+                        e.isAltDown,
+                        e.isShiftDown,
+                    ),
+                )
+            }
+        }
+    }
+
+    private fun pasteClipboardContent() {
         try {
-            Clipboard systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-            if(systemClipboard != null) {
-                injectStringAsKeyStrokes((String) systemClipboard.getData(DataFlavor.stringFlavor));
+            val systemClipboard: Clipboard? = Toolkit.getDefaultToolkit().systemClipboard
+            if (systemClipboard != null) {
+                injectStringAsKeyStrokes(systemClipboard.getData(DataFlavor.stringFlavor) as String)
             }
-        }
-        catch(Exception ignore) {
+        } catch (_: Exception) {
         }
     }
 
-    private void pasteSelectionContent() {
+    private fun pasteSelectionContent() {
         try {
-            Clipboard systemSelection = Toolkit.getDefaultToolkit().getSystemSelection();
-            if(systemSelection != null) {
-                injectStringAsKeyStrokes((String) systemSelection.getData(DataFlavor.stringFlavor));
+            val systemSelection: Clipboard? = Toolkit.getDefaultToolkit().systemSelection
+            if (systemSelection != null) {
+                injectStringAsKeyStrokes(systemSelection.getData(DataFlavor.stringFlavor) as String)
             }
-        }
-        catch(Exception ignore) {
+        } catch (_: Exception) {
         }
     }
 
-    private void injectStringAsKeyStrokes(String string) {
-        StringReader stringReader = new StringReader(string);
-        InputDecoder inputDecoder = new InputDecoder(stringReader);
-        inputDecoder.addProfile(new DefaultKeyDecodingProfile());
+    private fun injectStringAsKeyStrokes(string: String) {
+        val inputDecoder = InputDecoder(StringReader(string))
+        inputDecoder.addProfile(DefaultKeyDecodingProfile())
         try {
-            KeyStroke keyStroke = inputDecoder.getNextCharacter(false);
-            while (keyStroke != null && keyStroke.getKeyType() != KeyType.EOF) {
-                keyQueue.add(keyStroke);
-                keyStroke = inputDecoder.getNextCharacter(false);
+            var keyStroke = inputDecoder.getNextCharacter(false)
+            while (keyStroke != null && keyStroke.keyType != KeyType.EOF) {
+                keyQueue.add(keyStroke)
+                keyStroke = inputDecoder.getNextCharacter(false)
             }
-        }
-        catch(IOException ignore) {
+        } catch (_: IOException) {
         }
     }
 
-    private static class DirtyCellsLookupTable {
-        private final List<BitSet> table;
-        private int firstRowIndex;
-        private boolean allDirty;
+    private class DirtyCellsLookupTable {
+        private val table: MutableList<BitSet> = ArrayList()
+        private var firstRowIndex: Int = -1
+        private var allDirty: Boolean = false
 
-        DirtyCellsLookupTable() {
-            table = new ArrayList<>();
-            firstRowIndex = -1;
-            allDirty = false;
-        }
-
-        void resetAndInitialize(int firstRowIndex, int lastRowIndex, int columns) {
-            this.firstRowIndex = firstRowIndex;
-            this.allDirty = false;
-            int rows = lastRowIndex - firstRowIndex + 1;
-            while(table.size() < rows) {
-                table.add(new BitSet(columns));
+        fun resetAndInitialize(firstRowIndex: Int, lastRowIndex: Int, columns: Int) {
+            this.firstRowIndex = firstRowIndex
+            allDirty = false
+            val rows = lastRowIndex - firstRowIndex + 1
+            while (table.size < rows) {
+                table.add(BitSet(columns))
             }
-            while(table.size() > rows) {
-                table.remove(table.size() - 1);
+            while (table.size > rows) {
+                table.removeAt(table.size - 1)
             }
-            for(int index = 0; index < table.size(); index++) {
-                if(table.get(index).size() != columns) {
-                    table.set(index, new BitSet(columns));
-                }
-                else {
-                    table.get(index).clear();
+            for (index in table.indices) {
+                if (table[index].size() != columns) {
+                    table[index] = BitSet(columns)
+                } else {
+                    table[index].clear()
                 }
             }
         }
 
-        void setAllDirty() {
-            allDirty = true;
+        fun setAllDirty() {
+            allDirty = true
         }
 
-        boolean isAllDirty() {
-            return allDirty;
-        }
+        fun isAllDirty(): Boolean = allDirty
 
-        void setDirty(TerminalPosition position) {
-            if(position.getRow() < firstRowIndex ||
-                    position.getRow() >= firstRowIndex + table.size()) {
-                return;
+        fun setDirty(position: TerminalPosition) {
+            if (position.row < firstRowIndex || position.row >= firstRowIndex + table.size) {
+                return
             }
-            BitSet tableRow = table.get(position.getRow() - firstRowIndex);
-            if(position.getColumn() < tableRow.size()) {
-                tableRow.set(position.getColumn());
+            val tableRow = table[position.row - firstRowIndex]
+            if (position.column < tableRow.size()) {
+                tableRow.set(position.column)
             }
         }
 
-        void setRowDirty(int rowNumber) {
-            BitSet row = table.get(rowNumber - firstRowIndex);
-            row.set(0, row.size());
+        fun setRowDirty(rowNumber: Int) {
+            val row = table[rowNumber - firstRowIndex]
+            row.set(0, row.size())
         }
 
-        void setColumnDirty(int column) {
-            for(BitSet row: table) {
-                if(column < row.size()) {
-                    row.set(column);
+        fun setColumnDirty(column: Int) {
+            for (row in table) {
+                if (column < row.size()) {
+                    row.set(column)
                 }
             }
         }
 
-        boolean isDirty(int row, int column) {
-            if(row < firstRowIndex || row >= firstRowIndex + table.size()) {
-                return false;
+        fun isDirty(row: Int, column: Int): Boolean {
+            if (row < firstRowIndex || row >= firstRowIndex + table.size) {
+                return false
             }
-            BitSet tableRow = table.get(row - firstRowIndex);
-            if(column < tableRow.size()) {
-                return tableRow.get(column);
-            }
-            else {
-                return false;
-            }
+            val tableRow = table[row - firstRowIndex]
+            return column < tableRow.size() && tableRow[column]
         }
+    }
+
+    companion object {
+        private val TYPED_KEYS_TO_IGNORE: Set<Char> = HashSet(
+            Arrays.asList('\n', '\t', '\r', '\b', '\u001b', 127.toChar()),
+        )
     }
 }

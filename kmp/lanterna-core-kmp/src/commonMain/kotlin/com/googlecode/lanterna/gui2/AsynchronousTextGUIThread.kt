@@ -16,49 +16,45 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeUnit
 
-/**
- * Extended interface of TextGUIThread for implementations that uses a separate thread for all GUI event processing and
- * updating.
- *
- * @author Martin
- */
-public interface AsynchronousTextGUIThread extends TextGUIThread {
+interface AsynchronousTextGUIThread : TextGUIThread {
     /**
      * Starts the AsynchronousTextGUIThread, typically meaning that the event processing loop will start.
      */
-    void start();
+    fun start()
 
     /**
      * Requests that the AsynchronousTextGUIThread stops, typically meaning that the event processing loop will exit
      */
-    void stop();
+    fun stop()
 
     /**
      * Blocks until the GUI loop has stopped
      * @throws InterruptedException In case this thread was interrupted while waiting for the GUI thread to exit
      */
-    void waitForStop() throws InterruptedException;
+    @Throws(InterruptedException::class)
+    fun waitForStop()
 
     /**
      * Blocks until the GUI loop has stopped
      * @throws InterruptedException In case this thread was interrupted while waiting for the GUI thread to exit
      */
-    void waitForStop(long time, TimeUnit unit) throws InterruptedException;
+    @Throws(InterruptedException::class)
+    fun waitForStop(time: Long, unit: TimeUnit?)
 
     /**
      * Returns the current status of this GUI thread
      * @return Current status of the GUI thread
      */
-    State getState();
+    val state: State?
 
     /**
      * Enum representing the states of the GUI thread life-cycle
      */
-    enum State {
+    enum class State {
         /**
          * The instance has been created but not yet started
          */
@@ -75,6 +71,5 @@ public interface AsynchronousTextGUIThread extends TextGUIThread {
          * The thread has stopped
          */
         STOPPED,
-        ;
     }
 }

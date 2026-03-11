@@ -16,110 +16,110 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.sun.jna.Callback;
-import com.sun.jna.Library;
-import com.sun.jna.Structure;
+import com.sun.jna.Callback
+import com.sun.jna.Library
+import com.sun.jna.Structure
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Arrays
 
 /**
  * Interface to Posix libc
  */
-public interface PosixLibC extends Library {
-    int tcgetattr(int fd, termios termios_p);
-    int tcsetattr(int fd, int optional_actions, termios termios_p);
-    int ioctl(int fd, int request, winsize winsize);
-    sig_t signal(int sig, sig_t fn);
+ interface PosixLibC:Library {
+ fun tcgetattr(fd:Int, termios_p:termios?):Int 
+ fun tcsetattr(fd:Int, optional_actions:Int, termios_p:termios?):Int 
+ fun ioctl(fd:Int, request:Int, winsize:winsize?):Int 
+ fun signal(sig:Int, fn:sig_t?):sig_t? 
 
-    // Constants
-    int STDIN_FILENO = 0;
-    int STDOUT_FILENO = 1;
-    int TCSANOW = 0;
-    int NCCS = 32;
+ interface sig_t:Callback {
+ fun invoke(signal:Int) 
+}
 
-    // Constants for c_lflag (beware of octal numbers below!!)
+ class termios:Structure() {
+ var c_iflag:Int = 0           // input mode flags
+ var c_oflag:Int = 0           // output mode flags
+ var c_cflag:Int = 0           // control mode flags
+ var c_lflag:Int = 0           // local mode flags
+ var c_line:Byte = 0           // line discipline
+ var c_cc:ByteArray? = null           // control characters
+ var c_ispeed:Int = 0          // input speed
+ var c_ospeed:Int = 0          // output speed
+init{
+c_cc = ByteArray(NCCS)
+}
+
+protected override fun getFieldOrder():List? {
+return Arrays.asList(
+"c_iflag", 
+"c_oflag", 
+"c_cflag", 
+"c_lflag", 
+"c_line", 
+"c_cc", 
+"c_ispeed", 
+"c_ospeed"
+)
+}
+
+@Override
+public override fun toString():String? {
+return ("termios{" + 
+"c_iflag=" + c_iflag + 
+", c_oflag=" + c_oflag + 
+", c_cflag=" + c_cflag + 
+", c_lflag=" + c_lflag + 
+", c_line=" + c_line + 
+", c_cc=" + Arrays.toString(c_cc) + 
+", c_ispeed=" + c_ispeed + 
+", c_ospeed=" + c_ospeed + 
+'}'.toString())
+}
+}
+
+ class winsize:Structure() {
+ var ws_row:Short = 0
+ var ws_col:Short = 0
+ var ws_xpixel:Short = 0
+ var ws_ypixel:Short = 0
+
+@Override
+protected override fun getFieldOrder():List? {
+return Arrays.asList("ws_row", "ws_col", "ws_xpixel", "ws_ypixel")
+}
+
+@Override
+public override fun toString():String? {
+return ("winsize{" + 
+"ws_row=" + ws_row + 
+", ws_col=" + ws_col + 
+", ws_xpixel=" + ws_xpixel + 
+", ws_ypixel=" + ws_ypixel + 
+'}'.toString())
+}
+}
+
+companion object {
+
+ // Constants
+     val STDIN_FILENO = 0
+ val STDOUT_FILENO = 1
+ val TCSANOW = 0
+ val NCCS = 32
+
+ // Constants for c_lflag (beware of octal numbers below!!)
     @SuppressWarnings("OctalInteger")
-    int ISIG = 01;
-    @SuppressWarnings("OctalInteger")
-    int ICANON = 02;
-    @SuppressWarnings("OctalInteger")
-    int ECHO = 010;
+ val ISIG = 1
+@SuppressWarnings("OctalInteger")
+ val ICANON = 2
+@SuppressWarnings("OctalInteger")
+ val ECHO = 8
 
-    // Signals
-    int SIGWINCH = 28;
+ // Signals
+     val SIGWINCH = 28
 
-    // Constants for ioctl
-    int TIOCGWINSZ = 0x5413;
-
-    interface sig_t extends Callback {
-        void invoke(int signal);
-    }
-
-    class termios extends Structure {
-        public int c_iflag;           // input mode flags
-        public int c_oflag;           // output mode flags
-        public int c_cflag;           // control mode flags
-        public int c_lflag;           // local mode flags
-        public byte c_line;           // line discipline
-        public byte c_cc[];           // control characters
-        public int c_ispeed;          // input speed
-        public int c_ospeed;          // output speed
-
-        public termios() {
-            c_cc = new byte[NCCS];
-        }
-
-        protected List getFieldOrder() {
-            return Arrays.asList(
-                    "c_iflag",
-                    "c_oflag",
-                    "c_cflag",
-                    "c_lflag",
-                    "c_line",
-                    "c_cc",
-                    "c_ispeed",
-                    "c_ospeed"
-            );
-        }
-
-        @Override
-        public String toString() {
-            return "termios{" +
-                    "c_iflag=" + c_iflag +
-                    ", c_oflag=" + c_oflag +
-                    ", c_cflag=" + c_cflag +
-                    ", c_lflag=" + c_lflag +
-                    ", c_line=" + c_line +
-                    ", c_cc=" + Arrays.toString(c_cc) +
-                    ", c_ispeed=" + c_ispeed +
-                    ", c_ospeed=" + c_ospeed +
-                    '}';
-        }
-    }
-
-    class winsize extends Structure
-    {
-        public short ws_row;
-        public short ws_col;
-        public short ws_xpixel;
-        public short ws_ypixel;
-
-        @Override
-        protected List getFieldOrder() {
-            return Arrays.asList("ws_row", "ws_col", "ws_xpixel", "ws_ypixel");
-        }
-
-        @Override
-        public String toString() {
-            return "winsize{" +
-                    "ws_row=" + ws_row +
-                    ", ws_col=" + ws_col +
-                    ", ws_xpixel=" + ws_xpixel +
-                    ", ws_ypixel=" + ws_ypixel +
-                    '}';
-        }
-    }
+ // Constants for ioctl
+     val TIOCGWINSZ = 0x5413
+}
 }

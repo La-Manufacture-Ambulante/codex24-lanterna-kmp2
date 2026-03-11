@@ -16,343 +16,197 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.input;
+package com.googlecode.lanterna.input
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.ArrayList
+import java.util.Arrays
+import java.util.Objects
 
 /**
- * Represents the user pressing a key on the keyboard. If the user held down ctrl and/or alt before pressing the key, 
+ * Represents the user pressing a key on the keyboard. If the user held down ctrl and/or alt before pressing the key,
  * this may be recorded in this class, depending on the terminal implementation and if such information in available.
  * KeyStroke objects are normally constructed by a KeyDecodingProfile, which works off a character stream that likely
- * coming from the system's standard input. Because of this, the class can only represent what can be read and 
+ * coming from the system's standard input. Because of this, the class can only represent what can be read and
  * interpreted from the input stream; for example, certain key-combinations like ctrl+i is indistinguishable from a tab
  * key press.
  * <p>
- * Use the <tt>keyType</tt> field to determine what kind of key was pressed. For ordinary letters, numbers and symbols, the 
- * <tt>keyType</tt> will be <tt>KeyType.Character</tt> and the actual character value of the key is in the 
- * <tt>character</tt> field. Please note that return (\n) and tab (\t) are not sorted under type <tt>KeyType.Character</tt>
- * but <tt>KeyType.Enter</tt> and <tt>KeyType.Tab</tt> instead.
+ * Use the <tt>keyType</tt> field to determine what kind of key was pressed. For ordinary letters, numbers and symbols,
+ * the <tt>keyType</tt> will be <tt>KeyType.Character</tt> and the actual character value of the key is in the
+ * <tt>character</tt> field. Please note that return (\n) and tab (\t) are not sorted under type
+ * <tt>KeyType.Character</tt> but <tt>KeyType.Enter</tt> and <tt>KeyType.Tab</tt> instead.
  * @author martin
  */
-public class KeyStroke {
-    private final KeyType keyType;
-    private final Character character;
-    private final boolean ctrlDown;
-    private final boolean altDown;
-    private final boolean shiftDown;
-    private final long eventTime;
+open class KeyStroke private constructor(
+    val keyType: KeyType?,
+    character: Char?,
+    val isCtrlDown: Boolean,
+    val isAltDown: Boolean,
+    val isShiftDown: Boolean,
+) {
+    val character: Char?
+    val eventTime: Long
 
-    /**
-     * Constructs a KeyStroke based on a supplied keyType; character will be null and both ctrl and alt will be 
-     * considered not pressed. If you try to construct a KeyStroke with type KeyType.Character with this constructor, it
-     * will always throw an exception; use another overload that allows you to specify the character value instead.
-     * @param keyType Type of the key pressed by this keystroke
-     */
-    public KeyStroke(KeyType keyType) {
-        this(keyType, null, false, false, false);
-    }
-    
-    /**
-     * Constructs a KeyStroke based on a supplied keyType; character will be null.
-     * If you try to construct a KeyStroke with type KeyType.Character with this constructor, it
-     * will always throw an exception; use another overload that allows you to specify the character value instead.
-     * @param keyType Type of the key pressed by this keystroke
-     * @param ctrlDown Was ctrl held down when the main key was pressed?
-     * @param altDown Was alt held down when the main key was pressed?
-     */
-    public KeyStroke(KeyType keyType, boolean ctrlDown, boolean altDown) {
-        this(keyType, null, ctrlDown, altDown, false);
-    }
-    
-    /**
-     * Constructs a KeyStroke based on a supplied keyType; character will be null.
-     * If you try to construct a KeyStroke with type KeyType.Character with this constructor, it
-     * will always throw an exception; use another overload that allows you to specify the character value instead.
-     * @param keyType Type of the key pressed by this keystroke
-     * @param ctrlDown Was ctrl held down when the main key was pressed?
-     * @param altDown Was alt held down when the main key was pressed?
-     * @param shiftDown Was shift held down when the main key was pressed?
-     */
-    public KeyStroke(KeyType keyType, boolean ctrlDown, boolean altDown, boolean shiftDown) {
-        this(keyType, null, ctrlDown, altDown, shiftDown);
-    }
-    
-    /**
-     * Constructs a KeyStroke based on a supplied character, keyType is implicitly KeyType.Character.
-     * <p>
-     * A character-based KeyStroke does not support the shiftDown flag, as the shift state has
-     * already been accounted for in the character itself, depending on user's keyboard layout.
-     * @param character Character that was typed on the keyboard
-     * @param ctrlDown Was ctrl held down when the main key was pressed?
-     * @param altDown Was alt held down when the main key was pressed?
-     */
-    public KeyStroke(Character character, boolean ctrlDown, boolean altDown) {
-        this(KeyType.CHARACTER, character, ctrlDown, altDown, false);
-    }
+    constructor(keyType: KeyType?) : this(keyType, null, false, false, false)
 
-    /**
-     * Constructs a KeyStroke based on a supplied character, keyType is implicitly KeyType.Character.
-     * <p>
-     * A character-based KeyStroke does not support the shiftDown flag, as the shift state has
-     * already been accounted for in the character itself, depending on user's keyboard layout.
-     * @param character Character that was typed on the keyboard
-     * @param ctrlDown Was ctrl held down when the main key was pressed?
-     * @param altDown Was alt held down when the main key was pressed?
-     * @param shiftDown Was shift held down when the main key was pressed?
-     */
-    public KeyStroke(Character character, boolean ctrlDown, boolean altDown, boolean shiftDown) {
-        this(KeyType.CHARACTER, character, ctrlDown, altDown, shiftDown);
-    }
-    
-    private KeyStroke(KeyType keyType, Character character, boolean ctrlDown, boolean altDown, boolean shiftDown) {
-        if(keyType == KeyType.CHARACTER && character == null) {
-            throw new IllegalArgumentException("Cannot construct a KeyStroke with type KeyType.Character but no character information");
+    constructor(keyType: KeyType?, ctrlDown: Boolean, altDown: Boolean) : this(keyType, null, ctrlDown, altDown, false)
+
+    constructor(keyType: KeyType?, ctrlDown: Boolean, altDown: Boolean, shiftDown: Boolean) :
+        this(keyType, null, ctrlDown, altDown, shiftDown)
+
+    constructor(character: Char?, ctrlDown: Boolean, altDown: Boolean) :
+        this(KeyType.CHARACTER, character, ctrlDown, altDown, false)
+
+    constructor(character: Char?, ctrlDown: Boolean, altDown: Boolean, shiftDown: Boolean) :
+        this(KeyType.CHARACTER, character, ctrlDown, altDown, shiftDown)
+
+    init {
+        var actualCharacter = character
+        if (keyType == KeyType.CHARACTER && actualCharacter == null) {
+            throw IllegalArgumentException(
+                "Cannot construct a KeyStroke with type KeyType.Character but no character information",
+            )
         }
-        //Enforce character for some key types
-        switch(keyType) {
-            case BACKSPACE:
-                character = '\b';
-                break;
-            case ENTER:
-                character = '\n';
-                break;
-            case TAB:
-                character = '\t';
-                break;
-            default:
+        when (keyType) {
+            KeyType.BACKSPACE -> actualCharacter = '\b'
+            KeyType.ENTER -> actualCharacter = '\n'
+            KeyType.TAB -> actualCharacter = '\t'
+            else -> Unit
         }
-        this.keyType = keyType;
-        this.character = character;
-        this.shiftDown = shiftDown;
-        this.ctrlDown = ctrlDown;
-        this.altDown = altDown;
-        this.eventTime = System.currentTimeMillis();
+        this.character = actualCharacter
+        this.eventTime = System.currentTimeMillis()
     }
 
     /**
-     * an F3-KeyStroke that is distinguishable from a CursorLocation report.
+     * F3 that is distinguishable from a cursor-location report.
      */
-    public static class RealF3 extends KeyStroke {
-        public RealF3() { super(KeyType.F3,false,false,false); }
-    }
+    class RealF3 : KeyStroke(KeyType.F3, false, false, false)
 
-    /**
-     * Type of key that was pressed on the keyboard, as represented by the KeyType enum. If the value if 
-     * KeyType.Character, you need to call getCharacter() to find out which letter, number or symbol that was actually
-     * pressed.
-     * @return Type of key on the keyboard that was pressed
-     */
-    public KeyType getKeyType() {
-        return keyType;
-    }
-
-    /**
-     * For keystrokes of ordinary keys (letters, digits, symbols), this method returns the actual character value of the
-     * key. For all other key types, it returns null.
-     * @return Character value of the key pressed, or null if it was a special key
-     */
-    public Character getCharacter() {
-        return character;
-    }
-
-    /**
-     * @return Returns true if ctrl was help down while the key was typed (depending on terminal implementation)
-     */
-    public boolean isCtrlDown() {
-        return ctrlDown;
-    }
-
-    /**
-     * @return Returns true if alt was help down while the key was typed (depending on terminal implementation)
-     */
-    public boolean isAltDown() {
-        return altDown;
-    }
-
-    /**
-     * @return Returns true if shift was help down while the key was typed (depending on terminal implementation)
-     */
-    public boolean isShiftDown() {
-        return shiftDown;
-    }
-
-    /**
-     * Gets the time when the keystroke was recorded. This isn't necessarily the time the keystroke happened, but when
-     * Lanterna received the event, so it may not be accurate down to the millisecond.
-     * @return The unix time of when the keystroke happened, in milliseconds
-     */
-    public long getEventTime() {
-        return eventTime;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("KeyStroke{keytype=").append(keyType);
-        if (character != null) {
-            char ch = character;
-            sb.append(", character='");
-            switch (ch) {
-            // many of these cases can only happen through user code:
-            case 0x00: sb.append("^@"); break;
-            case 0x08: sb.append("\\b"); break;
-            case 0x09: sb.append("\\t"); break;
-            case 0x0a: sb.append("\\n"); break;
-            case 0x0d: sb.append("\\r"); break;
-            case 0x1b: sb.append("^["); break;
-            case 0x1c: sb.append("^\\"); break;
-            case 0x1d: sb.append("^]"); break;
-            case 0x1e: sb.append("^^"); break;
-            case 0x1f: sb.append("^_"); break;
-            default:
-                if (ch <= 26) {
-                    sb.append('^').append((char)(ch+64));
-                } else { sb.append(ch); }
-            }
-            sb.append('\'');
-        }
-        if (ctrlDown || altDown || shiftDown) {
-            String sep=""; sb.append(", modifiers=[");
-            if (ctrlDown) {  sb.append(sep).append("ctrl"); sep=","; }
-            if (altDown) {   sb.append(sep).append("alt"); sep=","; }
-            if (shiftDown) { sb.append(sep).append("shift"); }
-            sb.append("]");
-        }
-        return sb.append('}').toString();
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 41 * hash + (this.keyType != null ? this.keyType.hashCode() : 0);
-        hash = 41 * hash + (this.character != null ? this.character.hashCode() : 0);
-        hash = 41 * hash + (this.ctrlDown ? 1 : 0);
-        hash = 41 * hash + (this.altDown ? 1 : 0);
-        hash = 41 * hash + (this.shiftDown ? 1 : 0);
-        return hash;
-    }
-
-    @SuppressWarnings("SimplifiableIfStatement")
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final KeyStroke other = (KeyStroke) obj;
-        if (this.keyType != other.keyType) {
-            return false;
-        }
-        if (!Objects.equals(this.character, other.character)) {
-            return false;
-        }
-        return this.ctrlDown == other.ctrlDown && 
-               this.altDown == other.altDown &&
-               this.shiftDown == other.shiftDown;
-    }
-    
-    /**
-     * Creates a Key from a string representation in Vim's key notation.
-     *
-     * @param keyStr the string representation of this key
-     * @return the created {@link KeyType}
-     */
-    public static KeyStroke fromString(String keyStr) {
-        String keyStrLC = keyStr.toLowerCase();
-        KeyStroke k;
-        if (keyStr.length() == 1) {
-            k = new KeyStroke(KeyType.CHARACTER, keyStr.charAt(0), false, false, false);
-        } else if (keyStr.startsWith("<") && keyStr.endsWith(">")) {
-            if (keyStrLC.equals("<s-tab>")) {
-                k = new KeyStroke(KeyType.REVERSE_TAB);
-            } else if (keyStr.contains("-")) {
-                ArrayList<String> segments = new ArrayList<>(Arrays.asList(keyStr.substring(1, keyStr.length() - 1).split("-")));
-                if (segments.size() < 2) {
-                    throw new IllegalArgumentException("Invalid vim notation: " + keyStr);
-                }
-                String characterStr = segments.remove(segments.size() - 1);
-                boolean altPressed = false;
-                boolean ctrlPressed = false;
-                for (String modifier : segments) {
-                    switch (modifier.toLowerCase()) {
-                        case "c":
-                            ctrlPressed = true;
-                            break;
-                        case "a":
-                            altPressed = true;
-                            break;
-                        case "s":
-                            characterStr = characterStr.toUpperCase();
-                            break;
+    override fun toString(): String {
+        val sb = StringBuilder()
+        sb.append("KeyStroke{keytype=").append(keyType)
+        character?.let { ch ->
+            sb.append(", character='")
+            when (ch) {
+                '\u0000' -> sb.append("^@")
+                '\b' -> sb.append("\\b")
+                '\t' -> sb.append("\\t")
+                '\n' -> sb.append("\\n")
+                '\r' -> sb.append("\\r")
+                '\u001b' -> sb.append("^[")
+                '\u001c' -> sb.append("^\\")
+                '\u001d' -> sb.append("^]")
+                '\u001e' -> sb.append("^^")
+                '\u001f' -> sb.append("^_")
+                else -> {
+                    if (ch.code <= 26) {
+                        sb.append('^').append((ch.code + 64).toChar())
+                    } else {
+                        sb.append(ch)
                     }
                 }
-                k = new KeyStroke(characterStr.charAt(0), ctrlPressed, altPressed);
-            } else {
-                if (keyStrLC.startsWith("<esc")) {
-                    k = new KeyStroke(KeyType.ESCAPE);
-                } else if (keyStrLC.equals("<cr>") || keyStrLC.equals("<enter>") || keyStrLC.equals("<return>")) {
-                    k = new KeyStroke(KeyType.ENTER);
-                } else if (keyStrLC.equals("<bs>")) {
-                    k = new KeyStroke(KeyType.BACKSPACE);
-                } else if (keyStrLC.equals("<tab>")) {
-                    k = new KeyStroke(KeyType.TAB);
-                } else if (keyStrLC.equals("<space>")) {
-                    k = new KeyStroke(' ', false, false);
-                } else if (keyStrLC.equals("<up>")) {
-                    k = new KeyStroke(KeyType.ARROW_UP);
-                } else if (keyStrLC.equals("<down>")) {
-                    k = new KeyStroke(KeyType.ARROW_DOWN);
-                } else if (keyStrLC.equals("<left>")) {
-                    k = new KeyStroke(KeyType.ARROW_LEFT);
-                } else if (keyStrLC.equals("<right>")) {
-                    k = new KeyStroke(KeyType.ARROW_RIGHT);
-                } else if (keyStrLC.equals("<insert>")) {
-                    k = new KeyStroke(KeyType.INSERT);
-                } else if (keyStrLC.equals("<del>")) {
-                    k = new KeyStroke(KeyType.DELETE);
-                } else if (keyStrLC.equals("<home>")) {
-                    k = new KeyStroke(KeyType.HOME);
-                } else if (keyStrLC.equals("<end>")) {
-                    k = new KeyStroke(KeyType.END);
-                } else if (keyStrLC.equals("<pageup>")) {
-                    k = new KeyStroke(KeyType.PAGE_UP);
-                } else if (keyStrLC.equals("<pagedown>")) {
-                    k = new KeyStroke(KeyType.PAGE_DOWN);
-                } else if (keyStrLC.equals("<f1>")) {
-                    k = new KeyStroke(KeyType.F1);
-                } else if (keyStrLC.equals("<f2>")) {
-                    k = new KeyStroke(KeyType.F2);
-                } else if (keyStrLC.equals("<f3>")) {
-                    k = new KeyStroke(KeyType.F3);
-                } else if (keyStrLC.equals("<f4>")) {
-                    k = new KeyStroke(KeyType.F4);
-                } else if (keyStrLC.equals("<f5>")) {
-                    k = new KeyStroke(KeyType.F5);
-                } else if (keyStrLC.equals("<f6>")) {
-                    k = new KeyStroke(KeyType.F6);
-                } else if (keyStrLC.equals("<f7>")) {
-                    k = new KeyStroke(KeyType.F7);
-                } else if (keyStrLC.equals("<f8>")) {
-                    k = new KeyStroke(KeyType.F8);
-                } else if (keyStrLC.equals("<f9>")) {
-                    k = new KeyStroke(KeyType.F9);
-                } else if (keyStrLC.equals("<f10>")) {
-                    k = new KeyStroke(KeyType.F10);
-                } else if (keyStrLC.equals("<f11>")) {
-                    k = new KeyStroke(KeyType.F11);
-                } else if (keyStrLC.equals("<f12>")) {
-                    k = new KeyStroke(KeyType.F12);
-                } else {
-                    throw new IllegalArgumentException("Invalid vim notation: " + keyStr);
-                }
             }
-        } else {
-            throw new IllegalArgumentException("Invalid vim notation: " + keyStr);
+            sb.append('\'')
         }
-        return k;
+        if (isCtrlDown || isAltDown || isShiftDown) {
+            var sep = ""
+            sb.append(", modifiers=[")
+            if (isCtrlDown) {
+                sb.append(sep).append("ctrl")
+                sep = ","
+            }
+            if (isAltDown) {
+                sb.append(sep).append("alt")
+                sep = ","
+            }
+            if (isShiftDown) {
+                sb.append(sep).append("shift")
+            }
+            sb.append("]")
+        }
+        return sb.append('}').toString()
+    }
+
+    override fun hashCode(): Int {
+        var hash = 3
+        hash = 41 * hash + (keyType?.hashCode() ?: 0)
+        hash = 41 * hash + (character?.hashCode() ?: 0)
+        hash = 41 * hash + if (isCtrlDown) 1 else 0
+        hash = 41 * hash + if (isAltDown) 1 else 0
+        hash = 41 * hash + if (isShiftDown) 1 else 0
+        return hash
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other == null || javaClass != other.javaClass) {
+            return false
+        }
+        other as KeyStroke
+        return keyType == other.keyType &&
+            Objects.equals(character, other.character) &&
+            isCtrlDown == other.isCtrlDown &&
+            isAltDown == other.isAltDown &&
+            isShiftDown == other.isShiftDown
+    }
+
+    companion object {
+        fun fromString(keyStr: String): KeyStroke {
+            val keyStrLC = keyStr.lowercase()
+            if (keyStr.length == 1) {
+                return KeyStroke(keyStr[0], false, false)
+            }
+            if (!keyStr.startsWith("<") || !keyStr.endsWith(">")) {
+                throw IllegalArgumentException("Invalid vim notation: $keyStr")
+            }
+            if (keyStrLC == "<s-tab>") {
+                return KeyStroke(KeyType.REVERSE_TAB)
+            }
+            if (keyStr.contains("-")) {
+                val segments = ArrayList(Arrays.asList(*keyStr.substring(1, keyStr.length - 1).split("-").toTypedArray()))
+                if (segments.size < 2) {
+                    throw IllegalArgumentException("Invalid vim notation: $keyStr")
+                }
+                var characterStr = segments.removeAt(segments.size - 1)
+                var altPressed = false
+                var ctrlPressed = false
+                for (modifier in segments) {
+                    when (modifier.lowercase()) {
+                        "c" -> ctrlPressed = true
+                        "a" -> altPressed = true
+                        "s" -> characterStr = characterStr.uppercase()
+                    }
+                }
+                return KeyStroke(characterStr[0], ctrlPressed, altPressed)
+            }
+            return when (keyStrLC) {
+                "<esc>" -> KeyStroke(KeyType.ESCAPE)
+                "<cr>", "<enter>", "<return>" -> KeyStroke(KeyType.ENTER)
+                "<bs>" -> KeyStroke(KeyType.BACKSPACE)
+                "<tab>" -> KeyStroke(KeyType.TAB)
+                "<space>" -> KeyStroke(' ', false, false)
+                "<up>" -> KeyStroke(KeyType.ARROW_UP)
+                "<down>" -> KeyStroke(KeyType.ARROW_DOWN)
+                "<left>" -> KeyStroke(KeyType.ARROW_LEFT)
+                "<right>" -> KeyStroke(KeyType.ARROW_RIGHT)
+                "<insert>" -> KeyStroke(KeyType.INSERT)
+                "<del>" -> KeyStroke(KeyType.DELETE)
+                "<home>" -> KeyStroke(KeyType.HOME)
+                "<end>" -> KeyStroke(KeyType.END)
+                "<pageup>" -> KeyStroke(KeyType.PAGE_UP)
+                "<pagedown>" -> KeyStroke(KeyType.PAGE_DOWN)
+                "<f1>" -> KeyStroke(KeyType.F1)
+                "<f2>" -> KeyStroke(KeyType.F2)
+                "<f3>" -> KeyStroke(KeyType.F3)
+                "<f4>" -> KeyStroke(KeyType.F4)
+                "<f5>" -> KeyStroke(KeyType.F5)
+                "<f6>" -> KeyStroke(KeyType.F6)
+                "<f7>" -> KeyStroke(KeyType.F7)
+                "<f8>" -> KeyStroke(KeyType.F8)
+                "<f9>" -> KeyStroke(KeyType.F9)
+                "<f10>" -> KeyStroke(KeyType.F10)
+                "<f11>" -> KeyStroke(KeyType.F11)
+                "<f12>" -> KeyStroke(KeyType.F12)
+                else -> throw IllegalArgumentException("Invalid vim notation: $keyStr")
+            }
+        }
     }
 }

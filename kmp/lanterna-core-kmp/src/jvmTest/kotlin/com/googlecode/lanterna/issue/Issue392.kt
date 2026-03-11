@@ -1,55 +1,57 @@
-package com.googlecode.lanterna.issue;
+package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.gui2.BasicWindow;
-import com.googlecode.lanterna.gui2.Button;
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
-import com.googlecode.lanterna.gui2.TextGUIThread;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
-import java.io.IOException;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.gui2.BasicWindow
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.gui2.TextGUIThread
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.terminal.Terminal
+import java.io.IOException
 
-public class Issue392 {
-    private static MultiWindowTextGUI textGUI;
+ object Issue392 {
+private var textGUI:MultiWindowTextGUI? = null
 
-    public static void main(String[] args) throws IOException {
-        DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
-        Terminal terminal = terminalFactory.createTerminal();
-        TerminalScreen screen = new TerminalScreen(terminal);
-        screen.startScreen();
-        textGUI = new MultiWindowTextGUI(screen);
-        setExceptionHandler();
-        BasicWindow window = new BasicWindow();
+@Throws(IOException::class)
+ fun main(args:Array<String?>?) {
+val terminalFactory = DefaultTerminalFactory()
+val terminal = terminalFactory.createTerminal()!!
+val screen = TerminalScreen(terminal)
+screen.startScreen()
+textGUI = MultiWindowTextGUI(screen)
+setExceptionHandler()
+val window = BasicWindow()
 
-        Button button = new Button("test");
-        button.addListener(b -> {
-            setExceptionHandler();
-            throw new RuntimeException("This should be caught in the uncaght exception handler!");
-        });
-        window.setComponent(button);
+val button = Button("test")
+button.addListener(object : Button.Listener {
+override fun onTriggered(button: Button) {
+setExceptionHandler()
+throw RuntimeException("This should be caught in the uncaght exception handler!")
+}
+})
+window.component = button
 
-        textGUI.addWindowAndWait(window);
-        screen.stopScreen();
-    }
+textGUI!!.addWindowAndWait(window)
+screen.stopScreen()
+}
 
-    private static void setExceptionHandler() {
-        textGUI.getGUIThread().setExceptionHandler(new TextGUIThread.ExceptionHandler() {
+private fun setExceptionHandler() {
+textGUI!!.guiThread!!.setExceptionHandler(object:TextGUIThread.ExceptionHandler {
 
-            private boolean handleException(Exception e) {
-                System.err.println("### Caught!");
-                e.printStackTrace();
-                return false;
-            }
+private fun handleException(e:Exception):Boolean {
+System.err.println("### Caught!")
+e.printStackTrace()
+return false
+}
 
-            @Override
-            public boolean onIOException(IOException e) {
-                return handleException(e);
-            }
+public override fun onIOException(e:IOException?):Boolean {
+return handleException(e!!)
+}
 
-            @Override
-            public boolean onRuntimeException(RuntimeException e) {
-                return handleException(e);
-            }
-        });
-    }
+public override fun onRuntimeException(e:RuntimeException?):Boolean {
+return handleException(e!!)
+}
+})
+}
 }

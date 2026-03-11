@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,19 +13,19 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.screen;
+package com.googlecode.lanterna.screen
 
 /**
- * What to do about the tab character when putting on a {@code Screen}. Since tabs are a bit special, their meaning
+ * What to do about the tab character when putting on a `Screen`. Since tabs are a bit special, their meaning
  * depends on which column the cursor is in when it's printed, we'll need to have some way to tell the Screen what to
  * do when encountering a tab character.
  *
  * @author martin
  */
-public enum TabBehaviour {
+enum class TabBehaviour(private val replaceFactor: Int?, private val alignFactor: Int?) {
     /**
      * Tab characters are not replaced, this will probably have undefined and weird behaviour!
      */
@@ -62,30 +62,23 @@ public enum TabBehaviour {
     ALIGN_TO_COLUMN_8(null, 8),
     ;
 
-    private final Integer replaceFactor;
-    private final Integer alignFactor;
-
-    TabBehaviour(Integer replaceFactor, Integer alignFactor) {
-        this.replaceFactor = replaceFactor;
-        this.alignFactor = alignFactor;
-    }
-    
     /**
-     * Given a string, being placed on the screen at column X, returns the same string with all tab characters (\t) 
+     * Given a string, being placed on the screen at column X, returns the same string with all tab characters (\t)
      * replaced according to this TabBehaviour.
      * @param string String that is going to be put to the screen, potentially containing tab characters
      * @param columnIndex Column on the screen where the first character of the string is going to end up
      * @return The input string with all tab characters replaced with spaces, according to this TabBehaviour
      */
-    public String replaceTabs(String string, int columnIndex) {
-        int tabPosition = string.indexOf('\t');
-        while(tabPosition != -1) {
-            String tabReplacementHere = getTabReplacement(columnIndex + tabPosition);
-            string = string.substring(0, tabPosition) + tabReplacementHere + string.substring(tabPosition + 1);
-            tabPosition += tabReplacementHere.length();
-            tabPosition = string.indexOf('\t', tabPosition);
+    fun replaceTabs(string: String, columnIndex: Int): String {
+        var result = string
+        var tabPosition = result.indexOf('\t')
+        while (tabPosition != -1) {
+            val replacement = getTabReplacement(columnIndex + tabPosition)
+            result = result.substring(0, tabPosition) + replacement + result.substring(tabPosition + 1)
+            tabPosition += replacement.length
+            tabPosition = result.indexOf('\t', tabPosition)
         }
-        return string;
+        return result
     }
 
     /**
@@ -93,21 +86,16 @@ public enum TabBehaviour {
      * @param columnIndex Column index of where the tab character is placed
      * @return String consisting of 1 or more space character
      */
-    public String getTabReplacement(int columnIndex) {
-        int replaceCount;
-        StringBuilder replace = new StringBuilder();
-        if(replaceFactor != null) {
-            replaceCount = replaceFactor;
+    fun getTabReplacement(columnIndex: Int): String {
+        val replaceCount = when {
+            replaceFactor != null -> replaceFactor
+            alignFactor != null -> alignFactor - (columnIndex % alignFactor)
+            else -> return "\t"
         }
-        else if (alignFactor != null) {
-            replaceCount = alignFactor - (columnIndex % alignFactor);
+        return buildString {
+            repeat(replaceCount) {
+                append(' ')
+            }
         }
-        else {
-            return "\t";
-        }
-        for(int i = 0; i < replaceCount; i++) {
-            replace.append(" ");
-        }
-        return replace.toString();
     }
 }

@@ -16,30 +16,30 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.terminal.virtual;
+package com.googlecode.lanterna.terminal.virtual
 
-import com.googlecode.lanterna.terminal.Terminal;
-import com.googlecode.lanterna.terminal.TerminalResizeListener;
+import com.googlecode.lanterna.terminal.Terminal
+import com.googlecode.lanterna.terminal.TerminalResizeListener
 
 /**
- * Listener class for {@link VirtualTerminal} that allows you to receive callbacks on certain events. Please note that
- * while this extends {@link TerminalResizeListener} and can be attached to a {@link VirtualTerminal} through
- * {@link com.googlecode.lanterna.terminal.Terminal#addResizeListener(TerminalResizeListener)}, in that case only the
+ * Listener class for [VirtualTerminal] that allows you to receive callbacks on certain events. Please note that
+ * while this extends [TerminalResizeListener] and can be attached to a [VirtualTerminal] through
+ * [com.googlecode.lanterna.terminal.Terminal.addResizeListener], in that case only the
  * resize event will fire on the listener.
  */
-public interface VirtualTerminalListener extends TerminalResizeListener {
+interface VirtualTerminalListener : TerminalResizeListener {
     /**
-     * Called when the {@link Terminal#flush()} method is invoked on the {@link VirtualTerminal}
+     * Called when the [Terminal.flush] method is invoked on the [VirtualTerminal]
      */
-    void onFlush();
+    fun onFlush()
 
     /**
-     * Called when the {@link Terminal#bell()} method is invoked on the {@link VirtualTerminal}
+     * Called when the [Terminal.bell] method is invoked on the [VirtualTerminal]
      */
-    void onBell();
+    fun onBell()
 
     /**
-     * Called when the {@link Terminal#close()} method is invoked on the {@link VirtualTerminal}
+     * Called when the [Terminal.close] method is invoked on the [VirtualTerminal]
      */
-    void onClose();
+    fun onClose()
 }

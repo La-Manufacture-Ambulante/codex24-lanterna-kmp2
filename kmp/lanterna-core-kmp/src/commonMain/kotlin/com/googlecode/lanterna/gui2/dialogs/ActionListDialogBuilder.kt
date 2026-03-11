@@ -16,150 +16,101 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.dialogs;
+package com.googlecode.lanterna.gui2.dialogs
 
-import com.googlecode.lanterna.TerminalSize;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.googlecode.lanterna.TerminalSize
+import java.util.ArrayList
+import java.util.Arrays
 
 /**
- * Dialog builder for the {@code ActionListDialog} class, use this to create instances of that class and to customize
- * them
+ * Dialog builder for the [ActionListDialog] class, use this to create instances of that class and customize them.
  * @author Martin
  */
-public class ActionListDialogBuilder extends AbstractDialogBuilder<ActionListDialogBuilder, ActionListDialog> {
+class ActionListDialogBuilder : AbstractDialogBuilder<ActionListDialogBuilder, ActionListDialog>("ActionListDialogBuilder") {
+    private val actions: MutableList<Runnable> = ArrayList()
+    private var listBoxSize: TerminalSize? = null
+    private var canCancel: Boolean = true
+    private var closeAutomatically: Boolean = true
 
-    private final List<Runnable> actions;
-    private TerminalSize listBoxSize;
-    private boolean canCancel;
-    private boolean closeAutomatically;
+    override fun self(): ActionListDialogBuilder = this
 
-    /**
-     * Default constructor
-     */
-    public ActionListDialogBuilder() {
-        super("ActionListDialogBuilder");
-        this.listBoxSize = null;
-        this.canCancel = true;
-        this.closeAutomatically = true;
-        this.actions = new ArrayList<>();
+    override fun buildDialog(): ActionListDialog {
+        return ActionListDialog(
+            getTitle(),
+            getDescription(),
+            listBoxSize,
+            canCancel,
+            closeAutomatically,
+            actions,
+        )
     }
 
-    @Override
-    protected ActionListDialogBuilder self() {
-        return this;
-    }
-
-    @Override
-    protected ActionListDialog buildDialog() {
-        return new ActionListDialog(
-                title,
-                description,
-                listBoxSize,
-                canCancel,
-                closeAutomatically,
-                actions);
+    fun setListBoxSize(listBoxSize: TerminalSize?): ActionListDialogBuilder {
+        this.listBoxSize = listBoxSize
+        return this
     }
 
     /**
-     * Sets the size of the internal {@code ActionListBox} in columns and rows, forcing scrollbars to appear if the
-     * space isn't big enough to contain all the items
-     * @param listBoxSize Size of the {@code ActionListBox}
-     * @return Itself
+     * Returns the preferred list-box size for the dialog.
      */
-    public ActionListDialogBuilder setListBoxSize(TerminalSize listBoxSize) {
-        this.listBoxSize = listBoxSize;
-        return this;
+    fun getListBoxSize(): TerminalSize? = listBoxSize
+
+    /**
+     * Controls whether the dialog can be cancelled by the user.
+     */
+    fun setCanCancel(canCancel: Boolean): ActionListDialogBuilder {
+        this.canCancel = canCancel
+        return this
     }
 
     /**
-     * Returns the specified size of the internal {@code ActionListBox} or {@code null} if there is no size and the list
-     * box will attempt to take up enough size to draw all items
-     * @return Specified size of the internal {@code ActionListBox} or {@code null} if there is no size
+     * Returns `true` if cancel controls are enabled.
      */
-    public TerminalSize getListBoxSize() {
-        return listBoxSize;
+    fun isCanCancel(): Boolean = canCancel
+
+    /**
+     * Adds an action item with an explicit display label.
+     */
+    fun addAction(label: String?, action: Runnable): ActionListDialogBuilder {
+        return addAction(
+            object : Runnable {
+                override fun toString(): String {
+                    return label ?: ""
+                }
+
+                override fun run() {
+                    action.run()
+                }
+            },
+        )
     }
 
     /**
-     * Sets if the dialog can be cancelled or not (default: {@code true})
-     * @param canCancel If {@code true}, the user has the option to cancel the dialog, if {@code false} there is no such
-     *                  button in the dialog
-     * @return Itself
+     * Adds an action item, using [Runnable.toString] as display text.
      */
-    public ActionListDialogBuilder setCanCancel(boolean canCancel) {
-        this.canCancel = canCancel;
-        return this;
+    fun addAction(action: Runnable): ActionListDialogBuilder {
+        actions.add(action)
+        return this
     }
 
     /**
-     * Returns {@code true} if the dialog can be cancelled once it's opened
-     * @return {@code true} if the dialog can be cancelled once it's opened
+     * Adds multiple action items.
      */
-    public boolean isCanCancel() {
-        return canCancel;
+    fun addActions(vararg actions: Runnable): ActionListDialogBuilder {
+        this.actions.addAll(Arrays.asList(*actions))
+        return this
     }
 
     /**
-     * Adds an additional action to the {@code ActionListBox} that is to be displayed when the dialog is opened
-     * @param label Label of the new action
-     * @param action Action to perform if the user selects this item
-     * @return Itself
+     * Returns a copy of configured actions.
      */
-    public ActionListDialogBuilder addAction(final String label, final Runnable action) {
-        return addAction(new Runnable() {
-            @Override
-            public String toString() {
-                return label;
-            }
-
-            @Override
-            public void run() {
-                action.run();
-            }
-        });
-    }
+    fun getActions(): List<Runnable> = ArrayList(actions)
 
     /**
-     * Adds an additional action to the {@code ActionListBox} that is to be displayed when the dialog is opened. The
-     * label of this item will be derived by calling {@code toString()} on the runnable
-     * @param action Action to perform if the user selects this item
-     * @return Itself
+     * Controls whether selecting an action should automatically close the dialog.
      */
-    public ActionListDialogBuilder addAction(Runnable action) {
-        this.actions.add(action);
-        return this;
-    }
-
-    /**
-     * Adds additional actions to the {@code ActionListBox} that is to be displayed when the dialog is opened. The
-     * label of the items will be derived by calling {@code toString()} on each runnable
-     * @param actions Items to add to the {@code ActionListBox}
-     * @return Itself
-     */
-    public ActionListDialogBuilder addActions(Runnable... actions) {
-        this.actions.addAll(Arrays.asList(actions));
-        return this;
-    }
-
-    /**
-     * Returns a copy of the internal list of actions currently inside this builder that will be assigned to the
-     * {@code ActionListBox} in the dialog when built
-     * @return Copy of the internal list of actions currently inside this builder
-     */
-    public List<Runnable> getActions() {
-        return new ArrayList<>(actions);
-    }
-
-    /**
-     * Sets if clicking on an action automatically closes the dialog after the action is finished (default: {@code true})
-     * @param closeAutomatically if {@code true} dialog will be automatically closed after choosing and finish any of the action
-     * @return Itself
-     */
-    public ActionListDialogBuilder setCloseAutomaticallyOnAction(boolean closeAutomatically) {
-        this.closeAutomatically = closeAutomatically;
-        return this;
+    fun setCloseAutomaticallyOnAction(closeAutomatically: Boolean): ActionListDialogBuilder {
+        this.closeAutomatically = closeAutomatically
+        return this
     }
 }

@@ -16,514 +16,370 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.ansi.CygwinTerminal;
-import com.googlecode.lanterna.terminal.ansi.TelnetTerminal;
-import com.googlecode.lanterna.terminal.ansi.TelnetTerminalServer;
-import com.googlecode.lanterna.terminal.ansi.UnixLikeTTYTerminal;
-import com.googlecode.lanterna.terminal.ansi.UnixTerminal;
-import com.googlecode.lanterna.terminal.swing.*;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.ansi.CygwinTerminal
+import com.googlecode.lanterna.terminal.ansi.TelnetTerminal
+import com.googlecode.lanterna.terminal.ansi.TelnetTerminalServer
+import com.googlecode.lanterna.terminal.ansi.UnixLikeTerminal
+import com.googlecode.lanterna.terminal.ansi.UnixTerminal
+import com.googlecode.lanterna.terminal.swing.AWTTerminalFontConfiguration
+import com.googlecode.lanterna.terminal.swing.AWTTerminalFrame
+import com.googlecode.lanterna.terminal.swing.SwingTerminalFontConfiguration
+import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame
+import com.googlecode.lanterna.terminal.swing.TerminalEmulatorAutoCloseTrigger
+import com.googlecode.lanterna.terminal.swing.TerminalEmulatorColorConfiguration
+import com.googlecode.lanterna.terminal.swing.TerminalEmulatorDeviceConfiguration
+import java.io.Console
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.lang.reflect.Constructor
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
+import java.nio.charset.Charset
+import java.util.EnumSet
 
-import java.io.Console;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.charset.Charset;
-import java.util.EnumSet;
+class DefaultTerminalFactory @Suppress("SameParameterValue", "WeakerAccess") constructor(
+    private val outputStream: OutputStream,
+    private val inputStream: InputStream,
+    private val charset: Charset,
+) : TerminalFactory {
+    private var initialTerminalSize: TerminalSize? = null
+    private var forceTextTerminal = false
+    private var preferTerminalEmulator = false
+    private var forceAWTOverSwing = false
+    private var telnetPort = -1
+    private var inputTimeout = -1
+    private var title: String? = null
+    private var autoOpenTerminalFrame = true
+    private val autoCloseTriggers = EnumSet.of(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_EXIT_PRIVATE_MODE)
+    private var colorConfiguration: TerminalEmulatorColorConfiguration? = null
+    private var deviceConfiguration: TerminalEmulatorDeviceConfiguration? = null
+    private var fontConfiguration: AWTTerminalFontConfiguration? = null
+    private var mouseCaptureMode: MouseCaptureMode? = null
+    private var unixTerminalCtrlCBehaviour: UnixLikeTerminal.CtrlCBehaviour =
+        UnixLikeTerminal.CtrlCBehaviour.CTRL_C_KILLS_APPLICATION
 
-/**
- * This TerminalFactory implementation uses a simple auto-detection mechanism for figuring out which terminal
- * implementation to create based on characteristics of the system the program is running on.
- * <p>
- * Note that for all systems with a graphical environment present, the SwingTerminalFrame will be chosen. You can
- * suppress this by calling setForceTextTerminal(true) on this factory.
- * @author martin
- */
-public class DefaultTerminalFactory implements TerminalFactory {
-    private static final OutputStream DEFAULT_OUTPUT_STREAM = System.out;
-    private static final InputStream DEFAULT_INPUT_STREAM = System.in;
-    private static final Charset DEFAULT_CHARSET = Charset.defaultCharset();
+    constructor() : this(DEFAULT_OUTPUT_STREAM, DEFAULT_INPUT_STREAM, DEFAULT_CHARSET)
 
-    private final OutputStream outputStream;
-    private final InputStream inputStream;
-    private final Charset charset;
-
-    private TerminalSize initialTerminalSize;
-    private boolean forceTextTerminal;
-    private boolean preferTerminalEmulator;
-    private boolean forceAWTOverSwing;
-    private int telnetPort;
-    private int inputTimeout;
-    private String title;
-    private boolean autoOpenTerminalFrame;
-    private final EnumSet<TerminalEmulatorAutoCloseTrigger> autoCloseTriggers;
-    private TerminalEmulatorColorConfiguration colorConfiguration;
-    private TerminalEmulatorDeviceConfiguration deviceConfiguration;
-    private AWTTerminalFontConfiguration fontConfiguration;
-    private MouseCaptureMode mouseCaptureMode;
-    private UnixTerminal.CtrlCBehaviour unixTerminalCtrlCBehaviour;
-
-    /**
-     * Creates a new DefaultTerminalFactory with all properties set to their defaults
-     */
-    public DefaultTerminalFactory() {
-        this(DEFAULT_OUTPUT_STREAM, DEFAULT_INPUT_STREAM, DEFAULT_CHARSET);
-    }
-
-    /**
-     * Creates a new DefaultTerminalFactory with I/O and character set options customisable.
-     * @param outputStream Output stream to use for text-based Terminal implementations
-     * @param inputStream Input stream to use for text-based Terminal implementations
-     * @param charset Character set to assume the client is using
-     */
-    @SuppressWarnings({"SameParameterValue", "WeakerAccess"})
-    public DefaultTerminalFactory(OutputStream outputStream, InputStream inputStream, Charset charset) {
-        this.outputStream = outputStream;
-        this.inputStream = inputStream;
-        this.charset = charset;
-
-        this.forceTextTerminal = false;
-        this.preferTerminalEmulator = false;
-        this.forceAWTOverSwing = false;
-
-        this.telnetPort = -1;
-        this.inputTimeout = -1;
-        this.autoOpenTerminalFrame = true;
-        this.title = null;
-        this.autoCloseTriggers = EnumSet.of(TerminalEmulatorAutoCloseTrigger.CLOSE_ON_EXIT_PRIVATE_MODE);
-        this.mouseCaptureMode = null;
-        this.unixTerminalCtrlCBehaviour = UnixTerminal.CtrlCBehaviour.CTRL_C_KILLS_APPLICATION;
-
-        //SwingTerminal will replace these null values for the default implementation if they are unchanged
-        this.colorConfiguration = null;
-        this.deviceConfiguration = null;
-        this.fontConfiguration = null;
-    }
-
-    @Override
-    public Terminal createTerminal() throws IOException {
-        // 3 different reasons for tty-based terminal:
-        //   "explicit preference", "no alternative",
-        //       ("because we can" - unless "rather not")
-        if (forceTextTerminal || isAwtHeadless() ||
-                (hasTerminal() && !preferTerminalEmulator) ) {
-            return createHeadlessTerminal();
-        }
-        else {
-            // while Lanterna's TerminalEmulator lacks mouse support:
-            // if user wanted mouse AND set a telnetPort, and didn't
-            //   explicitly ask for a graphical Terminal, then go telnet:
-            if (!preferTerminalEmulator && mouseCaptureMode != null && telnetPort > 0) {
-                return createTelnetTerminal();
-            } else {
-                return createTerminalEmulator();
-            }
-        }
-    }
-
-    /**
-     * Instantiates a Terminal according to the factory implementation with the exception that
-     * {@link DefaultTerminalFactory#preferTerminalEmulator} is always ignored. You may want to use this method when
-     * using tools that rely on AOT compilation such as Graal native-image to ensure AWT/Swing code paths are not hit.
-     * @return Terminal implementation
-     * @throws IOException If there was an I/O error with the underlying input/output system
-     */
-    public Terminal createHeadlessTerminal() throws IOException {
-        // if tty but have no tty, but do have a port, then go telnet:
-        if( telnetPort > 0 && System.console() == null) {
-            return createTelnetTerminal();
-        }
-        if(isOperatingSystemWindows()) {
-            return createWindowsTerminal();
-        }
-
-        return createUnixTerminal(outputStream, inputStream, charset);
-    }
-
-    /**
-     * Creates a new terminal emulator window which will be either Swing-based or AWT-based depending on what is
-     * available on the system
-     * @return New terminal emulator exposed as a {@link Terminal} interface
-     */
-    public Terminal createTerminalEmulator() {
-        Terminal terminal;
-        if (!forceAWTOverSwing && hasSwing()) {
-            SwingTerminalFrame stf = createSwingTerminal();
-            if(mouseCaptureMode!=null)
-            {
-                stf.getSwingTerminal().setMouseCaptureMode(mouseCaptureMode);
-            }
-            terminal = stf;
+    @Throws(IOException::class)
+    override fun createTerminal(): Terminal? {
+        return if (forceTextTerminal || isAwtHeadless() || (hasTerminal() && !preferTerminalEmulator)) {
+            createHeadlessTerminal()
+        } else if (!preferTerminalEmulator && mouseCaptureMode != null && telnetPort > 0) {
+            createTelnetTerminal()
         } else {
-            AWTTerminalFrame atf = createAWTTerminal();
-            if(mouseCaptureMode!=null)
-            {
-                atf.getAWTTerminal().setMouseCaptureMode(mouseCaptureMode);
-            }
-            terminal = atf;
+            createTerminalEmulator()
         }
+    }
 
+    @Throws(IOException::class)
+    fun createHeadlessTerminal(): Terminal? {
+        if (telnetPort > 0 && System.console() == null) {
+            return createTelnetTerminal()
+        }
+        if (isOperatingSystemWindows()) {
+            return createWindowsTerminal()
+        }
+        return createUnixTerminal(outputStream, inputStream, charset)
+    }
+
+    fun createTerminalEmulator(): Terminal {
+        val terminal: Terminal = if (!forceAWTOverSwing && hasSwing()) {
+            val swingTerminalFrame = createSwingTerminal()
+            if (mouseCaptureMode != null) {
+                swingTerminalFrame.swingTerminal?.setMouseCaptureMode(mouseCaptureMode)
+            }
+            swingTerminalFrame
+        } else {
+            val awtTerminalFrame = createAWTTerminal()
+            if (mouseCaptureMode != null) {
+                awtTerminalFrame.awtTerminal?.setMouseCaptureMode(mouseCaptureMode)
+            }
+            awtTerminalFrame
+        }
         if (autoOpenTerminalFrame) {
-            makeWindowVisible(terminal);
+            makeWindowVisible(terminal)
         }
-        return terminal;
+        return terminal
     }
 
-    public AWTTerminalFrame createAWTTerminal() {
-        return new AWTTerminalFrame(
-                title,
-                initialTerminalSize,
-                deviceConfiguration,
-                fontConfiguration,
-                colorConfiguration,
-                autoCloseTriggers.toArray(new TerminalEmulatorAutoCloseTrigger[0]));
+    fun createAWTTerminal(): AWTTerminalFrame {
+        return AWTTerminalFrame(
+            title,
+            initialTerminalSize,
+            deviceConfiguration,
+            fontConfiguration,
+            colorConfiguration,
+            *autoCloseTriggers.toTypedArray(),
+        )
     }
 
-    public SwingTerminalFrame createSwingTerminal() {
-        return new SwingTerminalFrame(
-                title,
-                initialTerminalSize,
-                deviceConfiguration,
-                fontConfiguration instanceof SwingTerminalFontConfiguration ? (SwingTerminalFontConfiguration)fontConfiguration : null,
-                colorConfiguration,
-                autoCloseTriggers.toArray(new TerminalEmulatorAutoCloseTrigger[0]));
+    fun createSwingTerminal(): SwingTerminalFrame {
+        return SwingTerminalFrame(
+            title,
+            initialTerminalSize,
+            deviceConfiguration,
+            fontConfiguration as? SwingTerminalFontConfiguration,
+            colorConfiguration,
+            *autoCloseTriggers.toTypedArray(),
+        )
     }
 
-    /**
-     * Creates a new TelnetTerminal
-     *
-     * Note: a telnetPort should have been set with setTelnetPort(),
-     * otherwise creation of TelnetTerminal will most likely fail.
-     *
-     * @return New terminal emulator exposed as a {@link Terminal} interface
-     */
-    public TelnetTerminal createTelnetTerminal() {
+    fun createTelnetTerminal(): TelnetTerminal {
         try {
-            System.err.print("Waiting for incoming telnet connection on port "+telnetPort+" ... ");
-            System.err.flush();
+            System.err.print("Waiting for incoming telnet connection on port $telnetPort ... ")
+            System.err.flush()
 
-            TelnetTerminalServer tts = new TelnetTerminalServer(telnetPort);
-            TelnetTerminal rawTerminal = tts.acceptConnection();
-            tts.close(); // Just for single-shot: free up the port!
+            val telnetTerminalServer = TelnetTerminalServer(telnetPort)
+            val rawTerminal = requireNotNull(telnetTerminalServer.acceptConnection())
+            telnetTerminalServer.close()
 
-            System.err.println("Ok, got it!");
+            System.err.println("Ok, got it!")
 
-            if(mouseCaptureMode != null) {
-                rawTerminal.setMouseCaptureMode(mouseCaptureMode);
+            if (mouseCaptureMode != null) {
+                rawTerminal.setMouseCaptureMode(mouseCaptureMode)
             }
-            if(inputTimeout >= 0) {
-                rawTerminal.getInputDecoder().setTimeoutUnits(inputTimeout);
+            if (inputTimeout >= 0) {
+                rawTerminal.inputDecoder.setTimeoutUnits(inputTimeout)
             }
-            return rawTerminal;
-        } catch(IOException ioe) {
-            throw new RuntimeException(ioe);
+            return rawTerminal
+        } catch (e: IOException) {
+            throw RuntimeException(e)
         }
     }
 
-    private boolean isAwtHeadless() {
+    fun setInitialTerminalSize(initialTerminalSize: TerminalSize?): DefaultTerminalFactory {
+        this.initialTerminalSize = initialTerminalSize
+        return this
+    }
+
+    fun setForceTextTerminal(forceTextTerminal: Boolean): DefaultTerminalFactory {
+        this.forceTextTerminal = forceTextTerminal
+        return this
+    }
+
+    fun setPreferTerminalEmulator(preferTerminalEmulator: Boolean): DefaultTerminalFactory {
+        this.preferTerminalEmulator = preferTerminalEmulator
+        return this
+    }
+
+    fun setUnixTerminalCtrlCBehaviour(
+        unixTerminalCtrlCBehaviour: UnixLikeTerminal.CtrlCBehaviour,
+    ): DefaultTerminalFactory {
+        this.unixTerminalCtrlCBehaviour = unixTerminalCtrlCBehaviour
+        return this
+    }
+
+    fun setTelnetPort(telnetPort: Int): DefaultTerminalFactory {
+        this.telnetPort = telnetPort
+        return this
+    }
+
+    fun setInputTimeout(inputTimeout: Int): DefaultTerminalFactory {
+        this.inputTimeout = inputTimeout
+        return this
+    }
+
+    fun setForceAWTOverSwing(forceAWTOverSwing: Boolean): DefaultTerminalFactory {
+        this.forceAWTOverSwing = forceAWTOverSwing
+        return this
+    }
+
+    fun setAutoOpenTerminalEmulatorWindow(autoOpenTerminalFrame: Boolean): DefaultTerminalFactory {
+        this.autoOpenTerminalFrame = autoOpenTerminalFrame
+        return this
+    }
+
+    fun setTerminalEmulatorTitle(title: String?): DefaultTerminalFactory {
+        this.title = title
+        return this
+    }
+
+    fun setTerminalEmulatorFrameAutoCloseTrigger(
+        autoCloseTrigger: TerminalEmulatorAutoCloseTrigger?,
+    ): DefaultTerminalFactory {
+        autoCloseTriggers.clear()
+        if (autoCloseTrigger != null) {
+            autoCloseTriggers.add(autoCloseTrigger)
+        }
+        return this
+    }
+
+    fun addTerminalEmulatorFrameAutoCloseTrigger(
+        autoCloseTrigger: TerminalEmulatorAutoCloseTrigger?,
+    ): DefaultTerminalFactory {
+        if (autoCloseTrigger != null) {
+            autoCloseTriggers.add(autoCloseTrigger)
+        }
+        return this
+    }
+
+    fun setTerminalEmulatorColorConfiguration(
+        colorConfiguration: TerminalEmulatorColorConfiguration?,
+    ): DefaultTerminalFactory {
+        this.colorConfiguration = colorConfiguration
+        return this
+    }
+
+    fun setTerminalEmulatorDeviceConfiguration(
+        deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
+    ): DefaultTerminalFactory {
+        this.deviceConfiguration = deviceConfiguration
+        return this
+    }
+
+    fun setTerminalEmulatorFontConfiguration(
+        fontConfiguration: AWTTerminalFontConfiguration?,
+    ): DefaultTerminalFactory {
+        this.fontConfiguration = fontConfiguration
+        return this
+    }
+
+    fun setMouseCaptureMode(mouseCaptureMode: MouseCaptureMode?): DefaultTerminalFactory {
+        this.mouseCaptureMode = mouseCaptureMode
+        return this
+    }
+
+    @Throws(IOException::class)
+    fun createScreen(): TerminalScreen {
+        return TerminalScreen(requireNotNull(createTerminal()))
+    }
+
+    private fun isAwtHeadless(): Boolean {
+        return try {
+            val cls = Class.forName("java.awt.GraphicsEnvironment")
+            val method = cls.getDeclaredMethod("isHeadless")
+            method.invoke(null) as Boolean
+        } catch (_: Exception) {
+            true
+        }
+    }
+
+    private fun hasSwing(): Boolean {
+        return try {
+            Class.forName("javax.swing.JComponent")
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun makeWindowVisible(terminal: Terminal) {
         try {
-            Class<?> cls = Class.forName("java.awt.GraphicsEnvironment");
-            Method method = cls.getDeclaredMethod("isHeadless");
-            return (Boolean) method.invoke(null);
-        } catch (Exception ignore) {
-            // Most likely cause is that the java.desktop module is not available in the runtime image.
-            return true;
+            val cls = Class.forName("java.awt.Window")
+            val method = cls.getDeclaredMethod("setVisible", Boolean::class.javaPrimitiveType)
+            method.invoke(terminal, true)
+        } catch (e: Exception) {
+            throw RuntimeException("Failed to make terminal emulator window visible.", e)
         }
     }
 
-    private boolean hasSwing() {
+    @Throws(IOException::class)
+    private fun createWindowsTerminal(): Terminal {
         try {
-            Class.forName("javax.swing.JComponent");
-            return true;
-        }
-        catch(Exception ignore) {
-            return false;
-        }
-    }
-
-    private void makeWindowVisible(Terminal terminal) {
-        try {
-            Class<?> cls = Class.forName("java.awt.Window");
-            Method method = cls.getDeclaredMethod("setVisible", boolean.class);
-            method.invoke(terminal, true);
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to make terminal emulator window visible.", ex);
-        }
-    }
-
-    /**
-     * Sets a hint to the TerminalFactory of what size to use when creating the terminal. Most terminals are not created
-     * on request but for example the SwingTerminal and SwingTerminalFrame are and this value will be passed down on
-     * creation.
-     * @param initialTerminalSize Size (in rows and columns) of the newly created terminal
-     * @return Reference to itself, so multiple .set-calls can be chained
-     */
-    public DefaultTerminalFactory setInitialTerminalSize(TerminalSize initialTerminalSize) {
-        this.initialTerminalSize = initialTerminalSize;
-        return this;
-    }
-
-    /**
-     * Controls whether a text-based Terminal shall be created even if the system
-     *    supports a graphical environment
-     * @param forceTextTerminal If true, will always create a text-based Terminal
-     * @return Reference to itself, so multiple .set-calls can be chained
-     */
-    public DefaultTerminalFactory setForceTextTerminal(boolean forceTextTerminal) {
-        this.forceTextTerminal = forceTextTerminal;
-        return this;
-    }
-
-    /**
-     * Controls whether a Swing or AWT TerminalFrame shall be preferred if the system
-     *    has both a Console and a graphical environment
-     * @param preferTerminalEmulator If true, will prefer creating a graphical terminal emulator
-     * @return Reference to itself, so multiple .set-calls can be chained
-     */
-    public DefaultTerminalFactory setPreferTerminalEmulator(boolean preferTerminalEmulator) {
-        this.preferTerminalEmulator = preferTerminalEmulator;
-        return this;
-    }
-
-    /**
-     * Sets the default CTRL-C behavior to use for all {@link UnixTerminal} objects created by this factory. You can
-     * use this to tell Lanterna to trap CTRL-C instead of exiting the application. Non-UNIX terminals are not affected
-     * by this.
-     * @param unixTerminalCtrlCBehaviour CTRL-C behavior to use for {@link UnixTerminal}:s
-     * @return Reference to itself, so multiple .set-calls can be chained
-     */
-    public DefaultTerminalFactory setUnixTerminalCtrlCBehaviour(UnixTerminal.CtrlCBehaviour unixTerminalCtrlCBehaviour) {
-        this.unixTerminalCtrlCBehaviour = unixTerminalCtrlCBehaviour;
-        return this;
-    }
-
-    /**
-     * Primarily for debugging applications with mouse interactions:
-     * If no Console is available (e.g. from within an IDE), then fall
-     * back to TelnetTerminal on specified port.
-     *
-     * If both a non-null mouseCapture mode and a positive telnetPort
-     * are specified, then as long as Swing/AWT Terminal emulators do
-     * not support MouseCapturing, a TelnetTerminal will be preferred
-     * over the graphical Emulators.
-     *
-     * @param telnetPort the TCP/IP port on which to eventually wait for a connection.
-     *         A value less or equal 0 disables creation of a TelnetTerminal.
-     *         Note, that ports less than 1024 typically require system
-     *         privileges to listen on.
-     * @return Reference to itself, so multiple .set-calls can be chained
-     */
-    public DefaultTerminalFactory setTelnetPort(int telnetPort) {
-        this.telnetPort = telnetPort;
-        return this;
-    }
-
-    /**
-     * Only for StreamBasedTerminals: After seeing e.g. an Escape (but nothing
-     *         else yet), wait up to the specified number of time units for more
-     *         bytes to make up a complete sequence. This may be necessary on
-     *         slow channels, or if some client terminal sends each byte of a
-     *         sequence in its own TCP packet.
-     *
-     * @param inputTimeout how long to wait for possible completions of sequences.
-     *         units are of a 1/4 second, so e.g. 12 would wait up to 3 seconds.
-     * @return Reference to itself, so multiple .set-calls can be chained
-     */
-    public DefaultTerminalFactory setInputTimeout(int inputTimeout) {
-        this.inputTimeout = inputTimeout;
-        return this;
-    }
-
-    /**
-     * Normally when a graphical terminal emulator is created by the factory, it will create a
-     * {@link SwingTerminalFrame} unless Swing is not present in the system. Setting this property to {@code true} will
-     * make it create an {@link AWTTerminalFrame} even if Swing is present
-     * @param forceAWTOverSwing If {@code true}, will always create an {@link AWTTerminalFrame} over a
-     * {@link SwingTerminalFrame} if asked to create a graphical terminal emulator
-     * @return Reference to itself, so multiple .set-calls can be chained
-     */
-    public DefaultTerminalFactory setForceAWTOverSwing(boolean forceAWTOverSwing) {
-        this.forceAWTOverSwing = forceAWTOverSwing;
-        return this;
-    }
-
-    /**
-     * Controls whether a SwingTerminalFrame shall be automatically shown (.setVisible(true)) immediately after
-     * creation. If {@code false}, you will manually need to call {@code .setVisible(true)} on the JFrame to actually
-     * see the terminal window. Default for this value is {@code true}.
-     * @param autoOpenTerminalFrame Automatically open SwingTerminalFrame after creation
-     * @return Itself
-     */
-    public DefaultTerminalFactory setAutoOpenTerminalEmulatorWindow(boolean autoOpenTerminalFrame) {
-        this.autoOpenTerminalFrame = autoOpenTerminalFrame;
-        return this;
-    }
-
-    /**
-     * Sets the title to use on created SwingTerminalFrames created by this factory
-     * @param title Title to use on created SwingTerminalFrames created by this factory
-     * @return Reference to itself, so multiple .set-calls can be chained
-     */
-    public DefaultTerminalFactory setTerminalEmulatorTitle(String title) {
-        this.title = title;
-        return this;
-    }
-
-    /**
-     * Sets the auto-close trigger to use on created SwingTerminalFrames created by this factory. This will reset any
-     * previous triggers. If called with {@code null}, all triggers are cleared.
-     * @param autoCloseTrigger Auto-close trigger to use on created SwingTerminalFrames created by this factory, or {@code null} to clear all existing triggers
-     * @return Reference to itself, so multiple .set-calls can be chained
-     */
-    public DefaultTerminalFactory setTerminalEmulatorFrameAutoCloseTrigger(TerminalEmulatorAutoCloseTrigger autoCloseTrigger) {
-        this.autoCloseTriggers.clear();
-        if(autoCloseTrigger != null) {
-            this.autoCloseTriggers.add(autoCloseTrigger);
-        }
-        return this;
-    }
-
-    /**
-     * Adds an auto-close trigger to use on created SwingTerminalFrames created by this factory
-     * @param autoCloseTrigger Auto-close trigger to add to the created SwingTerminalFrames created by this factory
-     * @return Reference to itself, so multiple calls can be chained
-     */
-    public DefaultTerminalFactory addTerminalEmulatorFrameAutoCloseTrigger(TerminalEmulatorAutoCloseTrigger autoCloseTrigger) {
-        if(autoCloseTrigger != null) {
-            this.autoCloseTriggers.add(autoCloseTrigger);
-        }
-        return this;
-    }
-
-    /**
-     * Sets the color configuration to use on created SwingTerminalFrames created by this factory
-     * @param colorConfiguration Color configuration to use on created SwingTerminalFrames created by this factory
-     * @return Reference to itself, so multiple .set-calls can be chained
-     */
-    public DefaultTerminalFactory setTerminalEmulatorColorConfiguration(TerminalEmulatorColorConfiguration colorConfiguration) {
-        this.colorConfiguration = colorConfiguration;
-        return this;
-    }
-
-    /**
-     * Sets the device configuration to use on created SwingTerminalFrames created by this factory
-     * @param deviceConfiguration Device configuration to use on created SwingTerminalFrames created by this factory
-     * @return Reference to itself, so multiple .set-calls can be chained
-     */
-    public DefaultTerminalFactory setTerminalEmulatorDeviceConfiguration(TerminalEmulatorDeviceConfiguration deviceConfiguration) {
-        this.deviceConfiguration = deviceConfiguration;
-        return this;
-    }
-
-    /**
-     * Sets the font configuration to use on created SwingTerminalFrames created by this factory
-     * @param fontConfiguration Font configuration to use on created SwingTerminalFrames created by this factory
-     * @return Reference to itself, so multiple .set-calls can be chained
-     */
-    public DefaultTerminalFactory setTerminalEmulatorFontConfiguration(AWTTerminalFontConfiguration fontConfiguration) {
-        this.fontConfiguration = fontConfiguration;
-        return this;
-    }
-
-    /**
-     * Sets the mouse capture mode the terminal should use. Please note that this is an extension which isn't widely
-     * supported!
-     *
-     * If both a non-null mouseCapture mode and a positive telnetPort
-     * are specified, then as long as Swing/AWT Terminal emulators do
-     * not support MouseCapturing, a TelnetTerminal will be preferred
-     * over the graphical Emulators.
-     *
-     * @param mouseCaptureMode Capture mode for mouse interactions
-     * @return Itself
-     */
-    public DefaultTerminalFactory setMouseCaptureMode(MouseCaptureMode mouseCaptureMode) {
-        this.mouseCaptureMode = mouseCaptureMode;
-        return this;
-    }
-
-    /**
-     * Create a {@link Terminal} and immediately wrap it up in a {@link TerminalScreen}
-     * @return New {@link TerminalScreen} created with a terminal from {@link #createTerminal()}
-     * @throws IOException In case there was an I/O error
-     */
-    public TerminalScreen createScreen() throws IOException {
-        return new TerminalScreen(createTerminal());
-    }
-
-    private Terminal createWindowsTerminal() throws IOException {
-        try {
-            Class<?> nativeImplementation = Class.forName("com.googlecode.lanterna.terminal.win32.WindowsTerminal");
-            Constructor<?> constructor = nativeImplementation.getConstructor(InputStream.class, OutputStream.class, Charset.class, UnixLikeTTYTerminal.CtrlCBehaviour.class);
-            return (Terminal)constructor.newInstance(inputStream, outputStream, charset, UnixLikeTTYTerminal.CtrlCBehaviour.CTRL_C_KILLS_APPLICATION);
-        }
-        catch(Exception | NoClassDefFoundError ignore) {
+            val nativeImplementation = Class.forName("com.googlecode.lanterna.terminal.win32.WindowsTerminal")
+            val constructor: Constructor<*> = nativeImplementation.getConstructor(
+                InputStream::class.java,
+                OutputStream::class.java,
+                Charset::class.java,
+                UnixLikeTerminal.CtrlCBehaviour::class.java,
+            )
+            return constructor.newInstance(
+                inputStream,
+                outputStream,
+                charset,
+                UnixLikeTerminal.CtrlCBehaviour.CTRL_C_KILLS_APPLICATION,
+            ) as Terminal
+        } catch (_: Exception) {
             try {
-                return createCygwinTerminal(outputStream, inputStream, charset);
-            } catch(IOException e) {
-                throw new IOException("To use Lanterna on Windows, either add JNA (and jna-platform) to the classpath or use javaw! (see https://github.com/mabe02/lanterna/issues/335)", e);
+                return createCygwinTerminal(outputStream, inputStream, charset)
+            } catch (e: IOException) {
+                throw IOException(
+                    "To use Lanterna on Windows, either add JNA (and jna-platform) to the classpath or use javaw! (see https://github.com/mabe02/lanterna/issues/335)",
+                    e,
+                )
+            }
+        } catch (_: NoClassDefFoundError) {
+            try {
+                return createCygwinTerminal(outputStream, inputStream, charset)
+            } catch (e: IOException) {
+                throw IOException(
+                    "To use Lanterna on Windows, either add JNA (and jna-platform) to the classpath or use javaw! (see https://github.com/mabe02/lanterna/issues/335)",
+                    e,
+                )
             }
         }
     }
 
-    private Terminal createCygwinTerminal(OutputStream outputStream, InputStream inputStream, Charset charset) throws IOException {
-        CygwinTerminal cygTerminal = new CygwinTerminal(inputStream, outputStream, charset);
-        if(inputTimeout >= 0) {
-            cygTerminal.getInputDecoder().setTimeoutUnits(inputTimeout);
+    @Throws(IOException::class)
+    private fun createCygwinTerminal(
+        outputStream: OutputStream,
+        inputStream: InputStream,
+        charset: Charset,
+    ): Terminal {
+        val cygwinTerminal = CygwinTerminal(inputStream, outputStream, charset)
+        if (inputTimeout >= 0) {
+            cygwinTerminal.inputDecoder.setTimeoutUnits(inputTimeout)
         }
-        return cygTerminal;
+        return cygwinTerminal
     }
 
-    private Terminal createUnixTerminal(OutputStream outputStream, InputStream inputStream, Charset charset) throws IOException {
-        UnixTerminal unixTerminal;
-        try {
-            Class<?> nativeImplementation = Class.forName("com.googlecode.lanterna.terminal.NativeGNULinuxTerminal");
-            Constructor<?> constructor = nativeImplementation.getConstructor(InputStream.class, OutputStream.class, Charset.class, UnixLikeTTYTerminal.CtrlCBehaviour.class);
-            unixTerminal = (UnixTerminal)constructor.newInstance(inputStream, outputStream, charset, unixTerminalCtrlCBehaviour);
+    @Throws(IOException::class)
+    private fun createUnixTerminal(
+        outputStream: OutputStream,
+        inputStream: InputStream,
+        charset: Charset,
+    ): Terminal {
+        val unixTerminal: UnixTerminal = try {
+            val nativeImplementation = Class.forName("com.googlecode.lanterna.terminal.NativeGNULinuxTerminal")
+            val constructor: Constructor<*> = nativeImplementation.getConstructor(
+                InputStream::class.java,
+                OutputStream::class.java,
+                Charset::class.java,
+                UnixLikeTerminal.CtrlCBehaviour::class.java,
+            )
+            constructor.newInstance(inputStream, outputStream, charset, unixTerminalCtrlCBehaviour) as UnixTerminal
+        } catch (_: Exception) {
+            UnixTerminal(inputStream, outputStream, charset, unixTerminalCtrlCBehaviour)
         }
-        catch(Exception ignore) {
-            unixTerminal = new UnixTerminal(inputStream, outputStream, charset, unixTerminalCtrlCBehaviour);
+        if (mouseCaptureMode != null) {
+            unixTerminal.setMouseCaptureMode(mouseCaptureMode)
         }
-        if(mouseCaptureMode != null) {
-            unixTerminal.setMouseCaptureMode(mouseCaptureMode);
+        if (inputTimeout >= 0) {
+            unixTerminal.inputDecoder.setTimeoutUnits(inputTimeout)
         }
-        if(inputTimeout >= 0) {
-            unixTerminal.getInputDecoder().setTimeoutUnits(inputTimeout);
-        }
-        return unixTerminal;
+        return unixTerminal
     }
 
-    /**
-     * Detects whether the running platform is Windows* by looking at the
-     * operating system name system property
-     */
-    private static boolean isOperatingSystemWindows() {
-        return System.getProperty("os.name", "").toLowerCase().startsWith("windows");
-    }
+    companion object {
+        private val DEFAULT_OUTPUT_STREAM: OutputStream = System.out
+        private val DEFAULT_INPUT_STREAM: InputStream = System.`in`
+        private val DEFAULT_CHARSET: Charset = Charset.defaultCharset()
 
-    private static boolean hasTerminal() {
-        // Prior to Java 22, the test was System.console() != null but now things have changed:
-        // https://www.oracle.com/java/technologies/javase/22-relnote-issues.html#JDK-8308591
-        // We need to check if the Console.isTerminal() method is available and rely on that if so
-        Console console = System.console();
-        return console != null && isTerminalCheckJDK22(console);
-    }
+        private fun isOperatingSystemWindows(): Boolean {
+            return System.getProperty("os.name", "").lowercase().startsWith("windows")
+        }
 
-    private static boolean isTerminalCheckJDK22(Console console) {
-        try {
-            // Don't want to require Java 22 so we need to check this by reflection
-            Method isTerminal = Console.class.getMethod("isTerminal");
-            return (Boolean)isTerminal.invoke(console);
-        } catch (NoSuchMethodException e) {
-            return true;  // This is normal and expected for pre-22 JVM
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            return true;  // This is unexpected, but return true here too, just in case
+        private fun hasTerminal(): Boolean {
+            val console = System.console()
+            return console != null && isTerminalCheckJDK22(console)
+        }
+
+        private fun isTerminalCheckJDK22(console: Console): Boolean {
+            return try {
+                val isTerminal = Console::class.java.getMethod("isTerminal")
+                isTerminal.invoke(console) as Boolean
+            } catch (_: NoSuchMethodException) {
+                true
+            } catch (_: InvocationTargetException) {
+                true
+            } catch (_: IllegalAccessException) {
+                true
+            }
         }
     }
 }

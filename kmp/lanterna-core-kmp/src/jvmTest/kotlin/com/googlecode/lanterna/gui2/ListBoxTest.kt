@@ -16,47 +16,51 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.TerminalSize
 
-import java.io.IOException;
+import java.io.IOException
 
 /**
  * Simple test for the different kinds of list boxes
  * @author Martin
  */
-public class ListBoxTest extends TestBase {
-    public static void main(String[] args) throws IOException, InterruptedException {
-        new ListBoxTest().run(args);
-    }
+ class ListBoxTest:TestBase() {
 
-    @Override
-    public void init(WindowBasedTextGUI textGUI) {
-        final BasicWindow window = new BasicWindow("ListBox test");
+fun init(textGUI:WindowBasedTextGUI) {
+val window = BasicWindow("ListBox test")
 
-        Panel horizontalPanel = new Panel();
-        horizontalPanel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
+val horizontalPanel = Panel()
+horizontalPanel.setLayoutManager(LinearLayout(Direction.HORIZONTAL))
 
-        TerminalSize size = new TerminalSize(14, 10);
-        CheckBoxList<String> checkBoxList = new CheckBoxList<>(size);
-        RadioBoxList<String> radioBoxList = new RadioBoxList<>(size);
-        ActionListBox actionListBox = new ActionListBox(size);
-        for(int i = 0; i < 30; i++) {
-            final String itemText = "Item " + (i + 1);
-            checkBoxList.addItem(itemText);
-            radioBoxList.addItem(itemText);
-            actionListBox.addItem(itemText, () -> System.out.println("Selected " + itemText));
-        }
-        horizontalPanel.addComponent(checkBoxList.withBorder(Borders.singleLine("CheckBoxList")));
-        horizontalPanel.addComponent(radioBoxList.withBorder(Borders.singleLine("RadioBoxList")));
-        horizontalPanel.addComponent(actionListBox.withBorder(Borders.singleLine("ActionListBox")));
+val size = TerminalSize(14, 10)
+val checkBoxList = CheckBoxList<String?>(size)
+val radioBoxList = RadioBoxList<String?>(size)
+val actionListBox = ActionListBox(size)
+for (i in 0..29)
+{
+val itemText = "Item " + (i + 1)
+checkBoxList.addItem(itemText)
+radioBoxList.addItem(itemText)
+actionListBox.addItem(itemText, { System.out.println("Selected " + itemText) })
+}
+horizontalPanel.addComponent(checkBoxList.withBorder(Borders.singleLine("CheckBoxList")))
+horizontalPanel.addComponent(radioBoxList.withBorder(Borders.singleLine("RadioBoxList")))
+horizontalPanel.addComponent(actionListBox.withBorder(Borders.singleLine("ActionListBox")))
 
-        window.setComponent(
-                Panels.vertical(
-                        horizontalPanel,
-                        new Button("OK", window::close).setAccelerator(new KeyStroke('o', false, true))));
-        textGUI.addWindow(window);
-    }
+window.component =
+Panels.vertical(
+horizontalPanel, 
+Button("OK", Runnable { window.close() }))
+textGUI.addWindow(window)
+}
+
+companion object {
+@Throws(IOException::class, InterruptedException::class)
+ fun main(args:Array<String?>?) {
+ListBoxTest().run(args)
+}
+}
 }

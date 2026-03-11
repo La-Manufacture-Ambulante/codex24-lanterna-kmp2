@@ -16,111 +16,115 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.terminal.ansi.UnixLikeTerminal;
-import com.sun.jna.Native;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.terminal.ansi.UnixLikeTerminal
+import com.sun.jna.Native
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.nio.charset.Charset
 
-import static com.googlecode.lanterna.terminal.PosixLibC.*;
+import com.googlecode.lanterna.terminal.PosixLibC.*
 
 /**
  * Terminal implementation that uses native libraries
  */
-public class NativeGNULinuxTerminal extends UnixLikeTerminal {
+ class NativeGNULinuxTerminal @Throws(IOException::class)
+@JvmOverloads  constructor(
+terminalInput:InputStream? = System.`in`, 
+terminalOutput:OutputStream? = System.out, 
+terminalCharset:Charset? = Charset.defaultCharset(), 
+terminalCtrlCBehaviour:CtrlCBehaviour? = CtrlCBehaviour.CTRL_C_KILLS_APPLICATION):UnixLikeTerminal(terminalInput, terminalOutput, terminalCharset, terminalCtrlCBehaviour) {
 
-    private final PosixLibC libc;
-    private PosixLibC.termios savedTerminalState;
+private val libc:PosixLibC?
+private var savedTerminalState:PosixLibC.termios? = null
 
-    public NativeGNULinuxTerminal() throws IOException {
-        this(System.in,
-                System.out,
-                Charset.defaultCharset(),
-                CtrlCBehaviour.CTRL_C_KILLS_APPLICATION);
-    }
+private val terminalState:PosixLibC.termios
+get() {
+val termios = PosixLibC.termios()
+libc!!.tcgetattr(STDIN_FILENO, termios)
+return termios
+}
 
-    public NativeGNULinuxTerminal(
-            InputStream terminalInput,
-            OutputStream terminalOutput,
-            Charset terminalCharset,
-            CtrlCBehaviour terminalCtrlCBehaviour) throws IOException {
-
-        super(terminalInput,
-                terminalOutput,
-                terminalCharset,
-                terminalCtrlCBehaviour);
+init{
 
 
-        this.libc = (PosixLibC) Native.loadLibrary("c", PosixLibC.class);
-        this.savedTerminalState = null;
-    }
+this.libc = Native.loadLibrary("c", PosixLibC::class.java) as PosixLibC
+this.savedTerminalState = null
+}
 
-    public void saveTerminalSettings() throws IOException {
-        savedTerminalState = getTerminalState();
-    }
+@Throws(IOException::class)
+@JvmStatic  fun saveTerminalSettings() {
+savedTerminalState = terminalState
+}
 
-    public void restoreTerminalSettings() throws IOException {
-        if(savedTerminalState != null) {
-            libc.tcsetattr(STDIN_FILENO, TCSANOW, savedTerminalState);
-        }
-    }
+@Throws(IOException::class)
+@JvmStatic  fun restoreTerminalSettings() {
+if (savedTerminalState != null)
+{
+libc!!.tcsetattr(STDIN_FILENO, TCSANOW, savedTerminalState)
+}
+}
 
-    public void keyEchoEnabled(boolean b) throws IOException {
-        PosixLibC.termios state = getTerminalState();
-        if(b) {
-            state.c_lflag |= ECHO;
-        }
-        else {
-            state.c_lflag &= ~ECHO;
-        }
-        libc.tcsetattr(STDIN_FILENO, TCSANOW, state);
-    }
+@Throws(IOException::class)
+ fun keyEchoEnabled(b:Boolean) {
+val state = terminalState
+if (b)
+{
+state.c_lflag = state.c_lflag or ECHO
+}
+else
+{
+state.c_lflag = state.c_lflag and ECHO.inv()
+}
+libc!!.tcsetattr(STDIN_FILENO, TCSANOW, state)
+}
 
-    public void canonicalMode(boolean b) throws IOException {
-        PosixLibC.termios state = getTerminalState();
-        if(b) {
-            state.c_lflag |= ICANON;
-        }
-        else {
-            state.c_lflag &= ~ICANON;
-        }
-        libc.tcsetattr(STDIN_FILENO, TCSANOW, state);
-    }
+@Throws(IOException::class)
+ fun canonicalMode(b:Boolean) {
+val state = terminalState
+if (b)
+{
+state.c_lflag = state.c_lflag or ICANON
+}
+else
+{
+state.c_lflag = state.c_lflag and ICANON.inv()
+}
+libc!!.tcsetattr(STDIN_FILENO, TCSANOW, state)
+}
 
-    public void keyStrokeSignalsEnabled(boolean b) throws IOException {
-        PosixLibC.termios state = getTerminalState();
-        if(b) {
-            state.c_lflag |= ISIG;
-        }
-        else {
-            state.c_lflag &= ~ISIG;
-        }
-        libc.tcsetattr(STDIN_FILENO, TCSANOW, state);
-    }
+@Throws(IOException::class)
+ fun keyStrokeSignalsEnabled(b:Boolean) {
+val state = terminalState
+if (b)
+{
+state.c_lflag = state.c_lflag or ISIG
+}
+else
+{
+state.c_lflag = state.c_lflag and ISIG.inv()
+}
+libc!!.tcsetattr(STDIN_FILENO, TCSANOW, state)
+}
 
-    public void registerTerminalResizeListener(final Runnable runnable) throws IOException {
-        libc.signal(SIGWINCH, new sig_t() {
-            public synchronized void invoke(int signal) {
-                runnable.run();
-            }
-        });
-    }
+@Throws(IOException::class)
+ fun registerTerminalResizeListener(runnable:Runnable?) {
+libc!!.signal(SIGWINCH, object:sig_t() {
+@Synchronized  fun invoke(signal:Int) {
+runnable!!.run()
+}
+})
+}
 
-    @Override
-    protected TerminalSize findTerminalSize() throws IOException {
-        PosixLibC.winsize winsize = new winsize();
-        libc.ioctl(PosixLibC.STDOUT_FILENO, PosixLibC.TIOCGWINSZ, winsize);
-        return new TerminalSize(winsize.ws_col, winsize.ws_row);
-    }
-
-    private PosixLibC.termios getTerminalState() {
-        PosixLibC.termios termios = new PosixLibC.termios();
-        libc.tcgetattr(STDIN_FILENO, termios);
-        return termios;
-    }
+@Override
+@Throws(IOException::class)
+protected fun findTerminalSize():TerminalSize {
+val winsize = winsize()
+libc!!.ioctl(PosixLibC.STDOUT_FILENO, PosixLibC.TIOCGWINSZ, winsize)
+return TerminalSize(winsize.ws_col, winsize.ws_row)
+}
 }

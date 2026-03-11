@@ -14,68 +14,41 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2010-2024 Martin Berglund
+ * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.dialogs;
+package com.googlecode.lanterna.gui2.dialogs
 
-import com.googlecode.lanterna.gui2.LocalizedString;
+import com.googlecode.lanterna.gui2.LocalizedString
 
 /**
- * This enum has the available selection of buttons that you can add to a {@code MessageDialog}. They are used both for
- * specifying which buttons the dialog will have but is also returned when the user makes a selection
- *
- * @author Martin
+ * Available selection of buttons that can be added to a [MessageDialog]. These values are also used as the
+ * result when a dialog button is selected.
  */
-public enum MessageDialogButton {
-    /**
-     * "OK"
-     */
-    OK(LocalizedString.OK, 'o'),
-    /**
-     * "Cancel"
-     */
-    CANCEL(LocalizedString.Cancel, 'c'),
-    /**
-     * "Yes"
-     */
-    YES(LocalizedString.Yes, 'y'),
-    /**
-     * "No"
-     */
-    NO(LocalizedString.No, 'n'),
-    /**
-     * "Close"
-     */
-    CLOSE(LocalizedString.Close, 'x'),
-    /**
-     * "Abort"
-     */
-    ABORT(LocalizedString.Abort, 'a'),
-    /**
-     * "Ignore"
-     */
-    IGNORE(LocalizedString.Ignore, 'i'),
-    /**
-     * "Retry"
-     */
-    RETRY(LocalizedString.Retry, 'r'),
+enum class MessageDialogButton(private val label: LocalizedString) {
+    /** "OK" button. */
+    OK(LocalizedString.OK),
+    /** "Cancel" button. */
+    CANCEL(LocalizedString.Cancel),
+    /** "Yes" button. */
+    YES(LocalizedString.Yes),
+    /** "No" button. */
+    NO(LocalizedString.No),
+    /** "Close" button. */
+    CLOSE(LocalizedString.Close),
+    /** "Abort" button. */
+    ABORT(LocalizedString.Abort),
+    /** "Ignore" button. */
+    IGNORE(LocalizedString.Ignore),
+    /** "Retry" button. */
+    RETRY(LocalizedString.Retry),
+    /** "Continue" button. */
+    CONTINUE(LocalizedString.Continue),
+    ;
 
     /**
-     * "Continue"
+     * Returns the localized button label.
      */
-    CONTINUE(LocalizedString.Continue, 'c');
-
-    private final LocalizedString label;
-    private final char acceleratorChar;
-
-    MessageDialogButton(final LocalizedString label, char acceleratorChar) {
-        this.label = label;
-        this.acceleratorChar = acceleratorChar;
-    }
-
-    public char getAcceleratorCharacter() { return acceleratorChar; }
-    @Override
-    public String toString() {
-        return label.toString();
+    override fun toString(): String {
+        return label.toString()
     }
 }

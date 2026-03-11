@@ -16,59 +16,59 @@
  * 
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
 /**
  * Utility class for quickly bunching up components in a panel, arranged in a particular pattern
  * @author Martin
  */
-public class Panels {
+ object Panels {
 
-    /**
-     * Creates a new {@code Panel} with a {@code LinearLayout} layout manager in horizontal mode and adds all the
-     * components passed in
-     * @param components Components to be added to the new {@code Panel}, in order
-     * @return The new {@code Panel}
-     */
-    public static Panel horizontal(Component... components) {
-        Panel panel = new Panel();
-        panel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
-        for(Component component: components) {
-            panel.addComponent(component);
-        }
-        return panel;
-    }
-
-    /**
-     * Creates a new {@code Panel} with a {@code LinearLayout} layout manager in vertical mode and adds all the
-     * components passed in
-     * @param components Components to be added to the new {@code Panel}, in order
-     * @return The new {@code Panel}
-     */
-    public static Panel vertical(Component... components) {
-        Panel panel = new Panel();
-        panel.setLayoutManager(new LinearLayout(Direction.VERTICAL));
-        for(Component component: components) {
-            panel.addComponent(component);
-        }
-        return panel;
-    }
-
-    /**
-     * Creates a new {@code Panel} with a {@code GridLayout} layout manager and adds all the components passed in
-     * @param columns Number of columns in the grid
-     * @param components Components to be added to the new {@code Panel}, in order
-     * @return The new {@code Panel}
-     */
-    public static Panel grid(int columns, Component... components) {
-        Panel panel = new Panel();
-        panel.setLayoutManager(new GridLayout(columns));
-        for(Component component: components) {
-            panel.addComponent(component);
-        }
-        return panel;
-    }
-
-    //Cannot instantiate
-    private Panels() {}
+/**
+ * Creates a new `Panel` with a `LinearLayout` layout manager in horizontal mode and adds all the
+ * components passed in
+ * @param components Components to be added to the new `Panel`, in order
+ * @return The new `Panel`
+ */
+     fun horizontal(vararg components:Component?):Panel {
+val panel = Panel()
+panel.setLayoutManager(LinearLayout(Direction.HORIZONTAL))
+for (component in components)
+{
+panel.addComponent(component)
 }
+return panel
+}
+
+/**
+ * Creates a new `Panel` with a `LinearLayout` layout manager in vertical mode and adds all the
+ * components passed in
+ * @param components Components to be added to the new `Panel`, in order
+ * @return The new `Panel`
+ */
+     fun vertical(vararg components:Component?):Panel {
+val panel = Panel()
+panel.setLayoutManager(LinearLayout(Direction.VERTICAL))
+for (component in components)
+{
+panel.addComponent(component)
+}
+return panel
+}
+
+/**
+ * Creates a new `Panel` with a `GridLayout` layout manager and adds all the components passed in
+ * @param columns Number of columns in the grid
+ * @param components Components to be added to the new `Panel`, in order
+ * @return The new `Panel`
+ */
+     fun grid(columns:Int, vararg components:Component?):Panel {
+val panel = Panel()
+panel.setLayoutManager(GridLayout(columns))
+for (component in components)
+{
+panel.addComponent(component)
+}
+return panel
+}
+}//Cannot instantiate

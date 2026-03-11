@@ -16,207 +16,210 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.bundle.LanternaThemes;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.bundle.LanternaThemes
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import java.io.IOException
+import java.util.Collections
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+class MultiWindowManagerTest : TestBase() {
+    private var virtualScreenEnabled = true
+    private var buttonToggleVirtualScreen: Button? = null
 
-public class MultiWindowManagerTest extends TestBase {
+    fun init(textGUI: WindowBasedTextGUI) {
+        textGUI.backgroundPane.component = BackgroundComponent()
 
-    private static final AtomicInteger WINDOW_COUNTER = new AtomicInteger(0);
+        val mainWindow = BasicWindow("Multi Window Test")
+        val contentArea = Panel().setLayoutManager(LinearLayout(Direction.VERTICAL))
+        contentArea.addComponent(Button("Add new window", Runnable { onNewWindow(textGUI) }))
+        buttonToggleVirtualScreen = Button("Virtual Screen: Enabled", Runnable {
+            virtualScreenEnabled = !virtualScreenEnabled
+            textGUI.setVirtualScreenEnabled(virtualScreenEnabled)
+            buttonToggleVirtualScreen?.setLabel(
+                "Virtual Screen: " + if (virtualScreenEnabled) "Enabled" else "Disabled",
+            )
+        })
+        contentArea.addComponent(buttonToggleVirtualScreen)
+        contentArea.addComponent(EmptySpace(TerminalSize.ONE))
+        contentArea.addComponent(Button("Close", Runnable { mainWindow.close() }))
+        mainWindow.component = contentArea
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-        new MultiWindowManagerTest().run(args);
+        textGUI.addListener(object : TextGUI.Listener {
+            override fun onUnhandledKeyStroke(textGUI: TextGUI?, keyStroke: KeyStroke?): Boolean {
+                val gui = textGUI as? WindowBasedTextGUI ?: return false
+                val key = keyStroke ?: return false
+                if ((key.isCtrlDown && key.keyType == KeyType.TAB) || key.keyType == KeyType.F6) {
+                    gui.cycleActiveWindow(false)
+                    return true
+                }
+                if ((key.isCtrlDown && key.keyType == KeyType.REVERSE_TAB) || key.keyType == KeyType.F7) {
+                    gui.cycleActiveWindow(true)
+                    return true
+                }
+                return false
+            }
+        })
+
+        textGUI.addWindow(mainWindow)
     }
 
-    private boolean virtualScreenEnabled = true;
-    private Button buttonToggleVirtualScreen;
-
-    @Override
-    public void init(final WindowBasedTextGUI textGUI) {
-        textGUI.getBackgroundPane().setComponent(new BackgroundComponent());
-        final Window mainWindow = new BasicWindow("Multi Window Test");
-        Panel contentArea = new Panel();
-        contentArea.setLayoutManager(new LinearLayout(Direction.VERTICAL));
-        contentArea.addComponent(new Button("Add new window", () -> onNewWindow(textGUI)));
-        buttonToggleVirtualScreen = new Button("Virtual Screen: Enabled", () -> {
-            virtualScreenEnabled = !virtualScreenEnabled;
-            textGUI.setVirtualScreenEnabled(virtualScreenEnabled);
-            buttonToggleVirtualScreen.setLabel("Virtual Screen: " + (virtualScreenEnabled ? "Enabled" : "Disabled"));
-        });
-        contentArea.addComponent(buttonToggleVirtualScreen);
-        contentArea.addComponent(new EmptySpace(TerminalSize.ONE));
-        contentArea.addComponent(new Button("Close", mainWindow::close));
-        mainWindow.setComponent(contentArea);
-        textGUI.addListener((textGUI1, keyStroke) -> {
-            if((keyStroke.isCtrlDown() && keyStroke.getKeyType() == KeyType.TAB) ||
-                    keyStroke.getKeyType() == KeyType.F6) {
-                ((WindowBasedTextGUI) textGUI1).cycleActiveWindow(false);
-            }
-            else if((keyStroke.isCtrlDown() && keyStroke.getKeyType() == KeyType.REVERSE_TAB) ||
-                        keyStroke.getKeyType() == KeyType.F7) {
-                ((WindowBasedTextGUI) textGUI1).cycleActiveWindow(true);
-            }
-            else {
-                return false;
-            }
-            return true;
-        });
-        textGUI.addWindow(mainWindow);
-    }
-
-    private static int nextTheme = 0;
-
-    private void onNewWindow(WindowBasedTextGUI textGUI) {
-        DynamicWindow window = new DynamicWindow();
-        List<String> availableThemes = new ArrayList<>(LanternaThemes.getRegisteredThemes());
-        String themeName = availableThemes.get(nextTheme++);
-        if(nextTheme == availableThemes.size()) {
-            nextTheme = 0;
+    private fun onNewWindow(textGUI: WindowBasedTextGUI) {
+        val window = DynamicWindow()
+        val themes = LanternaThemes.registeredThemes.filterNotNull()
+        if (themes.isNotEmpty()) {
+            nextTheme = (nextTheme + 1) % themes.size
         }
-        window.setTheme(LanternaThemes.getRegisteredTheme(themeName));
-        textGUI.addWindow(window);
+        textGUI.addWindow(window)
     }
 
-    private static class DynamicWindow extends BasicWindow {
+    private class DynamicWindow : BasicWindow("Window #${WINDOW_COUNTER.incrementAndGet()}") {
+        private val labelWindowSize: Label
+        private val labelWindowPosition: Label
+        private val labelUnlockWindow: Label
 
-        private final Label labelWindowSize;
-        private final Label labelWindowPosition;
-        private final Label labelUnlockWindow;
+        init {
+            val statsTableContainer = Panel().setLayoutManager(GridLayout(2))
+            statsTableContainer.addComponent(Label("Position:"))
+            labelWindowPosition = Label("")
+            statsTableContainer.addComponent(labelWindowPosition)
+            statsTableContainer.addComponent(Label("Size:"))
+            labelWindowSize = Label("")
+            statsTableContainer.addComponent(labelWindowSize)
+            statsTableContainer.addComponent(Label("Auto-sized:"))
+            labelUnlockWindow = Label("true")
+            statsTableContainer.addComponent(labelUnlockWindow)
 
-        public DynamicWindow() {
-            super("Window #" + WINDOW_COUNTER.incrementAndGet());
-
-            Panel statsTableContainer = new Panel();
-            statsTableContainer.setLayoutManager(new GridLayout(2));
-            statsTableContainer.addComponent(new Label("Position:"));
-            this.labelWindowPosition = new Label("");
-            statsTableContainer.addComponent(labelWindowPosition);
-            statsTableContainer.addComponent(new Label("Size:"));
-            this.labelWindowSize = new Label("");
-            statsTableContainer.addComponent(labelWindowSize);
-            statsTableContainer.addComponent(new Label("Auto-sized:"));
-            this.labelUnlockWindow = new Label("true");
-            statsTableContainer.addComponent(labelUnlockWindow);
-
-            addWindowListener(new WindowListenerAdapter() {
-                @Override
-                public void onResized(Window window, TerminalSize oldSize, TerminalSize newSize) {
-                    labelWindowSize.setText(newSize.toString());
+            addWindowListener(object : WindowListener {
+                override fun onResized(window: Window?, oldSize: TerminalSize?, newSize: TerminalSize?) {
+                    if (newSize != null) {
+                        labelWindowSize.setText(newSize.toString())
+                    }
                 }
 
-                @Override
-                public void onMoved(Window window, TerminalPosition oldPosition, TerminalPosition newPosition) {
-                    labelWindowPosition.setText(newPosition.toString());
+                override fun onMoved(window: Window?, oldPosition: TerminalPosition?, newPosition: TerminalPosition?) {
+                    if (newPosition != null) {
+                        labelWindowPosition.setText(newPosition.toString())
+                    }
                 }
-            });
 
-            Panel contentArea = new Panel();
-            contentArea.setLayoutManager(new GridLayout(1));
-            contentArea.addComponent(statsTableContainer);
-            contentArea.addComponent(new EmptySpace(TerminalSize.ONE));
+                override fun onInput(basePane: Window?, keyStroke: KeyStroke?, deliverEvent: AtomicBoolean?) = Unit
+
+                override fun onUnhandledInput(basePane: Window?, keyStroke: KeyStroke?, hasBeenHandled: AtomicBoolean?) = Unit
+            })
+
+            val contentArea = Panel().setLayoutManager(GridLayout(1))
+            contentArea.addComponent(statsTableContainer)
+            contentArea.addComponent(EmptySpace(TerminalSize.ONE))
+            contentArea.addComponent(Label("Move window with ALT+Arrow\nResize window with CTRL+Arrow"))
             contentArea.addComponent(
-                    new Label(
-                            "Move window with ALT+Arrow\n" +
-                            "Resize window with CTRL+Arrow"));
-            contentArea.addComponent(new EmptySpace(TerminalSize.ONE).setLayoutData(
-                    GridLayout.createLayoutData(GridLayout.Alignment.FILL, GridLayout.Alignment.FILL, true, true)));
+                EmptySpace(TerminalSize.ONE)
+                    .setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.FILL, GridLayout.Alignment.FILL, true, true)),
+            )
             contentArea.addComponent(
-                    Panels.horizontal(
-                            new Button("Toggle auto-sized", this::toggleManaged),
-                            new Button("Close", this::close)));
-            setComponent(contentArea);
+                Panels.horizontal(
+                    Button("Toggle auto-sized", Runnable { toggleManaged() }),
+                    Button("Close", Runnable { close() }),
+                ),
+            )
+            component = contentArea
         }
 
-        private void toggleManaged() {
-            boolean isManaged = !getHints().contains(Hint.FIXED_SIZE);
-            isManaged = !isManaged;
-            if(isManaged) {
-                setHints(Collections.<Hint> emptyList());
+        private fun toggleManaged() {
+            val isManaged = hints?.contains(Window.Hint.FIXED_SIZE) != true
+            if (isManaged) {
+                setHints(Collections.emptyList())
+            } else {
+                setHints(Collections.singletonList(Window.Hint.FIXED_SIZE))
             }
-            else {
-                setHints(Collections.singletonList(Hint.FIXED_SIZE));
-            }
-            labelUnlockWindow.setText(Boolean.toString(isManaged));
+            labelUnlockWindow.setText(isManaged.toString())
         }
 
-        @Override
-        public boolean handleInput(KeyStroke key) {
-            boolean handled = super.handleInput(key);
-            if(!handled) {
-                switch(key.getKeyType()) {
-                    case ARROW_DOWN:
-                        if(key.isAltDown()) {
-                            setPosition(getPosition().withRelativeRow(1));
+        override fun handleInput(key: KeyStroke?): Boolean {
+            var handled = super.handleInput(key)
+            if (!handled && key != null) {
+                when (key.keyType) {
+                    KeyType.ARROW_DOWN -> {
+                        if (key.isAltDown) {
+                            position = position?.withRelativeRow(1)
+                        } else if (key.isCtrlDown) {
+                            setFixedSize(size?.withRelativeRows(1))
+                            labelUnlockWindow.setText("false")
                         }
-                        else if(key.isCtrlDown()) {
-                            setFixedSize(getSize().withRelativeRows(1));
-                            labelUnlockWindow.setText("false");
+                        handled = true
+                    }
+
+                    KeyType.ARROW_LEFT -> {
+                        if (key.isAltDown) {
+                            position = position?.withRelativeColumn(-1)
+                        } else if (key.isCtrlDown && (size?.columns ?: 0) > 1) {
+                            setFixedSize(size?.withRelativeColumns(-1))
+                            labelUnlockWindow.setText("false")
                         }
-                        handled = true;
-                        break;
-                    case ARROW_LEFT:
-                        if(key.isAltDown()) {
-                            setPosition(getPosition().withRelativeColumn(-1));
+                        handled = true
+                    }
+
+                    KeyType.ARROW_RIGHT -> {
+                        if (key.isAltDown) {
+                            position = position?.withRelativeColumn(1)
+                        } else if (key.isCtrlDown) {
+                            setFixedSize(size?.withRelativeColumns(1))
+                            labelUnlockWindow.setText("false")
                         }
-                        else if(key.isCtrlDown() && getSize().getColumns() > 1) {
-                            setFixedSize(getSize().withRelativeColumns(-1));
-                            labelUnlockWindow.setText("false");
+                        handled = true
+                    }
+
+                    KeyType.ARROW_UP -> {
+                        if (key.isAltDown) {
+                            position = position?.withRelativeRow(-1)
+                        } else if (key.isCtrlDown && (size?.rows ?: 0) > 1) {
+                            setFixedSize(size?.withRelativeRows(-1))
+                            labelUnlockWindow.setText("false")
                         }
-                        handled = true;
-                        break;
-                    case ARROW_RIGHT:
-                        if(key.isAltDown()) {
-                            setPosition(getPosition().withRelativeColumn(1));
-                        }
-                        else if(key.isCtrlDown()) {
-                            setFixedSize(getSize().withRelativeColumns(1));
-                            labelUnlockWindow.setText("false");
-                        }
-                        handled = true;
-                        break;
-                    case ARROW_UP:
-                        if(key.isAltDown()) {
-                            setPosition(getPosition().withRelativeRow(-1));
-                        }
-                        else if(key.isCtrlDown() && getSize().getRows() > 1) {
-                            setFixedSize(getSize().withRelativeRows(-1));
-                            labelUnlockWindow.setText("false");
-                        }
-                        handled = true;
-                        break;
+                        handled = true
+                    }
+
+                    else -> Unit
                 }
             }
-            return handled;
+            return handled
         }
     }
 
-    private static class BackgroundComponent extends GUIBackdrop {
-        @Override
-        protected ComponentRenderer<EmptySpace> createDefaultRenderer() {
-            return new ComponentRenderer<EmptySpace>() {
-                @Override
-                public TerminalSize getPreferredSize(EmptySpace component) {
-                    return TerminalSize.ONE;
+    private class BackgroundComponent : EmptySpace() {
+        override fun createDefaultRenderer(): ComponentRenderer<EmptySpace?> {
+            return object : ComponentRenderer<EmptySpace?> {
+                override fun getPreferredSize(component: EmptySpace?): TerminalSize {
+                    return TerminalSize.ONE
                 }
 
-                @Override
-                public void drawComponent(TextGUIGraphics graphics, EmptySpace component) {
-                    graphics.applyThemeStyle(component.getTheme().getDefinition(GUIBackdrop.class).getNormal());
-                    graphics.fill('・');
-                    String text = "Press <CTRL+Tab>/F6 and <CTRL+Shift+Tab>/F7 to cycle active window";
-                    graphics.putString(graphics.getSize().getColumns() - text.length() - 4, graphics.getSize().getRows() - 1, text);
+                override fun drawComponent(graphics: TextGUIGraphics?, component: EmptySpace?) {
+                    val g = graphics ?: return
+                    val c = component ?: return
+                    val definition = c.theme?.getDefinition(GUIBackdrop::class.java) ?: return
+                    g.applyThemeStyle(definition.normal)
+                    g.fill('・')
+                    val text = "Press <CTRL+Tab>/F6 and <CTRL+Shift+Tab>/F7 to cycle active window"
+                    val size = g.size ?: TerminalSize.ZERO
+                    g.putString(size.columns - text.length - 4, size.rows - 1, text)
                 }
-            };
+            }
         }
+    }
 
+    companion object {
+        private val WINDOW_COUNTER = AtomicInteger(0)
+        private var nextTheme = 0
 
+        @JvmStatic
+        @Throws(IOException::class, InterruptedException::class)
+        fun main(args: Array<String?>?) {
+            MultiWindowManagerTest().run(args)
+        }
     }
 }

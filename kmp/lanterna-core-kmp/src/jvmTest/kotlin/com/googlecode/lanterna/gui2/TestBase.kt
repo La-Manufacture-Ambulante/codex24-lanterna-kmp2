@@ -16,59 +16,81 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.bundle.LanternaThemes;
-import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.*
 
-import java.io.IOException;
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.bundle.LanternaThemes
+import com.googlecode.lanterna.screen.Screen
+import java.io.IOException
+import java.lang.reflect.Method
 
 /**
  * Some common code for the GUI tests to get a text system up and running on a separate thread
  * @author Martin
  */
-public abstract class TestBase {
-    void run(String[] args) throws IOException, InterruptedException {
-        Screen screen = new TestTerminalFactory(args).createScreen();
-        screen.startScreen();
-        MultiWindowTextGUI textGUI = createTextGUI(screen);
-        String theme = extractTheme(args);
-        if(theme != null) {
-            textGUI.setTheme(LanternaThemes.getRegisteredTheme(theme));
+abstract class TestBase {
+    @Throws(IOException::class, InterruptedException::class)
+    internal fun run(args: Array<String?>?) {
+        val screen = TestTerminalFactory(args).createScreen()!!
+        screen.startScreen()
+        val textGUI = invokeCreateTextGUI(screen)
+        val theme = extractTheme(args ?: emptyArray())
+        if (theme != null) {
+            textGUI.theme = LanternaThemes.getRegisteredTheme(theme)
         }
-        textGUI.setBlockingIO(false);
-        textGUI.setEOFWhenNoWindows(true);
-        //noinspection ResultOfMethodCallIgnored
-        textGUI.isEOFWhenNoWindows();   //No meaning, just to silence IntelliJ:s "is never used" alert
+        textGUI.setBlockingIO(false)
+        textGUI.isEOFWhenNoWindows = true
 
         try {
-            init(textGUI);
-            AsynchronousTextGUIThread guiThread = (AsynchronousTextGUIThread)textGUI.getGUIThread();
-            guiThread.start();
-            afterGUIThreadStarted(textGUI);
-            guiThread.waitForStop();
-        }
-        finally {
-            screen.stopScreen();
+            invokeInit(textGUI)
+            val guiThread = textGUI.guiThread as AsynchronousTextGUIThread
+            guiThread.start()
+            invokeAfterGUIThreadStarted(textGUI)
+            guiThread.waitForStop()
+        } finally {
+            screen.stopScreen()
         }
     }
 
-    private String extractTheme(String[] args) {
-        for(int i = 0; i < args.length; i++) {
-            if(args[i].equals("--theme") && i + 1 < args.length) {
-                return args[i+1];
+    private fun extractTheme(args: Array<String?>): String? {
+        for (i in args.indices) {
+            if (args[i] == "--theme" && i + 1 < args.size) {
+                return args[i + 1]
             }
         }
-        return null;
+        return null
     }
 
-    protected MultiWindowTextGUI createTextGUI(Screen screen) {
-        return new MultiWindowTextGUI(new SeparateTextGUIThread.Factory(), screen);
+    private fun findHook(name: String): Method? {
+        var cls: Class<*>? = javaClass
+        while (cls != null && cls != TestBase::class.java) {
+            cls.declaredMethods.firstOrNull { it.name == name && it.parameterCount == 1 }?.let {
+                it.isAccessible = true
+                return it
+            }
+            cls = cls.superclass
+        }
+        return null
     }
 
-    public abstract void init(WindowBasedTextGUI textGUI);
-    public void afterGUIThreadStarted(WindowBasedTextGUI textGUI) {
-        // By default do nothing
+    private fun invokeCreateTextGUI(screen: Screen): MultiWindowTextGUI {
+        val method = findHook("createTextGUI")
+        if (method != null) {
+            val result = method.invoke(this, screen)
+            if (result is MultiWindowTextGUI) {
+                return result
+            }
+        }
+        return MultiWindowTextGUI(SeparateTextGUIThread.Factory(), screen)
+    }
+
+    private fun invokeInit(textGUI: WindowBasedTextGUI) {
+        findHook("init")?.invoke(this, textGUI)
+    }
+
+    private fun invokeAfterGUIThreadStarted(textGUI: WindowBasedTextGUI) {
+        findHook("afterGUIThreadStarted")?.invoke(this, textGUI)
     }
 }

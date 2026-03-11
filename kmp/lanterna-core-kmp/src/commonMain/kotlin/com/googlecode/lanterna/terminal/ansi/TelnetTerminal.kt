@@ -16,386 +16,373 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.terminal.ansi;
+package com.googlecode.lanterna.terminal.ansi
 
-import static com.googlecode.lanterna.terminal.ansi.TelnetProtocol.*;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
+import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.COMMAND_DO
+import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.COMMAND_DONT
+import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.COMMAND_IAC
+import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.COMMAND_SUBNEGOTIATION
+import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.COMMAND_SUBNEGOTIATION_END
+import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.COMMAND_WILL
+import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.COMMAND_WONT
+import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.OPTION_ECHO
+import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.OPTION_EXTEND_ASCII
+import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.OPTION_LINEMODE
+import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.OPTION_NAWS
+import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.OPTION_SUPPRESS_GO_AHEAD
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.net.Socket
+import java.net.SocketAddress
+import java.net.SocketTimeoutException
+import java.nio.charset.Charset
 
 /**
- * This class is used by the {@code TelnetTerminalServer} class when a client has connected in; this class will be the
+ * This class is used by the `TelnetTerminalServer` class when a client has connected in; this class will be the
  * interaction point for that client. All operations are sent to the client over the network socket and some of the
  * meta-operations (like echo mode) are communicated using Telnet negotiation language. You can't create objects of this
  * class directly; they are created for you when you are listening for incoming connections using a
- * {@code TelnetTerminalServer} and a client connects.
- * <p>
- * A good resource on telnet communication is http://www.tcpipguide.com/free/t_TelnetProtocol.htm<br>
+ * `TelnetTerminalServer` and a client connects.
+ *
+ * A good resource on telnet communication is http://www.tcpipguide.com/free/t_TelnetProtocol.htm
  * Also here: http://support.microsoft.com/kb/231866
  * @see TelnetTerminalServer
  * @author martin
  */
-public class TelnetTerminal extends ANSITerminal {
-    
-    private final Socket socket;
-    private final NegotiationState negotiationState;
-
-    TelnetTerminal(Socket socket, Charset terminalCharset) throws IOException {
-        this(socket, new TelnetClientIACFilterer(socket), socket.getOutputStream(), terminalCharset);
-    }
-
-    //This weird construction is just so that we can access the input filter without changing the visibility in StreamBasedTerminal
-    private TelnetTerminal(Socket socket, TelnetClientIACFilterer inputStream, OutputStream outputStream, Charset terminalCharset) throws IOException {
-        super(inputStream, outputStream, terminalCharset);
-        this.socket = socket;
-        this.negotiationState = inputStream.negotiationState;
-        inputStream.setEventListener(new TelnetClientEventListener() {
-            @Override
-            public void onResize(int columns, int rows) {
-                TelnetTerminal.this.onResized(columns, rows);
-            }
-
-            @Override
-            public void requestReply(boolean will, byte option) throws IOException {
-                writeToTerminal(COMMAND_IAC, will ? COMMAND_WILL : COMMAND_WONT, option);
-            }
-        });
-        setLineMode0();
-        setEchoOff();
-        setResizeNotificationOn();
-    }
-
-    /**
-     * Returns the socket address for the remote endpoint of the telnet connection
-     * @return SocketAddress representing the remote client
-     */
-    public SocketAddress getRemoteSocketAddress() {
-        return socket.getRemoteSocketAddress();
-    }
-    
-    private void setEchoOff() throws IOException {
-        writeToTerminal(COMMAND_IAC, COMMAND_WILL, OPTION_ECHO);
-        flush();
-    }
-    
-    private void setLineMode0() throws IOException {
-        writeToTerminal(
-                COMMAND_IAC, COMMAND_DO, OPTION_LINEMODE,
-                COMMAND_IAC, COMMAND_SUBNEGOTIATION, OPTION_LINEMODE, (byte)1, (byte)0, COMMAND_IAC, COMMAND_SUBNEGOTIATION_END);
-        flush();
-    }
-
-    private void setResizeNotificationOn() throws IOException {
-        writeToTerminal(
-                COMMAND_IAC, COMMAND_DO, OPTION_NAWS);
-        flush();
-    }
-
+class TelnetTerminal @Throws(IOException::class) private constructor(
+    private val socket: Socket,
+    inputStream: TelnetClientIACFilterer,
+    outputStream: OutputStream,
+    terminalCharset: Charset,
+) : ANSITerminal(inputStream, outputStream, terminalCharset) {
     /**
      * Retrieves the current negotiation state with the client, containing details on what options have been enabled
      * and what the client has said it supports.
      * @return The current negotiation state for this client
      */
-    public NegotiationState getNegotiationState() {
-        return negotiationState;
-    }
+    val negotiationState: NegotiationState
 
     /**
-     * Closes the socket to the client, effectively ending the telnet session and the terminal.
-     * @throws IOException If there was an underlying I/O error
+     * Returns the socket address for the remote endpoint of the telnet connection
+     * @return SocketAddress representing the remote client
      */
-    @Override
-    public void close() throws IOException {
-        super.close();
-        socket.close();
+    val remoteSocketAddress: SocketAddress
+        get() = socket.remoteSocketAddress
+
+    @Throws(IOException::class)
+    internal constructor(
+        socket: Socket,
+        terminalCharset: Charset,
+    ) : this(socket, TelnetClientIACFilterer(socket), socket.getOutputStream(), terminalCharset)
+
+    init {
+        negotiationState = inputStream.negotiationState
+        inputStream.setEventListener(object : TelnetClientEventListener {
+            override fun onResize(columns: Int, rows: Int) {
+                this@TelnetTerminal.onResized(columns, rows)
+            }
+
+            @Throws(IOException::class)
+            override fun requestReply(will: Boolean, option: Byte) {
+                writeToTerminal(COMMAND_IAC, if (will) COMMAND_WILL else COMMAND_WONT, option)
+            }
+        })
+        setLineMode0()
+        setEchoOff()
+        setResizeNotificationOn()
+    }
+
+    @Throws(IOException::class)
+    private fun setEchoOff() {
+        writeToTerminal(COMMAND_IAC, COMMAND_WILL, OPTION_ECHO)
+        flush()
+    }
+
+    @Throws(IOException::class)
+    private fun setLineMode0() {
+        writeToTerminal(
+            COMMAND_IAC,
+            COMMAND_DO,
+            OPTION_LINEMODE,
+            COMMAND_IAC,
+            COMMAND_SUBNEGOTIATION,
+            OPTION_LINEMODE,
+            1,
+            0,
+            COMMAND_IAC,
+            COMMAND_SUBNEGOTIATION_END,
+        )
+        flush()
+    }
+
+    @Throws(IOException::class)
+    private fun setResizeNotificationOn() {
+        writeToTerminal(COMMAND_IAC, COMMAND_DO, OPTION_NAWS)
+        flush()
+    }
+
+    @Throws(IOException::class)
+    override fun close() {
+        super.close()
+        socket.close()
     }
 
     /**
      * This class contains some of the various states that the Telnet negotiation protocol defines. Lanterna doesn't
      * support all of them but the more common ones are represented.
      */
-    public static class NegotiationState {
-        private boolean clientEcho;
-        private boolean clientLineMode0;
-        private boolean clientResizeNotification;
-        private boolean suppressGoAhead;
-        private boolean extendedAscii;
-
-        NegotiationState() {
-            this.clientEcho = true;
-            this.clientLineMode0 = false;
-            this.clientResizeNotification = false;
-            this.suppressGoAhead = true;
-            this.extendedAscii = true;  
-        }
-
+    class NegotiationState internal constructor() {
         /**
          * Is the telnet client echo mode turned on (client is echoing characters locally)
-         * @return {@code true} if client echo is enabled
+         * @return `true` if client echo is enabled
          */
-        public boolean isClientEcho() {
-            return clientEcho;
-        }
-
+        var isClientEcho: Boolean = true
+            internal set
         /**
          * Is the telnet client line mode 0 turned on (client sends character by character instead of line by line)
-         * @return {@code true} if client line mode 0 is enabled
+         * @return `true` if client line mode 0 is enabled
          */
-        public boolean isClientLineMode0() {
-            return clientLineMode0;
-        }
-
+        var isClientLineMode0: Boolean = false
+            internal set
         /**
          * Is the telnet client resize notification turned on (client notifies server when the terminal window has
          * changed size)
-         * @return {@code true} if client resize notification is enabled
+         * @return `true` if client resize notification is enabled
          */
-        public boolean isClientResizeNotification() {
-            return clientResizeNotification;
-        }
-
-
+        var isClientResizeNotification: Boolean = false
+            internal set
         /**
          * Is the telnet client suppress go-ahead turned on
-         * @return {@code true} if client suppress go-ahead is enabled
+         * @return `true` if client suppress go-ahead is enabled
          */
-        public boolean isSuppressGoAhead() {
-            return suppressGoAhead;
-        }
-
+        var isSuppressGoAhead: Boolean = true
+            internal set
         /**
          * Is the telnet client extended ascii turned on
-         * @return {@code true} if client extended ascii is enabled
+         * @return `true` if client extended ascii is enabled
          */
-        public boolean isExtendedAscii() {
-            return extendedAscii;
-        }
-        
-        private void onUnsupportedStateCommand(boolean enabling, byte value) {
-            System.err.println("Unsupported operation: Client says it " + (enabling ? "will" : "won't") + " do " + TelnetProtocol.CODE_TO_NAME.get(value));
+        var isExtendedAscii: Boolean = true
+            internal set
+
+        internal fun onUnsupportedStateCommand(enabling: Boolean, value: Byte) {
+            System.err.println(
+                "Unsupported operation: Client says it " +
+                    (if (enabling) "will" else "won't") +
+                    " do " +
+                    TelnetProtocol.CODE_TO_NAME[value],
+            )
         }
 
-        private void onUnsupportedRequestCommand(boolean askedToDo, byte value) {
-            System.err.println("Unsupported request: Client asks us, " + (askedToDo ? "do" : "don't") + " " + TelnetProtocol.CODE_TO_NAME.get(value));
+        internal fun onUnsupportedRequestCommand(askedToDo: Boolean, value: Byte) {
+            System.err.println(
+                "Unsupported request: Client asks us, " +
+                    (if (askedToDo) "do" else "don't") +
+                    " " +
+                    TelnetProtocol.CODE_TO_NAME[value],
+            )
         }
 
-        private void onUnsupportedSubnegotiation(byte option, byte[] additionalData) {
-            System.err.println("Unsupported subnegotiation: Client send " + TelnetProtocol.CODE_TO_NAME.get(option) + " with extra data " +
-                    toList(additionalData));
+        internal fun onUnsupportedSubnegotiation(option: Byte, additionalData: ByteArray) {
+            System.err.println(
+                "Unsupported subnegotiation: Client send " +
+                    TelnetProtocol.CODE_TO_NAME[option] +
+                    " with extra data " +
+                    toList(additionalData),
+            )
         }
-        
-        private static List<String> toList(byte[] array) {
-            List<String> list = new ArrayList<>(array.length);
-            for(byte b: array) {
-                list.add(String.format("%02X ", b));
+
+        private fun toList(array: ByteArray): List<String> {
+            val list = ArrayList<String>(array.size)
+            for (byteValue in array) {
+                list.add(String.format("%02X ", byteValue))
             }
-            return list;
+            return list
         }
     }
-    
+
     private interface TelnetClientEventListener {
-        void onResize(int columns, int rows);
-        void requestReply(boolean will, byte option) throws IOException;
+        fun onResize(columns: Int, rows: Int)
+
+        @Throws(IOException::class)
+        fun requestReply(will: Boolean, option: Byte)
     }
-    
-    private static class TelnetClientIACFilterer extends InputStream {
-        private final NegotiationState negotiationState;
-        private final InputStream inputStream;
-        private final byte[] buffer;
-        private final byte[] workingBuffer;
-        private int bytesInBuffer;
-        private TelnetClientEventListener eventListener;
-        private Socket socket;
 
-        TelnetClientIACFilterer(Socket socket) throws IOException {
-            this.negotiationState = new NegotiationState();
-            this.inputStream = socket.getInputStream();
-            this.buffer = new byte[64 * 1024];
-            this.workingBuffer = new byte[1024];
-            this.bytesInBuffer = 0;
-            this.eventListener = null;
-            this.socket = socket;
+    private class TelnetClientIACFilterer @Throws(IOException::class) constructor(
+        socket: Socket,
+    ) : InputStream() {
+        val negotiationState = NegotiationState()
+        private val inputStream: InputStream = socket.getInputStream()
+        private val buffer = ByteArray(64 * 1024)
+        private val workingBuffer = ByteArray(1024)
+        private var bytesInBuffer = 0
+        private var eventListener: TelnetClientEventListener? = null
+        private val socket: Socket = socket
+
+        fun setEventListener(eventListener: TelnetClientEventListener?) {
+            this.eventListener = eventListener
         }
 
-        private void setEventListener(TelnetClientEventListener eventListener) {
-            this.eventListener = eventListener;
+        override fun read(): Int {
+            throw UnsupportedOperationException("TelnetClientIACFilterer doesn't support .read()")
         }
 
-        @Override
-        public int read() {
-            throw new UnsupportedOperationException("TelnetClientIACFilterer doesn't support .read()");
+        @Throws(IOException::class)
+        override fun close() {
+            inputStream.close()
         }
 
-        @Override
-        public void close() throws IOException {
-            inputStream.close();
-        }
-
-        @Override
-        public int available() throws IOException {
-            if(bytesInBuffer > 0) {
-                return bytesInBuffer;
+        @Throws(IOException::class)
+        override fun available(): Int {
+            if (bytesInBuffer > 0) {
+                return bytesInBuffer
             }
-            fillBuffer(false);
-            return Math.abs(bytesInBuffer);
+            fillBuffer(false)
+            return kotlin.math.abs(bytesInBuffer)
         }
 
-        @Override
-        public int read(byte[] b, int off, int len) throws IOException {
+        @Throws(IOException::class)
+        override fun read(b: ByteArray, off: Int, len: Int): Int {
             if (bytesInBuffer == -1) {
-                return -1;
+                return -1
             }
-            if(available() == 0) {
-               // There was nothing in the buffer and the underlying
-               // stream has nothing available, so do a blocking read
-               // from the stream.
-               fillBuffer(true);
+            if (available() == 0) {
+                fillBuffer(true)
             }
-            if(bytesInBuffer <= 0) {
-                return -1;
+            if (bytesInBuffer <= 0) {
+                return -1
             }
-            int bytesToCopy = Math.min(len, bytesInBuffer);
-            System.arraycopy(buffer, 0, b, off, bytesToCopy);
-            System.arraycopy(buffer, bytesToCopy, buffer, 0, buffer.length - bytesToCopy);
-            bytesInBuffer -= bytesToCopy;
-            return bytesToCopy;
+            val bytesToCopy = minOf(len, bytesInBuffer)
+            System.arraycopy(buffer, 0, b, off, bytesToCopy)
+            System.arraycopy(buffer, bytesToCopy, buffer, 0, buffer.size - bytesToCopy)
+            bytesInBuffer -= bytesToCopy
+            return bytesToCopy
         }
 
-        private void fillBuffer(boolean block) throws IOException {
-            int maxFill = Math.min(workingBuffer.length, buffer.length - bytesInBuffer);
-
-            int oldTimeout = socket.getSoTimeout();
-            if (!block) { socket.setSoTimeout(1); }
-            int readBytes;
-            try {
-                readBytes = inputStream.read(workingBuffer, 0, maxFill);
-            } catch (java.net.SocketTimeoutException ste) {
-                readBytes = 0;
+        @Throws(IOException::class)
+        private fun fillBuffer(block: Boolean) {
+            val maxFill = minOf(workingBuffer.size, buffer.size - bytesInBuffer)
+            val oldTimeout = socket.soTimeout
+            if (!block) {
+                socket.soTimeout = 1
             }
-            if (!block) { socket.setSoTimeout(oldTimeout); }
-
+            val readBytes = try {
+                inputStream.read(workingBuffer, 0, maxFill)
+            } catch (_: SocketTimeoutException) {
+                0
+            }
+            if (!block) {
+                socket.soTimeout = oldTimeout
+            }
             if (readBytes == -1) {
-                bytesInBuffer = -1; return;
+                bytesInBuffer = -1
+                return
             }
-            for(int i = 0; i < readBytes; i++) {
-                if(workingBuffer[i] == COMMAND_IAC) {
-                    i++;
-                    if(Arrays.asList(COMMAND_DO, COMMAND_DONT, COMMAND_WILL, COMMAND_WONT).contains(workingBuffer[i])) {
-                        parseCommand(workingBuffer, i, readBytes);
-                        ++i;
-                        continue;
+            var i = 0
+            while (i < readBytes) {
+                if (workingBuffer[i] == COMMAND_IAC) {
+                    i++
+                    if (i >= readBytes) {
+                        break
                     }
-                    else if(workingBuffer[i] == COMMAND_SUBNEGOTIATION) {   //0xFA = SB = Subnegotiation
-                        i += parseSubNegotiation(workingBuffer, ++i, readBytes);
-                        continue;
-                    }
-                    else if(workingBuffer[i] != COMMAND_IAC) {   //Double IAC = 255
-                        System.err.println("Unknown Telnet command: " + workingBuffer[i]);
+                    if (workingBuffer[i] in byteArrayOf(COMMAND_DO, COMMAND_DONT, COMMAND_WILL, COMMAND_WONT)) {
+                        parseCommand(workingBuffer, i, readBytes)
+                        i += 2
+                        continue
+                    } else if (workingBuffer[i] == COMMAND_SUBNEGOTIATION) {
+                        i += parseSubNegotiation(workingBuffer, i + 1, readBytes)
+                        continue
+                    } else if (workingBuffer[i] != COMMAND_IAC) {
+                        System.err.println("Unknown Telnet command: ${workingBuffer[i]}")
                     }
                 }
-                buffer[bytesInBuffer++] = workingBuffer[i];
+                buffer[bytesInBuffer++] = workingBuffer[i]
+                i++
             }
-        }
-        
-        private void parseCommand(byte[] buffer, int position, int max) throws IOException {
-            if(position + 1 >= max) {
-                throw new IllegalStateException("State error, we got a command signal from the remote telnet client but "
-                        + "not enough characters available in the stream");
-            }
-            byte command = buffer[position];
-            byte value = buffer[position + 1];
-            switch(command) {
-                case COMMAND_DO:
-                case COMMAND_DONT:
-                    if(value == OPTION_SUPPRESS_GO_AHEAD) {
-                        negotiationState.suppressGoAhead = (command == COMMAND_DO);
-                        eventListener.requestReply(command == COMMAND_DO, value);
-                    }
-                    else if(value == OPTION_EXTEND_ASCII) {
-                        negotiationState.extendedAscii = (command == COMMAND_DO);
-                        eventListener.requestReply(command == COMMAND_DO, value);
-                    }
-                    else {
-                        negotiationState.onUnsupportedRequestCommand(command == COMMAND_DO, value);
-                    }
-                    break;
-                case COMMAND_WILL:
-                case COMMAND_WONT:
-                    if(value == OPTION_ECHO) {
-                        negotiationState.clientEcho = (command == COMMAND_WILL);
-                    }
-                    else if(value == OPTION_LINEMODE) {
-                        negotiationState.clientLineMode0 = (command == COMMAND_WILL);
-                    }
-                    else if(value == OPTION_NAWS) {
-                       negotiationState.clientResizeNotification = (command == COMMAND_WILL);
-                    }
-                    else {
-                        negotiationState.onUnsupportedStateCommand(command == COMMAND_WILL, value);
-                    }
-                    break;
-                default:
-                    throw new UnsupportedOperationException("No command handler implemented for " + TelnetProtocol.CODE_TO_NAME.get(command));
-            }
-        }
-        
-        private int parseSubNegotiation(byte[] buffer, int position, int max) {
-            int originalPosition = position;
-
-            //Read operation
-            byte operation = buffer[position++];
-            
-            //Read until [IAC SE]            
-            ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
-            while(position < max) {
-                byte read = buffer[position];
-                if(read != COMMAND_IAC) {
-                    outputBuffer.write(read);
-                }
-                else {
-                    if(position + 1 == max) {
-                        throw new IllegalStateException("State error, unexpected end of buffer when reading subnegotiation");
-                    }
-                    position++;
-                    if(buffer[position] == COMMAND_IAC) {
-                        outputBuffer.write(COMMAND_IAC);    //Escaped IAC
-                    }
-                    else if(buffer[position] == COMMAND_SUBNEGOTIATION_END) {
-                        parseSubNegotiation(operation, outputBuffer.toByteArray());
-                        return ++position - originalPosition;
-                    }
-                }
-                position++;
-            }
-            throw new IllegalStateException("State error, unexpected end of buffer when reading subnegotiation, no IAC SE");
         }
 
-        private void parseSubNegotiation(byte option, byte[] additionalData) {
-            switch(option) {
-                case OPTION_NAWS:
-                    eventListener.onResize(
-                            convertTwoBytesToInt2(additionalData[1], additionalData[0]), 
-                            convertTwoBytesToInt2(additionalData[3], additionalData[2]));
-                    break;
-                case OPTION_LINEMODE:
-                    //We don't parse this, as this is a very complicated command :(
-                    //Let's leave it for now, fingers crossed
-                    break;
-                default:
-                    negotiationState.onUnsupportedSubnegotiation(option, additionalData);
-                    break;
+        @Throws(IOException::class)
+        private fun parseCommand(buffer: ByteArray, position: Int, max: Int) {
+            if (position + 1 >= max) {
+                throw IllegalStateException(
+                    "State error, we got a command signal from the remote telnet client but not enough characters available in the stream",
+                )
+            }
+            val command = buffer[position]
+            val value = buffer[position + 1]
+            when (command) {
+                COMMAND_DO, COMMAND_DONT -> {
+                    if (value == OPTION_SUPPRESS_GO_AHEAD) {
+                        negotiationState.isSuppressGoAhead = command == COMMAND_DO
+                        eventListener?.requestReply(command == COMMAND_DO, value)
+                    } else if (value == OPTION_EXTEND_ASCII) {
+                        negotiationState.isExtendedAscii = command == COMMAND_DO
+                        eventListener?.requestReply(command == COMMAND_DO, value)
+                    } else {
+                        negotiationState.onUnsupportedRequestCommand(command == COMMAND_DO, value)
+                    }
+                }
+                COMMAND_WILL, COMMAND_WONT -> {
+                    if (value == OPTION_ECHO) {
+                        negotiationState.isClientEcho = command == COMMAND_WILL
+                    } else if (value == OPTION_LINEMODE) {
+                        negotiationState.isClientLineMode0 = command == COMMAND_WILL
+                    } else if (value == OPTION_NAWS) {
+                        negotiationState.isClientResizeNotification = command == COMMAND_WILL
+                    } else {
+                        negotiationState.onUnsupportedStateCommand(command == COMMAND_WILL, value)
+                    }
+                }
+                else -> throw UnsupportedOperationException(
+                    "No command handler implemented for ${TelnetProtocol.CODE_TO_NAME[command]}",
+                )
+            }
+        }
+
+        private fun parseSubNegotiation(buffer: ByteArray, position: Int, max: Int): Int {
+            val originalPosition = position
+            var currentPosition = position
+            val operation = buffer[currentPosition++]
+            val outputBuffer = ByteArrayOutputStream()
+            while (currentPosition < max) {
+                val read = buffer[currentPosition]
+                if (read != COMMAND_IAC) {
+                    outputBuffer.write(read.toInt())
+                } else {
+                    if (currentPosition + 1 == max) {
+                        throw IllegalStateException("State error, unexpected end of buffer when reading subnegotiation")
+                    }
+                    currentPosition++
+                    if (buffer[currentPosition] == COMMAND_IAC) {
+                        outputBuffer.write(COMMAND_IAC.toInt())
+                    } else if (buffer[currentPosition] == COMMAND_SUBNEGOTIATION_END) {
+                        parseSubNegotiation(operation, outputBuffer.toByteArray())
+                        return currentPosition + 1 - originalPosition
+                    }
+                }
+                currentPosition++
+            }
+            throw IllegalStateException(
+                "State error, unexpected end of buffer when reading subnegotiation, no IAC SE",
+            )
+        }
+
+        private fun parseSubNegotiation(option: Byte, additionalData: ByteArray) {
+            when (option) {
+                OPTION_NAWS -> eventListener?.onResize(
+                    convertTwoBytesToInt2(additionalData[1], additionalData[0]),
+                    convertTwoBytesToInt2(additionalData[3], additionalData[2]),
+                )
+                OPTION_LINEMODE -> Unit
+                else -> negotiationState.onUnsupportedSubnegotiation(option, additionalData)
             }
         }
     }
-    
-    private static int convertTwoBytesToInt2(byte b1, byte b2) {
-        return ( (b2 & 0xFF) << 8) | (b1 & 0xFF);
+
+    companion object {
+        private fun convertTwoBytesToInt2(b1: Byte, b2: Byte): Int {
+            return ((b2.toInt() and 0xFF) shl 8) or (b1.toInt() and 0xFF)
+        }
     }
 }

@@ -16,91 +16,110 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.dialogs;
+package com.googlecode.lanterna.gui2.dialogs
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.gui2.*;
-
-import java.util.List;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.gui2.ActionListBox
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.EmptySpace
+import com.googlecode.lanterna.gui2.GridLayout
+import com.googlecode.lanterna.gui2.Label
+import com.googlecode.lanterna.gui2.LocalizedString
+import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 
 /**
- * Dialog containing a multiple item action list box
+ * Dialog containing a multiple item action list box.
  * @author Martin
  */
-public class ActionListDialog extends DialogWindow {
-
-    ActionListDialog(
-            String title,
-            String description,
-            TerminalSize actionListPreferredSize,
-            boolean canCancel,
-            final boolean closeAutomatically,
-            List<Runnable> actions) {
-
-        super(title);
-
-        ActionListBox listBox = new ActionListBox(actionListPreferredSize);
-        for(final Runnable action: actions) {
-            listBox.addItem(action.toString(), () -> {
-                action.run();
-                if(closeAutomatically) {
-                    close();
-                }
-            });
+class ActionListDialog internal constructor(
+    title: String?,
+    description: String?,
+    actionListPreferredSize: TerminalSize?,
+    canCancel: Boolean,
+    private val closeAutomatically: Boolean,
+    actions: List<Runnable>,
+) : DialogWindow(title) {
+    init {
+        val listBox = ActionListBox(actionListPreferredSize)
+        for (action in actions) {
+            listBox.addItem(
+                action.toString(),
+                Runnable {
+                    action.run()
+                    if (closeAutomatically) {
+                        close()
+                    }
+                },
+            )
         }
 
-        Panel mainPanel = new Panel();
+        val mainPanel = Panel()
         mainPanel.setLayoutManager(
-                new GridLayout(1)
-                        .setLeftMarginSize(1)
-                        .setRightMarginSize(1));
-        if(description != null) {
-            mainPanel.addComponent(new Label(description));
-            mainPanel.addComponent(new EmptySpace(TerminalSize.ONE));
+            GridLayout(1)
+                .setLeftMarginSize(1)
+                .setRightMarginSize(1),
+        )
+        if (description != null) {
+            mainPanel.addComponent(Label(description))
+            mainPanel.addComponent(EmptySpace(TerminalSize.ONE))
         }
         listBox.setLayoutData(
-                GridLayout.createLayoutData(
-                        GridLayout.Alignment.FILL,
+            GridLayout.createLayoutData(
+                GridLayout.Alignment.FILL,
+                GridLayout.Alignment.CENTER,
+                true,
+                false,
+            ),
+        )
+        listBox.addTo(mainPanel)
+        mainPanel.addComponent(EmptySpace(TerminalSize.ONE))
+
+        if (canCancel) {
+            val buttonPanel = Panel()
+            buttonPanel.setLayoutManager(GridLayout(2).setHorizontalSpacing(1))
+            buttonPanel.addComponent(
+                Button(LocalizedString.Cancel.toString(), Runnable { onCancel() }).setLayoutData(
+                    GridLayout.createLayoutData(
+                        GridLayout.Alignment.CENTER,
                         GridLayout.Alignment.CENTER,
                         true,
-                        false))
-                .addTo(mainPanel);
-        mainPanel.addComponent(new EmptySpace(TerminalSize.ONE));
-
-        if(canCancel) {
-            Panel buttonPanel = new Panel();
-            buttonPanel.setLayoutManager(new GridLayout(2).setHorizontalSpacing(1));
-            buttonPanel.addComponent(new Button(LocalizedString.Cancel.toString(), this::onCancel).setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.CENTER, true, false)));
+                        false,
+                    ),
+                ),
+            )
             buttonPanel.setLayoutData(
-                    GridLayout.createLayoutData(
-                            GridLayout.Alignment.END,
-                            GridLayout.Alignment.CENTER,
-                            false,
-                            false))
-                    .addTo(mainPanel);
+                GridLayout.createLayoutData(
+                    GridLayout.Alignment.END,
+                    GridLayout.Alignment.CENTER,
+                    false,
+                    false,
+                ),
+            )
+            buttonPanel.addTo(mainPanel)
         }
-        setComponent(mainPanel);
+        component = mainPanel
     }
 
-    private void onCancel() {
-        close();
+    private fun onCancel() {
+        close()
     }
 
-    /**
-     * Helper method for immediately displaying a {@code ActionListDialog}, the method will return when the dialog is
-     * closed
-     * @param textGUI Text GUI the dialog should be added to
-     * @param title Title of the dialog
-     * @param description Description of the dialog
-     * @param items Items in the {@code ActionListBox}, the label will be taken from each {@code Runnable} by calling
-     *              {@code toString()} on each one
-     */
-    public static void showDialog(WindowBasedTextGUI textGUI, String title, String description, Runnable... items) {
-        ActionListDialog actionListDialog = new ActionListDialogBuilder()
+    companion object {
+        /**
+         * Helper method for immediately displaying an [ActionListDialog]. The method returns when the dialog closes.
+         * @param textGUI Text GUI the dialog should be added to
+         * @param title Title of the dialog
+         * @param description Description of the dialog
+         * @param items Items in the [ActionListBox], labels are taken from `toString()` on each runnable
+         */
+        fun showDialog(textGUI: WindowBasedTextGUI, title: String?, description: String?, vararg items: Runnable) {
+            val actionListDialog = ActionListDialogBuilder()
                 .setTitle(title)
                 .setDescription(description)
-                .addActions(items)
-                .build();
-        actionListDialog.showDialog(textGUI);
+                .addActions(*items)
+                .build()
+            actionListDialog.showDialog(textGUI)
+        }
     }
 }

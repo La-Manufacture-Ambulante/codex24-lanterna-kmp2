@@ -14,190 +14,183 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2010-2016 Martin
- * Copyright (C) 2017 University of Waikato, Hamilton, NZ
+ * Copyright (C) 2010-2020 Martin Berglund
  */
+package com.googlecode.lanterna.gui2.dialogs
 
-package com.googlecode.lanterna.gui2.dialogs;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.Comparator;
-
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.gui2.ActionListBox;
-import com.googlecode.lanterna.gui2.BorderLayout;
-import com.googlecode.lanterna.gui2.BorderLayout.Location;
-import com.googlecode.lanterna.gui2.Borders;
-import com.googlecode.lanterna.gui2.Button;
-import com.googlecode.lanterna.gui2.GridLayout;
-import com.googlecode.lanterna.gui2.Label;
-import com.googlecode.lanterna.gui2.LocalizedString;
-import com.googlecode.lanterna.gui2.Panel;
-import com.googlecode.lanterna.gui2.TextBox;
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
-import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.gui2.ActionListBox
+import com.googlecode.lanterna.gui2.BorderLayout
+import com.googlecode.lanterna.gui2.Borders
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.GridLayout
+import com.googlecode.lanterna.gui2.Label
+import com.googlecode.lanterna.gui2.LocalizedString
+import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.gui2.TextBox
+import com.googlecode.lanterna.gui2.WindowBasedTextGUI
+import java.io.File
+import java.util.Arrays
+import java.util.Comparator
 
 /**
  * Dialog that allows the user to iterate the file system and pick directory.
  *
- * @author Martin
- * @author FracPete (fracpete at waikato dot ac dot nz)
+ * @param title Title of the dialog
+ * @param description Description of the dialog, is displayed at the top of the content area
+ * @param actionLabel Label to use on the "confirm" button, for example "open" or "save"
+ * @param dialogSize Rough estimation of how big you want the dialog to be
+ * @param showHiddenDirs If `true`, hidden directories will be visible
+ * @param selectedObject Initially selected directory node
  */
-public class DirectoryDialog extends DialogWindow {
+class DirectoryDialog(
+    title: String?,
+    description: String?,
+    actionLabel: String?,
+    dialogSize: TerminalSize,
+    private val showHiddenDirs: Boolean,
+    selectedObject: File?,
+) : DialogWindow(title) {
+    private val dirListBox: ActionListBox
+    private val dirBox: TextBox
+    private var directory: File? = null
+    private var selectedDir: File? = null
 
-    private final ActionListBox dirListBox;
-
-    private final TextBox dirBox;
-
-    private final boolean showHiddenDirs;
-
-    private File directory;
-
-    private File selectedDir;
-
-    /**
-     * Default constructor for {@code DirectoryDialog}
-     *
-     * @param title          Title of the dialog
-     * @param description    Description of the dialog, is displayed at the top of the content area
-     * @param actionLabel    Label to use on the "confirm" button, for example "open" or "save"
-     * @param dialogSize     Rough estimation of how big you want the dialog to be
-     * @param showHiddenDirs If {@code true}, hidden directories will be visible
-     * @param selectedObject Initially selected directory node
-     */
-    public DirectoryDialog(
-            String title,
-            String description,
-            String actionLabel,
-            TerminalSize dialogSize,
-            boolean showHiddenDirs,
-            File selectedObject) {
-        super(title);
-        this.selectedDir = null;
-        this.showHiddenDirs = showHiddenDirs;
-
-        if (selectedObject == null || !selectedObject.exists()) {
-            selectedObject = new File("").getAbsoluteFile();
+    init {
+        var resolvedSelectedObject = selectedObject
+        if (resolvedSelectedObject == null || !resolvedSelectedObject.exists()) {
+            resolvedSelectedObject = File("").absoluteFile
         }
-        selectedObject = selectedObject.getAbsoluteFile();
+        resolvedSelectedObject = resolvedSelectedObject.absoluteFile
 
-        Panel contentPane = new Panel();
-        contentPane.setLayoutManager(new BorderLayout());
+        val contentPane = Panel()
+        contentPane.setLayoutManager(BorderLayout())
 
-        Panel dirsPane = new Panel();
-        dirsPane.setLayoutManager(new BorderLayout());
-        contentPane.addComponent(dirsPane, Location.CENTER);
+        val dirsPane = Panel()
+        dirsPane.setLayoutManager(BorderLayout())
+        contentPane.addComponent(dirsPane, BorderLayout.Location.CENTER)
 
-        if (description != null)
-            contentPane.addComponent(new Label(description), Location.TOP);
-
-        int unitHeight = dialogSize.getRows();
-
-        dirListBox = new ActionListBox(new TerminalSize(dialogSize.getColumns(), unitHeight));
-        dirsPane.addComponent(dirListBox.withBorder(Borders.singleLine()), Location.CENTER);
-
-        dirBox = new TextBox(new TerminalSize(dialogSize.getColumns(), 1));
-        dirsPane.addComponent(dirBox.withBorder(Borders.singleLine()), Location.BOTTOM);
-
-        Panel panelButtons = new Panel(new GridLayout(2));
-        panelButtons.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.END, GridLayout.Alignment.CENTER, false, false, 2, 1));
-        panelButtons.addComponent(new Button(actionLabel, new OkHandler()).setAccelerator(new KeyStroke('s', false, true)));
-        panelButtons.addComponent(new Button(LocalizedString.Cancel.toString(), new CancelHandler()).setAccelerator(new KeyStroke('c', false, true)));
-        contentPane.addComponent(panelButtons, Location.BOTTOM);
-
-        if (selectedObject.isFile()) {
-            directory = selectedObject.getParentFile();
-        }
-        else if (selectedObject.isDirectory()) {
-            directory = selectedObject;
+        if (description != null) {
+            contentPane.addComponent(Label(description), BorderLayout.Location.TOP)
         }
 
-        reloadViews(directory);
-        setComponent(contentPane);
+        val unitHeight = dialogSize.rows
+        dirListBox = ActionListBox(TerminalSize(dialogSize.columns, unitHeight))
+        dirsPane.addComponent(dirListBox.withBorder(Borders.singleLine()), BorderLayout.Location.CENTER)
+
+        dirBox = TextBox(TerminalSize(dialogSize.columns, 1))
+        dirsPane.addComponent(dirBox.withBorder(Borders.singleLine()), BorderLayout.Location.BOTTOM)
+
+        val panelButtons = Panel(GridLayout(2))
+        panelButtons.setLayoutData(
+            GridLayout.createLayoutData(
+                GridLayout.Alignment.END,
+                GridLayout.Alignment.CENTER,
+                false,
+                false,
+                2,
+                1,
+            ),
+        )
+        panelButtons.addComponent(
+            Button(requireNotNull(actionLabel), OkHandler()),
+        )
+        panelButtons.addComponent(
+            Button(LocalizedString.Cancel.toString(), CancelHandler()),
+        )
+        contentPane.addComponent(panelButtons, BorderLayout.Location.BOTTOM)
+
+        when {
+            resolvedSelectedObject.isFile -> directory = resolvedSelectedObject.parentFile
+            resolvedSelectedObject.isDirectory -> directory = resolvedSelectedObject
+        }
+
+        reloadViews(directory ?: File("").absoluteFile)
+        component = contentPane
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @param textGUI Text GUI to add the dialog to
-     * @return The directory which was selected in the dialog or {@code null} if the dialog was cancelled
+     * The directory which was selected in the dialog or `null` if the dialog was cancelled.
      */
-    @Override
-    public File showDialog(WindowBasedTextGUI textGUI) {
-        selectedDir = null;
-        super.showDialog(textGUI);
-        return selectedDir;
+    override fun showDialog(textGUI: WindowBasedTextGUI): File? {
+        selectedDir = null
+        super.showDialog(textGUI)
+        return selectedDir
     }
 
-    private class OkHandler implements Runnable {
-
-        @Override
-        public void run() {
-            File dir = new File(dirBox.getText());
-            if (dir.exists() && dir.isDirectory()) {
-                selectedDir = dir;
-                close();
-            }
-            else {
-                MessageDialog.showMessageDialog(getTextGUI(), "Error", "Please select a valid directory name", MessageDialogButton.OK);
+    private inner class OkHandler : Runnable {
+        override fun run() {
+            val dir = File(dirBox.text)
+            if (dir.exists() && dir.isDirectory) {
+                selectedDir = dir
+                close()
+            } else {
+                val activeTextGUI = textGUI ?: return
+                MessageDialog.showMessageDialog(
+                    activeTextGUI,
+                    "Error",
+                    "Please select a valid directory name",
+                    MessageDialogButton.OK,
+                )
             }
         }
     }
 
-    private class CancelHandler implements Runnable {
-
-        @Override
-        public void run() {
-            selectedDir = null;
-            close();
+    private inner class CancelHandler : Runnable {
+        override fun run() {
+            selectedDir = null
+            close()
         }
     }
 
-    private static class DoNothing implements Runnable {
-        @Override
-        public void run() {
-        }
+    private class DoNothing : Runnable {
+        override fun run() {}
     }
 
-    private void reloadViews(final File directory) {
-        dirBox.setText(directory.getAbsolutePath());
-        dirListBox.clearItems();
-        File[] entries = directory.listFiles();
-        if (entries == null) {
-            return;
-        }
-        Arrays.sort(entries, Comparator.comparing(o -> o.getName().toLowerCase()));
-        if (directory.getAbsoluteFile().getParentFile() != null) {
-            dirListBox.addItem("..", () -> {
-                DirectoryDialog.this.directory = directory.getAbsoluteFile().getParentFile();
-                reloadViews(directory.getAbsoluteFile().getParentFile());
-            });
-        }
-        else {
-            File[] roots = File.listRoots();
-            for (final File entry : roots) {
+    private fun reloadViews(directory: File) {
+        dirBox.setText(directory.absolutePath)
+        dirListBox.clearItems()
+        val entries = directory.listFiles() ?: return
+        Arrays.sort(entries, Comparator.comparing { file -> file.name.lowercase() })
+        val parent = directory.absoluteFile.parentFile
+        if (parent != null) {
+            dirListBox.addItem(
+                "..",
+                Runnable {
+                    this.directory = parent
+                    reloadViews(parent)
+                },
+            )
+        } else {
+            val roots = File.listRoots()
+            for (entry in roots) {
                 if (entry.canRead()) {
-                    dirListBox.addItem('[' + entry.getPath() + ']', () -> {
-                        DirectoryDialog.this.directory = entry;
-                        reloadViews(entry);
-                    });
+                    dirListBox.addItem(
+                        "[${entry.path}]",
+                        Runnable {
+                            this.directory = entry
+                            reloadViews(entry)
+                        },
+                    )
                 }
             }
         }
-        for (final File entry : entries) {
-            if (entry.isHidden() && !showHiddenDirs) {
-                continue;
+        for (entry in entries) {
+            if (entry.isHidden && !showHiddenDirs) {
+                continue
             }
-            if (entry.isDirectory()) {
-                dirListBox.addItem(entry.getName(), () -> {
-                    DirectoryDialog.this.directory = entry;
-                    reloadViews(entry);
-                });
+            if (entry.isDirectory) {
+                dirListBox.addItem(
+                    entry.name,
+                    Runnable {
+                        this.directory = entry
+                        reloadViews(entry)
+                    },
+                )
             }
         }
-        if (dirListBox.isEmpty()) {
-            dirListBox.addItem("<empty>", new DoNothing());
+        if (dirListBox.isEmpty) {
+            dirListBox.addItem("<empty>", DoNothing())
         }
     }
 }

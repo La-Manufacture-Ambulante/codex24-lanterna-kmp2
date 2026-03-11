@@ -16,809 +16,658 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2.table;
+package com.googlecode.lanterna.gui2.table
 
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.graphics.Theme;
-import com.googlecode.lanterna.graphics.ThemeDefinition;
-import com.googlecode.lanterna.gui2.Direction;
-import com.googlecode.lanterna.gui2.ScrollBar;
-import com.googlecode.lanterna.gui2.TextGUIGraphics;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import com.googlecode.lanterna.Symbols
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.graphics.Theme
+import com.googlecode.lanterna.graphics.ThemeDefinition
+import com.googlecode.lanterna.gui2.Direction
+import com.googlecode.lanterna.gui2.ScrollBar
+import com.googlecode.lanterna.gui2.TextGUIGraphics
+import java.util.ArrayList
+import java.util.TreeSet
 
 /**
- * Default implementation of {@code TableRenderer}
- * @param <V> Type of data stored in each table cell
- * @author Martin
+ * Default implementation of [TableRenderer].
  */
-public class DefaultTableRenderer<V> implements TableRenderer<V> {
+open class DefaultTableRenderer<V> : TableRenderer<V?> {
+    private val verticalScrollBar = ScrollBar(Direction.VERTICAL)
+    private val horizontalScrollBar = ScrollBar(Direction.HORIZONTAL)
 
-    private final ScrollBar verticalScrollBar;
-    private final ScrollBar horizontalScrollBar;
+    private var headerVerticalBorderStyle: TableCellBorderStyle = TableCellBorderStyle.NONE
+    private var headerHorizontalBorderStyle: TableCellBorderStyle = TableCellBorderStyle.EMPTY_SPACE
+    private var cellVerticalBorderStyle: TableCellBorderStyle = TableCellBorderStyle.NONE
+    private var cellHorizontalBorderStyle: TableCellBorderStyle = TableCellBorderStyle.EMPTY_SPACE
 
-    private TableCellBorderStyle headerVerticalBorderStyle;
-    private TableCellBorderStyle headerHorizontalBorderStyle;
-    private TableCellBorderStyle cellVerticalBorderStyle;
-    private TableCellBorderStyle cellHorizontalBorderStyle;
+    override var viewTopRow: Int = 0
+    override var viewLeftColumn: Int = 0
+    override var visibleRowsOnLastDraw: Int = 0
+        protected set
 
-    private int viewTopRow;
-    private int viewLeftColumn;
-    private int visibleRowsOnLastDraw;
+    private var cachedSize: TerminalSize? = null
+    private val preferredColumnSizes: MutableList<Int> = ArrayList()
+    private val preferredRowSizes: MutableList<Int> = ArrayList()
+    private val expandableColumns: MutableSet<Int> = TreeSet()
+    private var headerSizeInRows: Int = 0
 
-    //So that we don't have to recalculate the size every time. This still isn't optimal but shouganai.
-    private TerminalSize cachedSize;
-    private final List<Integer> preferredColumnSizes;
-    private final List<Integer> preferredRowSizes;
-    private final Set<Integer> expandableColumns;
-    private int headerSizeInRows;
-    private boolean allowPartialColumn;
+    override var allowPartialColumn: Boolean = false
+    override var isScrollBarsHidden: Boolean = false
 
-    private boolean scrollBarsHidden;
+    private val isHorizontallySpaced: Boolean
+        get() = headerHorizontalBorderStyle != TableCellBorderStyle.NONE ||
+            cellHorizontalBorderStyle != TableCellBorderStyle.NONE
 
-    /**
-     * Default constructor
-     */
-    public DefaultTableRenderer() {
-        verticalScrollBar = new ScrollBar(Direction.VERTICAL);
-        horizontalScrollBar = new ScrollBar(Direction.HORIZONTAL);
-
-        headerVerticalBorderStyle = TableCellBorderStyle.NONE;
-        headerHorizontalBorderStyle = TableCellBorderStyle.EMPTY_SPACE;
-        cellVerticalBorderStyle = TableCellBorderStyle.NONE;
-        cellHorizontalBorderStyle = TableCellBorderStyle.EMPTY_SPACE;
-
-        viewTopRow = 0;
-        viewLeftColumn = 0;
-        visibleRowsOnLastDraw = 0;
-        allowPartialColumn = false;
-        scrollBarsHidden = false;
-
-        cachedSize = null;
-
-        preferredColumnSizes = new ArrayList<>();
-        preferredRowSizes = new ArrayList<>();
-        expandableColumns = new TreeSet<>();
-        headerSizeInRows = 0;
+    @Synchronized
+    fun setHeaderVerticalBorderStyle(headerVerticalBorderStyle: TableCellBorderStyle?) {
+        this.headerVerticalBorderStyle = headerVerticalBorderStyle ?: TableCellBorderStyle.NONE
     }
 
-    /**
-     * Sets the style to be used when separating the table header row from the actual "data" cells below. This will
-     * cause a new line to be added under the header labels, unless set to {@code TableCellBorderStyle.None}.
-     *
-     * @param headerVerticalBorderStyle Style to use to separate Table header from body
-     */
-    public synchronized void setHeaderVerticalBorderStyle(TableCellBorderStyle headerVerticalBorderStyle) {
-        this.headerVerticalBorderStyle = headerVerticalBorderStyle;
+    @Synchronized
+    fun setHeaderHorizontalBorderStyle(headerHorizontalBorderStyle: TableCellBorderStyle?) {
+        this.headerHorizontalBorderStyle = headerHorizontalBorderStyle ?: TableCellBorderStyle.NONE
     }
 
-    /**
-     * Sets the style to be used when separating the table header labels from each other. This will cause a new
-     * column to be added in between each label, unless set to {@code TableCellBorderStyle.None}.
-     *
-     * @param headerHorizontalBorderStyle Style to use when separating header columns horizontally
-     */
-    public synchronized void setHeaderHorizontalBorderStyle(TableCellBorderStyle headerHorizontalBorderStyle) {
-        this.headerHorizontalBorderStyle = headerHorizontalBorderStyle;
+    @Synchronized
+    fun setCellVerticalBorderStyle(cellVerticalBorderStyle: TableCellBorderStyle?) {
+        this.cellVerticalBorderStyle = cellVerticalBorderStyle ?: TableCellBorderStyle.NONE
     }
 
-    /**
-     * Sets the style to be used when vertically separating table cells from each other. This will cause a new line
-     * to be added between every row, unless set to {@code TableCellBorderStyle.None}.
-     *
-     * @param cellVerticalBorderStyle Style to use to separate table cells vertically
-     */
-    public synchronized void setCellVerticalBorderStyle(TableCellBorderStyle cellVerticalBorderStyle) {
-        this.cellVerticalBorderStyle = cellVerticalBorderStyle;
+    @Synchronized
+    fun setCellHorizontalBorderStyle(cellHorizontalBorderStyle: TableCellBorderStyle?) {
+        this.cellHorizontalBorderStyle = cellHorizontalBorderStyle ?: TableCellBorderStyle.NONE
     }
 
-    /**
-     * Sets the style to be used when horizontally separating table cells from each other. This will cause a new
-     * column to be added between every row, unless set to {@code TableCellBorderStyle.None}.
-     *
-     * @param cellHorizontalBorderStyle Style to use to separate table cells horizontally
-     */
-    public synchronized void setCellHorizontalBorderStyle(TableCellBorderStyle cellHorizontalBorderStyle) {
-        this.cellHorizontalBorderStyle = cellHorizontalBorderStyle;
+    @Synchronized
+    fun setExpandableColumns(expandableColumns: Collection<Int>?) {
+        this.expandableColumns.clear()
+        if (expandableColumns != null) {
+            this.expandableColumns.addAll(expandableColumns)
+        }
     }
 
-    /**
-     * Sets the list of columns (by index, where 0 is the first column) that can be expanded, should the drawable area
-     * be larger than the table is requesting.
-     * @param expandableColumns Collection of indexes for expandable columns
-     */
-    public synchronized void setExpandableColumns(Collection<Integer> expandableColumns) {
-        this.expandableColumns.clear();
-        this.expandableColumns.addAll(expandableColumns);
-    }
-
-    @Override
-    public boolean isScrollBarsHidden() {
-        return scrollBarsHidden;
-    }
-
-    @Override
-    public void setScrollBarsHidden(boolean scrollBarsHidden) {
-        this.scrollBarsHidden = scrollBarsHidden;
-    }
-
-    private boolean isHorizontallySpaced() {
-        return headerHorizontalBorderStyle != TableCellBorderStyle.NONE ||
-                cellHorizontalBorderStyle != TableCellBorderStyle.NONE;
-    }
-
-    /**
-     * Returns the number of rows that could be drawn on the last draw operation. If the table doesn't have any visible
-     * row count set through {@link Table#setVisibleRows(int)}, this is the only way to find out exactly how large the
-     * table ended up. But even if you did set the number of visible rows explicitly, due to terminal size constraints
-     * the actually drawn size might have been different.
-     * @return Number of rows that could be drawn on the last UI update call, will also return 0 if the table has not
-     * yet been drawn out
-     */
-    public int getVisibleRowsOnLastDraw() {
-        return visibleRowsOnLastDraw;
-    }
-
-    public int getViewTopRow() {
-        return viewTopRow;
-    }
-
-    public void setViewTopRow(int viewTopRow) {
-        this.viewTopRow = viewTopRow;
-    }
-
-    public int getViewLeftColumn() {
-        return viewLeftColumn;
-    }
-
-    public void setViewLeftColumn(int viewLeftColumn) {
-        this.viewLeftColumn = viewLeftColumn;
-    }
-
-    @Override
-    public void setAllowPartialColumn(boolean allowPartialColumn) {
-        this.allowPartialColumn = allowPartialColumn;
-    }
-
-    @Override
-    public boolean getAllowPartialColumn() {
-        return allowPartialColumn;
-    }
-
-    @Override
-    public synchronized TerminalSize getPreferredSize(Table<V> table) {
-        //Quick bypass if the table hasn't changed
-        if(!table.isInvalid() && cachedSize != null) {
-            return cachedSize;
+    @Synchronized
+    override fun getPreferredSize(component: Table<V?>?): TerminalSize {
+        val table = component ?: return TerminalSize.ZERO
+        if (!table.isInvalid && cachedSize != null) {
+            return cachedSize ?: TerminalSize.ZERO
         }
 
-        TableModel<V> tableModel = table.getTableModel();
+        val tableModel = table.getTableModel() ?: return TerminalSize.ZERO
+        var localViewLeftColumn = viewLeftColumn
+        var localViewTopRow = viewTopRow
+        var visibleColumns = table.getVisibleColumns()
+        var visibleRows = table.getVisibleRows()
+        val selectedRow = table.getSelectedRow()
+        val selectedColumn = table.getSelectedColumn()
+        val rows = tableModel.getRows()
+        val columnHeaders = tableModel.getColumnLabels()
+        val tableHeaderRenderer = table.getTableHeaderRenderer() ?: return TerminalSize.ZERO
+        val tableCellRenderer = table.getTableCellRenderer() ?: return TerminalSize.ZERO
 
-        // Copy these so we don't modify the renderers state
-        int viewLeftColumn = this.viewLeftColumn;
-        int viewTopRow = this.viewTopRow;
-        int visibleColumns = table.getVisibleColumns();
-        int visibleRows = table.getVisibleRows();
-        int selectedRow = table.getSelectedRow();
-        int selectedColumn = table.getSelectedColumn();
-        List<List<V>> rows = tableModel.getRows();
-        List<String> columnHeaders = tableModel.getColumnLabels();
-        TableHeaderRenderer<V> tableHeaderRenderer = table.getTableHeaderRenderer();
-        TableCellRenderer<V> tableCellRenderer = table.getTableCellRenderer();
-
-        if(visibleColumns == 0) {
-            visibleColumns = tableModel.getColumnCount();
+        if (visibleColumns == 0) {
+            visibleColumns = tableModel.getColumnCount()
         }
-        if(visibleRows == 0) {
-            visibleRows = tableModel.getRowCount();
+        if (visibleRows == 0) {
+            visibleRows = tableModel.getRowCount()
         }
 
-        preferredColumnSizes.clear();
-        preferredRowSizes.clear();
+        preferredColumnSizes.clear()
+        preferredRowSizes.clear()
 
-        if(tableModel.getColumnCount() == 0) {
-            return TerminalSize.ZERO;
-        }
-
-        // Adjust view port if necessary (although this is only for the preferred size calculation, we don't actually
-        // update the view model)
-        if(selectedColumn != -1 && viewLeftColumn > selectedColumn) {
-            viewLeftColumn = selectedColumn;
-        }
-        else if(selectedColumn != 1 && viewLeftColumn <= selectedColumn - visibleColumns) {
-            viewLeftColumn = Math.max(0, selectedColumn - visibleColumns + 1);
-        }
-        if(viewTopRow > selectedRow) {
-            viewTopRow = selectedRow;
-        }
-        else if(viewTopRow <= selectedRow - visibleRows) {
-            viewTopRow = Math.max(0, selectedRow - visibleRows + 1);
+        if (tableModel.getColumnCount() == 0) {
+            return TerminalSize.ZERO
         }
 
-        // If there are no rows, base the column sizes off of the column labels
-        if(rows.size() == 0) {
-            for(int columnIndex = 0; columnIndex < columnHeaders.size(); columnIndex++) {
-                int columnSize = tableHeaderRenderer.getPreferredSize(table, columnHeaders.get(columnIndex), columnIndex).getColumns();
-                if(preferredColumnSizes.size() == columnIndex) {
-                    preferredColumnSizes.add(columnSize);
+        if (selectedColumn != -1 && localViewLeftColumn > selectedColumn) {
+            localViewLeftColumn = selectedColumn
+        } else if (selectedColumn != -1 && localViewLeftColumn <= selectedColumn - visibleColumns) {
+            localViewLeftColumn = kotlin.math.max(0, selectedColumn - visibleColumns + 1)
+        }
+        if (localViewTopRow > selectedRow) {
+            localViewTopRow = selectedRow
+        } else if (localViewTopRow <= selectedRow - visibleRows) {
+            localViewTopRow = kotlin.math.max(0, selectedRow - visibleRows + 1)
+        }
+
+        if (rows.isEmpty()) {
+            for (columnIndex in columnHeaders.indices) {
+                val columnSize =
+                    tableHeaderRenderer.getPreferredSize(table, columnHeaders[columnIndex], columnIndex)?.columns ?: 0
+                if (preferredColumnSizes.size == columnIndex) {
+                    preferredColumnSizes.add(columnSize)
+                } else if (preferredColumnSizes[columnIndex] < columnSize) {
+                    preferredColumnSizes[columnIndex] = columnSize
                 }
-                else {
-                    if(preferredColumnSizes.get(columnIndex) < columnSize) {
-                        preferredColumnSizes.set(columnIndex, columnSize);
+            }
+        }
+
+        for (rowIndex in rows.indices) {
+            val row = rows[rowIndex]
+            for (columnIndex in row.indices) {
+                val cell = row[columnIndex]
+                val columnSize = tableCellRenderer.getPreferredSize(table, cell, columnIndex, rowIndex)?.columns ?: 0
+                if (preferredColumnSizes.size == columnIndex) {
+                    preferredColumnSizes.add(columnSize)
+                } else if (preferredColumnSizes[columnIndex] < columnSize) {
+                    preferredColumnSizes[columnIndex] = columnSize
+                }
+            }
+
+            if (rowIndex == 0) {
+                for (columnIndex in row.indices) {
+                    val columnSize =
+                        tableHeaderRenderer.getPreferredSize(table, columnHeaders[columnIndex], columnIndex)?.columns ?: 0
+                    if (preferredColumnSizes.size == columnIndex) {
+                        preferredColumnSizes.add(columnSize)
+                    } else if (preferredColumnSizes[columnIndex] < columnSize) {
+                        preferredColumnSizes[columnIndex] = columnSize
                     }
                 }
             }
         }
 
-        for(int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
-            List<V> row = rows.get(rowIndex);
-            for(int columnIndex = 0; columnIndex < row.size(); columnIndex++) {
-                V cell = row.get(columnIndex);
-                int columnSize = tableCellRenderer.getPreferredSize(table, cell, columnIndex, rowIndex).getColumns();
-                if(preferredColumnSizes.size() == columnIndex) {
-                    preferredColumnSizes.add(columnSize);
-                }
-                else {
-                    if(preferredColumnSizes.get(columnIndex) < columnSize) {
-                        preferredColumnSizes.set(columnIndex, columnSize);
-                    }
-                }
-            }
-
-            //Do the headers too, on the first iteration
-            if(rowIndex == 0) {
-                for(int columnIndex = 0; columnIndex < row.size(); columnIndex++) {
-                    int columnSize = tableHeaderRenderer.getPreferredSize(table, columnHeaders.get(columnIndex), columnIndex).getColumns();
-                    if(preferredColumnSizes.size() == columnIndex) {
-                        preferredColumnSizes.add(columnSize);
-                    }
-                    else {
-                        if(preferredColumnSizes.get(columnIndex) < columnSize) {
-                            preferredColumnSizes.set(columnIndex, columnSize);
-                        }
-                    }
+        for (columnIndex in columnHeaders.indices) {
+            for (rowIndex in rows.indices) {
+                val cell = rows[rowIndex][columnIndex]
+                val rowSize = tableCellRenderer.getPreferredSize(table, cell, columnIndex, rowIndex)?.rows ?: 0
+                if (preferredRowSizes.size == rowIndex) {
+                    preferredRowSizes.add(rowSize)
+                } else if (preferredRowSizes[rowIndex] < rowSize) {
+                    preferredRowSizes[rowIndex] = rowSize
                 }
             }
         }
 
-        for(int columnIndex = 0; columnIndex < columnHeaders.size(); columnIndex++) {
-            for(int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
-                V cell = rows.get(rowIndex).get(columnIndex);
-                int rowSize = tableCellRenderer.getPreferredSize(table, cell, columnIndex, rowIndex).getRows();
-                if(preferredRowSizes.size() == rowIndex) {
-                    preferredRowSizes.add(rowSize);
-                }
-                else {
-                    if(preferredRowSizes.get(rowIndex) < rowSize) {
-                        preferredRowSizes.set(rowIndex, rowSize);
-                    }
-                }
-            }
-        }
-
-        int preferredRowSize = 0;
-        int preferredColumnSize = 0;
+        var preferredRowSize = 0
+        var preferredColumnSize = 0
         if (table.getVisibleColumns() == 0) {
-            for (Integer columnSize : preferredColumnSizes) {
-                preferredColumnSize += columnSize;
+            for (columnSize in preferredColumnSizes) {
+                preferredColumnSize += columnSize
             }
-        }
-        else {
-            for (int columnIndex = viewLeftColumn; columnIndex < Math.min(preferredColumnSizes.size(), viewLeftColumn + visibleColumns); columnIndex++) {
-                preferredColumnSize += preferredColumnSizes.get(columnIndex);
+        } else {
+            for (columnIndex in localViewLeftColumn until kotlin.math.min(preferredColumnSizes.size, localViewLeftColumn + visibleColumns)) {
+                preferredColumnSize += preferredColumnSizes[columnIndex]
             }
         }
 
         if (table.getVisibleRows() == 0) {
-            for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
-                preferredRowSize += preferredRowSizes.get(rowIndex);
+            for (rowIndex in rows.indices) {
+                preferredRowSize += preferredRowSizes[rowIndex]
             }
-        }
-        else {
-            for (int rowIndex = viewTopRow; rowIndex < Math.min(rows.size(), viewTopRow + visibleRows); rowIndex++) {
-                preferredRowSize += preferredRowSizes.get(rowIndex);
-            }
-        }
-
-        headerSizeInRows = 0;
-        for(int columnIndex = 0; columnIndex < columnHeaders.size(); columnIndex++) {
-            int headerRows = tableHeaderRenderer.getPreferredSize(table, columnHeaders.get(columnIndex), columnIndex).getRows();
-            if(headerSizeInRows < headerRows) {
-                headerSizeInRows = headerRows;
-            }
-        }
-        preferredRowSize += headerSizeInRows;
-
-        if(headerVerticalBorderStyle != TableCellBorderStyle.NONE) {
-            preferredRowSize++;    //Spacing between header and body
-        }
-        if(cellVerticalBorderStyle != TableCellBorderStyle.NONE) {
-            if(!rows.isEmpty()) {
-                preferredRowSize += Math.min(rows.size(), visibleRows) - 1; //Vertical space between cells
-            }
-        }
-        if(isHorizontallySpaced()) {
-            if(!columnHeaders.isEmpty()) {
-                preferredColumnSize += Math.min(tableModel.getColumnCount(), visibleColumns) - 1;    //Spacing between the columns
-            }
-        }
-
-        if(!scrollBarsHidden) {
-            //Add one space taken by scrollbars (we always add one for the vertical scrollbar but for the horizontal only if
-            // we think we need one). Unfortunately we don't know the size constraints at this point so we don't know if the
-            // table will need to force scrollbars or not. We might think that we don't need a horizontal scrollbar here but
-            // it might turn out that we need it.
-            preferredColumnSize++;
-            if (visibleColumns < tableModel.getColumnCount()) {
-                preferredRowSize++;
-            }
-        }
-
-        cachedSize = new TerminalSize(preferredColumnSize, preferredRowSize);
-        return cachedSize;
-    }
-
-    @Override
-    public TerminalPosition getCursorLocation(Table<V> component) {
-        return null;
-    }
-
-    @Override
-    public synchronized void drawComponent(TextGUIGraphics graphics, Table<V> table) {
-        //Get the size
-        TerminalSize area = graphics.getSize();
-
-        //Don't even bother
-        if(area.getRows() == 0 || area.getColumns() == 0) {
-            return;
-        }
-
-        // Get preferred size if the table model has changed
-        if(table.isInvalid()) {
-            getPreferredSize(table);
-        }
-
-        int headerSizeIncludingBorder = headerSizeInRows + headerVerticalBorderStyle.getSize();
-        int selectedColumn = table.getSelectedColumn();
-        int selectedRow = table.getSelectedRow();
-
-        // Update view port if necessary
-        if(selectedColumn != -1 && viewLeftColumn > selectedColumn) {
-            viewLeftColumn = selectedColumn;
-        }
-        if(viewTopRow > selectedRow) {
-            viewTopRow = selectedRow;
-        }
-        if (viewTopRow >= table.getTableModel().getRowCount()) {
-            viewTopRow = Math.max(0, table.getTableModel().getRowCount() - 1);
-        }
-
-        TerminalSize areaWithoutScrollBars = area.withRelativeRows(-headerSizeIncludingBorder);
-        int preferredVisibleRows = table.getVisibleRows();
-        if(preferredVisibleRows == 0) {
-            preferredVisibleRows = table.getTableModel().getRowCount();
-        }
-        int preferredVisibleColumns = table.getVisibleColumns();
-        if(preferredVisibleColumns == 0) {
-            preferredVisibleColumns = table.getTableModel().getColumnCount();
-        }
-
-        int visibleRows = calculateVisibleRows(areaWithoutScrollBars, viewTopRow, preferredVisibleRows);
-        boolean needVerticalScrollBar = !scrollBarsHidden && visibleRows < table.getTableModel().getRowCount();
-        if(needVerticalScrollBar) {
-            areaWithoutScrollBars = areaWithoutScrollBars.withRelativeColumns(-verticalScrollBar.getPreferredSize().getColumns());
-        }
-        int visibleColumns = calculateVisibleColumns(areaWithoutScrollBars, viewLeftColumn, preferredVisibleColumns);
-        boolean needHorizontalScrollBar = !scrollBarsHidden && visibleColumns < table.getTableModel().getColumnCount();
-        if(needHorizontalScrollBar) {
-            areaWithoutScrollBars = areaWithoutScrollBars.withRelativeRows(-horizontalScrollBar.getPreferredSize().getRows());
-
-            // As we have now a horizontal scrollbar, we need to re-evaluate how many rows are visible
-            visibleRows = calculateVisibleRows(areaWithoutScrollBars, viewTopRow, preferredVisibleRows);
-            if(!needVerticalScrollBar && visibleRows < table.getTableModel().getRowCount()) {
-                // Previously we didn't need a scrollbar but now we do because the horizontal scrollbar took one row
-                needVerticalScrollBar = true;
-                areaWithoutScrollBars = areaWithoutScrollBars.withRelativeColumns(-verticalScrollBar.getPreferredSize().getColumns());
-
-                // Also recalculate visible columns to take into consideration the new vertical scrollbar
-                visibleColumns = calculateVisibleColumns(areaWithoutScrollBars, viewLeftColumn, preferredVisibleColumns);
-            }
-        }
-
-        // Now that we know (roughly) how many rows fit, update view port again if necessary
-        while(selectedColumn != 1 && viewLeftColumn <= selectedColumn - visibleColumns) {
-            viewLeftColumn = Math.max(0, selectedColumn - visibleColumns + 1);
-            visibleColumns = calculateVisibleColumns(areaWithoutScrollBars, viewLeftColumn, preferredVisibleColumns);
-        }
-        while(viewTopRow <= selectedRow - visibleRows) {
-            viewTopRow = Math.max(0, selectedRow - visibleRows + 1);
-            visibleRows = calculateVisibleRows(areaWithoutScrollBars, viewTopRow, preferredVisibleRows);
-        }
-
-        int renderColumns;
-        if (allowPartialColumn && visibleColumns < preferredVisibleColumns - viewLeftColumn) {
-            renderColumns = visibleColumns + 1;
         } else {
-            renderColumns =  visibleColumns;
+            for (rowIndex in localViewTopRow until kotlin.math.min(rows.size, localViewTopRow + visibleRows)) {
+                preferredRowSize += preferredRowSizes[rowIndex]
+            }
         }
 
-        List<Integer> columnSizes = fitColumnsInAvailableSpace(table, areaWithoutScrollBars, visibleColumns);
-        drawHeader(graphics, table, columnSizes);
-        drawRows(graphics.newTextGraphics(
-                        new TerminalPosition(0, headerSizeIncludingBorder),
-                        // Can't use areaWithoutScrollBars here because we need to draw the scrollbar too!
-                        area.withRelativeRows(-headerSizeIncludingBorder)),
-                table,
-                columnSizes,
-                visibleRows,
-                visibleColumns,
-                renderColumns,
-                needVerticalScrollBar,
-                needHorizontalScrollBar);
+        headerSizeInRows = 0
+        for (columnIndex in columnHeaders.indices) {
+            val headerRows = tableHeaderRenderer.getPreferredSize(table, columnHeaders[columnIndex], columnIndex)?.rows ?: 0
+            if (headerSizeInRows < headerRows) {
+                headerSizeInRows = headerRows
+            }
+        }
+        preferredRowSize += headerSizeInRows
 
-        visibleRowsOnLastDraw = visibleRows;
+        if (headerVerticalBorderStyle != TableCellBorderStyle.NONE) {
+            preferredRowSize++
+        }
+        if (cellVerticalBorderStyle != TableCellBorderStyle.NONE && rows.isNotEmpty()) {
+            preferredRowSize += kotlin.math.min(rows.size, visibleRows) - 1
+        }
+        if (isHorizontallySpaced && columnHeaders.isNotEmpty()) {
+            preferredColumnSize += kotlin.math.min(tableModel.getColumnCount(), visibleColumns) - 1
+        }
+        if (!isScrollBarsHidden) {
+            preferredColumnSize++
+            if (visibleColumns < tableModel.getColumnCount()) {
+                preferredRowSize++
+            }
+        }
+
+        cachedSize = TerminalSize(preferredColumnSize, preferredRowSize)
+        return cachedSize ?: TerminalSize.ZERO
     }
 
-    private int calculateVisibleRows(TerminalSize area, int viewTopRow, int preferredVisibleRows) {
-        int remainingVerticalSpace = area.getRows();
-        int visibleRows = 0;
-        int borderAdjustment = cellVerticalBorderStyle.getSize();
-        for (int row = viewTopRow; row < preferredRowSizes.size(); row++) {
+    override fun getCursorLocation(component: Table<V?>?): TerminalPosition? {
+        return null
+    }
+
+    @Synchronized
+    override fun drawComponent(graphics: TextGUIGraphics?, component: Table<V?>?) {
+        var activeGraphics = graphics ?: return
+        val table = component ?: return
+        val area = activeGraphics.size ?: return
+        if (area.rows == 0 || area.columns == 0) {
+            return
+        }
+
+        if (table.isInvalid) {
+            getPreferredSize(table)
+        }
+
+        val headerSizeIncludingBorder = headerSizeInRows + headerVerticalBorderStyle.size
+        val selectedColumn = table.getSelectedColumn()
+        val selectedRow = table.getSelectedRow()
+
+        if (selectedColumn != -1 && viewLeftColumn > selectedColumn) {
+            viewLeftColumn = selectedColumn
+        }
+        if (viewTopRow > selectedRow) {
+            viewTopRow = selectedRow
+        }
+        val tableModel = table.getTableModel() ?: return
+        if (viewTopRow >= tableModel.getRowCount()) {
+            viewTopRow = kotlin.math.max(0, tableModel.getRowCount() - 1)
+        }
+
+        var areaWithoutScrollBars = area.withRelativeRows(-headerSizeIncludingBorder) ?: TerminalSize.ZERO
+        var preferredVisibleRows = table.getVisibleRows()
+        if (preferredVisibleRows == 0) {
+            preferredVisibleRows = tableModel.getRowCount()
+        }
+        var preferredVisibleColumns = table.getVisibleColumns()
+        if (preferredVisibleColumns == 0) {
+            preferredVisibleColumns = tableModel.getColumnCount()
+        }
+
+        var visibleRows = calculateVisibleRows(areaWithoutScrollBars, viewTopRow, preferredVisibleRows)
+        var needVerticalScrollBar = !isScrollBarsHidden && visibleRows < tableModel.getRowCount()
+        if (needVerticalScrollBar) {
+            areaWithoutScrollBars =
+                areaWithoutScrollBars.withRelativeColumns(-(verticalScrollBar.preferredSize?.columns ?: 0)) ?: areaWithoutScrollBars
+        }
+        var visibleColumns = calculateVisibleColumns(areaWithoutScrollBars, viewLeftColumn, preferredVisibleColumns)
+        var needHorizontalScrollBar = !isScrollBarsHidden && visibleColumns < tableModel.getColumnCount()
+        if (needHorizontalScrollBar) {
+            areaWithoutScrollBars =
+                areaWithoutScrollBars.withRelativeRows(-(horizontalScrollBar.preferredSize?.rows ?: 0)) ?: areaWithoutScrollBars
+            visibleRows = calculateVisibleRows(areaWithoutScrollBars, viewTopRow, preferredVisibleRows)
+            if (!needVerticalScrollBar && visibleRows < tableModel.getRowCount()) {
+                needVerticalScrollBar = true
+                areaWithoutScrollBars =
+                    areaWithoutScrollBars.withRelativeColumns(-(verticalScrollBar.preferredSize?.columns ?: 0)) ?: areaWithoutScrollBars
+                visibleColumns = calculateVisibleColumns(areaWithoutScrollBars, viewLeftColumn, preferredVisibleColumns)
+            }
+        }
+
+        while (selectedColumn != -1 && viewLeftColumn <= selectedColumn - visibleColumns) {
+            viewLeftColumn = kotlin.math.max(0, selectedColumn - visibleColumns + 1)
+            visibleColumns = calculateVisibleColumns(areaWithoutScrollBars, viewLeftColumn, preferredVisibleColumns)
+        }
+        while (viewTopRow <= selectedRow - visibleRows) {
+            viewTopRow = kotlin.math.max(0, selectedRow - visibleRows + 1)
+            visibleRows = calculateVisibleRows(areaWithoutScrollBars, viewTopRow, preferredVisibleRows)
+        }
+
+        val renderColumns = if (allowPartialColumn && visibleColumns < preferredVisibleColumns - viewLeftColumn) {
+            visibleColumns + 1
+        } else {
+            visibleColumns
+        }
+
+        val columnSizes = fitColumnsInAvailableSpace(table, areaWithoutScrollBars, visibleColumns)
+        drawHeader(activeGraphics, table, columnSizes)
+
+        val rowGraphics = activeGraphics.newTextGraphics(
+            TerminalPosition(0, headerSizeIncludingBorder),
+            area.withRelativeRows(-headerSizeIncludingBorder),
+        ) ?: return
+        drawRows(
+            rowGraphics,
+            table,
+            columnSizes,
+            visibleRows,
+            visibleColumns,
+            renderColumns,
+            needVerticalScrollBar,
+            needHorizontalScrollBar,
+        )
+
+        visibleRowsOnLastDraw = visibleRows
+    }
+
+    private fun calculateVisibleRows(area: TerminalSize, localViewTopRow: Int, preferredVisibleRows: Int): Int {
+        var remainingVerticalSpace = area.rows
+        var visibleRows = 0
+        val borderAdjustment = cellVerticalBorderStyle.size
+        for (row in localViewTopRow until preferredRowSizes.size) {
             if (preferredVisibleRows == visibleRows) {
-                break;
+                break
             }
-            int rowSize = preferredRowSizes.get(row) + borderAdjustment;
+            val rowSize = preferredRowSizes[row] + borderAdjustment
             if (remainingVerticalSpace < rowSize) {
-                break;
+                break
             }
-            remainingVerticalSpace -= rowSize;
-            visibleRows++;
+            remainingVerticalSpace -= rowSize
+            visibleRows++
         }
-        return visibleRows;
+        return visibleRows
     }
 
-    private int calculateVisibleColumns(TerminalSize area, int viewLeftColumn, int preferredVisibleColumns) {
-        int remainingHorizontalSpace = area.getColumns();
-        int visibleColumns = 0;
-        int borderAdjustment = cellHorizontalBorderStyle.getSize();
-        for (int column = viewLeftColumn; column < preferredColumnSizes.size(); column++) {
+    private fun calculateVisibleColumns(area: TerminalSize, localViewLeftColumn: Int, preferredVisibleColumns: Int): Int {
+        var remainingHorizontalSpace = area.columns
+        var visibleColumns = 0
+        val borderAdjustment = cellHorizontalBorderStyle.size
+        for (column in localViewLeftColumn until preferredColumnSizes.size) {
             if (preferredVisibleColumns == visibleColumns) {
-                break;
+                break
             }
-            int columnSize = preferredColumnSizes.get(column) + (column > viewLeftColumn ? borderAdjustment : 0);
+            val columnSize = preferredColumnSizes[column] + if (column > localViewLeftColumn) borderAdjustment else 0
             if (remainingHorizontalSpace < columnSize) {
-                break;
+                break
             }
-            remainingHorizontalSpace -= columnSize;
-            visibleColumns++;
+            remainingHorizontalSpace -= columnSize
+            visibleColumns++
         }
-        return visibleColumns;
+        return visibleColumns
     }
 
-    private List<Integer> fitColumnsInAvailableSpace(Table<V> table, TerminalSize area, int visibleColumns) {
-        List<Integer> columnSizes = new ArrayList<>(preferredColumnSizes);
-        int horizontalSpaceRequirement = 0;
-        int viewLeftColumn = table.getRenderer().getViewLeftColumn();
-        List<String> headers = table.getTableModel().getColumnLabels();
-        int endColumnIndex = Math.min(headers.size(), viewLeftColumn + visibleColumns);
-        List<Integer> visibleExpandableColumns = new ArrayList<>();
-        for(int index = viewLeftColumn; index < endColumnIndex; index++) {
-            horizontalSpaceRequirement += preferredColumnSizes.get(index);
-            if(headerHorizontalBorderStyle != TableCellBorderStyle.NONE && index < (endColumnIndex - 1)) {
-                horizontalSpaceRequirement += headerHorizontalBorderStyle.getSize();
+    private fun fitColumnsInAvailableSpace(table: Table<V?>, area: TerminalSize, visibleColumns: Int): MutableList<Int> {
+        val columnSizes = ArrayList(preferredColumnSizes)
+        var horizontalSpaceRequirement = 0
+        val localViewLeftColumn = table.renderer?.viewLeftColumn ?: 0
+        val headers = table.getTableModel()?.getColumnLabels().orEmpty()
+        val endColumnIndex = kotlin.math.min(headers.size, localViewLeftColumn + visibleColumns)
+        val visibleExpandableColumns = ArrayList<Int>()
+        for (index in localViewLeftColumn until endColumnIndex) {
+            horizontalSpaceRequirement += preferredColumnSizes[index]
+            if (headerHorizontalBorderStyle != TableCellBorderStyle.NONE && index < endColumnIndex - 1) {
+                horizontalSpaceRequirement += headerHorizontalBorderStyle.size
             }
-            if(expandableColumns.contains(index)) {
-                visibleExpandableColumns.add(index);
+            if (expandableColumns.contains(index)) {
+                visibleExpandableColumns.add(index)
             }
         }
-        int extraHorizontalSpace = area.getColumns() - horizontalSpaceRequirement;
-        while(extraHorizontalSpace > 0 && !visibleExpandableColumns.isEmpty()) {
-            for(int expandableColumnIndex: visibleExpandableColumns) {
-                columnSizes.set(expandableColumnIndex, columnSizes.get(expandableColumnIndex) + 1);
-                extraHorizontalSpace--;
-                if(extraHorizontalSpace == 0) {
-                    break;
+        var extraHorizontalSpace = area.columns - horizontalSpaceRequirement
+        while (extraHorizontalSpace > 0 && visibleExpandableColumns.isNotEmpty()) {
+            for (expandableColumnIndex in visibleExpandableColumns) {
+                columnSizes[expandableColumnIndex] = columnSizes[expandableColumnIndex] + 1
+                extraHorizontalSpace--
+                if (extraHorizontalSpace == 0) {
+                    break
                 }
             }
         }
-        return columnSizes;
+        return columnSizes
     }
 
-    private void drawHeader(TextGUIGraphics graphics, Table<V> table, List<Integer> columnSizes) {
-        Theme theme = table.getTheme();
-        TableHeaderRenderer<V> tableHeaderRenderer = table.getTableHeaderRenderer();
-        List<String> headers = table.getTableModel().getColumnLabels();
-        int viewLeftColumn = table.getRenderer().getViewLeftColumn();
-        int visibleColumns = table.getVisibleColumns();
-        if(visibleColumns == 0) {
-            visibleColumns = table.getTableModel().getColumnCount();
+    private fun drawHeader(graphics: TextGUIGraphics, table: Table<V?>, columnSizes: List<Int>) {
+        val theme = table.theme ?: return
+        val tableHeaderRenderer = table.getTableHeaderRenderer() ?: return
+        val headers = table.getTableModel()?.getColumnLabels().orEmpty()
+        val localViewLeftColumn = table.renderer?.viewLeftColumn ?: 0
+        var visibleColumns = table.getVisibleColumns()
+        if (visibleColumns == 0) {
+            visibleColumns = table.getTableModel()?.getColumnCount() ?: 0
         }
-        int leftPosition = 0;
-        int endColumnIndex = Math.min(headers.size(), viewLeftColumn + visibleColumns);
-        for(int index = viewLeftColumn; index < endColumnIndex; index++) {
-            String label = headers.get(index);
-            TerminalSize size = new TerminalSize(columnSizes.get(index), headerSizeInRows);
-            tableHeaderRenderer.drawHeader(table, label, index, graphics.newTextGraphics(new TerminalPosition(leftPosition, 0), size));
-            leftPosition += size.getColumns();
-            if(headerHorizontalBorderStyle != TableCellBorderStyle.NONE && index < (endColumnIndex - 1)) {
-                graphics.applyThemeStyle(theme.getDefinition(Table.class).getNormal());
-                graphics.setCharacter(leftPosition, 0, getVerticalCharacter(headerHorizontalBorderStyle));
-                leftPosition++;
+        var leftPosition = 0
+        val endColumnIndex = kotlin.math.min(headers.size, localViewLeftColumn + visibleColumns)
+        for (index in localViewLeftColumn until endColumnIndex) {
+            val label = headers[index]
+            val size = TerminalSize(columnSizes[index], headerSizeInRows)
+            val headerGraphics = graphics.newTextGraphics(TerminalPosition(leftPosition, 0), size)
+            tableHeaderRenderer.drawHeader(table, label, index, headerGraphics)
+            leftPosition += size.columns
+            if (headerHorizontalBorderStyle != TableCellBorderStyle.NONE && index < endColumnIndex - 1) {
+                graphics.applyThemeStyle(theme.getDefinition(Table::class.java)?.normal)
+                graphics.setCharacter(leftPosition, 0, getVerticalCharacter(headerHorizontalBorderStyle))
+                leftPosition++
             }
         }
 
-        if(headerVerticalBorderStyle != TableCellBorderStyle.NONE) {
-            leftPosition = 0;
-            int topPosition = headerSizeInRows;
-            graphics.applyThemeStyle(theme.getDefinition(Table.class).getNormal());
-            for(int i = viewLeftColumn; i < endColumnIndex; i++) {
-                if(i > viewLeftColumn) {
+        if (headerVerticalBorderStyle != TableCellBorderStyle.NONE) {
+            leftPosition = 0
+            val topPosition = headerSizeInRows
+            graphics.applyThemeStyle(theme.getDefinition(Table::class.java)?.normal)
+            for (i in localViewLeftColumn until endColumnIndex) {
+                if (i > localViewLeftColumn) {
                     graphics.setCharacter(
+                        leftPosition,
+                        topPosition,
+                        getJunctionCharacter(headerVerticalBorderStyle, headerHorizontalBorderStyle, cellHorizontalBorderStyle),
+                    )
+                    leftPosition++
+                }
+                val columnWidth = columnSizes[i]
+                graphics.drawLine(
+                    leftPosition,
+                    topPosition,
+                    leftPosition + columnWidth - 1,
+                    topPosition,
+                    getHorizontalCharacter(headerVerticalBorderStyle),
+                )
+                leftPosition += columnWidth
+            }
+            val graphicsSize = graphics.size ?: TerminalSize.ZERO
+            if (leftPosition < graphicsSize.columns) {
+                graphics.drawLine(
+                    leftPosition,
+                    topPosition,
+                    graphicsSize.columns - 1,
+                    topPosition,
+                    getHorizontalCharacter(headerVerticalBorderStyle),
+                )
+            }
+        }
+    }
+
+    private fun drawRows(
+        graphics: TextGUIGraphics,
+        table: Table<V?>,
+        columnSizes: List<Int>,
+        visibleRows: Int,
+        visibleColumns: Int,
+        renderColumns: Int,
+        needVerticalScrollBar: Boolean,
+        needHorizontalScrollBar: Boolean,
+    ) {
+        val theme = table.theme ?: return
+        val themeDefinition = theme.getDefinition(Table::class.java) ?: return
+        val area = graphics.size ?: TerminalSize.ZERO
+        val tableCellRenderer = table.getTableCellRenderer() ?: return
+        val tableModel = table.getTableModel() ?: return
+        val rows = tableModel.getRows()
+        val localViewTopRow = table.renderer?.viewTopRow ?: 0
+        val localViewLeftColumn = table.renderer?.viewLeftColumn ?: 0
+
+        var activeGraphics = graphics
+        if (needVerticalScrollBar) {
+            val preferredSize = verticalScrollBar.preferredSize ?: TerminalSize.ONE
+            var scrollBarHeight = (activeGraphics.size ?: TerminalSize.ZERO).rows
+            if (needHorizontalScrollBar) {
+                scrollBarHeight--
+            }
+            verticalScrollBar.setPosition(
+                TerminalPosition((activeGraphics.size ?: TerminalSize.ZERO).columns - preferredSize.columns, 0),
+            )
+            verticalScrollBar.setSize(preferredSize.withRows(scrollBarHeight))
+            verticalScrollBar.setScrollMaximum(rows.size)
+            verticalScrollBar.setViewSize(visibleRows)
+            verticalScrollBar.setScrollPosition(localViewTopRow)
+            if (table.parent !== verticalScrollBar.parent) {
+                verticalScrollBar.parent?.let { verticalScrollBar.onRemoved(it) }
+                table.parent?.let { verticalScrollBar.onAdded(it) }
+            }
+            verticalScrollBar.draw(activeGraphics.newTextGraphics(verticalScrollBar.position, verticalScrollBar.size))
+            activeGraphics =
+                activeGraphics.newTextGraphics(
+                    TerminalPosition.TOP_LEFT_CORNER,
+                    (activeGraphics.size ?: TerminalSize.ZERO).withRelativeColumns(-preferredSize.columns),
+                ) ?: activeGraphics
+        }
+        if (needHorizontalScrollBar) {
+            val preferredSize = horizontalScrollBar.preferredSize ?: TerminalSize.ONE
+            val scrollBarWidth = (activeGraphics.size ?: TerminalSize.ZERO).columns
+            horizontalScrollBar.setPosition(
+                TerminalPosition(0, (activeGraphics.size ?: TerminalSize.ZERO).rows - preferredSize.rows),
+            )
+            horizontalScrollBar.setSize(preferredSize.withColumns(scrollBarWidth))
+            horizontalScrollBar.setScrollMaximum(tableModel.getColumnCount())
+            horizontalScrollBar.setViewSize(visibleColumns)
+            horizontalScrollBar.setScrollPosition(localViewLeftColumn)
+            if (table.parent !== horizontalScrollBar.parent) {
+                horizontalScrollBar.parent?.let { horizontalScrollBar.onRemoved(it) }
+                table.parent?.let { horizontalScrollBar.onAdded(it) }
+            }
+            horizontalScrollBar.draw(activeGraphics.newTextGraphics(horizontalScrollBar.position, horizontalScrollBar.size))
+            activeGraphics =
+                activeGraphics.newTextGraphics(
+                    TerminalPosition.TOP_LEFT_CORNER,
+                    (activeGraphics.size ?: TerminalSize.ZERO).withRelativeRows(-preferredSize.rows),
+                ) ?: activeGraphics
+        }
+
+        var topPosition = 0
+        for (rowIndex in localViewTopRow until kotlin.math.min(localViewTopRow + visibleRows, rows.size)) {
+            var leftPosition = 0
+            val row = rows[rowIndex]
+            for (columnIndex in localViewLeftColumn until kotlin.math.min(localViewLeftColumn + renderColumns, row.size)) {
+                if (columnIndex > localViewLeftColumn) {
+                    applyRowDividerStyle(activeGraphics, table, themeDefinition, rowIndex)
+                    activeGraphics.setCharacter(leftPosition, topPosition, getVerticalCharacter(cellHorizontalBorderStyle))
+                    leftPosition++
+                }
+                val cell = row[columnIndex]
+                val cellPosition = TerminalPosition(leftPosition, topPosition)
+                val cellArea = TerminalSize(columnSizes[columnIndex], preferredRowSizes[rowIndex])
+                tableCellRenderer.drawCell(table, cell, columnIndex, rowIndex, activeGraphics.newTextGraphics(cellPosition, cellArea))
+                leftPosition += cellArea.columns
+
+                if (columnIndex < row.size - 1) {
+                    applyRowDividerStyle(activeGraphics, table, themeDefinition, rowIndex)
+                    activeGraphics.setCharacter(leftPosition, topPosition, getVerticalCharacter(cellHorizontalBorderStyle))
+                }
+
+                if (leftPosition > area.columns) {
+                    break
+                }
+            }
+            topPosition += preferredRowSizes[rowIndex]
+            if (cellVerticalBorderStyle != TableCellBorderStyle.NONE) {
+                leftPosition = 0
+                activeGraphics.applyThemeStyle(themeDefinition.normal)
+                for (i in localViewLeftColumn until kotlin.math.min(localViewLeftColumn + renderColumns + 1, row.size)) {
+                    if (i > localViewLeftColumn) {
+                        activeGraphics.setCharacter(
                             leftPosition,
                             topPosition,
-                            getJunctionCharacter(
-                                    headerVerticalBorderStyle,
-                                    headerHorizontalBorderStyle,
-                                    cellHorizontalBorderStyle));
-                    leftPosition++;
+                            getJunctionCharacter(cellVerticalBorderStyle, cellHorizontalBorderStyle, cellHorizontalBorderStyle),
+                        )
+                        leftPosition++
+                    }
+                    val columnWidth = columnSizes[i]
+                    activeGraphics.drawLine(
+                        leftPosition,
+                        topPosition,
+                        leftPosition + columnWidth - 1,
+                        topPosition,
+                        getHorizontalCharacter(cellVerticalBorderStyle),
+                    )
+                    leftPosition += columnWidth
                 }
-                int columnWidth = columnSizes.get(i);
-                graphics.drawLine(leftPosition, topPosition, leftPosition + columnWidth - 1, topPosition, getHorizontalCharacter(headerVerticalBorderStyle));
-                leftPosition += columnWidth;
+                topPosition += cellVerticalBorderStyle.size
             }
-            //Expand out the line in case the area is bigger
-            if(leftPosition < graphics.getSize().getColumns()) {
-                graphics.drawLine(leftPosition, topPosition, graphics.getSize().getColumns() - 1, topPosition, getHorizontalCharacter(headerVerticalBorderStyle));
+            if (topPosition > area.rows) {
+                break
             }
         }
     }
 
-    private void drawRows(
-            TextGUIGraphics graphics,
-            Table<V> table,
-            List<Integer> columnSizes,
-            int visibleRows,
-            int visibleColumns,
-            int renderColumns,
-            boolean needVerticalScrollBar,
-            boolean needHorizontalScrollBar) {
-        Theme theme = table.getTheme();
-        ThemeDefinition themeDefinition = theme.getDefinition(Table.class);
-        TerminalSize area = graphics.getSize();
-        TableCellRenderer<V> tableCellRenderer = table.getTableCellRenderer();
-        TableModel<V> tableModel = table.getTableModel();
-        List<List<V>> rows = tableModel.getRows();
-        int viewTopRow = table.getRenderer().getViewTopRow();
-        int viewLeftColumn = table.getRenderer().getViewLeftColumn();
-
-        //Draw scrollbars (if needed)
-        if(needVerticalScrollBar) {
-            TerminalSize verticalScrollBarPreferredSize = verticalScrollBar.getPreferredSize();
-            int scrollBarHeight = graphics.getSize().getRows();
-            if(needHorizontalScrollBar) {
-                scrollBarHeight--;
+    private fun applyRowDividerStyle(
+        graphics: TextGUIGraphics,
+        table: Table<V?>,
+        themeDefinition: ThemeDefinition,
+        rowIndex: Int,
+    ) {
+        if (table.getSelectedRow() == rowIndex && !table.isCellSelection()) {
+            if (table.isFocused) {
+                graphics.applyThemeStyle(themeDefinition.active)
+            } else {
+                graphics.applyThemeStyle(themeDefinition.selected)
             }
-            verticalScrollBar.setPosition(new TerminalPosition(graphics.getSize().getColumns() - verticalScrollBarPreferredSize.getColumns(), 0));
-            verticalScrollBar.setSize(verticalScrollBarPreferredSize.withRows(scrollBarHeight));
-            verticalScrollBar.setScrollMaximum(rows.size());
-            verticalScrollBar.setViewSize(visibleRows);
-            verticalScrollBar.setScrollPosition(viewTopRow);
-
-            // Ensure the parent is correct
-            if(table.getParent() != verticalScrollBar.getParent()) {
-                if(verticalScrollBar.getParent() != null) {
-                    verticalScrollBar.onRemoved(verticalScrollBar.getParent());
-                }
-                if(table.getParent() != null) {
-                    verticalScrollBar.onAdded(table.getParent());
-                }
-            }
-
-            // Finally draw the thing
-            verticalScrollBar.draw(graphics.newTextGraphics(verticalScrollBar.getPosition(), verticalScrollBar.getSize()));
-
-            // Adjust graphics object to the remaining area when the vertical scrollbar is subtracted
-            graphics = graphics.newTextGraphics(TerminalPosition.TOP_LEFT_CORNER, graphics.getSize().withRelativeColumns(-verticalScrollBarPreferredSize.getColumns()));
-        }
-        if(needHorizontalScrollBar) {
-            TerminalSize horizontalScrollBarPreferredSize = horizontalScrollBar.getPreferredSize();
-            int scrollBarWidth = graphics.getSize().getColumns();
-            horizontalScrollBar.setPosition(new TerminalPosition(0, graphics.getSize().getRows() - horizontalScrollBarPreferredSize.getRows()));
-            horizontalScrollBar.setSize(horizontalScrollBarPreferredSize.withColumns(scrollBarWidth));
-            horizontalScrollBar.setScrollMaximum(tableModel.getColumnCount());
-            horizontalScrollBar.setViewSize(visibleColumns);
-            horizontalScrollBar.setScrollPosition(viewLeftColumn);
-
-            // Ensure the parent is correct
-            if(table.getParent() != horizontalScrollBar.getParent()) {
-                if(horizontalScrollBar.getParent() != null) {
-                    horizontalScrollBar.onRemoved(horizontalScrollBar.getParent());
-                }
-                if(table.getParent() != null) {
-                    horizontalScrollBar.onAdded(table.getParent());
-                }
-            }
-
-            // Finally draw the thing
-            horizontalScrollBar.draw(graphics.newTextGraphics(horizontalScrollBar.getPosition(), horizontalScrollBar.getSize()));
-
-            // Adjust graphics object to the remaining area when the horizontal scrollbar is subtracted
-            graphics = graphics.newTextGraphics(TerminalPosition.TOP_LEFT_CORNER, graphics.getSize().withRelativeRows(-horizontalScrollBarPreferredSize.getRows()));
-        }
-
-        int topPosition = 0;
-        for(int rowIndex = viewTopRow; rowIndex < Math.min(viewTopRow + visibleRows, rows.size()); rowIndex++) {
-            int leftPosition = 0;
-            List<V> row = rows.get(rowIndex);
-            for(int columnIndex = viewLeftColumn; columnIndex < Math.min(viewLeftColumn + renderColumns, row.size()); columnIndex++) {
-                if(columnIndex > viewLeftColumn) {
-                    if(table.getSelectedRow() == rowIndex && !table.isCellSelection()) {
-                        if(table.isFocused()) {
-                            graphics.applyThemeStyle(themeDefinition.getActive());
-                        }
-                        else {
-                            graphics.applyThemeStyle(themeDefinition.getSelected());
-                        }
-                    }
-                    else {
-                        graphics.applyThemeStyle(themeDefinition.getNormal());
-                    }
-                    graphics.setCharacter(leftPosition, topPosition, getVerticalCharacter(cellHorizontalBorderStyle));
-                    leftPosition++;
-                }
-                V cell = row.get(columnIndex);
-                TerminalPosition cellPosition = new TerminalPosition(leftPosition, topPosition);
-                TerminalSize cellArea = new TerminalSize(columnSizes.get(columnIndex), preferredRowSizes.get(rowIndex));
-                tableCellRenderer.drawCell(table, cell, columnIndex, rowIndex, graphics.newTextGraphics(cellPosition, cellArea));
-                leftPosition += cellArea.getColumns();
-
-                if(columnIndex < row.size() - 1) {
-                    if (table.getSelectedRow() == rowIndex && !table.isCellSelection()) {
-                        if (table.isFocused()) {
-                            graphics.applyThemeStyle(themeDefinition.getActive());
-                        } else {
-                            graphics.applyThemeStyle(themeDefinition.getSelected());
-                        }
-                    } else {
-                        graphics.applyThemeStyle(themeDefinition.getNormal());
-                    }
-                    graphics.setCharacter(leftPosition, topPosition, getVerticalCharacter(cellHorizontalBorderStyle));
-                }
-
-                if(leftPosition > area.getColumns()) {
-                    break;
-                }
-            }
-            topPosition += preferredRowSizes.get(rowIndex);
-            if(cellVerticalBorderStyle != TableCellBorderStyle.NONE) {
-                leftPosition = 0;
-                graphics.applyThemeStyle(themeDefinition.getNormal());
-                for(int i = viewLeftColumn; i < Math.min(viewLeftColumn + renderColumns + 1, row.size()); i++) {
-                    if(i > viewLeftColumn) {
-                        graphics.setCharacter(
-                                leftPosition,
-                                topPosition,
-                                getJunctionCharacter(
-                                        cellVerticalBorderStyle,
-                                        cellHorizontalBorderStyle,
-                                        cellHorizontalBorderStyle));
-                        leftPosition++;
-                    }
-                    int columnWidth = columnSizes.get(i);
-                    graphics.drawLine(leftPosition, topPosition, leftPosition + columnWidth - 1, topPosition, getHorizontalCharacter(cellVerticalBorderStyle));
-                    leftPosition += columnWidth;
-                }
-                topPosition += cellVerticalBorderStyle.getSize();
-            }
-            if(topPosition > area.getRows()) {
-                break;
-            }
+        } else {
+            graphics.applyThemeStyle(themeDefinition.normal)
         }
     }
 
-    private char getHorizontalCharacter(TableCellBorderStyle style) {
-        switch(style) {
-            case SINGLE_LINE:
-                return Symbols.SINGLE_LINE_HORIZONTAL;
-            case DOUBLE_LINE:
-                return Symbols.DOUBLE_LINE_HORIZONTAL;
-            default:
-                return ' ';
+    private fun getHorizontalCharacter(style: TableCellBorderStyle): Char {
+        return when (style) {
+            TableCellBorderStyle.SINGLE_LINE -> Symbols.SINGLE_LINE_HORIZONTAL
+            TableCellBorderStyle.DOUBLE_LINE -> Symbols.DOUBLE_LINE_HORIZONTAL
+            else -> ' '
         }
     }
 
-    private char getVerticalCharacter(TableCellBorderStyle style) {
-        switch(style) {
-            case SINGLE_LINE:
-                return Symbols.SINGLE_LINE_VERTICAL;
-            case DOUBLE_LINE:
-                return Symbols.DOUBLE_LINE_VERTICAL;
-            default:
-                return ' ';
+    private fun getVerticalCharacter(style: TableCellBorderStyle): Char {
+        return when (style) {
+            TableCellBorderStyle.SINGLE_LINE -> Symbols.SINGLE_LINE_VERTICAL
+            TableCellBorderStyle.DOUBLE_LINE -> Symbols.DOUBLE_LINE_VERTICAL
+            else -> ' '
         }
     }
 
-    private char getJunctionCharacter(TableCellBorderStyle mainStyle, TableCellBorderStyle styleAbove, TableCellBorderStyle styleBelow) {
-        if(mainStyle == TableCellBorderStyle.SINGLE_LINE) {
-            if(styleAbove == TableCellBorderStyle.SINGLE_LINE) {
-                if(styleBelow == TableCellBorderStyle.SINGLE_LINE) {
-                    return Symbols.SINGLE_LINE_CROSS;
+    private fun getJunctionCharacter(
+        mainStyle: TableCellBorderStyle,
+        styleAbove: TableCellBorderStyle,
+        styleBelow: TableCellBorderStyle,
+    ): Char {
+        return if (mainStyle == TableCellBorderStyle.SINGLE_LINE) {
+            if (styleAbove == TableCellBorderStyle.SINGLE_LINE) {
+                if (styleBelow == TableCellBorderStyle.SINGLE_LINE) {
+                    Symbols.SINGLE_LINE_CROSS
+                } else if (styleBelow == TableCellBorderStyle.DOUBLE_LINE) {
+                    Symbols.SINGLE_LINE_T_UP
+                } else {
+                    Symbols.SINGLE_LINE_T_UP
                 }
-                else if(styleBelow == TableCellBorderStyle.DOUBLE_LINE) {
-                    //There isn't any character for this, give upper side priority
-                    return Symbols.SINGLE_LINE_T_UP;
+            } else if (styleAbove == TableCellBorderStyle.DOUBLE_LINE) {
+                if (styleBelow == TableCellBorderStyle.SINGLE_LINE) {
+                    Symbols.SINGLE_LINE_T_DOUBLE_UP
+                } else if (styleBelow == TableCellBorderStyle.DOUBLE_LINE) {
+                    Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS
+                } else {
+                    Symbols.SINGLE_LINE_T_DOUBLE_UP
                 }
-                else {
-                    return Symbols.SINGLE_LINE_T_UP;
-                }
-            }
-            else if(styleAbove == TableCellBorderStyle.DOUBLE_LINE) {
-                if(styleBelow == TableCellBorderStyle.SINGLE_LINE) {
-                    //There isn't any character for this, give upper side priority
-                    return Symbols.SINGLE_LINE_T_DOUBLE_UP;
-                }
-                else if(styleBelow == TableCellBorderStyle.DOUBLE_LINE) {
-                    return Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS;
-                }
-                else {
-                    return Symbols.SINGLE_LINE_T_DOUBLE_UP;
-                }
-            }
-            else {
-                if(styleBelow == TableCellBorderStyle.SINGLE_LINE) {
-                    return Symbols.SINGLE_LINE_T_DOWN;
-                }
-                else if(styleBelow == TableCellBorderStyle.DOUBLE_LINE) {
-                    return Symbols.SINGLE_LINE_T_DOUBLE_DOWN;
-                }
-                else {
-                    return Symbols.SINGLE_LINE_HORIZONTAL;
+            } else {
+                if (styleBelow == TableCellBorderStyle.SINGLE_LINE) {
+                    Symbols.SINGLE_LINE_T_DOWN
+                } else if (styleBelow == TableCellBorderStyle.DOUBLE_LINE) {
+                    Symbols.SINGLE_LINE_T_DOUBLE_DOWN
+                } else {
+                    Symbols.SINGLE_LINE_HORIZONTAL
                 }
             }
-        }
-        else if(mainStyle == TableCellBorderStyle.DOUBLE_LINE) {
-            if(styleAbove == TableCellBorderStyle.SINGLE_LINE) {
-                if(styleBelow == TableCellBorderStyle.SINGLE_LINE) {
-                    return Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS;
+        } else if (mainStyle == TableCellBorderStyle.DOUBLE_LINE) {
+            if (styleAbove == TableCellBorderStyle.SINGLE_LINE) {
+                if (styleBelow == TableCellBorderStyle.SINGLE_LINE) {
+                    Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS
+                } else if (styleBelow == TableCellBorderStyle.DOUBLE_LINE) {
+                    Symbols.DOUBLE_LINE_T_SINGLE_UP
+                } else {
+                    Symbols.DOUBLE_LINE_T_SINGLE_UP
                 }
-                else if(styleBelow == TableCellBorderStyle.DOUBLE_LINE) {
-                    //There isn't any character for this, give upper side priority
-                    return Symbols.DOUBLE_LINE_T_SINGLE_UP;
+            } else if (styleAbove == TableCellBorderStyle.DOUBLE_LINE) {
+                if (styleBelow == TableCellBorderStyle.SINGLE_LINE) {
+                    Symbols.DOUBLE_LINE_T_UP
+                } else if (styleBelow == TableCellBorderStyle.DOUBLE_LINE) {
+                    Symbols.DOUBLE_LINE_CROSS
+                } else {
+                    Symbols.DOUBLE_LINE_T_UP
                 }
-                else {
-                    return Symbols.DOUBLE_LINE_T_SINGLE_UP;
-                }
-            }
-            else if(styleAbove == TableCellBorderStyle.DOUBLE_LINE) {
-                if(styleBelow == TableCellBorderStyle.SINGLE_LINE) {
-                    //There isn't any character for this, give upper side priority
-                    return Symbols.DOUBLE_LINE_T_UP;
-                }
-                else if(styleBelow == TableCellBorderStyle.DOUBLE_LINE) {
-                    return Symbols.DOUBLE_LINE_CROSS;
-                }
-                else {
-                    return Symbols.DOUBLE_LINE_T_UP;
-                }
-            }
-            else {
-                if(styleBelow == TableCellBorderStyle.SINGLE_LINE) {
-                    return Symbols.DOUBLE_LINE_T_SINGLE_DOWN;
-                }
-                else if(styleBelow == TableCellBorderStyle.DOUBLE_LINE) {
-                    return Symbols.DOUBLE_LINE_T_DOWN;
-                }
-                else {
-                    return Symbols.DOUBLE_LINE_HORIZONTAL;
+            } else {
+                if (styleBelow == TableCellBorderStyle.SINGLE_LINE) {
+                    Symbols.DOUBLE_LINE_T_SINGLE_DOWN
+                } else if (styleBelow == TableCellBorderStyle.DOUBLE_LINE) {
+                    Symbols.DOUBLE_LINE_T_DOWN
+                } else {
+                    Symbols.DOUBLE_LINE_HORIZONTAL
                 }
             }
-        }
-        else {
-            return ' ';
+        } else {
+            ' '
         }
     }
 }

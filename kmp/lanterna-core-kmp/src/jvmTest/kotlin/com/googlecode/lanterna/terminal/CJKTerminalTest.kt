@@ -16,60 +16,70 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.terminal;
+package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.TestTerminalFactory;
-import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextColor
 
-import java.io.IOException;
+import java.io.IOException
 
 /**
- *
+ * 
  * @author Martin
  */
-public class CJKTerminalTest {
-    public static void main(String[] args) throws IOException, InterruptedException {
-        Terminal terminal = new TestTerminalFactory(args).createTerminal();
-        terminal.enterPrivateMode();
-        terminal.clearScreen();
-        for(int i = 1; i < 5; i++) {
-            terminal.setCursorPosition(i, i);
-            printString(terminal, "あ い う え お");
-        }
-        int pos = 0;
-        int line = 1;
-        for(int i = 0; i < 50; i++) {
-            if(terminal.pollInput() != null) {
-                break;
-            }
-            terminal.setCursorPosition(0, 0);
-            printString(terminal, pos + "x" + line);            
-            terminal.setCursorPosition(pos++, line);
-            if(pos == 10) {
-                pos = 0;
-                line++;
-            }
-            terminal.flush();
-            Thread.sleep(2000);
-        }
-        terminal.setForegroundColor(TextColor.ANSI.WHITE);
-        terminal.setBackgroundColor(TextColor.ANSI.RED);
-        for(int i = 0; i < 5; i++) {
-            if(terminal.pollInput() != null) {
-                break;
-            }
-            terminal.setCursorPosition(5, i + 1);
-            printString(terminal, "X");
-            terminal.setCursorPosition(0, 0);
-            terminal.flush();
-            Thread.sleep(2000);
-        }
-        terminal.exitPrivateMode();
-    }
+ object CJKTerminalTest {
+@Throws(IOException::class, InterruptedException::class)
+ fun main(args:Array<String?>?) {
+val terminal = TestTerminalFactory(args).createTerminal()
+terminal!!.enterPrivateMode()
+terminal!!.clearScreen()
+for (i in 1..4)
+{
+terminal!!.setCursorPosition(i, i)
+printString(terminal, "あ い う え お")
+}
+var pos = 0
+var line = 1
+for (i in 0..49)
+{
+if (terminal!!.pollInput() != null)
+{
+break
+}
+terminal!!.setCursorPosition(0, 0)
+	printString(terminal, "${pos}x${line}")
+terminal!!.setCursorPosition(pos++, line)
+if (pos == 10)
+{
+pos = 0
+line++
+}
+terminal!!.flush()
+Thread.sleep(2000)
+}
+terminal!!.setForegroundColor(TextColor.ANSI.WHITE)
+terminal!!.setBackgroundColor(TextColor.ANSI.RED)
+for (i in 0..4)
+{
+if (terminal!!.pollInput() != null)
+{
+break
+}
+terminal!!.setCursorPosition(5, i + 1)
+printString(terminal, "X")
+terminal!!.setCursorPosition(0, 0)
+terminal!!.flush()
+Thread.sleep(2000)
+}
+terminal!!.exitPrivateMode()
+}
 
-    private static void printString(Terminal rawTerminal, String string) throws IOException {
-        for(int i = 0; i < string.length(); i++) {
-            rawTerminal.putCharacter(string.charAt(i));
-        }
-    }
+@Throws(IOException::class)
+private fun printString(rawTerminal:Terminal?, string:String) {
+for (i in 0 until string.length)
+{
+rawTerminal!!.putCharacter(string[i])
+}
+}
 }

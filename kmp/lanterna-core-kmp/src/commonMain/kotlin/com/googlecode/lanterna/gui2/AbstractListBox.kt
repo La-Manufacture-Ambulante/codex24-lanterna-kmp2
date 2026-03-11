@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,529 +13,393 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-package com.googlecode.lanterna.gui2;
+package com.googlecode.lanterna.gui2
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TerminalTextUtils;
-import com.googlecode.lanterna.graphics.ThemeDefinition;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.MouseAction;
-import com.googlecode.lanterna.input.MouseActionType;
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TerminalTextUtils
+import com.googlecode.lanterna.graphics.ThemeDefinition
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.input.MouseAction
+import com.googlecode.lanterna.input.MouseActionType
+import java.util.ArrayList
 
 /**
- * Base class for several list box implementations, this will handle things like list of items and the scrollbar.
- * @param <T> Should always be itself, see {@code AbstractComponent}
- * @param <V> Type of items this list box contains
- * @author Martin
+ * Base class for several list box implementations.
  */
-public abstract class AbstractListBox<V, T extends AbstractListBox<V, T>> extends AbstractInteractableComponent<T> {
-    private final List<V> items;
-    private int selectedIndex;
-    private ListItemRenderer<V,T> listItemRenderer;
-    protected TerminalPosition scrollOffset = new TerminalPosition(0, 0);
-    
-    /**
-     * This constructor sets up the component so it has no preferred size but will ask to be as big as the list is. If
-     * the GUI cannot accommodate this size, scrolling and a vertical scrollbar will be used.
-     */
-    protected AbstractListBox() {
-        this(null);
+abstract class AbstractListBox<V, T : AbstractListBox<V, T>?> @JvmOverloads protected constructor(size: TerminalSize? = null) :
+    AbstractInteractableComponent<T>() {
+
+    private val items: MutableList<V> = ArrayList()
+    private var selectedIndex: Int = -1
+    private var listItemRenderer: ListItemRenderer<V, T>? = null
+    protected var scrollOffset: TerminalPosition = TerminalPosition(0, 0)
+
+    init {
+        setPreferredSize(size)
+        setListItemRenderer(createDefaultListItemRenderer())
     }
 
-    /**
-     * This constructor sets up the component with a preferred size that is will always request, no matter what items
-     * are in the list box. If there are more items than the size can contain, scrolling and a vertical scrollbar will
-     * be used. Calling this constructor with a {@code null} value has the same effect as calling the default
-     * constructor.
-     *
-     * @param size Preferred size that the list should be asking for instead of invoking the preferred size calculation,
-     *             or if set to {@code null} will ask to be big enough to display all items.
-     */
-    protected AbstractListBox(TerminalSize size) {
-        this.items = new ArrayList<>();
-        this.selectedIndex = -1;
-        setPreferredSize(size);
-        setListItemRenderer(createDefaultListItemRenderer());
+    override fun createDefaultRenderer(): InteractableRenderer<T?> {
+        return DefaultListBoxRenderer()
     }
 
-    @Override
-    protected InteractableRenderer<T> createDefaultRenderer() {
-        return new DefaultListBoxRenderer<>();
+    protected open fun createDefaultListItemRenderer(): ListItemRenderer<V, T> {
+        return ListItemRenderer()
     }
 
-    /**
-     * Method that constructs the {@code ListItemRenderer} that this list box should use to draw the elements of the
-     * list box. This can be overridden to supply a custom renderer. Note that this is not the renderer used for the
-     * entire list box but for each item, called one by one.
-     * @return {@code ListItemRenderer} to use when drawing the items in the list
-     */
-    protected ListItemRenderer<V,T> createDefaultListItemRenderer() {
-        return new ListItemRenderer<>();
-    }
-    
-    ListItemRenderer<V,T> getListItemRenderer() {
-        return listItemRenderer;
+    internal fun getListItemRenderer(): ListItemRenderer<V, T>? {
+        return listItemRenderer
     }
 
-    /**
-     * This method overrides the {@code ListItemRenderer} that is used to draw each element in the list box. Note that
-     * this is not the renderer used for the entire list box but for each item, called one by one.
-     * @param listItemRenderer New renderer to use when drawing the items in the list box
-     * @return Itself
-     */
-    public synchronized T setListItemRenderer(ListItemRenderer<V,T> listItemRenderer) {
-        if(listItemRenderer == null) {
-            listItemRenderer = createDefaultListItemRenderer();
-            if(listItemRenderer == null) {
-                throw new IllegalStateException("createDefaultListItemRenderer returned null");
+    @Synchronized
+    fun setListItemRenderer(listItemRenderer: ListItemRenderer<V, T>?): T? {
+        var renderer = listItemRenderer
+        if (renderer == null) {
+            renderer = createDefaultListItemRenderer()
+            if (renderer == null) {
+                throw IllegalStateException("createDefaultListItemRenderer returned null")
             }
         }
-        this.listItemRenderer = listItemRenderer;
-        return self();
+        this.listItemRenderer = renderer
+        return self()
     }
 
-    @Override
-    public synchronized Result handleKeyStroke(KeyStroke keyStroke) {
+    @Synchronized
+    override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
         try {
-            switch(keyStroke.getKeyType()) {
-                case TAB:
-                    return Result.MOVE_FOCUS_NEXT;
-
-                case REVERSE_TAB:
-                    return Result.MOVE_FOCUS_PREVIOUS;
-
-                case ARROW_RIGHT:
-                    return Result.MOVE_FOCUS_RIGHT;
-
-                case ARROW_LEFT:
-                    return Result.MOVE_FOCUS_LEFT;
-
-                case ARROW_DOWN:
-                    if(items.isEmpty() || selectedIndex == items.size() - 1) {
-                        return Result.MOVE_FOCUS_DOWN;
+            when (keyStroke.keyType) {
+                KeyType.TAB -> return Interactable.Result.MOVE_FOCUS_NEXT
+                KeyType.REVERSE_TAB -> return Interactable.Result.MOVE_FOCUS_PREVIOUS
+                KeyType.ARROW_RIGHT -> return Interactable.Result.MOVE_FOCUS_RIGHT
+                KeyType.ARROW_LEFT -> return Interactable.Result.MOVE_FOCUS_LEFT
+                KeyType.ARROW_DOWN -> {
+                    if (items.isEmpty() || selectedIndex == items.size - 1) {
+                        return Interactable.Result.MOVE_FOCUS_DOWN
                     }
-                    selectedIndex++;
-                    return Result.HANDLED;
+                    selectedIndex++
+                    return Interactable.Result.HANDLED
+                }
 
-                case ARROW_UP:
-                    if(items.isEmpty() || selectedIndex == 0) {
-                        return Result.MOVE_FOCUS_UP;
+                KeyType.ARROW_UP -> {
+                    if (items.isEmpty() || selectedIndex == 0) {
+                        return Interactable.Result.MOVE_FOCUS_UP
                     }
-                    selectedIndex--;
-                    return Result.HANDLED;
+                    selectedIndex--
+                    return Interactable.Result.HANDLED
+                }
 
-                case HOME:
-                    selectedIndex = 0;
-                    return Result.HANDLED;
+                KeyType.HOME -> {
+                    selectedIndex = 0
+                    return Interactable.Result.HANDLED
+                }
 
-                case END:
-                    selectedIndex = items.size() - 1;
-                    return Result.HANDLED;
+                KeyType.END -> {
+                    selectedIndex = items.size - 1
+                    return Interactable.Result.HANDLED
+                }
 
-                case PAGE_UP:
-                    if(getSize() != null) {
-                        setSelectedIndex(getSelectedIndex() - getSize().getRows());
+                KeyType.PAGE_UP -> {
+                    if (size != null) {
+                        setSelectedIndex(getSelectedIndex() - size!!.rows)
                     }
-                    return Result.HANDLED;
+                    return Interactable.Result.HANDLED
+                }
 
-                case PAGE_DOWN:
-                    if(getSize() != null) {
-                        setSelectedIndex(getSelectedIndex() + getSize().getRows());
+                KeyType.PAGE_DOWN -> {
+                    if (size != null) {
+                        setSelectedIndex(getSelectedIndex() + size!!.rows)
                     }
-                    return Result.HANDLED;
+                    return Interactable.Result.HANDLED
+                }
 
-                case CHARACTER:
-                	// Only check is Alt and Ctrl keys are not pressed signaling a possible accelerator key
-                    if(!keyStroke.isAltDown() && !keyStroke.isCtrlDown() && selectByCharacter(keyStroke.getCharacter())) {
-                        return Result.HANDLED;
+                KeyType.CHARACTER -> {
+                    if (selectByCharacter(keyStroke.character)) {
+                        return Interactable.Result.HANDLED
                     }
-                    return Result.UNHANDLED;
-                case MOUSE_EVENT:
-                    MouseAction mouseAction = (MouseAction) keyStroke;
-                    MouseActionType actionType = mouseAction.getActionType();
+                    return Interactable.Result.UNHANDLED
+                }
+
+                KeyType.MOUSE_EVENT -> {
+                    val mouseAction = keyStroke as MouseAction
+                    val actionType = mouseAction.actionType
                     if (isMouseMove(keyStroke)) {
-                        takeFocus();
-                        selectedIndex = getIndexByMouseAction(mouseAction);
-                        return Result.HANDLED;
+                        takeFocus()
+                        selectedIndex = getIndexByMouseAction(mouseAction)
+                        return Interactable.Result.HANDLED
                     }
-                    
+
                     if (actionType == MouseActionType.CLICK_RELEASE) {
-                        // do nothing, desired actioning has been performed already on CLICK_DOWN and DRAG
-                        return Result.HANDLED;
+                        return Interactable.Result.HANDLED
                     } else if (actionType == MouseActionType.SCROLL_UP) {
-                        // relying on setSelectedIndex(index) to clip the index to valid values within range
-                        setSelectedIndex(getSelectedIndex() -1);
-                        return Result.HANDLED;
+                        setSelectedIndex(getSelectedIndex() - 1)
+                        return Interactable.Result.HANDLED
                     } else if (actionType == MouseActionType.SCROLL_DOWN) {
-                        // relying on setSelectedIndex(index) to clip the index to valid values within range
-                        setSelectedIndex(getSelectedIndex() +1);
-                        return Result.HANDLED;
+                        setSelectedIndex(getSelectedIndex() + 1)
+                        return Interactable.Result.HANDLED
                     }
-            
-                    selectedIndex = getIndexByMouseAction(mouseAction);
-                    return super.handleKeyStroke(keyStroke);
-                default:
+
+                    selectedIndex = getIndexByMouseAction(mouseAction)
+                    return super.handleKeyStroke(keyStroke)
+                }
+
+                else -> return Interactable.Result.UNHANDLED
             }
-            return Result.UNHANDLED;
+        } finally {
+            invalidate()
         }
-        finally {
-            invalidate();
-        }
-    }
-    
-    /**
-     * By converting {@link TerminalPosition}s to
-     * {@link #toGlobal(TerminalPosition)} gets index clicked on by mouse action.
-     * 
-     * @return index of a item that was clicked on with {@link MouseAction}
-     */
-    protected int getIndexByMouseAction(MouseAction click) {
-        int index = click.getPosition().getRow() - getGlobalPosition().getRow() - scrollOffset.getRow();
-        
-        return Math.min(index, items.size() -1);
     }
 
-    private boolean selectByCharacter(Character character) {
-        character = Character.toLowerCase(character);
-        
-        int selectedIndex = getSelectedIndex();
-        for (int i = 0; i<getItemCount(); i++) {
-            int index = (selectedIndex + i + 1) % getItemCount();
-            V item = getItemAt(index);
-            String label = item != null ? item.toString() : null;
-            if (label != null && label.length() > 0) {
-                char firstChar = Character.toLowerCase(label.charAt(0));
-                if (firstChar == character) {
-                    setSelectedIndex(index);
-                    return true;
+    protected fun getIndexByMouseAction(click: MouseAction): Int {
+        val global = globalPosition ?: TerminalPosition(0, 0)
+        val clickPosition = click.position ?: return 0
+        val index = clickPosition.row - global.row - scrollOffset.row
+        return kotlin.math.min(index, items.size - 1)
+    }
+
+    private fun selectByCharacter(character: Char?): Boolean {
+        if (character == null || itemCount == 0) {
+            return false
+        }
+        val lower = character.toString().lowercase()[0]
+        val selectedIndex = getSelectedIndex()
+        for (i in 0 until itemCount) {
+            val index = (selectedIndex + i + 1) % itemCount
+            val item = getItemAt(index)
+            val label = item?.toString()
+            if (!label.isNullOrEmpty()) {
+                val firstChar = label[0].lowercaseChar()
+                if (firstChar == lower) {
+                    setSelectedIndex(index)
+                    return true
                 }
             }
         }
-        
-        return false;
+        return false
     }
-    
-    @Override
-    protected synchronized void afterEnterFocus(FocusChangeDirection direction, Interactable previouslyInFocus) {
-        if(items.isEmpty()) {
-            return;
+
+    @Synchronized
+    override fun afterEnterFocus(direction: Interactable.FocusChangeDirection?, previouslyInFocus: Interactable?) {
+        if (items.isEmpty()) {
+            return
         }
 
-        if(direction == FocusChangeDirection.DOWN) {
-            selectedIndex = 0;
-        }
-        else if(direction == FocusChangeDirection.UP) {
-            selectedIndex = items.size() - 1;
+        if (direction == Interactable.FocusChangeDirection.DOWN) {
+            selectedIndex = 0
+        } else if (direction == Interactable.FocusChangeDirection.UP) {
+            selectedIndex = items.size - 1
         }
     }
 
-    /**
-     * Adds one more item to the list box, at the end.
-     * @param item Item to add to the list box
-     * @return Itself
-     */
-    public synchronized T addItem(V item) {
-        if(item == null) {
-            return self();
+    @Synchronized
+    open fun addItem(item: V?): T? {
+        if (item == null) {
+            return self()
         }
 
-        items.add(item);
-        if(selectedIndex == -1) {
-            selectedIndex = 0;
-        }
-        invalidate();
-        return self();
-    }
-
-    /**
-     * Removes an item from the list box by its index. The current selection in the list box will be adjusted
-     * accordingly.
-     * @param index Index of the item to remove
-     * @return The item that was removed
-     * @throws IndexOutOfBoundsException if the index is out of bounds in regards to the list of items
-     */
-    public synchronized V removeItem(int index) {
-        V existing = items.remove(index);
-        if(index < selectedIndex) {
-            selectedIndex--;
-        }
-        while(selectedIndex >= items.size()) {
-            selectedIndex--;
-        }
-        invalidate();
-        return existing;
-    }
-
-    /**
-     * Removes all items from the list box
-     * @return Itself
-     */
-    public synchronized T clearItems() {
-        items.clear();
-        selectedIndex = -1;
-        invalidate();
-        return self();
-    }
-
-    @Override
-    public boolean isFocusable() {
-        if(isEmpty()) {
-            // These dialog boxes are quite weird when they are empty and receive input focus, so try to avoid that
-            return false;
-        }
-        return super.isFocusable();
-    }
-
-    /**
-     * Looks for the particular item in the list and returns the index within the list (starting from zero) of that item
-     * if it is found, or -1 otherwise
-     * @param item What item to search for in the list box
-     * @return Index of the item in the list box or -1 if the list box does not contain the item
-     */
-    public synchronized int indexOf(V item) {
-        return items.indexOf(item);
-    }
-
-    /**
-     * Retrieves the item at the specified index in the list box
-     * @param index Index of the item to fetch
-     * @return The item at the specified index
-     * @throws IndexOutOfBoundsException If the index is less than zero or equals/greater than the number of items in
-     * the list box
-     */
-    public synchronized V getItemAt(int index) {
-        return items.get(index);
-    }
-
-    /**
-     * Checks if the list box has no items
-     * @return {@code true} if the list box has no items, {@code false} otherwise
-     */
-    public synchronized boolean isEmpty() {
-        return items.isEmpty();
-    }
-
-    /**
-     * Returns the number of items currently in the list box
-     * @return Number of items in the list box
-     */
-    public synchronized int getItemCount() {
-        return items.size();
-    }
-
-    /**
-     * Returns a copy of the items in the list box as a {@code List}
-     * @return Copy of all the items in this list box
-     */
-    public synchronized List<V> getItems() {
-        return new ArrayList<>(items);
-    }
-
-    /**
-     * Sets which item in the list box that is currently selected. Please note that in this context, selected simply
-     * means it is the item that currently has input focus. This is not to be confused with list box implementations
-     * such as {@code CheckBoxList} where individual items have a certain checked/unchecked state.
-     * This method will clip the supplied index to within 0 to items.size() -1.
-     * @param index Index of the item that should be currently selected
-     * @return Itself
-     */
-    public synchronized T setSelectedIndex(int index) {
-        selectedIndex = Math.max(0, Math.min(index, items.size() -1));
-        
-        invalidate();
-        return self();
-    }
-
-    /**
-     * Returns the index of the currently selected item in the list box. Please note that in this context, selected
-     * simply means it is the item that currently has input focus. This is not to be confused with list box
-     * implementations such as {@code CheckBoxList} where individual items have a certain checked/unchecked state.
-     * @return The index of the currently selected row in the list box, or -1 if there are no items
-     */
-    public int getSelectedIndex() {
-        return selectedIndex;
-    }
-
-    /**
-     * Returns the currently selected item in the list box. Please note that in this context, selected
-     * simply means it is the item that currently has input focus. This is not to be confused with list box
-     * implementations such as {@code CheckBoxList} where individual items have a certain checked/unchecked state.
-     * @return The currently selected item in the list box, or {@code null} if there are no items
-     */
-    public synchronized V getSelectedItem() {
+        items.add(item)
         if (selectedIndex == -1) {
-            return null;
-        } else {
-            return items.get(selectedIndex);
+            selectedIndex = 0
         }
+        invalidate()
+        return self()
     }
 
-    /**
-     * The default renderer for {@code AbstractListBox} and all its subclasses.
-     * @param <V> Type of the items the list box this renderer is for
-     * @param <T> Type of list box
-     */
-    public static class DefaultListBoxRenderer<V, T extends AbstractListBox<V, T>> implements InteractableRenderer<T> {
-        private final ScrollBar verticalScrollBar;
-        private int scrollTopIndex;
+    @Synchronized
+    open fun removeItem(index: Int): V {
+        val existing = items.removeAt(index)
+        if (index < selectedIndex) {
+            selectedIndex--
+        }
+        while (selectedIndex >= items.size) {
+            selectedIndex--
+        }
+        invalidate()
+        return existing
+    }
 
-        /**
-         * Default constructor
-         */
-        public DefaultListBoxRenderer() {
-            this.verticalScrollBar = new ScrollBar(Direction.VERTICAL);
-            this.scrollTopIndex = 0;
+    @Synchronized
+    open fun clearItems(): T? {
+        items.clear()
+        selectedIndex = -1
+        invalidate()
+        return self()
+    }
+
+    override val isFocusable: Boolean
+        get() {
+            if (isEmpty) {
+                return false
+            }
+            return super.isFocusable
         }
 
-        @Override
-        public TerminalPosition getCursorLocation(T listBox) {
-            if(!listBox.getThemeDefinition().isCursorVisible()) {
-                return null;
+    @Synchronized
+    fun indexOf(item: V?): Int {
+        return items.indexOf(item)
+    }
+
+    @Synchronized
+    fun getItemAt(index: Int): V {
+        return items[index]
+    }
+
+    val isEmpty: Boolean
+        get() = items.isEmpty()
+
+    val itemCount: Int
+        get() = items.size
+
+    @Synchronized
+    fun getItems(): List<V> {
+        return ArrayList(items)
+    }
+
+    @Synchronized
+    fun setSelectedIndex(index: Int): T? {
+        selectedIndex = kotlin.math.max(0, kotlin.math.min(index, items.size - 1))
+        invalidate()
+        return self()
+    }
+
+    fun getSelectedIndex(): Int {
+        return selectedIndex
+    }
+
+    val selectedItem: V?
+        get() {
+            if (selectedIndex == -1) {
+                return null
             }
-            int selectedIndex = listBox.getSelectedIndex();
-            int columnAccordingToRenderer = listBox.getListItemRenderer().getHotSpotPositionOnLine(selectedIndex);
-            if(columnAccordingToRenderer == -1) {
-                return null;
-            }
-            return new TerminalPosition(columnAccordingToRenderer, selectedIndex - scrollTopIndex);
+            return items[selectedIndex]
         }
 
-        @Override
-        public TerminalSize getPreferredSize(T listBox) {
-            int maxWidth = 5;   //Set it to something...
-            int index = 0;
-            for (V item : listBox.getItems()) {
-                String itemString = listBox.getListItemRenderer().getLabel(listBox, index++, item);
-                int stringLengthInColumns = TerminalTextUtils.getColumnWidth(itemString);
+    class DefaultListBoxRenderer<V, T : AbstractListBox<V, T>?> : InteractableRenderer<T?> {
+        private val verticalScrollBar: ScrollBar = ScrollBar(Direction.VERTICAL)
+        private var scrollTopIndex: Int = 0
+
+        override fun getCursorLocation(listBox: T?): TerminalPosition? {
+            if (listBox == null) {
+                return null
+            }
+            if (listBox.themeDefinition?.isCursorVisible != true) {
+                return null
+            }
+            val selectedIndex = listBox.getSelectedIndex()
+            val columnAccordingToRenderer = listBox.getListItemRenderer()?.getHotSpotPositionOnLine(selectedIndex) ?: -1
+            if (columnAccordingToRenderer == -1) {
+                return null
+            }
+            return TerminalPosition(columnAccordingToRenderer, selectedIndex - scrollTopIndex)
+        }
+
+        override fun getPreferredSize(listBox: T?): TerminalSize {
+            var maxWidth = 5
+            var index = 0
+            for (item in listBox?.getItems().orEmpty()) {
+                val itemString = listBox?.getListItemRenderer()?.getLabel(listBox, index++, item) ?: ""
+                val stringLengthInColumns = TerminalTextUtils.getColumnWidth(itemString)
                 if (stringLengthInColumns > maxWidth) {
-                    maxWidth = stringLengthInColumns;
+                    maxWidth = stringLengthInColumns
                 }
             }
-            return new TerminalSize(maxWidth + 1, listBox.getItemCount());
+            return TerminalSize(maxWidth + 1, listBox?.itemCount ?: 0)
         }
 
-        @Override
-        public void drawComponent(TextGUIGraphics graphics, T listBox) {
-            //update the page size, used for page up and page down keys
-            ThemeDefinition themeDefinition = listBox.getTheme().getDefinition(AbstractListBox.class);
-            int componentHeight = graphics.getSize().getRows();
-            //int componentWidth = graphics.getSize().getColumns();
-            int selectedIndex = listBox.getSelectedIndex();
-            List<V> items = listBox.getItems();
-            ListItemRenderer<V,T> listItemRenderer = listBox.getListItemRenderer();
+        override fun drawComponent(graphics: TextGUIGraphics?, listBox: T?) {
+            val activeGraphics = graphics ?: return
+            val activeListBox = listBox ?: return
 
-            if(selectedIndex != -1) {
-                if(selectedIndex < scrollTopIndex)
-                    scrollTopIndex = selectedIndex;
-                else if(selectedIndex >= componentHeight + scrollTopIndex)
-                    scrollTopIndex = selectedIndex - componentHeight + 1;
+            val themeDefinition: ThemeDefinition =
+                activeListBox.theme?.getDefinition(AbstractListBox::class.java) ?: return
+            val componentHeight = activeGraphics.size?.rows ?: 0
+            val selectedIndex = activeListBox.getSelectedIndex()
+            val items = activeListBox.getItems()
+            val listItemRenderer = activeListBox.getListItemRenderer() ?: return
+
+            if (selectedIndex != -1) {
+                if (selectedIndex < scrollTopIndex) {
+                    scrollTopIndex = selectedIndex
+                } else if (selectedIndex >= componentHeight + scrollTopIndex) {
+                    scrollTopIndex = selectedIndex - componentHeight + 1
+                }
             }
 
-            //Do we need to recalculate the scroll position?
-            //This code would be triggered by resizing the window when the scroll
-            //position is at the bottom
-            if(items.size() > componentHeight &&
-                    items.size() - scrollTopIndex < componentHeight) {
-                scrollTopIndex = items.size() - componentHeight;
+            if (items.size > componentHeight && items.size - scrollTopIndex < componentHeight) {
+                scrollTopIndex = items.size - componentHeight
             }
-            
-            listBox.scrollOffset = new TerminalPosition(0, -scrollTopIndex);
 
-            graphics.applyThemeStyle(themeDefinition.getNormal());
-            graphics.fill(' ');
+            activeListBox.scrollOffset = TerminalPosition(0, -scrollTopIndex)
 
-            TerminalSize itemSize = graphics.getSize().withRows(1);
-            for(int i = scrollTopIndex; i < items.size(); i++) {
-                if(i - scrollTopIndex >= componentHeight) {
-                    break;
+            activeGraphics.applyThemeStyle(themeDefinition.normal)
+            activeGraphics.fill(' ')
+
+            val itemSize = (activeGraphics.size ?: TerminalSize.ZERO).withRows(1)
+            for (i in scrollTopIndex until items.size) {
+                if (i - scrollTopIndex >= componentHeight) {
+                    break
                 }
                 listItemRenderer.drawItem(
-                        graphics.newTextGraphics(new TerminalPosition(0, i - scrollTopIndex), itemSize),
-                        listBox,
-                        i,
-                        items.get(i),
-                        selectedIndex == i,
-                        listBox.isFocused());
+                    activeGraphics.newTextGraphics(TerminalPosition(0, i - scrollTopIndex), itemSize),
+                    activeListBox,
+                    i,
+                    items[i],
+                    selectedIndex == i,
+                    activeListBox.isFocused,
+                )
             }
 
-            graphics.applyThemeStyle(themeDefinition.getNormal());
-            if(items.size() > componentHeight) {
-                verticalScrollBar.onAdded(listBox.getParent());
-                verticalScrollBar.setViewSize(componentHeight);
-                verticalScrollBar.setScrollMaximum(items.size());
-                verticalScrollBar.setScrollPosition(scrollTopIndex);
-                verticalScrollBar.draw(graphics.newTextGraphics(
-                        new TerminalPosition(graphics.getSize().getColumns() - 1, 0),
-                        new TerminalSize(1, graphics.getSize().getRows())));
+            activeGraphics.applyThemeStyle(themeDefinition.normal)
+            if (items.size > componentHeight) {
+                verticalScrollBar.onAdded(activeListBox.parent)
+                verticalScrollBar.setViewSize(componentHeight)
+                verticalScrollBar.setScrollMaximum(items.size)
+                verticalScrollBar.setScrollPosition(scrollTopIndex)
+                verticalScrollBar.draw(
+                    activeGraphics.newTextGraphics(
+                        TerminalPosition((activeGraphics.size ?: TerminalSize.ZERO).columns - 1, 0),
+                        TerminalSize(1, (activeGraphics.size ?: TerminalSize.ZERO).rows),
+                    ),
+                )
             }
         }
     }
 
-    /**
-     * The default list item renderer class, this can be extended and customized it needed. The instance which is
-     * assigned to the list box will be called once per item in the list when the list box is drawn.
-     * @param <V> Type of the items in the list box
-     * @param <T> Type of the list box class itself
-     */
-    public static class ListItemRenderer<V, T extends AbstractListBox<V, T>> {
-        /**
-         * Returns where on the line to place the text terminal cursor for a currently selected item. By default this
-         * will return 0, meaning the first character of the selected line. If you extend {@code ListItemRenderer} you
-         * can change this by returning a different number. Returning -1 will cause lanterna to hide the cursor.
-         * @param selectedIndex Which item is currently selected
-         * @return Index of the character in the string we want to place the terminal cursor on, or -1 to hide it
-         */
-        public int getHotSpotPositionOnLine(int selectedIndex) {
-            return 0;
+    open class ListItemRenderer<V, T : AbstractListBox<V, T>?> {
+        open fun getHotSpotPositionOnLine(selectedIndex: Int): Int {
+            return 0
         }
 
-        /**
-         * Given a list box, an index of an item within that list box and what the item is, this method should return
-         * what to draw for that item. The default implementation is to return whatever {@code toString()} returns when
-         * called on the item.
-         * @param listBox List box the item belongs to
-         * @param index Index of the item
-         * @param item The item itself
-         * @return String to draw for this item
-         */
-        public String getLabel(T listBox, int index, V item) {
-            return item != null ? item.toString() : "<null>";
+        open fun getLabel(listBox: T?, index: Int, item: V?): String {
+            return item?.toString() ?: "<null>"
         }
 
-        /**
-         * This is the main drawing method for a single list box item, it applies the current theme to setup the colors
-         * and then calls {@code getLabel(..)} and draws the result using the supplied {@code TextGUIGraphics}. The
-         * graphics object is created just for this item and is restricted so that it can only draw on the area this
-         * item is occupying. The top-left corner (0x0) should be the starting point when drawing the item.
-         * @param graphics Graphics object to draw with
-         * @param listBox List box we are drawing an item from
-         * @param index Index of the item we are drawing
-         * @param item The item we are drawing
-         * @param selected Will be set to {@code true} if the item is currently selected, otherwise {@code false}, but
-         *                 please notice what context 'selected' refers to here (see {@code setSelectedIndex})
-         * @param focused Will be set to {@code true} if the list box currently has input focus, otherwise {@code false}
-         */
-        public void drawItem(TextGUIGraphics graphics, T listBox, int index, V item, boolean selected, boolean focused) {
-            ThemeDefinition themeDefinition = listBox.getTheme().getDefinition(AbstractListBox.class);
-            if(selected && focused) {
-                graphics.applyThemeStyle(themeDefinition.getSelected());
+        open fun drawItem(
+            graphics: TextGUIGraphics?,
+            listBox: T?,
+            index: Int,
+            item: V?,
+            selected: Boolean,
+            focused: Boolean,
+        ) {
+            val activeGraphics = graphics ?: return
+            val activeListBox = listBox ?: return
+            val themeDefinition = activeListBox.theme?.getDefinition(AbstractListBox::class.java) ?: return
+            if (selected && focused) {
+                activeGraphics.applyThemeStyle(themeDefinition.selected)
+            } else {
+                activeGraphics.applyThemeStyle(themeDefinition.normal)
             }
-            else {
-                graphics.applyThemeStyle(themeDefinition.getNormal());
+            var label = getLabel(activeListBox, index, item)
+            label = TerminalTextUtils.fitString(label, (activeGraphics.size ?: TerminalSize.ZERO).columns) ?: ""
+            while (TerminalTextUtils.getColumnWidth(label) < (activeGraphics.size ?: TerminalSize.ZERO).columns) {
+                label += " "
             }
-            String label = getLabel(listBox, index, item);
-            label = TerminalTextUtils.fitString(label, graphics.getSize().getColumns());
-            while(TerminalTextUtils.getColumnWidth(label) < graphics.getSize().getColumns()) {
-                label += " ";
-            }
-            graphics.putString(0, 0, label);
+            activeGraphics.putString(0, 0, label)
         }
     }
 }

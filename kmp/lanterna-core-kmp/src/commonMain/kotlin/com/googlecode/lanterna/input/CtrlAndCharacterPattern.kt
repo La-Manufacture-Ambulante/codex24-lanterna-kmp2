@@ -16,39 +16,31 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-package com.googlecode.lanterna.input;
-
-import java.util.List;
+package com.googlecode.lanterna.input
 
 /**
- * Character pattern that matches characters pressed while CTRL key is held down
- * 
- * @author Martin, Andreas
+ * Character pattern that matches characters pressed while CTRL is held down.
  */
-public class CtrlAndCharacterPattern implements CharacterPattern {
-    @Override
-    public Matching match(List<Character> seq) {
-        int size = seq.size(); char ch = seq.get(0);
-        if (size != 1) {
-            return null; // nope
+class CtrlAndCharacterPattern : CharacterPattern {
+    override fun match(seq: List<Char>?): CharacterPattern.Matching? {
+        val sequence = seq ?: return null
+        if (sequence.size != 1) {
+            return null
         }
-        if (ch < 32) {
-            // Control-chars: exclude lf,cr,Tab,Esc(^[), but still include ^\, ^], ^^ and ^_
-            char ctrlCode;
-            switch (ch) {
-            case '\n': case '\r': case '\t': case 0x08:
-            case KeyDecodingProfile.ESC_CODE: return null; // nope
-            case 0:  /* ^@ */ ctrlCode = ' '; break;
-            case 28: /* ^\ */ ctrlCode = '\\'; break;
-            case 29: /* ^] */ ctrlCode = ']'; break;
-            case 30: /* ^^ */ ctrlCode = '^'; break;
-            case 31: /* ^_ */ ctrlCode = '_'; break;
-            default: ctrlCode = (char)('a' - 1 + ch);
-            }
-            KeyStroke ks = new KeyStroke( ctrlCode, true, false);
-            return new Matching( ks ); // yep
-        } else {
-            return null; // nope
+        val ch = sequence[0]
+        if (ch.code >= 32) {
+            return null
         }
+
+        val ctrlCode = when (ch) {
+            '\n', '\r', '\t', '\b', KeyDecodingProfile.ESC_CODE -> return null
+            '\u0000' -> ' '
+            '\u001c' -> '\\'
+            '\u001d' -> ']'
+            '\u001e' -> '^'
+            '\u001f' -> '_'
+            else -> ('a'.code - 1 + ch.code).toChar()
+        }
+        return CharacterPattern.Matching(KeyStroke(ctrlCode, true, false))
     }
 }
