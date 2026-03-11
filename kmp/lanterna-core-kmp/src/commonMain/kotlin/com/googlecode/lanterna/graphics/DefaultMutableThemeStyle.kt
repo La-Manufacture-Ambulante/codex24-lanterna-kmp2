@@ -46,7 +46,7 @@ class DefaultMutableThemeStyle : ThemeStyle {
             return if (sgrs == null) EnumSet.noneOf(SGR::class.java) else EnumSet.copyOf(sgrs)
         }
 
-/**
+    /**
      * Creates a new [DefaultMutableThemeStyle] based on an existing [ThemeStyle]. The values of this style
      * that is passed in will be copied into the new object that is created.
      * @param themeStyleToCopy [ThemeStyle] object to copy the style parameters from
@@ -57,7 +57,7 @@ class DefaultMutableThemeStyle : ThemeStyle {
         themeStyleToCopy.sgRs,
     ) {}
 
-/**
+    /**
      * Creates a new [DefaultMutableThemeStyle] with a specified style (foreground, background and SGR state)
      * @param foreground Foreground color of the text with this style
      * @param background Background color of the text with this style
@@ -67,8 +67,15 @@ class DefaultMutableThemeStyle : ThemeStyle {
         foreground: TextColor?,
         background: TextColor?,
         vararg sgrs: SGR?,
-    ) : this(foreground, background, if (sgrs.size > 0) EnumSet.copyOf(Arrays.asList(*sgrs).filterNotNull()) else EnumSet.noneOf(SGR::class.java)) {
-    }
+    ) : this(
+        foreground,
+        background,
+        if (sgrs.size > 0) {
+            EnumSet.copyOf(Arrays.asList(*sgrs).filterNotNull())
+        } else {
+            EnumSet.noneOf(SGR::class.java)
+        },
+    )
 
     private constructor(foreground: TextColor?, background: TextColor?, sgrs: EnumSet<SGR>?) {
         if (foreground == null) {
@@ -82,7 +89,7 @@ class DefaultMutableThemeStyle : ThemeStyle {
         this.sgrs = if (sgrs == null) EnumSet.noneOf(SGR::class.java) else EnumSet.copyOf(sgrs)
     }
 
-/**
+    /**
      * Modifies the foreground color of this [DefaultMutableThemeStyle] to the value passed in
      * @param foreground New foreground color for this theme style
      * @return Itself
@@ -92,7 +99,7 @@ class DefaultMutableThemeStyle : ThemeStyle {
         return this
     }
 
-/**
+    /**
      * Modifies the background color of this [DefaultMutableThemeStyle] to the value passed in
      * @param background New background color for this theme style
      * @return Itself
@@ -102,7 +109,7 @@ class DefaultMutableThemeStyle : ThemeStyle {
         return this
     }
 
-/**
+    /**
      * Modifies the SGR modifiers of this [DefaultMutableThemeStyle] to the values passed it.
      * @param sgrs New SGR modifiers for this theme style, the values in this set will be copied into the internal state
      * @return Itself
