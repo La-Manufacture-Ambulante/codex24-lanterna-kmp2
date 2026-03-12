@@ -20,14 +20,29 @@
 
 package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.*
-import com.googlecode.lanterna.graphics.*
-import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.graphics.SimpleTheme
+import com.googlecode.lanterna.gui2.ActionListBox
+import com.googlecode.lanterna.gui2.BasicWindow
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.CheckBox
+import com.googlecode.lanterna.gui2.Component
+import com.googlecode.lanterna.gui2.GridLayout
+import com.googlecode.lanterna.gui2.Interactable
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.gui2.RadioBoxList
+import com.googlecode.lanterna.gui2.TextBox
 import com.googlecode.lanterna.gui2.TextBox.Style
-import com.googlecode.lanterna.gui2.table.*
-import com.googlecode.lanterna.input.*
-import com.googlecode.lanterna.screen.*
-import com.googlecode.lanterna.terminal.*
+import com.googlecode.lanterna.gui2.Window
+import com.googlecode.lanterna.gui2.table.Table
+import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.input.MouseAction
+import com.googlecode.lanterna.input.MouseActionType
+import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.virtual.DefaultVirtualTerminal
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

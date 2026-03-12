@@ -246,7 +246,11 @@ class DynamicGridLayoutTest : TestBase() {
 
             var gridLayoutData: GridLayout.GridLayoutData? = component.layoutData as? GridLayout.GridLayoutData
             if (gridLayoutData == null) {
-                gridLayoutData = GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING) as GridLayout.GridLayoutData
+                gridLayoutData =
+                    GridLayout.createLayoutData(
+                        GridLayout.Alignment.BEGINNING,
+                        GridLayout.Alignment.BEGINNING,
+                    ) as GridLayout.GridLayoutData
             }
 
             val contentPane = Panel()
@@ -315,8 +319,12 @@ class DynamicGridLayoutTest : TestBase() {
 
             val okButton =
                 Button("OK", {
-                    val horizontalAlignment = radioBoxesHorizontalAlignment.checkedItem as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
-                    val verticalAlignment = radioBoxesVerticalAlignment.checkedItem as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
+                    val horizontalAlignment =
+                        radioBoxesHorizontalAlignment.checkedItem as? GridLayout.Alignment
+                            ?: GridLayout.Alignment.BEGINNING
+                    val verticalAlignment =
+                        radioBoxesVerticalAlignment.checkedItem as? GridLayout.Alignment
+                            ?: GridLayout.Alignment.BEGINNING
                     component.setLayoutData(
                         GridLayout.createLayoutData(
                             horizontalAlignment,

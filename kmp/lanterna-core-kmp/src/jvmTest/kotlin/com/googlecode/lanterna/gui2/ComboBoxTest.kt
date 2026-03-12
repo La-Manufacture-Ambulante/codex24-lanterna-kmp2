@@ -45,7 +45,10 @@ class ComboBoxTest : TestBase() {
         }
         comboBoxCJK.addItem("维基百科人人可編輯的自由百科全書")
         comboBoxCJK.addItem("ウィキペディアは誰でも編集できるフリー百科事典です")
-        comboBoxCJK.addItem("위키백과는 전 세계 여러 언어로 만들어 나가는 자유 백과사전으로, 누구나 참여하실 수 있습니다.")
+        comboBoxCJK.addItem(
+            "위키백과는 전 세계 여러 언어로 만들어 나가는 자유 백과사전으로, " +
+                "누구나 참여하실 수 있습니다.",
+        )
         comboBoxCJK.addItem("This is a string without double-width characters")
         comboBoxCJK.setPreferredSize(TerminalSize(13, 1))
 

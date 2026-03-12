@@ -18,9 +18,16 @@
  */
 package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.gui2.BasicWindow
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.CheckBoxList
+import com.googlecode.lanterna.gui2.DefaultWindowManager
+import com.googlecode.lanterna.gui2.EmptySpace
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.gui2.Panels
+import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory

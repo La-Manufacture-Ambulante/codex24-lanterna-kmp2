@@ -1,8 +1,16 @@
 package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.gui2.BasicWindow
+import com.googlecode.lanterna.gui2.Borders
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.CheckBoxList
+import com.googlecode.lanterna.gui2.Direction
+import com.googlecode.lanterna.gui2.LinearLayout
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.gui2.Panels
+import com.googlecode.lanterna.gui2.Window
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow
 import com.googlecode.lanterna.gui2.table.DefaultTableRenderer
 import com.googlecode.lanterna.gui2.table.Table

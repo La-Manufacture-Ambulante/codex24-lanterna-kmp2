@@ -223,7 +223,11 @@ class ThemeTest : TestBase() {
         textGUI!!.addWindowAndWait(componentTestChooser)
     }
 
-    private class ThemedComponentTestDialog(private val textGUI: WindowBasedTextGUI?, private val label: String?, private val embeddedComponent: Component?) : Runnable {
+    private class ThemedComponentTestDialog(
+        private val textGUI: WindowBasedTextGUI?,
+        private val label: String?,
+        private val embeddedComponent: Component?,
+    ) : Runnable {
         private val borderedComponent: Component?
 
         init {
