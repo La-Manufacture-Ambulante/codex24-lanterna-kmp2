@@ -5,11 +5,11 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.graphics.NullTextGraphics
 import com.googlecode.lanterna.graphics.StyleSet
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.graphics.TextImage
 import com.googlecode.lanterna.graphics.ThemeStyle
-import com.googlecode.lanterna.graphics.NullTextGraphics
 import com.googlecode.lanterna.screen.TabBehaviour
 import java.util.EnumSet
 
@@ -38,7 +38,10 @@ class DefaultTextGUIGraphics internal constructor(
         get() = backend.tabBehaviour
 
     @Throws(IllegalArgumentException::class)
-    override fun newTextGraphics(topLeftCorner: TerminalPosition?, size: TerminalSize?): DefaultTextGUIGraphics {
+    override fun newTextGraphics(
+        topLeftCorner: TerminalPosition?,
+        size: TerminalSize?,
+    ): DefaultTextGUIGraphics {
         return DefaultTextGUIGraphics(textGUI, backend.newTextGraphics(topLeftCorner, size)!!)
     }
 
@@ -91,7 +94,11 @@ class DefaultTextGUIGraphics internal constructor(
         return this
     }
 
-    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): DefaultTextGUIGraphics {
+    override fun fillRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: Char,
+    ): DefaultTextGUIGraphics {
         backend.fillRectangle(topLeft, size, character)
         return this
     }
@@ -105,7 +112,11 @@ class DefaultTextGUIGraphics internal constructor(
         return this
     }
 
-    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): DefaultTextGUIGraphics {
+    override fun drawRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: Char,
+    ): DefaultTextGUIGraphics {
         backend.drawRectangle(topLeft, size, character)
         return this
     }
@@ -159,7 +170,11 @@ class DefaultTextGUIGraphics internal constructor(
         return this
     }
 
-    override fun drawLine(fromPoint: TerminalPosition?, toPoint: TerminalPosition?, character: Char): DefaultTextGUIGraphics {
+    override fun drawLine(
+        fromPoint: TerminalPosition?,
+        toPoint: TerminalPosition?,
+        character: Char,
+    ): DefaultTextGUIGraphics {
         backend.drawLine(fromPoint, toPoint, character)
         return this
     }
@@ -173,7 +188,13 @@ class DefaultTextGUIGraphics internal constructor(
         return this
     }
 
-    override fun drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, character: Char): DefaultTextGUIGraphics {
+    override fun drawLine(
+        fromX: Int,
+        fromY: Int,
+        toX: Int,
+        toY: Int,
+        character: Char,
+    ): DefaultTextGUIGraphics {
         backend.drawLine(fromX, fromY, toX, toY, character)
         return this
     }
@@ -189,7 +210,10 @@ class DefaultTextGUIGraphics internal constructor(
         return this
     }
 
-    override fun drawImage(topLeft: TerminalPosition?, image: TextImage?): DefaultTextGUIGraphics {
+    override fun drawImage(
+        topLeft: TerminalPosition?,
+        image: TextImage?,
+    ): DefaultTextGUIGraphics {
         backend.drawImage(topLeft, image)
         return this
     }
@@ -204,32 +228,53 @@ class DefaultTextGUIGraphics internal constructor(
         return this
     }
 
-    override fun setCharacter(position: TerminalPosition?, character: Char): DefaultTextGUIGraphics {
+    override fun setCharacter(
+        position: TerminalPosition?,
+        character: Char,
+    ): DefaultTextGUIGraphics {
         backend.setCharacter(position, character)
         return this
     }
 
-    override fun setCharacter(position: TerminalPosition?, character: TextCharacter?): DefaultTextGUIGraphics {
+    override fun setCharacter(
+        position: TerminalPosition?,
+        character: TextCharacter?,
+    ): DefaultTextGUIGraphics {
         backend.setCharacter(position, character)
         return this
     }
 
-    override fun setCharacter(column: Int, row: Int, character: Char): DefaultTextGUIGraphics {
+    override fun setCharacter(
+        column: Int,
+        row: Int,
+        character: Char,
+    ): DefaultTextGUIGraphics {
         backend.setCharacter(column, row, character)
         return this
     }
 
-    override fun setCharacter(column: Int, row: Int, character: TextCharacter?): DefaultTextGUIGraphics {
+    override fun setCharacter(
+        column: Int,
+        row: Int,
+        character: TextCharacter?,
+    ): DefaultTextGUIGraphics {
         backend.setCharacter(column, row, character)
         return this
     }
 
-    override fun putString(column: Int, row: Int, string: String?): DefaultTextGUIGraphics {
+    override fun putString(
+        column: Int,
+        row: Int,
+        string: String?,
+    ): DefaultTextGUIGraphics {
         backend.putString(column, row, string)
         return this
     }
 
-    override fun putString(position: TerminalPosition?, string: String?): DefaultTextGUIGraphics {
+    override fun putString(
+        position: TerminalPosition?,
+        string: String?,
+    ): DefaultTextGUIGraphics {
         backend.putString(position, string)
         return this
     }
@@ -265,17 +310,27 @@ class DefaultTextGUIGraphics internal constructor(
         return this
     }
 
-    override fun putCSIStyledString(column: Int, row: Int, string: String?): DefaultTextGUIGraphics {
+    override fun putCSIStyledString(
+        column: Int,
+        row: Int,
+        string: String?,
+    ): DefaultTextGUIGraphics {
         backend.putCSIStyledString(column, row, string)
         return this
     }
 
-    override fun putCSIStyledString(position: TerminalPosition?, string: String?): DefaultTextGUIGraphics {
+    override fun putCSIStyledString(
+        position: TerminalPosition?,
+        string: String?,
+    ): DefaultTextGUIGraphics {
         backend.putCSIStyledString(position, string)
         return this
     }
 
-    override fun getCharacter(column: Int, row: Int): TextCharacter? {
+    override fun getCharacter(
+        column: Int,
+        row: Int,
+    ): TextCharacter? {
         return backend.getCharacter(column, row)
     }
 

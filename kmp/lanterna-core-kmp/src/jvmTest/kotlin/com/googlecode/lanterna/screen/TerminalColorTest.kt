@@ -18,113 +18,108 @@
  */
 package com.googlecode.lanterna.screen
 
-import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.SGR
-import com.googlecode.lanterna.graphics.TextGraphics
-import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextColor
 import java.io.IOException
 
 /**
- * 
+ *
  * @author martin
  */
- object TerminalColorTest {
+object TerminalColorTest {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        val screen = TestTerminalFactory(args).createScreen()
+        screen!!.startScreen()
 
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-val screen = TestTerminalFactory(args).createScreen()
-screen!!.startScreen()
+        val writer = ScreenTextGraphics(screen)
+        writer.setForegroundColor(TextColor.ANSI.DEFAULT)
+        writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+        writer.putString(10, 1, "Hello World")
 
-val writer = ScreenTextGraphics(screen)
-writer.setForegroundColor(TextColor.ANSI.DEFAULT)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(10, 1, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.BLACK)
+        writer.setBackgroundColor(TextColor.ANSI.WHITE)
+        writer.putString(11, 2, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.WHITE)
+        writer.setBackgroundColor(TextColor.ANSI.BLACK)
+        writer.putString(12, 3, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.BLACK)
+        writer.setBackgroundColor(TextColor.ANSI.WHITE)
+        writer.enableModifiers(SGR.BOLD)
+        writer.putString(13, 4, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.WHITE)
+        writer.setBackgroundColor(TextColor.ANSI.BLACK)
+        writer.putString(14, 5, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.DEFAULT)
+        writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+        writer.putString(15, 6, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.DEFAULT)
+        writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+        writer.disableModifiers(SGR.BOLD)
+        writer.putString(16, 7, "Hello World")
 
-writer.setForegroundColor(TextColor.ANSI.BLACK)
-writer.setBackgroundColor(TextColor.ANSI.WHITE)
-writer.putString(11, 2, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.WHITE)
-writer.setBackgroundColor(TextColor.ANSI.BLACK)
-writer.putString(12, 3, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.BLACK)
-writer.setBackgroundColor(TextColor.ANSI.WHITE)
-writer.enableModifiers(SGR.BOLD)
-writer.putString(13, 4, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.WHITE)
-writer.setBackgroundColor(TextColor.ANSI.BLACK)
-writer.putString(14, 5, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.DEFAULT)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(15, 6, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.DEFAULT)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.disableModifiers(SGR.BOLD)
-writer.putString(16, 7, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.BLUE)
+        writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+        writer.putString(10, 10, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.BLUE)
+        writer.setBackgroundColor(TextColor.ANSI.WHITE)
+        writer.putString(11, 11, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.BLUE)
+        writer.setBackgroundColor(TextColor.ANSI.BLACK)
+        writer.putString(12, 12, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.BLUE)
+        writer.setBackgroundColor(TextColor.ANSI.MAGENTA)
+        writer.putString(13, 13, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.GREEN)
+        writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+        writer.putString(14, 14, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.GREEN)
+        writer.setBackgroundColor(TextColor.ANSI.WHITE)
+        writer.putString(15, 15, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.GREEN)
+        writer.setBackgroundColor(TextColor.ANSI.BLACK)
+        writer.putString(16, 16, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.GREEN)
+        writer.setBackgroundColor(TextColor.ANSI.MAGENTA)
+        writer.putString(17, 17, "Hello World")
 
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(10, 10, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.WHITE)
-writer.putString(11, 11, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.BLACK)
-writer.putString(12, 12, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.MAGENTA)
-writer.putString(13, 13, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(14, 14, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.WHITE)
-writer.putString(15, 15, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.BLACK)
-writer.putString(16, 16, "Hello World")
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.MAGENTA)
-writer.putString(17, 17, "Hello World")
+        writer.setForegroundColor(TextColor.ANSI.BLUE)
+        writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+        writer.putString(10, 20, "Hello World", SGR.BOLD)
+        writer.setForegroundColor(TextColor.ANSI.BLUE)
+        writer.setBackgroundColor(TextColor.ANSI.WHITE)
+        writer.putString(11, 21, "Hello World", SGR.BOLD)
+        writer.setForegroundColor(TextColor.ANSI.BLUE)
+        writer.setBackgroundColor(TextColor.ANSI.BLACK)
+        writer.putString(12, 22, "Hello World", SGR.BOLD)
+        writer.setForegroundColor(TextColor.ANSI.BLUE)
+        writer.setBackgroundColor(TextColor.ANSI.MAGENTA)
+        writer.putString(13, 23, "Hello World", SGR.BOLD)
+        writer.setForegroundColor(TextColor.ANSI.GREEN)
+        writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+        writer.putString(14, 24, "Hello World", SGR.BOLD)
+        writer.setForegroundColor(TextColor.ANSI.GREEN)
+        writer.setBackgroundColor(TextColor.ANSI.WHITE)
+        writer.putString(15, 25, "Hello World", SGR.BOLD)
+        writer.setForegroundColor(TextColor.ANSI.GREEN)
+        writer.setBackgroundColor(TextColor.ANSI.BLACK)
+        writer.putString(16, 26, "Hello World", SGR.BOLD)
+        writer.setForegroundColor(TextColor.ANSI.CYAN)
+        writer.setBackgroundColor(TextColor.ANSI.BLUE)
+        writer.putString(17, 27, "Hello World", SGR.BOLD)
 
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(10, 20, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.WHITE)
-writer.putString(11, 21, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.BLACK)
-writer.putString(12, 22, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.BLUE)
-writer.setBackgroundColor(TextColor.ANSI.MAGENTA)
-writer.putString(13, 23, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(14, 24, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.WHITE)
-writer.putString(15, 25, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.GREEN)
-writer.setBackgroundColor(TextColor.ANSI.BLACK)
-writer.putString(16, 26, "Hello World", SGR.BOLD)
-writer.setForegroundColor(TextColor.ANSI.CYAN)
-writer.setBackgroundColor(TextColor.ANSI.BLUE)
-writer.putString(17, 27, "Hello World", SGR.BOLD)
+        writer.setForegroundColor(TextColor.ANSI.DEFAULT)
+        writer.setBackgroundColor(TextColor.ANSI.RED)
+        writer.fill(' ')
 
-writer.setForegroundColor(TextColor.ANSI.DEFAULT)
-writer.setBackgroundColor(TextColor.ANSI.RED)
-writer.fill(' ')
+        screen!!.refresh()
 
-screen!!.refresh()
+        try {
+            Thread.sleep(5000)
+        } catch (ignored: InterruptedException) {
+        }
 
-try
-{
-Thread.sleep(5000)
-}
-catch (ignored:InterruptedException) {}
-
-screen!!.stopScreen()
-}
+        screen!!.stopScreen()
+    }
 }

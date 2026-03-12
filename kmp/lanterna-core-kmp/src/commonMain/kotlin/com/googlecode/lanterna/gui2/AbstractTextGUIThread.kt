@@ -29,17 +29,18 @@ import java.util.concurrent.LinkedBlockingQueue
  */
 abstract class AbstractTextGUIThread protected constructor(protected val textGUI: TextGUI) : TextGUIThread {
     protected val customTasks: Queue<Runnable> = LinkedBlockingQueue()
-    protected var exceptionHandlerRef: TextGUIThread.ExceptionHandler? = object : TextGUIThread.ExceptionHandler {
-        override fun onIOException(e: IOException?): Boolean {
-            e?.printStackTrace()
-            return true
-        }
+    protected var exceptionHandlerRef: TextGUIThread.ExceptionHandler? =
+        object : TextGUIThread.ExceptionHandler {
+            override fun onIOException(e: IOException?): Boolean {
+                e?.printStackTrace()
+                return true
+            }
 
-        override fun onRuntimeException(e: RuntimeException?): Boolean {
-            e?.printStackTrace()
-            return true
+            override fun onRuntimeException(e: RuntimeException?): Boolean {
+                e?.printStackTrace()
+                return true
+            }
         }
-    }
 
     override fun invokeLater(runnable: Runnable?) {
         if (runnable != null) {
@@ -101,13 +102,15 @@ abstract class AbstractTextGUIThread protected constructor(protected val textGUI
             runnable.run()
         } else {
             val countDownLatch = CountDownLatch(1)
-            invokeLater(Runnable {
-                try {
-                    runnable.run()
-                } finally {
-                    countDownLatch.countDown()
-                }
-            })
+            invokeLater(
+                Runnable {
+                    try {
+                        runnable.run()
+                    } finally {
+                        countDownLatch.countDown()
+                    }
+                },
+            )
             countDownLatch.await()
         }
     }

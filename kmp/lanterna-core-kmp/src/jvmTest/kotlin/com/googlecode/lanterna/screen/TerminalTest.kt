@@ -18,126 +18,108 @@
  */
 package com.googlecode.lanterna.screen
 
-import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.TestTerminalFactory
-import com.googlecode.lanterna.graphics.TextGraphics
-
 import java.io.IOException
 
 /**
- * 
+ *
  * @author martin
  */
- object TerminalTest {
+object TerminalTest {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        val screen = TestTerminalFactory(args).createScreen()
+        val writer = ScreenTextGraphics(screen)
+        screen!!.startScreen()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-val screen = TestTerminalFactory(args).createScreen()
-val writer = ScreenTextGraphics(screen)
-screen!!.startScreen()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
+        writer.putString(10, 10, "Hello world!")
+        screen!!.refresh()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-writer.putString(10, 10, "Hello world!")
-screen!!.refresh()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
+        writer.putString(10, 10, " ello world!")
+        screen!!.refresh()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-writer.putString(10, 10, " ello world!")
-screen!!.refresh()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
+        writer.putString(10, 10, "  llo world!")
+        screen!!.refresh()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-writer.putString(10, 10, "  llo world!")
-screen!!.refresh()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
+        writer.putString(10, 10, "   lo world!")
+        screen!!.refresh()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-writer.putString(10, 10, "   lo world!")
-screen!!.refresh()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
+        writer.putString(10, 10, "    o world!")
+        screen!!.refresh()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-writer.putString(10, 10, "    o world!")
-screen!!.refresh()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
+        writer.putString(10, 10, "      world!")
+        screen!!.refresh()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-writer.putString(10, 10, "      world!")
-screen!!.refresh()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
+        writer.putString(10, 10, "       orld!")
+        screen!!.refresh()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-writer.putString(10, 10, "       orld!")
-screen!!.refresh()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
+        writer.putString(10, 10, "        rld!")
+        screen!!.refresh()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-writer.putString(10, 10, "        rld!")
-screen!!.refresh()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
+        writer.putString(10, 10, "         ld!")
+        screen!!.refresh()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-writer.putString(10, 10, "         ld!")
-screen!!.refresh()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
+        writer.putString(10, 10, "          d!")
+        screen!!.refresh()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-writer.putString(10, 10, "          d!")
-screen!!.refresh()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
+        writer.putString(10, 10, "           !")
+        screen!!.refresh()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-writer.putString(10, 10, "           !")
-screen!!.refresh()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
+        writer.putString(10, 10, "            ")
+        screen!!.refresh()
+        try {
+            Thread.sleep(500)
+        } catch (ignored: InterruptedException) {
+        }
 
-writer.putString(10, 10, "            ")
-screen!!.refresh()
-try
-{
-Thread.sleep(500)
-}
-catch (ignored:InterruptedException) {}
-
-screen!!.stopScreen()
-}
+        screen!!.stopScreen()
+    }
 }

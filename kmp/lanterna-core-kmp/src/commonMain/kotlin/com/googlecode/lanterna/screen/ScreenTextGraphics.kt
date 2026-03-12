@@ -36,12 +36,19 @@ internal open class ScreenTextGraphics(private val screen: Screen) : AbstractTex
     override val size: TerminalSize?
         get() = screen.terminalSize
 
-    override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics? {
+    override fun setCharacter(
+        columnIndex: Int,
+        rowIndex: Int,
+        textCharacter: TextCharacter?,
+    ): TextGraphics? {
         screen.setCharacter(columnIndex, rowIndex, textCharacter)
         return this
     }
 
-    override fun getCharacter(column: Int, row: Int): TextCharacter? {
+    override fun getCharacter(
+        column: Int,
+        row: Int,
+    ): TextCharacter? {
         return screen.getBackCharacter(column, row)
     }
 }

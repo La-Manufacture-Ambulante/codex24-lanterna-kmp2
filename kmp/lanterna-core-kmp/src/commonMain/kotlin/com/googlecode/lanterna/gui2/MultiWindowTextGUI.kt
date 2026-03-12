@@ -140,16 +140,17 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         requireNotNull(windowManager) { "Creating a window-based TextGUI requires a WindowManager" }
         this.windowManager = windowManager
         this.windowPostRenderer = postRenderer
-        backgroundPane = object : AbstractBasePane<BasePane?>() {
-            override val textGUI: TextGUI
-                get() = this@MultiWindowTextGUI
+        backgroundPane =
+            object : AbstractBasePane<BasePane?>() {
+                override val textGUI: TextGUI
+                    get() = this@MultiWindowTextGUI
 
-            override fun toGlobal(localPosition: TerminalPosition?): TerminalPosition? = localPosition
+                override fun toGlobal(localPosition: TerminalPosition?): TerminalPosition? = localPosition
 
-            override fun fromGlobal(position: TerminalPosition?): TerminalPosition? = position
+                override fun fromGlobal(position: TerminalPosition?): TerminalPosition? = position
 
-            override fun self(): BasePane = this
-        }
+                override fun self(): BasePane = this
+            }
         backgroundPane.component = background ?: GUIBackdrop()
     }
 
@@ -172,12 +173,13 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
                 }
                 val lastPosition = window.position ?: continue
                 val decoratedSize = window.decoratedSize ?: continue
-                minimumTerminalSize = minimumTerminalSize.max(
-                    decoratedSize.withRelative(
-                        maxOf(lastPosition.column, 0),
-                        maxOf(lastPosition.row, 0),
-                    )!!,
-                )!!
+                minimumTerminalSize =
+                    minimumTerminalSize.max(
+                        decoratedSize.withRelative(
+                            maxOf(lastPosition.column, 0),
+                            maxOf(lastPosition.row, 0),
+                        )!!,
+                    )!!
             }
             screen.setMinimumSize(minimumTerminalSize)
         }
@@ -277,13 +279,16 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         val snapshot = ArrayList(windows.filterNotNull())
         for (window in snapshot) {
             val mousePosition = mouse.position ?: continue
-            window.bounds.whenContains(mousePosition, Runnable {
-                val modalActiveWindow = priorActiveWindow?.hints.orEmpty().contains(Window.Hint.MODAL)
-                if (!modalActiveWindow || window === priorActiveWindow) {
-                    setActiveWindow(window)
-                    anyHit.set(true)
-                }
-            })
+            window.bounds.whenContains(
+                mousePosition,
+                Runnable {
+                    val modalActiveWindow = priorActiveWindow?.hints.orEmpty().contains(Window.Hint.MODAL)
+                    if (!modalActiveWindow || window === priorActiveWindow) {
+                        setActiveWindow(window)
+                        anyHit.set(true)
+                    }
+                },
+            )
         }
 
         if (priorActiveWindow != null &&
@@ -311,12 +316,15 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
         val decorator = windowManager.getWindowDecorationRenderer(window) ?: return
         val titleBarRectangle: TerminalRectangle = decorator.getTitleBarRectangle(window) ?: return
         val local = window.fromGlobalToDecoratedRelative(mouse.position)
-        titleBarRectangle.whenContains(local ?: return, Runnable {
-            titleBarDragWindow = window
-            originWindowPosition = window.position
-            dragStart = mouse.position
-            moveToTop(window)
-        })
+        titleBarRectangle.whenContains(
+            local ?: return,
+            Runnable {
+                titleBarDragWindow = window
+                originWindowPosition = window.position
+                dragStart = mouse.position
+                moveToTop(window)
+            },
+        )
     }
 
     protected fun ifMouseDragPossiblyMoveWindow(keyStroke: KeyStroke?) {

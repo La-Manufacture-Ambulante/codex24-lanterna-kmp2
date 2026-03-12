@@ -128,7 +128,10 @@ class CheckBox(label: String) : AbstractInteractableComponent<CheckBox?>() {
             return TerminalSize(width, 1)
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, component: CheckBox?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            component: CheckBox?,
+        ) {
             val g = graphics ?: return
             val c = component ?: return
             val themeDefinition: ThemeDefinition = c.themeDefinition ?: return

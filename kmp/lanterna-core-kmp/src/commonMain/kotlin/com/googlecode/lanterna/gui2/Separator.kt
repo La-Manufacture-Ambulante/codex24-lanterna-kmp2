@@ -53,7 +53,10 @@ class Separator(val direction: Direction?) : AbstractComponent<Separator>() {
             return TerminalSize.ONE
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, component: Separator?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            component: Separator?,
+        ) {
             val activeGraphics = graphics ?: return
             val activeComponent = component ?: return
             val themeDefinition: ThemeDefinition = activeComponent.themeDefinition ?: return

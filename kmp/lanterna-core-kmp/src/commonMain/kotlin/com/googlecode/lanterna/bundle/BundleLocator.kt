@@ -34,7 +34,6 @@ import java.util.ResourceBundle
  * @author silveryocha
  */
 abstract class BundleLocator protected constructor(private val bundleName: String?) {
-
     /**
      * Method that centralizes the way to get the value associated to a bundle key.
      * @param locale the locale
@@ -42,7 +41,11 @@ abstract class BundleLocator protected constructor(private val bundleName: Strin
      * @param parameters the parameters to apply to the value associated to the key
      * @return the formatted value associated to the given key; null if no value exists for the given key
      */
-    protected fun getBundleKeyValue(locale: Locale?, key: String?, vararg parameters: Any?): String? {
+    protected fun getBundleKeyValue(
+        locale: Locale?,
+        key: String?,
+        vararg parameters: Any?,
+    ): String? {
         var value: String? = null
         try {
             value = getBundle(locale).getString(key)

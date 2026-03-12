@@ -76,7 +76,10 @@ object LanternaThemes {
      * @param name Name to register the theme under
      * @param theme Theme to register with this name
      */
-    fun registerTheme(name: String?, theme: Theme?) {
+    fun registerTheme(
+        name: String?,
+        theme: Theme?,
+    ) {
         if (theme == null) {
             throw IllegalArgumentException("Theme cannot be null")
         }
@@ -89,7 +92,10 @@ object LanternaThemes {
         }
     }
 
-    private fun registerPropTheme(name: String?, properties: Properties?) {
+    private fun registerPropTheme(
+        name: String?,
+        properties: Properties?,
+    ) {
         if (properties != null) {
             registerTheme(name, PropertyTheme(properties, false))
         }
@@ -103,8 +109,9 @@ object LanternaThemes {
         val properties = Properties()
         return try {
             val classLoader = AbstractTextGUI::class.java.classLoader
-            val resourceAsStream = classLoader.getResourceAsStream(resourceFileName)
-                ?: FileInputStream("src/main/resources/$resourceFileName")
+            val resourceAsStream =
+                classLoader.getResourceAsStream(resourceFileName)
+                    ?: FileInputStream("src/main/resources/$resourceFileName")
             resourceAsStream.use { stream ->
                 properties.load(stream)
             }

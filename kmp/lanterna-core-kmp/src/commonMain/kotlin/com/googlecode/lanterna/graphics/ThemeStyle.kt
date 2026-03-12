@@ -20,7 +20,6 @@ package com.googlecode.lanterna.graphics
 
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TextColor
-
 import java.util.EnumSet
 
 /**
@@ -29,23 +28,23 @@ import java.util.EnumSet
  * activate individual [ThemeStyle]s when drawing the different parts of the component.
  * @author Martin
  */
- interface ThemeStyle {
+interface ThemeStyle {
 /**
- * Returns the foreground color associated with this style
- * @return foreground color associated with this style
- */
-     val foreground:TextColor?
+     * Returns the foreground color associated with this style
+     * @return foreground color associated with this style
+     */
+    val foreground: TextColor?
 
 /**
- * Returns the background color associated with this style
- * @return background color associated with this style
- */
-     val background:TextColor?
+     * Returns the background color associated with this style
+     * @return background color associated with this style
+     */
+    val background: TextColor?
 
 /**
- * Returns the set of SGR flags associated with this style. This `EnumSet` is either unmodifiable or a copy so
- * altering it will not change the theme in any way.
- * @return SGR flags associated with this style
- */
-     val sgRs:EnumSet<SGR>?
+     * Returns the set of SGR flags associated with this style. This `EnumSet` is either unmodifiable or a copy so
+     * altering it will not change the theme in any way.
+     * @return SGR flags associated with this style
+     */
+    val sgRs: EnumSet<SGR>?
 }

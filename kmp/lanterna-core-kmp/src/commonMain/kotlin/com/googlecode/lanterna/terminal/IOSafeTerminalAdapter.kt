@@ -94,7 +94,10 @@ open class IOSafeTerminalAdapter internal constructor(
         }
     }
 
-    override fun setCursorPosition(x: Int, y: Int) {
+    override fun setCursorPosition(
+        x: Int,
+        y: Int,
+    ) {
         try {
             backend.setCursorPosition(x, y)
         } catch (e: IOException) {
@@ -183,7 +186,10 @@ open class IOSafeTerminalAdapter internal constructor(
         backend.removeResizeListener(listener)
     }
 
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+    override fun enquireTerminal(
+        timeout: Int,
+        timeoutUnit: TimeUnit?,
+    ): ByteArray? {
         return try {
             backend.enquireTerminal(timeout, timeoutUnit)
         } catch (e: IOException) {
@@ -238,7 +244,10 @@ open class IOSafeTerminalAdapter internal constructor(
         private val backend: ExtendedTerminal,
         exceptionHandler: ExceptionHandler,
     ) : IOSafeTerminalAdapter(backend, exceptionHandler), IOSafeExtendedTerminal {
-        override fun setTerminalSize(columns: Int, rows: Int) {
+        override fun setTerminalSize(
+            columns: Int,
+            rows: Int,
+        ) {
             try {
                 backend.setTerminalSize(columns, rows)
             } catch (e: IOException) {
@@ -310,7 +319,11 @@ open class IOSafeTerminalAdapter internal constructor(
             }
         }
 
-        override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int) {
+        override fun scrollLines(
+            firstLine: Int,
+            lastLine: Int,
+            distance: Int,
+        ) {
             try {
                 backend.scrollLines(firstLine, lastLine, distance)
             } catch (e: IOException) {

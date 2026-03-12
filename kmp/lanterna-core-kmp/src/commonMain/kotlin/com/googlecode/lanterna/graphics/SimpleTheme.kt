@@ -32,12 +32,10 @@ import com.googlecode.lanterna.gui2.DefaultWindowDecorationRenderer
 import com.googlecode.lanterna.gui2.GUIBackdrop
 import com.googlecode.lanterna.gui2.RadioBoxList
 import com.googlecode.lanterna.gui2.TextBox
-import com.googlecode.lanterna.gui2.TextGUI
 import com.googlecode.lanterna.gui2.WindowDecorationRenderer
 import com.googlecode.lanterna.gui2.WindowPostRenderer
 import com.googlecode.lanterna.gui2.WindowShadowRenderer
 import com.googlecode.lanterna.gui2.table.Table
-import java.util.EnumSet
 import java.util.HashMap
 import java.util.Properties
 
@@ -74,7 +72,12 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
      * Adds or replaces a definition override for [clazz].
      */
     @Synchronized
-    fun addOverride(clazz: Class<*>?, foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
+    fun addOverride(
+        clazz: Class<*>?,
+        foreground: TextColor?,
+        background: TextColor?,
+        vararg styles: SGR?,
+    ): Definition {
         val definition = Definition(DefaultMutableThemeStyle(foreground, background, *styles))
         overrideDefinitions[clazz] = definition
         return definition
@@ -118,7 +121,11 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
          * Sets style values for the `prelight` state.
          */
         @Synchronized
-        fun setPreLight(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
+        fun setPreLight(
+            foreground: TextColor?,
+            background: TextColor?,
+            vararg styles: SGR?,
+        ): Definition {
             preLightBacking = DefaultMutableThemeStyle(foreground, background, *styles)
             return this
         }
@@ -131,7 +138,11 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
          * Sets style values for the `selected` state.
          */
         @Synchronized
-        fun setSelected(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
+        fun setSelected(
+            foreground: TextColor?,
+            background: TextColor?,
+            vararg styles: SGR?,
+        ): Definition {
             selectedBacking = DefaultMutableThemeStyle(foreground, background, *styles)
             return this
         }
@@ -144,7 +155,11 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
          * Sets style values for the `active` state.
          */
         @Synchronized
-        fun setActive(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
+        fun setActive(
+            foreground: TextColor?,
+            background: TextColor?,
+            vararg styles: SGR?,
+        ): Definition {
             activeBacking = DefaultMutableThemeStyle(foreground, background, *styles)
             return this
         }
@@ -157,7 +172,11 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
          * Sets style values for the `insensitive` state.
          */
         @Synchronized
-        fun setInsensitive(foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
+        fun setInsensitive(
+            foreground: TextColor?,
+            background: TextColor?,
+            vararg styles: SGR?,
+        ): Definition {
             insensitiveBacking = DefaultMutableThemeStyle(foreground, background, *styles)
             return this
         }
@@ -168,7 +187,10 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         }
 
         @Synchronized
-        override fun getCustom(name: String?, defaultValue: ThemeStyle?): ThemeStyle? {
+        override fun getCustom(
+            name: String?,
+            defaultValue: ThemeStyle?,
+        ): ThemeStyle? {
             return customStyles[name] ?: defaultValue
         }
 
@@ -176,13 +198,21 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
          * Stores a named custom style retrievable through [getCustom].
          */
         @Synchronized
-        fun setCustom(name: String?, foreground: TextColor?, background: TextColor?, vararg styles: SGR?): Definition {
+        fun setCustom(
+            name: String?,
+            foreground: TextColor?,
+            background: TextColor?,
+            vararg styles: SGR?,
+        ): Definition {
             customStyles[name] = DefaultMutableThemeStyle(foreground, background, *styles)
             return this
         }
 
         @Synchronized
-        override fun getIntegerProperty(name: String?, defaultValue: Int): Int {
+        override fun getIntegerProperty(
+            name: String?,
+            defaultValue: Int,
+        ): Int {
             return Integer.parseInt(properties.getProperty(name, Integer.toString(defaultValue)))
         }
 
@@ -190,13 +220,19 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
          * Stores an integer property retrievable through [getIntegerProperty].
          */
         @Synchronized
-        fun setIntegerProperty(name: String?, value: Int): Definition {
+        fun setIntegerProperty(
+            name: String?,
+            value: Int,
+        ): Definition {
             properties.setProperty(name, Integer.toString(value))
             return this
         }
 
         @Synchronized
-        override fun getBooleanProperty(name: String?, defaultValue: Boolean): Boolean {
+        override fun getBooleanProperty(
+            name: String?,
+            defaultValue: Boolean,
+        ): Boolean {
             return java.lang.Boolean.parseBoolean(properties.getProperty(name, java.lang.Boolean.toString(defaultValue)))
         }
 
@@ -204,7 +240,10 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
          * Stores a boolean property retrievable through [getBooleanProperty].
          */
         @Synchronized
-        fun setBooleanProperty(name: String?, value: Boolean): Definition {
+        fun setBooleanProperty(
+            name: String?,
+            value: Boolean,
+        ): Definition {
             properties.setProperty(name, java.lang.Boolean.toString(value))
             return this
         }
@@ -223,7 +262,10 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
         }
 
         @Synchronized
-        override fun getCharacter(name: String?, fallback: Char): Char {
+        override fun getCharacter(
+            name: String?,
+            fallback: Char,
+        ): Char {
             return characterMap[name] ?: fallback
         }
 
@@ -231,7 +273,10 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
          * Stores a named character retrievable through [getCharacter].
          */
         @Synchronized
-        fun setCharacter(name: String?, character: Char): Definition {
+        fun setCharacter(
+            name: String?,
+            character: Char,
+        ): Definition {
             characterMap[name] = character
             return this
         }
@@ -247,7 +292,10 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
          * Registers a renderer provider for a specific component type.
          */
         @Synchronized
-        fun <T : Component?> setRenderer(type: Class<T?>?, rendererProvider: RendererProvider<T?>?): Definition {
+        fun <T : Component?> setRenderer(
+            type: Class<T?>?,
+            rendererProvider: RendererProvider<T?>?,
+        ): Definition {
             if (rendererProvider == null) {
                 componentRendererMap.remove(type)
             } else {
@@ -255,7 +303,6 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             }
             return this
         }
-
     }
 
     companion object {

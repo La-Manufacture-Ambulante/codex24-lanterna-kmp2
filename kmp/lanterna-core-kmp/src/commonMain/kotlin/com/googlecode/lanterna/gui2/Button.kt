@@ -48,11 +48,13 @@ class Button(label: String) : AbstractInteractableComponent<Button>() {
     private var label: String = " "
 
     constructor(label: String, action: Runnable) : this(label) {
-        listeners.add(object : Listener {
-            override fun onTriggered(button: Button) {
-                action.run()
-            }
-        })
+        listeners.add(
+            object : Listener {
+                override fun onTriggered(button: Button) {
+                    action.run()
+                }
+            },
+        )
     }
 
     init {
@@ -125,7 +127,10 @@ class Button(label: String) : AbstractInteractableComponent<Button>() {
             return TerminalSize(kotlin.math.max(8, TerminalTextUtils.getColumnWidth(b.getLabel()) + 2), 1)
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, button: Button?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            button: Button?,
+        ) {
             val g = graphics ?: return
             val b = button ?: return
             val themeDefinition: ThemeDefinition = b.themeDefinition ?: return
@@ -158,7 +163,10 @@ class Button(label: String) : AbstractInteractableComponent<Button>() {
             g.putString(1 + labelShift + 1, 0, b.getLabel().substring(1))
         }
 
-        private fun getLabelShift(button: Button, size: TerminalSize): Int {
+        private fun getLabelShift(
+            button: Button,
+            size: TerminalSize,
+        ): Int {
             val availableSpace = size.columns - 2
             if (availableSpace <= 0) {
                 return 0
@@ -182,7 +190,10 @@ class Button(label: String) : AbstractInteractableComponent<Button>() {
             return TerminalSize(TerminalTextUtils.getColumnWidth(c.getLabel()), 1)
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, button: Button?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            button: Button?,
+        ) {
             val g = graphics ?: return
             val b = button ?: return
             val themeDefinition = b.themeDefinition ?: return
@@ -212,7 +223,10 @@ class Button(label: String) : AbstractInteractableComponent<Button>() {
             return TerminalSize(TerminalTextUtils.getColumnWidth(c.getLabel()) + 5, 4)
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, button: Button?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            button: Button?,
+        ) {
             val g = graphics ?: return
             val b = button ?: return
             val themeDefinition = b.themeDefinition ?: return

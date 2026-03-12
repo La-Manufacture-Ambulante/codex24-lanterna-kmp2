@@ -99,20 +99,23 @@ class AWTTerminal : Panel, IOSafeTerminal {
         }
 
         enableInputMethods(true)
-        addInputMethodListener(object : InputMethodListener {
-            override fun inputMethodTextChanged(event: InputMethodEvent) = Unit
+        addInputMethodListener(
+            object : InputMethodListener {
+                override fun inputMethodTextChanged(event: InputMethodEvent) = Unit
 
-            override fun caretPositionChanged(event: InputMethodEvent) = Unit
-        })
-
-        terminalImplementation = AWTTerminalImplementation(
-            this,
-            resolvedFontConfiguration,
-            initialTerminalSize,
-            resolvedDeviceConfiguration,
-            resolvedColorConfiguration,
-            scrollController,
+                override fun caretPositionChanged(event: InputMethodEvent) = Unit
+            },
         )
+
+        terminalImplementation =
+            AWTTerminalImplementation(
+                this,
+                resolvedFontConfiguration,
+                initialTerminalSize,
+                resolvedDeviceConfiguration,
+                resolvedColorConfiguration,
+                scrollController,
+            )
         inputMethodRequests = TerminalInputMethodRequests(this, terminalImplementation)
     }
 
@@ -172,7 +175,10 @@ class AWTTerminal : Panel, IOSafeTerminal {
         terminalImplementation.clearScreen()
     }
 
-    override fun setCursorPosition(x: Int, y: Int) {
+    override fun setCursorPosition(
+        x: Int,
+        y: Int,
+    ) {
         terminalImplementation.setCursorPosition(x, y)
     }
 
@@ -217,7 +223,10 @@ class AWTTerminal : Panel, IOSafeTerminal {
     override val terminalSize: TerminalSize?
         get() = terminalImplementation.terminalSize
 
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+    override fun enquireTerminal(
+        timeout: Int,
+        timeoutUnit: TimeUnit?,
+    ): ByteArray? {
         return terminalImplementation.enquireTerminal(timeout, timeoutUnit)
     }
 

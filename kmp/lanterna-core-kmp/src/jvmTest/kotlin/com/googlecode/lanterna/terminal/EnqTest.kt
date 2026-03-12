@@ -18,15 +18,13 @@
  */
 package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.*
-
 /**
- * 
+ *
  * @author martin
  */
- object EnqTest {
- fun main(args:Array<String?>?) {
-System.out.write(5)
-System.out.flush()
-}
+object EnqTest {
+    fun main(args: Array<String?>?) {
+        System.out.write(5)
+        System.out.flush()
+    }
 }

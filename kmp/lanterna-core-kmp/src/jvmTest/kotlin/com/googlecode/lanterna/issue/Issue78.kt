@@ -18,31 +18,27 @@
  */
 package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.screen.TerminalScreen
-import com.googlecode.lanterna.terminal.Terminal
 import java.io.IOException
 
 /**
- * 
+ *
  * @author martin
  */
- object Issue78 {
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-val t = TestTerminalFactory(args).createTerminal()!!
-t!!.enterPrivateMode()
-val s = TerminalScreen(t)
-s.startScreen()
-try
-{
-Thread.sleep(1000)
-}
-catch (e:InterruptedException) {}
+object Issue78 {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        val t = TestTerminalFactory(args).createTerminal()!!
+        t!!.enterPrivateMode()
+        val s = TerminalScreen(t)
+        s.startScreen()
+        try {
+            Thread.sleep(1000)
+        } catch (e: InterruptedException) {
+        }
 
-s.stopScreen()
-t!!.exitPrivateMode()
-}
+        s.stopScreen()
+        t!!.exitPrivateMode()
+    }
 }

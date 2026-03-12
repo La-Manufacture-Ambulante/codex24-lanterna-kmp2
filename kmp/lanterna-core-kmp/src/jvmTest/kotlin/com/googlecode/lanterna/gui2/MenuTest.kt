@@ -18,7 +18,6 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder
@@ -27,96 +26,134 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
 import com.googlecode.lanterna.gui2.menu.Menu
 import com.googlecode.lanterna.gui2.menu.MenuBar
 import com.googlecode.lanterna.gui2.menu.MenuItem
-
-import java.io.File
 import java.io.IOException
 
-class MenuTest:TestBase() {
-
-fun init(textGUI:WindowBasedTextGUI) {
- // Create window to hold the menu
+class MenuTest : TestBase() {
+    fun init(textGUI: WindowBasedTextGUI) {
+        // Create window to hold the menu
         val window = BasicWindow()
-val contentPane = Panel(BorderLayout())
-contentPane.addComponent(Panels.vertical(
-Separator(Direction.HORIZONTAL).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL)),
-MultiColorComponent(),
-Button("Close", Runnable { window.close() })))
-window.component = contentPane
+        val contentPane = Panel(BorderLayout())
+        contentPane.addComponent(
+            Panels.vertical(
+                Separator(Direction.HORIZONTAL).setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL)),
+                MultiColorComponent(),
+                Button("Close", Runnable { window.close() }),
+            ),
+        )
+        window.component = contentPane
 
-val menubar = MenuBar()
-window.menuBar = menubar
+        val menubar = MenuBar()
+        window.menuBar = menubar
 
- // "File" menu
+        // "File" menu
         val menuFile = Menu("File")
-menubar.add(menuFile)
-menuFile.add(MenuItem("Open...", { val file = FileDialogBuilder().build()!!.showDialog(textGUI)
-if (file != null)
-MessageDialog.showMessageDialog(
-textGUI, "Open", "Selected file:\n$file", MessageDialogButton.OK) }))
-menuFile.add(MenuItem("Exit", Runnable { window.close() }))
+        menubar.add(menuFile)
+        menuFile.add(
+            MenuItem("Open...", {
+                val file = FileDialogBuilder().build()!!.showDialog(textGUI)
+                if (file != null) {
+                    MessageDialog.showMessageDialog(
+                        textGUI,
+                        "Open",
+                        "Selected file:\n$file",
+                        MessageDialogButton.OK,
+                    )
+                }
+            }),
+        )
+        menuFile.add(MenuItem("Exit", Runnable { window.close() }))
 
-val countryMenu = Menu("Country")
-menubar.add(countryMenu)
+        val countryMenu = Menu("Country")
+        menubar.add(countryMenu)
 
-val germanySubMenu = Menu("Germany")
-countryMenu.add(germanySubMenu)
-for (state in GERMANY_STATES)
-{
-germanySubMenu.add(MenuItem(state, DO_NOTHING))
-}
-val japanSubMenu = Menu("Japan")
-countryMenu.add(japanSubMenu)
-for (prefecture in JAPAN_PREFECTURES)
-{
-japanSubMenu.add(MenuItem(prefecture, DO_NOTHING))
-}
+        val germanySubMenu = Menu("Germany")
+        countryMenu.add(germanySubMenu)
+        for (state in GERMANY_STATES) {
+            germanySubMenu.add(MenuItem(state, DO_NOTHING))
+        }
+        val japanSubMenu = Menu("Japan")
+        countryMenu.add(japanSubMenu)
+        for (prefecture in JAPAN_PREFECTURES) {
+            japanSubMenu.add(MenuItem(prefecture, DO_NOTHING))
+        }
 
- // "Help" menu
+        // "Help" menu
         val menuHelp = Menu("Help")
-menubar.add(menuHelp)
-menuHelp.add(MenuItem("Homepage", { MessageDialog.showMessageDialog(
-textGUI, "Homepage", "https://github.com/mabe02/lanterna", MessageDialogButton.OK) }))
-menuHelp.add(MenuItem("About", { MessageDialog.showMessageDialog(
-textGUI, "About", "Lanterna drop-down menu", MessageDialogButton.OK) }))
+        menubar.add(menuHelp)
+        menuHelp.add(
+            MenuItem("Homepage", {
+                MessageDialog.showMessageDialog(
+                    textGUI,
+                    "Homepage",
+                    "https://github.com/mabe02/lanterna",
+                    MessageDialogButton.OK,
+                )
+            }),
+        )
+        menuHelp.add(
+            MenuItem("About", {
+                MessageDialog.showMessageDialog(
+                    textGUI,
+                    "About",
+                    "Lanterna drop-down menu",
+                    MessageDialogButton.OK,
+                )
+            }),
+        )
 
- // Create textGUI and start textGUI
+        // Create textGUI and start textGUI
         textGUI.addWindow(window)
-}
+    }
 
-private class MultiColorComponent:AbstractComponent<MultiColorComponent?>() {
-protected override fun createDefaultRenderer():ComponentRenderer<MultiColorComponent?> {
-return object:ComponentRenderer<MultiColorComponent?> {
-public override fun getPreferredSize(component:MultiColorComponent?):TerminalSize {
-return TerminalSize(40, 15)
-}
+    private class MultiColorComponent : AbstractComponent<MultiColorComponent?>() {
+        protected override fun createDefaultRenderer(): ComponentRenderer<MultiColorComponent?> {
+            return object : ComponentRenderer<MultiColorComponent?> {
+                public override fun getPreferredSize(component: MultiColorComponent?): TerminalSize {
+                    return TerminalSize(40, 15)
+                }
 
-public override fun drawComponent(graphics:TextGUIGraphics?, component:MultiColorComponent?) {
-graphics!!.applyThemeStyle(theme!!.defaultDefinition!!.normal)
-graphics!!.fill(' ')
-var row = 1
-for (color in TextColor.ANSI.values())
-{
-graphics!!.applyThemeStyle(theme!!.defaultDefinition!!.normal)
-graphics!!.putString(1, row, color.toString() + ": ")
-graphics!!.setForegroundColor(TextColor.ANSI.BLACK)
-graphics!!.setBackgroundColor(color)
-graphics!!.putString(20, row++, "     TEXT     ")
-}
-}
-}
-}
-}
+                public override fun drawComponent(
+                    graphics: TextGUIGraphics?,
+                    component: MultiColorComponent?,
+                ) {
+                    graphics!!.applyThemeStyle(theme!!.defaultDefinition!!.normal)
+                    graphics!!.fill(' ')
+                    var row = 1
+                    for (color in TextColor.ANSI.values()) {
+                        graphics!!.applyThemeStyle(theme!!.defaultDefinition!!.normal)
+                        graphics!!.putString(1, row, color.toString() + ": ")
+                        graphics!!.setForegroundColor(TextColor.ANSI.BLACK)
+                        graphics!!.setBackgroundColor(color)
+                        graphics!!.putString(20, row++, "     TEXT     ")
+                    }
+                }
+            }
+        }
+    }
 
-companion object {
-@Throws(IOException::class, InterruptedException::class)
- fun main(args:Array<String?>?) {
-MenuTest().run(args)
-}
+    companion object {
+        @Throws(IOException::class, InterruptedException::class)
+        fun main(args: Array<String?>?) {
+            MenuTest().run(args)
+        }
 
-private val DO_NOTHING = Runnable { }
+        private val DO_NOTHING = Runnable { }
 
-private val GERMANY_STATES = arrayOf("Baden-Württemberg", "Bayern", "Berlin", "Brandenburg", "Bremen", "Hamburg", "Hessen", "Mecklenburg-Vorpommern", "Niedersachsen", "Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland", "Sachsen", "Sachsen-Anhalt", "Schleswig-Holstein", "Thüringen")
+        private val GERMANY_STATES =
+            arrayOf(
+                "Baden-Württemberg", "Bayern", "Berlin", "Brandenburg", "Bremen", "Hamburg", "Hessen",
+                "Mecklenburg-Vorpommern", "Niedersachsen", "Nordrhein-Westfalen", "Rheinland-Pfalz",
+                "Saarland", "Sachsen", "Sachsen-Anhalt", "Schleswig-Holstein", "Thüringen",
+            )
 
-private val JAPAN_PREFECTURES = arrayOf("Aichi", "Akita", "Aomori", "Chiba", "Ehime", "Fukui", "Fukuoka", "Fukushima", "Gifu", "Gunma", "Hiroshima", "Hokkaido", "Hyōgo", "Ibaraki", "Ishikawa", "Iwate", "Kagawa", "Kagoshima", "Kanagawa", "Kōchi", "Kumamoto", "Kyoto", "Mie", "Miyagi", "Miyazaki", "Nagano", "Nagasaki", "Nara", "Niigata", "Ōita", "Okayama", "Okinawa", "Osaka", "Saga", "Saitama", "Shiga", "Shimane", "Shizuoka", "Tochigi", "Tokushima", "Tokyo", "Tottori", "Toyama", "Wakayama", "Yamagata", "Yamaguchi", "Yamanashi")
-}
+        private val JAPAN_PREFECTURES =
+            arrayOf(
+                "Aichi", "Akita", "Aomori", "Chiba", "Ehime", "Fukui", "Fukuoka", "Fukushima", "Gifu",
+                "Gunma", "Hiroshima", "Hokkaido", "Hyōgo", "Ibaraki", "Ishikawa", "Iwate", "Kagawa",
+                "Kagoshima", "Kanagawa", "Kōchi", "Kumamoto", "Kyoto", "Mie", "Miyagi", "Miyazaki",
+                "Nagano", "Nagasaki", "Nara", "Niigata", "Ōita", "Okayama", "Okinawa", "Osaka",
+                "Saga", "Saitama", "Shiga", "Shimane", "Shizuoka", "Tochigi", "Tokushima", "Tokyo",
+                "Tottori", "Toyama", "Wakayama", "Yamagata", "Yamaguchi", "Yamanashi",
+            )
+    }
 }

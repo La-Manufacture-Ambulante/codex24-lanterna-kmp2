@@ -22,39 +22,43 @@ package com.googlecode.lanterna.terminal
  * Constant describing different modes for capturing mouse input. By default, no mouse capturing is enabled (unless
  * previously enabled before starting the Lanterna application. These are the different modes of input capturing
  * supported. Please note that terminal emulators vary widely in how these are implemented!
- * 
+ *
  * Also, some terminals such as Konsole, appear to unfortunately round up and down the column which is in the generated MouseEvent
  * The column actually starts about halfway prior of the left border of the character and goes to about halfway past that edge.
  * This makes them rather unsuitable for precision clicking on specific characters on the screen.
  * The XTerm terminal appears to properly generate with the input stream with location along the boundaries of the characters as
  * needed for clicks within the bounds of the characters to properly map to that column.
- * 
+ *
  * Created by martin on 26/07/15.
  */
- enum class MouseCaptureMode {
+enum class MouseCaptureMode {
 /**
- * Mouse clicks are captured on the down-motion but not the up-motion. This corresponds to the X10 xterm protocol.
- * KDE's Konsole (tested with 15.04) does not implement this extension, but xfce4-terminal, gnome-terminal and
- * xterm does.
- */
-    CLICK, 
+     * Mouse clicks are captured on the down-motion but not the up-motion. This corresponds to the X10 xterm protocol.
+     * KDE's Konsole (tested with 15.04) does not implement this extension, but xfce4-terminal, gnome-terminal and
+     * xterm does.
+     */
+    CLICK,
+
 /**
- * Mouse clicks are captured both on down and up, this is the normal mode for capturing mouse input. KDE's konsole
- * interprets this as CLICK_RELEASE_DRAG.
- */
-    CLICK_RELEASE, 
+     * Mouse clicks are captured both on down and up, this is the normal mode for capturing mouse input. KDE's konsole
+     * interprets this as CLICK_RELEASE_DRAG.
+     */
+    CLICK_RELEASE,
+
 /**
- * Mouse clicks are captured both on down and up and if the mouse if moved while holding down one of the button, a
- * drag event is generated.
- */
-    CLICK_RELEASE_DRAG, 
+     * Mouse clicks are captured both on down and up and if the mouse if moved while holding down one of the button, a
+     * drag event is generated.
+     */
+    CLICK_RELEASE_DRAG,
+
 /**
- * Mouse clicks are captured both on down and up and also all mouse movements, no matter if any button is held down
- * or not.
- */
-    CLICK_RELEASE_DRAG_MOVE, 
+     * Mouse clicks are captured both on down and up and also all mouse movements, no matter if any button is held down
+     * or not.
+     */
+    CLICK_RELEASE_DRAG_MOVE,
+
 /**
- * Sends all previous flags, as the terminal will handle only the ones it supports and ignore others
- */
-    CLICK_AUTODETECT
+     * Sends all previous flags, as the terminal will handle only the ones it supports and ignore others
+     */
+    CLICK_AUTODETECT,
 }

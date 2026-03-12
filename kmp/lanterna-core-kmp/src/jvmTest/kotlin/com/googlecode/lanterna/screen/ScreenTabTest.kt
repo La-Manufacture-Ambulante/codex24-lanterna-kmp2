@@ -18,90 +18,86 @@
  */
 package com.googlecode.lanterna.screen
 
-import com.googlecode.lanterna.*
-import com.googlecode.lanterna.graphics.TextGraphics
-
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.TextColor
 import java.io.IOException
 
 /**
- * 
+ *
  * @author martin
  */
- class ScreenTabTest @Throws(InterruptedException::class, IOException::class)
- constructor(args:Array<String?>?) {
+class ScreenTabTest
+    @Throws(InterruptedException::class, IOException::class)
+    constructor(args: Array<String?>?) {
+        private val screen: Screen?
 
-private val screen:Screen?
+        init {
+            screen = TestTerminalFactory(args).createScreen()
+            screen!!.startScreen()
+            screen!!.cursorPosition = TerminalPosition(0, 0)
+            putStrings("Trying out some tabs!")
 
-init{
-screen = TestTerminalFactory(args).createScreen()
-screen!!.startScreen()
-screen!!.cursorPosition = TerminalPosition(0, 0)
-putStrings("Trying out some tabs!")
+            val now = System.currentTimeMillis()
+            while (System.currentTimeMillis() - now < 20 * 1000) {
+                Thread.sleep(1)
+            }
+            screen!!.stopScreen()
+        }
 
-val now = System.currentTimeMillis()
-while (System.currentTimeMillis() - now < 20 * 1000)
-{
-Thread.sleep(1)
-}
-screen!!.stopScreen()
-}
+        @Throws(IOException::class)
+        private fun putStrings(topTitle: String?) {
+            val writer = ScreenTextGraphics(screen!!)
+            writer.setForegroundColor(TextColor.ANSI.DEFAULT)
+            writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+            writer.fill(' ')
 
-@Throws(IOException::class)
-private fun putStrings(topTitle:String?) {
-val writer = ScreenTextGraphics(screen!!)
-writer.setForegroundColor(TextColor.ANSI.DEFAULT)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.fill(' ')
+            writer.setForegroundColor(TextColor.ANSI.DEFAULT)
+            writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
+            writer.putString(0, 0, topTitle, SGR.BLINK)
+            writer.setTabBehaviour(TabBehaviour.CONVERT_TO_ONE_SPACE)
+            writer.putString(10, 1, "TabBehaviour.CONVERT_TO_ONE_SPACE:    |\t|\t|\t|\t|")
+            writer.setTabBehaviour(TabBehaviour.CONVERT_TO_TWO_SPACES)
+            writer.putString(10, 2, "TabBehaviour.CONVERT_TO_TWO_SPACES:   |\t|\t|\t|\t|")
+            writer.setTabBehaviour(TabBehaviour.CONVERT_TO_THREE_SPACES)
+            writer.putString(10, 3, "TabBehaviour.CONVERT_TO_THREE_SPACES: |\t|\t|\t|\t|")
+            writer.setTabBehaviour(TabBehaviour.CONVERT_TO_FOUR_SPACES)
+            writer.putString(10, 4, "TabBehaviour.CONVERT_TO_FOUR_SPACES:  |\t|\t|\t|\t|")
+            writer.setTabBehaviour(TabBehaviour.CONVERT_TO_EIGHT_SPACES)
+            writer.putString(10, 5, "TabBehaviour.CONVERT_TO_EIGHT_SPACES: |\t|\t|\t|\t|")
+            writer.setTabBehaviour(TabBehaviour.ALIGN_TO_COLUMN_4)
+            writer.putString(10, 6, "TabBehaviour.ALIGN_TO_COLUMN_4:       |\t|\t|\t|\t|")
+            writer.setTabBehaviour(TabBehaviour.ALIGN_TO_COLUMN_8)
+            writer.putString(10, 7, "TabBehaviour.ALIGN_TO_COLUMN_8:       |\t|\t|\t|\t|")
+            writer.putString(10, 9, "Default behaviour is: " + screen!!.tabBehaviour!!)
+            writer.putString(10, 10, "Testing Screen's tab replacement:")
+            writer.putString(10, 11, "XXXXXXXXXXXXXXXX")
+            screen!!.setCharacter(12, 11, TextCharacter('\t'))
+            screen!!.tabBehaviour = TabBehaviour.CONVERT_TO_ONE_SPACE
+            screen!!.setCharacter(20, 11, TextCharacter('\t'))
+            screen!!.refresh()
 
-writer.setForegroundColor(TextColor.ANSI.DEFAULT)
-writer.setBackgroundColor(TextColor.ANSI.DEFAULT)
-writer.putString(0, 0, topTitle, SGR.BLINK)
-writer.setTabBehaviour(TabBehaviour.CONVERT_TO_ONE_SPACE)
-writer.putString(10, 1, "TabBehaviour.CONVERT_TO_ONE_SPACE:    |\t|\t|\t|\t|")
-writer.setTabBehaviour(TabBehaviour.CONVERT_TO_TWO_SPACES)
-writer.putString(10, 2, "TabBehaviour.CONVERT_TO_TWO_SPACES:   |\t|\t|\t|\t|")
-writer.setTabBehaviour(TabBehaviour.CONVERT_TO_THREE_SPACES)
-writer.putString(10, 3, "TabBehaviour.CONVERT_TO_THREE_SPACES: |\t|\t|\t|\t|")
-writer.setTabBehaviour(TabBehaviour.CONVERT_TO_FOUR_SPACES)
-writer.putString(10, 4, "TabBehaviour.CONVERT_TO_FOUR_SPACES:  |\t|\t|\t|\t|")
-writer.setTabBehaviour(TabBehaviour.CONVERT_TO_EIGHT_SPACES)
-writer.putString(10, 5, "TabBehaviour.CONVERT_TO_EIGHT_SPACES: |\t|\t|\t|\t|")
-writer.setTabBehaviour(TabBehaviour.ALIGN_TO_COLUMN_4)
-writer.putString(10, 6, "TabBehaviour.ALIGN_TO_COLUMN_4:       |\t|\t|\t|\t|")
-writer.setTabBehaviour(TabBehaviour.ALIGN_TO_COLUMN_8)
-writer.putString(10, 7, "TabBehaviour.ALIGN_TO_COLUMN_8:       |\t|\t|\t|\t|")
-writer.putString(10, 9, "Default behaviour is: " + screen!!.tabBehaviour!!)
-writer.putString(10, 10, "Testing Screen's tab replacement:")
-writer.putString(10, 11, "XXXXXXXXXXXXXXXX")
-screen!!.setCharacter(12, 11, TextCharacter('\t'))
-screen!!.tabBehaviour = TabBehaviour.CONVERT_TO_ONE_SPACE
-screen!!.setCharacter(20, 11, TextCharacter('\t'))
-screen!!.refresh()
+            // Verify
+            if (!screen!!.getBackCharacter(TerminalPosition(20, 11))!!.`is`(' ')) {
+                throw IllegalStateException("Expected tab to be replaced with space")
+            }
+            if (!screen!!.getBackCharacter(TerminalPosition(21, 11))!!.`is`('X')) {
+                throw IllegalStateException("Expected X in back buffer")
+            }
+            if (!screen!!.getFrontCharacter(TerminalPosition(20, 11))!!.`is`(' ')) {
+                throw IllegalStateException("Expected tab to be replaced with space")
+            }
+            if (!screen!!.getFrontCharacter(TerminalPosition(21, 11))!!.`is`('X')) {
+                throw IllegalStateException("Expected X in front buffer")
+            }
+        }
 
- //Verify
-        if (!screen!!.getBackCharacter(TerminalPosition(20, 11))!!.`is`(' '))
-{
-throw IllegalStateException("Expected tab to be replaced with space")
-}
-if (!screen!!.getBackCharacter(TerminalPosition(21, 11))!!.`is`('X'))
-{
-throw IllegalStateException("Expected X in back buffer")
-}
-if (!screen!!.getFrontCharacter(TerminalPosition(20, 11))!!.`is`(' '))
-{
-throw IllegalStateException("Expected tab to be replaced with space")
-}
-if (!screen!!.getFrontCharacter(TerminalPosition(21, 11))!!.`is`('X'))
-{
-throw IllegalStateException("Expected X in front buffer")
-}
-}
-
-companion object {
-
-@Throws(InterruptedException::class, IOException::class)
- fun main(args:Array<String?>?) {
-ScreenTabTest(args)
-}
-}
-}
+        companion object {
+            @Throws(InterruptedException::class, IOException::class)
+            fun main(args: Array<String?>?) {
+                ScreenTabTest(args)
+            }
+        }
+    }

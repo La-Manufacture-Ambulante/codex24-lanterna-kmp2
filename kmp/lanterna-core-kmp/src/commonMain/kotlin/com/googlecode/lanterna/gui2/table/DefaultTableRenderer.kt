@@ -21,7 +21,6 @@ package com.googlecode.lanterna.gui2.table
 import com.googlecode.lanterna.Symbols
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.graphics.Theme
 import com.googlecode.lanterna.graphics.ThemeDefinition
 import com.googlecode.lanterna.gui2.Direction
 import com.googlecode.lanterna.gui2.ScrollBar
@@ -56,8 +55,9 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
     override var isScrollBarsHidden: Boolean = false
 
     private val isHorizontallySpaced: Boolean
-        get() = headerHorizontalBorderStyle != TableCellBorderStyle.NONE ||
-            cellHorizontalBorderStyle != TableCellBorderStyle.NONE
+        get() =
+            headerHorizontalBorderStyle != TableCellBorderStyle.NONE ||
+                cellHorizontalBorderStyle != TableCellBorderStyle.NONE
 
     @Synchronized
     fun setHeaderVerticalBorderStyle(headerVerticalBorderStyle: TableCellBorderStyle?) {
@@ -187,7 +187,10 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
                 preferredColumnSize += columnSize
             }
         } else {
-            for (columnIndex in localViewLeftColumn until kotlin.math.min(preferredColumnSizes.size, localViewLeftColumn + visibleColumns)) {
+            for (
+            columnIndex in localViewLeftColumn until
+                kotlin.math.min(preferredColumnSizes.size, localViewLeftColumn + visibleColumns)
+            ) {
                 preferredColumnSize += preferredColumnSizes[columnIndex]
             }
         }
@@ -236,7 +239,10 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
     }
 
     @Synchronized
-    override fun drawComponent(graphics: TextGUIGraphics?, component: Table<V?>?) {
+    override fun drawComponent(
+        graphics: TextGUIGraphics?,
+        component: Table<V?>?,
+    ) {
         var activeGraphics = graphics ?: return
         val table = component ?: return
         val area = activeGraphics.size ?: return
@@ -302,19 +308,21 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
             visibleRows = calculateVisibleRows(areaWithoutScrollBars, viewTopRow, preferredVisibleRows)
         }
 
-        val renderColumns = if (allowPartialColumn && visibleColumns < preferredVisibleColumns - viewLeftColumn) {
-            visibleColumns + 1
-        } else {
-            visibleColumns
-        }
+        val renderColumns =
+            if (allowPartialColumn && visibleColumns < preferredVisibleColumns - viewLeftColumn) {
+                visibleColumns + 1
+            } else {
+                visibleColumns
+            }
 
         val columnSizes = fitColumnsInAvailableSpace(table, areaWithoutScrollBars, visibleColumns)
         drawHeader(activeGraphics, table, columnSizes)
 
-        val rowGraphics = activeGraphics.newTextGraphics(
-            TerminalPosition(0, headerSizeIncludingBorder),
-            area.withRelativeRows(-headerSizeIncludingBorder),
-        ) ?: return
+        val rowGraphics =
+            activeGraphics.newTextGraphics(
+                TerminalPosition(0, headerSizeIncludingBorder),
+                area.withRelativeRows(-headerSizeIncludingBorder),
+            ) ?: return
         drawRows(
             rowGraphics,
             table,
@@ -329,7 +337,11 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         visibleRowsOnLastDraw = visibleRows
     }
 
-    private fun calculateVisibleRows(area: TerminalSize, localViewTopRow: Int, preferredVisibleRows: Int): Int {
+    private fun calculateVisibleRows(
+        area: TerminalSize,
+        localViewTopRow: Int,
+        preferredVisibleRows: Int,
+    ): Int {
         var remainingVerticalSpace = area.rows
         var visibleRows = 0
         val borderAdjustment = cellVerticalBorderStyle.size
@@ -347,7 +359,11 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         return visibleRows
     }
 
-    private fun calculateVisibleColumns(area: TerminalSize, localViewLeftColumn: Int, preferredVisibleColumns: Int): Int {
+    private fun calculateVisibleColumns(
+        area: TerminalSize,
+        localViewLeftColumn: Int,
+        preferredVisibleColumns: Int,
+    ): Int {
         var remainingHorizontalSpace = area.columns
         var visibleColumns = 0
         val borderAdjustment = cellHorizontalBorderStyle.size
@@ -365,7 +381,11 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         return visibleColumns
     }
 
-    private fun fitColumnsInAvailableSpace(table: Table<V?>, area: TerminalSize, visibleColumns: Int): MutableList<Int> {
+    private fun fitColumnsInAvailableSpace(
+        table: Table<V?>,
+        area: TerminalSize,
+        visibleColumns: Int,
+    ): MutableList<Int> {
         val columnSizes = ArrayList(preferredColumnSizes)
         var horizontalSpaceRequirement = 0
         val localViewLeftColumn = table.renderer?.viewLeftColumn ?: 0
@@ -394,7 +414,11 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         return columnSizes
     }
 
-    private fun drawHeader(graphics: TextGUIGraphics, table: Table<V?>, columnSizes: List<Int>) {
+    private fun drawHeader(
+        graphics: TextGUIGraphics,
+        table: Table<V?>,
+        columnSizes: List<Int>,
+    ) {
         val theme = table.theme ?: return
         val tableHeaderRenderer = table.getTableHeaderRenderer() ?: return
         val headers = table.getTableModel()?.getColumnLabels().orEmpty()

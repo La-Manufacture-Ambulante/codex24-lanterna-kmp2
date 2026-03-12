@@ -35,7 +35,6 @@ class BasicTextImage private constructor(
     toCopy: Array<Array<TextCharacter>>,
     initialContent: TextCharacter,
 ) : TextImage {
-
     private val buffer: Array<Array<TextCharacter>>
 
     /**
@@ -66,21 +65,23 @@ class BasicTextImage private constructor(
     init {
         val rows = size.rows
         val columns = size.columns
-        buffer = Array(rows) { y ->
-            Array(columns) { x ->
-                if (y < toCopy.size && x < toCopy[y].size) {
-                    toCopy[y][x]
-                } else {
-                    initialContent
+        buffer =
+            Array(rows) { y ->
+                Array(columns) { x ->
+                    if (y < toCopy.size && x < toCopy[y].size) {
+                        toCopy[y][x]
+                    } else {
+                        initialContent
+                    }
                 }
             }
-        }
     }
 
     override fun setAll(character: TextCharacter?) {
-        val fillCharacter = requireNotNull(character) {
-            "Cannot call BasicTextImage.setAll(..) with null character"
-        }
+        val fillCharacter =
+            requireNotNull(character) {
+                "Cannot call BasicTextImage.setAll(..) with null character"
+            }
         for (line in buffer) {
             Arrays.fill(line, fillCharacter)
         }
@@ -89,13 +90,18 @@ class BasicTextImage private constructor(
     /**
      * Resizes this image, copying all overlapping content into the new image and filling uncovered cells with [filler].
      */
-    override fun resize(newSize: TerminalSize?, filler: TextCharacter?): BasicTextImage {
-        val targetSize = requireNotNull(newSize) {
-            "Cannot resize BasicTextImage with null newSize"
-        }
-        val fillCharacter = requireNotNull(filler) {
-            "Cannot resize BasicTextImage with null filler"
-        }
+    override fun resize(
+        newSize: TerminalSize?,
+        filler: TextCharacter?,
+    ): BasicTextImage {
+        val targetSize =
+            requireNotNull(newSize) {
+                "Cannot resize BasicTextImage with null newSize"
+            }
+        val fillCharacter =
+            requireNotNull(filler) {
+                "Cannot resize BasicTextImage with null filler"
+            }
         if (targetSize.rows == buffer.size &&
             (buffer.isEmpty() || targetSize.columns == buffer[0].size)
         ) {
@@ -104,17 +110,26 @@ class BasicTextImage private constructor(
         return BasicTextImage(targetSize, buffer, fillCharacter)
     }
 
-    override fun setCharacterAt(position: TerminalPosition?, character: TextCharacter?) {
-        val p = requireNotNull(position) {
-            "Cannot call BasicTextImage.setCharacterAt(..) with null position"
-        }
+    override fun setCharacterAt(
+        position: TerminalPosition?,
+        character: TextCharacter?,
+    ) {
+        val p =
+            requireNotNull(position) {
+                "Cannot call BasicTextImage.setCharacterAt(..) with null position"
+            }
         setCharacterAt(p.column, p.row, character)
     }
 
-    override fun setCharacterAt(column: Int, row: Int, character: TextCharacter?) {
-        val value = requireNotNull(character) {
-            "Cannot call BasicTextImage.setCharacterAt(..) with null character"
-        }
+    override fun setCharacterAt(
+        column: Int,
+        row: Int,
+        character: TextCharacter?,
+    ) {
+        val value =
+            requireNotNull(character) {
+                "Cannot call BasicTextImage.setCharacterAt(..) with null character"
+            }
         if (column < 0 || row < 0 || row >= buffer.size || (buffer.isNotEmpty() && column >= buffer[0].size)) {
             return
         }
@@ -131,13 +146,17 @@ class BasicTextImage private constructor(
     }
 
     override fun getCharacterAt(position: TerminalPosition?): TextCharacter? {
-        val p = requireNotNull(position) {
-            "Cannot call BasicTextImage.getCharacterAt(..) with null position"
-        }
+        val p =
+            requireNotNull(position) {
+                "Cannot call BasicTextImage.getCharacterAt(..) with null position"
+            }
         return getCharacterAt(p.column, p.row)
     }
 
-    override fun getCharacterAt(column: Int, row: Int): TextCharacter? {
+    override fun getCharacterAt(
+        column: Int,
+        row: Int,
+    ): TextCharacter? {
         if (column < 0 || row < 0 || row >= buffer.size || buffer.isEmpty() || column >= buffer[0].size) {
             return null
         }
@@ -191,11 +210,12 @@ class BasicTextImage private constructor(
         }
 
         srcRows = kotlin.math.min(buffer.size - srcStartRow, srcRows)
-        srcColumns = if (srcRows > 0) {
-            kotlin.math.min(buffer[0].size - srcStartColumn, srcColumns)
-        } else {
-            0
-        }
+        srcColumns =
+            if (srcRows > 0) {
+                kotlin.math.min(buffer[0].size - srcStartColumn, srcColumns)
+            } else {
+                0
+            }
 
         val targetSize = target.size ?: TerminalSize(0, 0)
         srcColumns = kotlin.math.min(targetSize.columns - dstColumnOffset, srcColumns)
@@ -264,12 +284,19 @@ class BasicTextImage private constructor(
      */
     override fun newTextGraphics(): TextGraphics {
         return object : AbstractTextGraphics() {
-            override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
+            override fun setCharacter(
+                columnIndex: Int,
+                rowIndex: Int,
+                textCharacter: TextCharacter?,
+            ): TextGraphics {
                 this@BasicTextImage.setCharacterAt(columnIndex, rowIndex, textCharacter)
                 return this
             }
 
-            override fun getCharacter(column: Int, row: Int): TextCharacter? {
+            override fun getCharacter(
+                column: Int,
+                row: Int,
+            ): TextCharacter? {
                 return this@BasicTextImage.getCharacterAt(column, row)
             }
 
@@ -284,7 +311,11 @@ class BasicTextImage private constructor(
         return line
     }
 
-    override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int) {
+    override fun scrollLines(
+        firstLine: Int,
+        lastLine: Int,
+        distance: Int,
+    ) {
         var start = firstLine
         var end = lastLine
         var delta = distance

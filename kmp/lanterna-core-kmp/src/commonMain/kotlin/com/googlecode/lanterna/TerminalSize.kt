@@ -37,7 +37,7 @@ class TerminalSize(
     init {
         if (columns < 0 || rows < 0) {
             throw IllegalArgumentException(
-                "TerminalSize dimensions cannot be less than 0: [columns: $columns, rows: $rows]"
+                "TerminalSize dimensions cannot be less than 0: [columns: $columns, rows: $rows]",
             )
         }
     }
@@ -121,7 +121,10 @@ class TerminalSize(
      * @param deltaRows How many extra rows the new TerminalSize will have (negative values are allowed)
      * @return New terminal size based off this one but with an applied resize
      */
-    fun withRelative(deltaColumns: Int, deltaRows: Int): TerminalSize {
+    fun withRelative(
+        deltaColumns: Int,
+        deltaRows: Int,
+    ): TerminalSize {
         return withRelativeRows(deltaRows).withRelativeColumns(deltaColumns)
     }
 

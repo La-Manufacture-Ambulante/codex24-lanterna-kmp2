@@ -37,7 +37,6 @@ class TerminalPosition(
      */
     val row: Int,
 ) : Comparable<TerminalPosition> {
-
     /**
      * Creates a new TerminalPosition object representing a position with the same column index as this but with a
      * supplied row index.
@@ -111,7 +110,10 @@ class TerminalPosition(
      * @param deltaRow How many rows to move from the current position in the new TerminalPosition
      * @return New TerminalPosition that is the result of the original position with added translation
      */
-    fun withRelative(deltaColumn: Int, deltaRow: Int): TerminalPosition {
+    fun withRelative(
+        deltaColumn: Int,
+        deltaRow: Int,
+    ): TerminalPosition {
         return withRelativeRow(deltaRow).withRelativeColumn(deltaColumn)
     }
 
@@ -187,7 +189,10 @@ class TerminalPosition(
         return hash
     }
 
-    fun equals(columnIndex: Int, rowIndex: Int): Boolean {
+    fun equals(
+        columnIndex: Int,
+        rowIndex: Int,
+    ): Boolean {
         return column == columnIndex && row == rowIndex
     }
 

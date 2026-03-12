@@ -31,14 +31,20 @@ internal class SubTextGraphics(
     screenRelative: TerminalPosition,
     override val size: TerminalSize,
 ) : AbstractTextGraphics() {
-
     override val screenLocation: TerminalPosition = requireNotNull(screenRelative.plus(topLeft))
 
-    private fun project(column: Int, row: Int): TerminalPosition {
+    private fun project(
+        column: Int,
+        row: Int,
+    ): TerminalPosition {
         return requireNotNull(topLeft.withRelative(column, row))
     }
 
-    override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
+    override fun setCharacter(
+        columnIndex: Int,
+        rowIndex: Int,
+        textCharacter: TextCharacter?,
+    ): TextGraphics {
         val writableArea = size
         if (columnIndex < 0 || columnIndex >= writableArea.columns ||
             rowIndex < 0 || rowIndex >= writableArea.rows
@@ -50,7 +56,10 @@ internal class SubTextGraphics(
         return this
     }
 
-    override fun getCharacter(column: Int, row: Int): TextCharacter? {
+    override fun getCharacter(
+        column: Int,
+        row: Int,
+    ): TextCharacter? {
         val projectedPosition = project(column, row)
         return underlyingTextGraphics.getCharacter(projectedPosition.column, projectedPosition.row)
     }

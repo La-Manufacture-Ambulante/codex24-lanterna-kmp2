@@ -19,9 +19,9 @@
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.terminal.swing.ScrollingAWTTerminal
+import com.googlecode.lanterna.terminal.swing.SwingTerminalFontConfiguration
 import com.googlecode.lanterna.terminal.swing.TerminalEmulatorColorConfiguration
 import com.googlecode.lanterna.terminal.swing.TerminalEmulatorDeviceConfiguration
-import com.googlecode.lanterna.terminal.swing.SwingTerminalFontConfiguration
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.event.ActionEvent
@@ -47,11 +47,12 @@ class ScrollingAWTTerminalTest : JFrame() {
 
         val deviceConfiguration =
             TerminalEmulatorDeviceConfiguration.default.withLineBufferScrollbackSize(150)
-        scrollingAwtTerminal = ScrollingAWTTerminal(
-            deviceConfiguration,
-            SwingTerminalFontConfiguration.default,
-            TerminalEmulatorColorConfiguration.default,
-        )
+        scrollingAwtTerminal =
+            ScrollingAWTTerminal(
+                deviceConfiguration,
+                SwingTerminalFontConfiguration.default,
+                TerminalEmulatorColorConfiguration.default,
+            )
 
         val terminalContainer = JPanel(BorderLayout())
         terminalContainer.border = BorderFactory.createTitledBorder("Terminal")
@@ -69,7 +70,10 @@ class ScrollingAWTTerminalTest : JFrame() {
         pack()
     }
 
-    private fun createButton(text: String, action: (ActionEvent) -> Unit): JButton {
+    private fun createButton(
+        text: String,
+        action: (ActionEvent) -> Unit,
+    ): JButton {
         val button = JButton(text)
         button.addActionListener(ActionListener { event -> action(event) })
         return button
@@ -117,7 +121,6 @@ class ScrollingAWTTerminalTest : JFrame() {
     companion object {
         private const val serialVersionUID = 1L
 
-        
         fun main(args: Array<String?>?) {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())

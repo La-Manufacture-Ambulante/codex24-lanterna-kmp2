@@ -73,7 +73,10 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
         return text.replace("\r", "").split("\n").toTypedArray()
     }
 
-    protected fun getBounds(lines: Array<String>, currentBounds: TerminalSize?): TerminalSize? {
+    protected fun getBounds(
+        lines: Array<String>,
+        currentBounds: TerminalSize?,
+    ): TerminalSize? {
         var bounds: TerminalSize? = currentBounds ?: TerminalSize.ZERO
         bounds = bounds?.withRows(lines.size)
         if (labelWidth == null || labelWidth == 0) {
@@ -141,7 +144,10 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
                 return labelSize
             }
 
-            override fun drawComponent(graphics: TextGUIGraphics?, component: Label?) {
+            override fun drawComponent(
+                graphics: TextGUIGraphics?,
+                component: Label?,
+            ) {
                 val themeDefinition = component!!.themeDefinition!!
                 graphics!!.applyThemeStyle(themeDefinition.normal)
                 if (foregroundColor != null) {
@@ -154,13 +160,14 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
                     graphics.enableModifiers(sgr)
                 }
 
-                val linesToDraw: Array<String> = if (component.getLabelWidth() == null) {
-                    component.lineBuffer
-                } else {
-                    TerminalTextUtils.getWordWrappedText(graphics.size!!.columns, *component.lineBuffer)
-                        .map { it ?: "" }
-                        .toTypedArray()
-                }
+                val linesToDraw: Array<String> =
+                    if (component.getLabelWidth() == null) {
+                        component.lineBuffer
+                    } else {
+                        TerminalTextUtils.getWordWrappedText(graphics.size!!.columns, *component.lineBuffer)
+                            .map { it ?: "" }
+                            .toTypedArray()
+                    }
 
                 for (row in 0 until kotlin.math.min(graphics.size!!.rows, linesToDraw.size)) {
                     val line = linesToDraw[row]

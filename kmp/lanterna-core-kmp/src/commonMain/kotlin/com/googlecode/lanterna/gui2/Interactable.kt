@@ -70,14 +70,20 @@ interface Interactable : Component {
      * @param direction What direction did the focus come from
      * @param previouslyInFocus Which component had focus previously (`null` if none)
      */
-    fun onEnterFocus(direction: FocusChangeDirection?, previouslyInFocus: Interactable?)
+    fun onEnterFocus(
+        direction: FocusChangeDirection?,
+        previouslyInFocus: Interactable?,
+    )
 
     /**
      * Method called when keyboard focus moves away from this component.
      * @param direction What direction is focus going in
      * @param nextInFocus Which component is receiving focus next (or `null` if none)
      */
-    fun onLeaveFocus(direction: FocusChangeDirection?, nextInFocus: Interactable?)
+    fun onLeaveFocus(
+        direction: FocusChangeDirection?,
+        nextInFocus: Interactable?,
+    )
 
     /**
      * Returns `true` if this component currently has input focus in its root container.

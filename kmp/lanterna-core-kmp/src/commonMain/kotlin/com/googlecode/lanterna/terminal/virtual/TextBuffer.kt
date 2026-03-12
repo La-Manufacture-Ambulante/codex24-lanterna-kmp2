@@ -21,7 +21,6 @@ package com.googlecode.lanterna.terminal.virtual
 import com.googlecode.lanterna.TextCharacter
 import java.util.ArrayList
 import java.util.LinkedList
-import java.util.ListIterator
 
 /**
  * This class is used to store lines of text inside of a terminal emulator. As used by [DefaultVirtualTerminal], it keeps
@@ -58,7 +57,11 @@ internal class TextBuffer {
     fun getLinesFrom(rowNumber: Int): MutableListIterator<MutableList<TextCharacter>> = lines.listIterator(rowNumber)
 
     @Synchronized
-    fun setCharacter(lineNumber: Int, columnIndex: Int, textCharacter: TextCharacter?): Int {
+    fun setCharacter(
+        lineNumber: Int,
+        columnIndex: Int,
+        textCharacter: TextCharacter?,
+    ): Int {
         if (lineNumber < 0 || columnIndex < 0) {
             throw IllegalArgumentException(
                 "Illegal argument to TextBuffer.setCharacter(..), lineNumber = $lineNumber, columnIndex = $columnIndex",
@@ -90,7 +93,10 @@ internal class TextBuffer {
     }
 
     @Synchronized
-    fun getCharacter(lineNumber: Int, columnIndex: Int): TextCharacter {
+    fun getCharacter(
+        lineNumber: Int,
+        columnIndex: Int,
+    ): TextCharacter {
         if (lineNumber < 0 || columnIndex < 0) {
             throw IllegalArgumentException(
                 "Illegal argument to TextBuffer.getCharacter(..), lineNumber = $lineNumber, columnIndex = $columnIndex",

@@ -71,7 +71,10 @@ class ActionListDialogBuilder : AbstractDialogBuilder<ActionListDialogBuilder, A
     /**
      * Adds an action item with an explicit display label.
      */
-    fun addAction(label: String?, action: Runnable): ActionListDialogBuilder {
+    fun addAction(
+        label: String?,
+        action: Runnable,
+    ): ActionListDialogBuilder {
         return addAction(
             object : Runnable {
                 override fun toString(): String {

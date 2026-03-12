@@ -18,11 +18,9 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
-import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.graphics.ThemeDefinition
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
@@ -44,7 +42,6 @@ open class TextBox constructor(
             Style.SINGLE_LINE
         },
 ) : AbstractInteractableComponent<TextBox>() {
-
     enum class Style {
         SINGLE_LINE,
         MULTI_LINE,
@@ -99,6 +96,7 @@ open class TextBox constructor(
 
     var validationRegex: Pattern?
         get() = validationPattern
+
         @Synchronized set(value) {
             if (value != null) {
                 for (line in lines) {
@@ -217,7 +215,10 @@ open class TextBox constructor(
     }
 
     @Synchronized
-    fun setCaretPosition(line: Int, column: Int): TextBox {
+    fun setCaretPosition(
+        line: Int,
+        column: Int,
+    ): TextBox {
         var resolvedLine = line
         var resolvedColumn = column
         if (resolvedLine < 0) {
@@ -641,7 +642,10 @@ open class TextBox constructor(
             this.hideScrollBars = hideScrollBars
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, component: TextBox?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            component: TextBox?,
+        ) {
             val activeGraphics = graphics ?: return
             val activeComponent = component ?: return
 
@@ -697,7 +701,10 @@ open class TextBox constructor(
             }
         }
 
-        private fun drawTextArea(graphics: TextGUIGraphics?, component: TextBox) {
+        private fun drawTextArea(
+            graphics: TextGUIGraphics?,
+            component: TextBox,
+        ) {
             val activeGraphics = graphics ?: return
             val textAreaSize = activeGraphics.size ?: TerminalSize.ZERO
             if (viewTopLeft.column + textAreaSize.columns > component.longestRow) {
@@ -769,6 +776,9 @@ open class TextBox constructor(
     }
 
     interface TextChangeListener {
-        fun onTextChanged(newText: String, changedByUserInteraction: Boolean)
+        fun onTextChanged(
+            newText: String,
+            changedByUserInteraction: Boolean,
+        )
     }
 }

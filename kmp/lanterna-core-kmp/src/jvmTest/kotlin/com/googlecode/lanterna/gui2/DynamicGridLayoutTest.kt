@@ -18,311 +18,349 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow
 import com.googlecode.lanterna.gui2.dialogs.ListSelectDialog
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialog
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder
-
 import java.io.IOException
-import java.math.BigInteger
 import java.util.Random
 import java.util.regex.Pattern
 
- class DynamicGridLayoutTest:TestBase() {
+class DynamicGridLayoutTest : TestBase() {
+    private val randomColor: TextColor
+        get() = GOOD_COLORS[RANDOM.nextInt(GOOD_COLORS.size)]
 
-private val randomColor:TextColor
-get() = GOOD_COLORS[RANDOM.nextInt(GOOD_COLORS.size)]
+    @Override
+    fun init(textGUI: WindowBasedTextGUI) {
+        val window = BasicWindow("Grid layout test")
 
-@Override
- fun init(textGUI:WindowBasedTextGUI) {
-val window = BasicWindow("Grid layout test")
+        val mainPanel = Panel()
+        mainPanel.setLayoutManager(LinearLayout(Direction.VERTICAL).setSpacing(1))
 
-val mainPanel = Panel()
-mainPanel.setLayoutManager(LinearLayout(Direction.VERTICAL).setSpacing(1))
+        val gridPanel = Panel()
+        val gridLayout = newGridLayout(4)
+        gridPanel.setLayoutManager(gridLayout)
 
-val gridPanel = Panel()
-val gridLayout = newGridLayout(4)
-gridPanel.setLayoutManager(gridLayout)
+        for (i in 0..15) {
+            gridPanel.addComponent(EmptySpace(randomColor, TerminalSize(4, 1)))
+        }
 
-for (i in 0..15)
-{
-gridPanel.addComponent(EmptySpace(randomColor, TerminalSize(4, 1)))
-}
+        val controlPanel = Panel()
+        controlPanel.setLayoutManager(LinearLayout(Direction.HORIZONTAL))
+        controlPanel.addComponent(Button("Add Component", { onAddComponent(textGUI, gridPanel) }))
+        controlPanel.addComponent(Button("Modify Component", { onModifyComponent(textGUI, gridPanel) }))
+        controlPanel.addComponent(Button("Modify Grid", { onModifyGrid(textGUI, gridPanel.getLayoutManager() as GridLayout) }))
+        controlPanel.addComponent(Button("Reset Grid", { onResetGrid(textGUI, gridPanel) }))
+        controlPanel.addComponent(Button("Exit", Runnable({ window.close() })))
 
-val controlPanel = Panel()
-controlPanel.setLayoutManager(LinearLayout(Direction.HORIZONTAL))
-controlPanel.addComponent(Button("Add Component", { onAddComponent(textGUI, gridPanel) }))
-controlPanel.addComponent(Button("Modify Component", { onModifyComponent(textGUI, gridPanel) }))
-controlPanel.addComponent(Button("Modify Grid", { onModifyGrid(textGUI, gridPanel.getLayoutManager() as GridLayout) }))
-controlPanel.addComponent(Button("Reset Grid", { onResetGrid(textGUI, gridPanel) }))
-controlPanel.addComponent(Button("Exit", Runnable({ window.close() })))
+        mainPanel.addComponent(gridPanel)
+        mainPanel.addComponent(
+            Separator(Direction.HORIZONTAL)
+                .setLayoutData(
+                    LinearLayout.createLayoutData(LinearLayout.Alignment.FILL),
+                ),
+        )
+        mainPanel.addComponent(controlPanel)
 
-mainPanel.addComponent(gridPanel)
-mainPanel.addComponent(
-Separator(Direction.HORIZONTAL)
-.setLayoutData(
-LinearLayout.createLayoutData(LinearLayout.Alignment.FILL)))
-mainPanel.addComponent(controlPanel)
+        window.component = mainPanel
+        textGUI.addWindow(window)
+    }
 
-window.component = mainPanel
-textGUI.addWindow(window)
-}
+    private fun onModifyGrid(
+        textGUI: WindowBasedTextGUI,
+        gridLayout: GridLayout?,
+    ) {
+        val gridLayoutEditor = GridLayoutEditor(gridLayout!!)
+        gridLayoutEditor.showDialog(textGUI)
+    }
 
-private fun onModifyGrid(textGUI:WindowBasedTextGUI, gridLayout:GridLayout?) {
-val gridLayoutEditor = GridLayoutEditor(gridLayout!!)
-gridLayoutEditor.showDialog(textGUI)
-}
+    private fun onAddComponent(
+        textGUI: WindowBasedTextGUI,
+        gridPanel: Panel?,
+    ) {
+        val componentType =
+            ListSelectDialog.showDialog(
+                textGUI,
+                "Add Component",
+                "Select component to add",
+                *SelectableComponentType.values(),
+            )
+        if (componentType == null) {
+            return
+        }
+        var component: Component? = null
+        when (componentType) {
+            SelectableComponentType.Block, SelectableComponentType.TextBox -> {
+                val sizeString =
+                    TextInputDialogBuilder()
+                        .setInitialContent(if (componentType == SelectableComponentType.Block) "4x1" else "16x1")
+                        .setTitle("Add $componentType")
+                        .setDescription("Enter size of " + componentType + " (<columns>x<rows>)")
+                        .setValidationPattern(Pattern.compile("[0-9]+x[0-9]+"), "Invalid format, please use <columns>x<rows>")
+                        .build()
+                        .showDialog(textGUI)
+                if (sizeString == null) {
+                    return
+                }
+                val size = TerminalSize(Integer.parseInt(sizeString.split("x")[0]), Integer.parseInt(sizeString.split("x")[1]))
+                component = if (componentType == SelectableComponentType.Block) EmptySpace(randomColor, size) else TextBox(size)
+            }
 
-private fun onAddComponent(textGUI:WindowBasedTextGUI, gridPanel:Panel?) {
-val componentType = ListSelectDialog.showDialog(
-textGUI, 
-"Add Component", 
-"Select component to add", 
-*SelectableComponentType.values())
-if (componentType == null)
-{
-return 
-}
-var component:Component? = null
-when (componentType) {
-SelectableComponentType.Block, SelectableComponentType.TextBox -> {
-val sizeString = TextInputDialogBuilder()
-.setInitialContent(if (componentType == SelectableComponentType.Block) "4x1" else "16x1")
-.setTitle("Add $componentType")
-.setDescription("Enter size of " + componentType + " (<columns>x<rows>)")
-.setValidationPattern(Pattern.compile("[0-9]+x[0-9]+"), "Invalid format, please use <columns>x<rows>")
-.build()
-.showDialog(textGUI)
-if (sizeString == null)
-{
-return 
-}
-val size = TerminalSize(Integer.parseInt(sizeString.split("x")[0]), Integer.parseInt(sizeString.split("x")[1]))
-component = if (componentType == SelectableComponentType.Block) EmptySpace(randomColor, size) else TextBox(size)
-}
+            SelectableComponentType.Label -> {
+                val text = TextInputDialog.showDialog(textGUI, "Add $componentType", "Enter the text of the new Label", "Label")
+                component = Label(text ?: "")
+            }
+        }
+        gridPanel?.addComponent(component)
+    }
 
-SelectableComponentType.Label -> {
-val text = TextInputDialog.showDialog(textGUI, "Add $componentType", "Enter the text of the new Label", "Label")
-component = Label(text ?: "")
-}
-}
-gridPanel?.addComponent(component)
-}
+    private fun onModifyComponent(
+        textGUI: WindowBasedTextGUI,
+        panel: Panel,
+    ) {
+        val components = panel.children.toTypedArray()
+        val component = ListSelectDialog.showDialog(textGUI, "Modify Component", "Select component to modify", 10, *components)
+        if (component == null) {
+            return
+        }
 
+        val gridLayoutDataEditor = GridLayoutDataEditor(component)
+        gridLayoutDataEditor.showDialog(textGUI)
+    }
 
-private fun onModifyComponent(textGUI:WindowBasedTextGUI, panel:Panel) {
-val components = panel.children.toTypedArray()
-val component = ListSelectDialog.showDialog(textGUI, "Modify Component", "Select component to modify", 10, *components)
-if (component == null)
-{
-return 
-}
+    private fun onResetGrid(
+        textGUI: WindowBasedTextGUI,
+        gridPanel: Panel?,
+    ) {
+        val columns = TextInputDialog.showNumberDialog(textGUI, "Reset Grid", "Reset grid to how many columns?", "4")
+        if (columns == null) {
+            return
+        }
+        val prepopulate =
+            TextInputDialog.showNumberDialog(
+                textGUI,
+                "Reset Grid",
+                "Pre-populate grid with how many dummy components?",
+                columns!!.toString(),
+            )
+        gridPanel?.removeAllComponents()
+        gridPanel?.setLayoutManager(newGridLayout(columns.toInt()))
 
-val gridLayoutDataEditor = GridLayoutDataEditor(component)
-gridLayoutDataEditor.showDialog(textGUI)
-}
+        for (i in 0 until (prepopulate?.toInt() ?: 0)) {
+            gridPanel?.addComponent(EmptySpace(randomColor, TerminalSize(4, 1)))
+        }
+    }
 
-private fun onResetGrid(textGUI:WindowBasedTextGUI, gridPanel:Panel?) {
-val columns = TextInputDialog.showNumberDialog(textGUI, "Reset Grid", "Reset grid to how many columns?", "4")
-if (columns == null)
-{
-return 
-}
-val prepopulate = TextInputDialog.showNumberDialog(
-textGUI, 
-"Reset Grid", 
-"Pre-populate grid with how many dummy components?", 
-columns!!.toString())
-gridPanel?.removeAllComponents()
-gridPanel?.setLayoutManager(newGridLayout(columns.toInt()))
+    private fun newGridLayout(columns: Int): GridLayout {
+        val gridLayout = GridLayout(columns)
+        gridLayout.setTopMarginSize(1)
+        gridLayout.setVerticalSpacing(1)
+        gridLayout.setHorizontalSpacing(1)
+        return gridLayout
+    }
 
-for (i in 0 until (prepopulate?.toInt() ?: 0))
-{
-gridPanel?.addComponent(EmptySpace(randomColor, TerminalSize(4, 1)))
-}
-}
+    private enum class SelectableComponentType {
+        Block,
+        Label,
+        TextBox,
+    }
 
-private fun newGridLayout(columns:Int):GridLayout {
-val gridLayout = GridLayout(columns)
-gridLayout.setTopMarginSize(1)
-gridLayout.setVerticalSpacing(1)
-gridLayout.setHorizontalSpacing(1)
-return gridLayout
-}
+    private class GridLayoutEditor(gridLayout: GridLayout) : DialogWindow("GridLayoutData Editor") {
+        init {
 
-private enum class SelectableComponentType {
-Block, 
-Label, 
-TextBox
-}
+            val numberPattern = Pattern.compile("[0-9]+")
 
-private class GridLayoutEditor(gridLayout:GridLayout):DialogWindow("GridLayoutData Editor") {
-init{
+            val contentPane = Panel()
+            contentPane.setLayoutManager(GridLayout(2))
+            contentPane.addComponent(Label("Horizontal spacing:"))
+            val textBoxHorizontalSpacing = TextBox()
+            textBoxHorizontalSpacing.setText(gridLayout.getHorizontalSpacing().toString())
+            textBoxHorizontalSpacing.setValidationPattern(numberPattern)
+            contentPane.addComponent(textBoxHorizontalSpacing)
 
-val numberPattern = Pattern.compile("[0-9]+")
+            contentPane.addComponent(Label("Vertical spacing:"))
+            val textBoxVerticalSpacing = TextBox()
+            textBoxVerticalSpacing.setText(gridLayout.getVerticalSpacing().toString())
+            textBoxVerticalSpacing.setValidationPattern(numberPattern)
+            contentPane.addComponent(textBoxVerticalSpacing)
 
-val contentPane = Panel()
-contentPane.setLayoutManager(GridLayout(2))
-contentPane.addComponent(Label("Horizontal spacing:"))
-val textBoxHorizontalSpacing = TextBox()
-textBoxHorizontalSpacing.setText(gridLayout.getHorizontalSpacing().toString())
-textBoxHorizontalSpacing.setValidationPattern(numberPattern)
-contentPane.addComponent(textBoxHorizontalSpacing)
+            contentPane.addComponent(Label("Left margin:"))
+            val textBoxLeftMargin = TextBox()
+            textBoxLeftMargin.setText(gridLayout.getLeftMarginSize().toString())
+            textBoxLeftMargin.setValidationPattern(numberPattern)
+            contentPane.addComponent(textBoxLeftMargin)
 
-contentPane.addComponent(Label("Vertical spacing:"))
-val textBoxVerticalSpacing = TextBox()
-textBoxVerticalSpacing.setText(gridLayout.getVerticalSpacing().toString())
-textBoxVerticalSpacing.setValidationPattern(numberPattern)
-contentPane.addComponent(textBoxVerticalSpacing)
+            contentPane.addComponent(Label("Right margin:"))
+            val textBoxRightMargin = TextBox()
+            textBoxRightMargin.setText(gridLayout.getRightMarginSize().toString())
+            textBoxRightMargin.setValidationPattern(numberPattern)
+            contentPane.addComponent(textBoxRightMargin)
 
-contentPane.addComponent(Label("Left margin:"))
-val textBoxLeftMargin = TextBox()
-textBoxLeftMargin.setText(gridLayout.getLeftMarginSize().toString())
-textBoxLeftMargin.setValidationPattern(numberPattern)
-contentPane.addComponent(textBoxLeftMargin)
+            contentPane.addComponent(Label("Top margin:"))
+            val textBoxTopMargin = TextBox()
+            textBoxTopMargin.setText(gridLayout.getTopMarginSize().toString())
+            textBoxTopMargin.setValidationPattern(numberPattern)
+            contentPane.addComponent(textBoxTopMargin)
 
-contentPane.addComponent(Label("Right margin:"))
-val textBoxRightMargin = TextBox()
-textBoxRightMargin.setText(gridLayout.getRightMarginSize().toString())
-textBoxRightMargin.setValidationPattern(numberPattern)
-contentPane.addComponent(textBoxRightMargin)
+            contentPane.addComponent(Label("Bottom margin:"))
+            val textBoxBottomMargin = TextBox()
+            textBoxBottomMargin.setText(gridLayout.getBottomMarginSize().toString())
+            textBoxBottomMargin.setValidationPattern(numberPattern)
+            contentPane.addComponent(textBoxBottomMargin)
 
-contentPane.addComponent(Label("Top margin:"))
-val textBoxTopMargin = TextBox()
-textBoxTopMargin.setText(gridLayout.getTopMarginSize().toString())
-textBoxTopMargin.setValidationPattern(numberPattern)
-contentPane.addComponent(textBoxTopMargin)
+            contentPane.addComponent(
+                EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)),
+            )
+            contentPane.addComponent(
+                Separator(Direction.HORIZONTAL).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)),
+            )
+            contentPane.addComponent(
+                EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)),
+            )
 
-contentPane.addComponent(Label("Bottom margin:"))
-val textBoxBottomMargin = TextBox()
-textBoxBottomMargin.setText(gridLayout.getBottomMarginSize().toString())
-textBoxBottomMargin.setValidationPattern(numberPattern)
-contentPane.addComponent(textBoxBottomMargin)
+            val okButton =
+                Button("OK", {
+                    gridLayout.setHorizontalSpacing(Integer.parseInt(textBoxHorizontalSpacing.text))
+                    gridLayout.setVerticalSpacing(Integer.parseInt(textBoxVerticalSpacing.text))
+                    gridLayout.setLeftMarginSize(Integer.parseInt(textBoxLeftMargin.text))
+                    gridLayout.setRightMarginSize(Integer.parseInt(textBoxRightMargin.text))
+                    gridLayout.setTopMarginSize(Integer.parseInt(textBoxTopMargin.text))
+                    gridLayout.setBottomMarginSize(Integer.parseInt(textBoxBottomMargin.text))
+                    close()
+                })
+            val cancelButton = Button("Cancel", Runnable({ this.close() }))
 
-contentPane.addComponent(
-EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
-contentPane.addComponent(
-Separator(Direction.HORIZONTAL).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
-contentPane.addComponent(
-EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
+            contentPane.addComponent(
+                Panels.horizontal(okButton, cancelButton)
+                    .setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)),
+            )
+            this.component = contentPane
+        }
+    }
 
-val okButton = Button("OK", { gridLayout.setHorizontalSpacing(Integer.parseInt(textBoxHorizontalSpacing.text))
-gridLayout.setVerticalSpacing(Integer.parseInt(textBoxVerticalSpacing.text))
-gridLayout.setLeftMarginSize(Integer.parseInt(textBoxLeftMargin.text))
-gridLayout.setRightMarginSize(Integer.parseInt(textBoxRightMargin.text))
-gridLayout.setTopMarginSize(Integer.parseInt(textBoxTopMargin.text))
-gridLayout.setBottomMarginSize(Integer.parseInt(textBoxBottomMargin.text))
-close() })
-val cancelButton = Button("Cancel", Runnable({ this.close() }))
+    private class GridLayoutDataEditor(component: Component) : DialogWindow("GridLayoutData Editor") {
+        init {
 
-contentPane.addComponent(
-Panels.horizontal(okButton, cancelButton)
-.setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)))
-this.component = contentPane
-}
+            var gridLayoutData: GridLayout.GridLayoutData? = component.layoutData as? GridLayout.GridLayoutData
+            if (gridLayoutData == null) {
+                gridLayoutData =
+                    GridLayout.createLayoutData(
+                        GridLayout.Alignment.BEGINNING,
+                        GridLayout.Alignment.BEGINNING,
+                    ) as GridLayout.GridLayoutData
+            }
 
+            val contentPane = Panel()
+            contentPane.setLayoutManager(GridLayout(2))
+            contentPane.addComponent(Label("Horizontal alignment:"))
+            val radioBoxesHorizontalAlignment = RadioBoxList<GridLayout.Alignment>()
+            radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.BEGINNING)
+            radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.CENTER)
+            radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.END)
+            radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.FILL)
+            radioBoxesHorizontalAlignment.checkedItem = gridLayoutData!!.horizontalAlignment
+            contentPane.addComponent(radioBoxesHorizontalAlignment)
 
-}
+            contentPane.addComponent(
+                EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)),
+            )
 
-private class GridLayoutDataEditor(component:Component):DialogWindow("GridLayoutData Editor") {
-init{
+            contentPane.addComponent(Label("Vertical alignment:"))
+            val radioBoxesVerticalAlignment = RadioBoxList<GridLayout.Alignment>()
+            radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.BEGINNING)
+            radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.CENTER)
+            radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.END)
+            radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.FILL)
+            radioBoxesVerticalAlignment.checkedItem = gridLayoutData!!.verticalAlignment
+            contentPane.addComponent(radioBoxesVerticalAlignment)
 
-var gridLayoutData:GridLayout.GridLayoutData? = component.layoutData as? GridLayout.GridLayoutData
-if (gridLayoutData == null)
-{
-gridLayoutData = GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING) as GridLayout.GridLayoutData
-}
+            contentPane.addComponent(
+                EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)),
+            )
 
-val contentPane = Panel()
-contentPane.setLayoutManager(GridLayout(2))
-contentPane.addComponent(Label("Horizontal alignment:"))
-val radioBoxesHorizontalAlignment = RadioBoxList<GridLayout.Alignment>()
-radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.BEGINNING)
-radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.CENTER)
-radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.END)
-radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.FILL)
-radioBoxesHorizontalAlignment.checkedItem = gridLayoutData!!.horizontalAlignment
-contentPane.addComponent(radioBoxesHorizontalAlignment)
+            contentPane.addComponent(Label("Grab extra horizontal space:"))
+            val checkBoxGrabExtraHorizontalSpace = CheckBox("")
+            checkBoxGrabExtraHorizontalSpace.setChecked(gridLayoutData!!.grabExtraHorizontalSpace)
+            contentPane.addComponent(checkBoxGrabExtraHorizontalSpace)
 
-contentPane.addComponent(
-EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
+            contentPane.addComponent(Label("Grab extra vertical space:"))
+            val checkBoxGrabExtraVerticalSpace = CheckBox("")
+            checkBoxGrabExtraVerticalSpace.setChecked(gridLayoutData!!.grabExtraVerticalSpace)
+            contentPane.addComponent(checkBoxGrabExtraVerticalSpace)
 
-contentPane.addComponent(Label("Vertical alignment:"))
-val radioBoxesVerticalAlignment = RadioBoxList<GridLayout.Alignment>()
-radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.BEGINNING)
-radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.CENTER)
-radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.END)
-radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.FILL)
-radioBoxesVerticalAlignment.checkedItem = gridLayoutData!!.verticalAlignment
-contentPane.addComponent(radioBoxesVerticalAlignment)
+            contentPane.addComponent(
+                EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)),
+            )
 
-contentPane.addComponent(
-EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
+            val numberPattern = Pattern.compile("[1-9][0-9]*")
 
-contentPane.addComponent(Label("Grab extra horizontal space:"))
-val checkBoxGrabExtraHorizontalSpace = CheckBox("")
-checkBoxGrabExtraHorizontalSpace.setChecked(gridLayoutData!!.grabExtraHorizontalSpace)
-contentPane.addComponent(checkBoxGrabExtraHorizontalSpace)
+            contentPane.addComponent(Label("Horizontal span:"))
+            val textBoxHorizontalSpan = TextBox(TerminalSize(5, 1), gridLayoutData!!.horizontalSpan.toString())
+            textBoxHorizontalSpan.setValidationPattern(numberPattern)
+            contentPane.addComponent(textBoxHorizontalSpan)
 
-contentPane.addComponent(Label("Grab extra vertical space:"))
-val checkBoxGrabExtraVerticalSpace = CheckBox("")
-checkBoxGrabExtraVerticalSpace.setChecked(gridLayoutData!!.grabExtraVerticalSpace)
-contentPane.addComponent(checkBoxGrabExtraVerticalSpace)
+            contentPane.addComponent(Label("Vertical span:"))
+            val textBoxVerticalSpan = TextBox(TerminalSize(5, 1), gridLayoutData!!.verticalSpan.toString())
+            textBoxVerticalSpan.setValidationPattern(numberPattern)
+            contentPane.addComponent(textBoxVerticalSpan)
 
-contentPane.addComponent(
-EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
+            contentPane.addComponent(
+                EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)),
+            )
+            contentPane.addComponent(
+                Separator(Direction.HORIZONTAL).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)),
+            )
+            contentPane.addComponent(
+                EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)),
+            )
 
-val numberPattern = Pattern.compile("[1-9][0-9]*")
+            val okButton =
+                Button("OK", {
+                    val horizontalAlignment =
+                        radioBoxesHorizontalAlignment.checkedItem as? GridLayout.Alignment
+                            ?: GridLayout.Alignment.BEGINNING
+                    val verticalAlignment =
+                        radioBoxesVerticalAlignment.checkedItem as? GridLayout.Alignment
+                            ?: GridLayout.Alignment.BEGINNING
+                    component.setLayoutData(
+                        GridLayout.createLayoutData(
+                            horizontalAlignment,
+                            verticalAlignment,
+                            checkBoxGrabExtraHorizontalSpace.isChecked(),
+                            checkBoxGrabExtraVerticalSpace.isChecked(),
+                            Integer.parseInt(textBoxHorizontalSpan.text),
+                            Integer.parseInt(textBoxVerticalSpan.text),
+                        ),
+                    )
+                    close()
+                })
+            val cancelButton = Button("Cancel", Runnable({ this.close() }))
 
-contentPane.addComponent(Label("Horizontal span:"))
-val textBoxHorizontalSpan = TextBox(TerminalSize(5, 1), gridLayoutData!!.horizontalSpan.toString())
-textBoxHorizontalSpan.setValidationPattern(numberPattern)
-contentPane.addComponent(textBoxHorizontalSpan)
+            contentPane.addComponent(
+                Panels.horizontal(okButton, cancelButton)
+                    .setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)),
+            )
+            this.component = contentPane
+        }
+    }
 
-contentPane.addComponent(Label("Vertical span:"))
-val textBoxVerticalSpan = TextBox(TerminalSize(5, 1), gridLayoutData!!.verticalSpan.toString())
-textBoxVerticalSpan.setValidationPattern(numberPattern)
-contentPane.addComponent(textBoxVerticalSpan)
+    companion object {
+        @Throws(IOException::class, InterruptedException::class)
+        fun main(args: Array<String?>?) {
+            DynamicGridLayoutTest().run(args)
+        }
 
-contentPane.addComponent(
-EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
-contentPane.addComponent(
-Separator(Direction.HORIZONTAL).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
-contentPane.addComponent(
-EmptySpace(TerminalSize.ONE).setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2)))
-
-val okButton = Button("OK", {
-val horizontalAlignment = radioBoxesHorizontalAlignment.checkedItem as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
-val verticalAlignment = radioBoxesVerticalAlignment.checkedItem as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
-component.setLayoutData(
-GridLayout.createLayoutData(
-horizontalAlignment, 
-verticalAlignment, 
-checkBoxGrabExtraHorizontalSpace.isChecked(), 
-checkBoxGrabExtraVerticalSpace.isChecked(), 
-Integer.parseInt(textBoxHorizontalSpan.text), 
-Integer.parseInt(textBoxVerticalSpan.text)))
-close() })
-val cancelButton = Button("Cancel", Runnable({ this.close() }))
-
-contentPane.addComponent(
-Panels.horizontal(okButton, cancelButton)
-.setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)))
-this.component = contentPane
-}
-}
-
-companion object {
-@Throws(IOException::class, InterruptedException::class)
- fun main(args:Array<String?>?) {
-DynamicGridLayoutTest().run(args)
-}
-
-private val GOOD_COLORS = arrayOf(TextColor.ANSI.RED, TextColor.ANSI.BLUE, TextColor.ANSI.CYAN, TextColor.ANSI.GREEN, TextColor.ANSI.MAGENTA, TextColor.ANSI.YELLOW)
-private val RANDOM = Random()
-}
+        private val GOOD_COLORS =
+            arrayOf(
+                TextColor.ANSI.RED,
+                TextColor.ANSI.BLUE,
+                TextColor.ANSI.CYAN,
+                TextColor.ANSI.GREEN,
+                TextColor.ANSI.MAGENTA,
+                TextColor.ANSI.YELLOW,
+            )
+        private val RANDOM = Random()
+    }
 }

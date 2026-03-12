@@ -28,11 +28,18 @@ class LocalizedUIBundle private constructor(bundleName: String?) : BundleLocator
     companion object {
         private val MY_BUNDLE = LocalizedUIBundle("multilang.lanterna-ui")
 
-        fun get(key: String?, vararg parameters: String?): String? {
+        fun get(
+            key: String?,
+            vararg parameters: String?,
+        ): String? {
             return get(Locale.getDefault(), key, *parameters)
         }
 
-        fun get(locale: Locale?, key: String?, vararg parameters: String?): String? {
+        fun get(
+            locale: Locale?,
+            key: String?,
+            vararg parameters: String?,
+        ): String? {
             return MY_BUNDLE.getBundleKeyValue(locale, key, *parameters)
         }
     }

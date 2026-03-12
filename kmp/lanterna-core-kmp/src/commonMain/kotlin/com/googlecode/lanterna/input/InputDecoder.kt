@@ -32,7 +32,7 @@ class InputDecoder(
     /**
      * Reader to read characters from, wrapped by a [BufferedReader].
      */
-    source: Reader?
+    source: Reader?,
 ) {
     private val source: Reader = BufferedReader(requireNotNull(source) { "source" })
     private val bytePatterns: MutableList<CharacterPattern> = ArrayList()
@@ -87,11 +87,12 @@ class InputDecoder(
      * @param units New timeout to use, in 250ms units
      */
     fun setTimeoutUnits(units: Int) {
-        timeoutUnits = when {
-            units < 0 -> 0
-            units > 240 -> 240
-            else -> units
-        }
+        timeoutUnits =
+            when {
+                units < 0 -> 0
+                units > 240 -> 240
+                else -> units
+            }
     }
 
     /**
@@ -170,13 +171,11 @@ class InputDecoder(
                     break
                 }
                 continue
-            }
-            // No full match yet, but there is still potential.
-            else if (matching.partialMatch) {
+            } else if (matching.partialMatch) {
+                // No full match yet, but there is still potential.
                 continue
-            }
-            // No longer match possible at this point.
-            else {
+            } else {
+                // No longer match possible at this point.
                 if (bestMatch != null) {
                     // There was already a previous full match, use it.
                     break

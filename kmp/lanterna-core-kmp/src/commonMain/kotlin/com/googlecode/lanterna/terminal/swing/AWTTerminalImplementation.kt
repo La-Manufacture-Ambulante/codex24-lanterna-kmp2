@@ -91,12 +91,13 @@ internal class AWTTerminalImplementation(
             component.removeMouseWheelListener(it)
             component.removeMouseMotionListener(it)
         }
-        mouseListener = object : TerminalMouseListener(this.activeMouseCaptureMode) {
-            override fun mouseClicked(e: MouseEvent) {
-                super.mouseClicked(e)
-                component.requestFocusInWindow()
+        mouseListener =
+            object : TerminalMouseListener(this.activeMouseCaptureMode) {
+                override fun mouseClicked(e: MouseEvent) {
+                    super.mouseClicked(e)
+                    component.requestFocusInWindow()
+                }
             }
-        }
         component.addMouseListener(mouseListener)
         component.addMouseWheelListener(mouseListener)
         component.addMouseMotionListener(mouseListener)

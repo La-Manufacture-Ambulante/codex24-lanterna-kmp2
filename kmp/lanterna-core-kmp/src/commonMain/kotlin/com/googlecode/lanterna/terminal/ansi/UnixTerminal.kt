@@ -25,29 +25,31 @@ import java.io.OutputStream
 import java.nio.charset.Charset
 
 @Suppress("WeakerAccess")
-class UnixTerminal @Throws(IOException::class) private constructor(
-    terminalDevice: File,
-    terminalInput: InputStream,
-    terminalOutput: OutputStream,
-    terminalCharset: Charset,
-    terminalCtrlCBehaviour: CtrlCBehaviour,
-) : UnixLikeTTYTerminal(terminalDevice, terminalInput, terminalOutput, terminalCharset, terminalCtrlCBehaviour) {
+class UnixTerminal
     @Throws(IOException::class)
-    constructor() : this(System.`in`, System.out, Charset.defaultCharset())
-
-    @Throws(IOException::class)
-    constructor(
-        terminalInput: InputStream,
-        terminalOutput: OutputStream,
-        terminalCharset: Charset,
-    ) : this(terminalInput, terminalOutput, terminalCharset, CtrlCBehaviour.CTRL_C_KILLS_APPLICATION)
-
-    @Suppress("SameParameterValue", "WeakerAccess")
-    @Throws(IOException::class)
-    constructor(
+    private constructor(
+        terminalDevice: File,
         terminalInput: InputStream,
         terminalOutput: OutputStream,
         terminalCharset: Charset,
         terminalCtrlCBehaviour: CtrlCBehaviour,
-    ) : this(File("/dev/tty"), terminalInput, terminalOutput, terminalCharset, terminalCtrlCBehaviour)
-}
+    ) : UnixLikeTTYTerminal(terminalDevice, terminalInput, terminalOutput, terminalCharset, terminalCtrlCBehaviour) {
+        @Throws(IOException::class)
+        constructor() : this(System.`in`, System.out, Charset.defaultCharset())
+
+        @Throws(IOException::class)
+        constructor(
+            terminalInput: InputStream,
+            terminalOutput: OutputStream,
+            terminalCharset: Charset,
+        ) : this(terminalInput, terminalOutput, terminalCharset, CtrlCBehaviour.CTRL_C_KILLS_APPLICATION)
+
+        @Suppress("SameParameterValue", "WeakerAccess")
+        @Throws(IOException::class)
+        constructor(
+            terminalInput: InputStream,
+            terminalOutput: OutputStream,
+            terminalCharset: Charset,
+            terminalCtrlCBehaviour: CtrlCBehaviour,
+        ) : this(File("/dev/tty"), terminalInput, terminalOutput, terminalCharset, terminalCtrlCBehaviour)
+    }

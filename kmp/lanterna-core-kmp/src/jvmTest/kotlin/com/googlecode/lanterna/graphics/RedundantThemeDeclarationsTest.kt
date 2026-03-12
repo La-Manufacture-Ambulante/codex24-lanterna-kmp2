@@ -18,37 +18,29 @@
  */
 package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.bundle.LanternaThemes
 import org.junit.Assert
 import org.junit.Test
-
 import java.util.Collections
 
 class RedundantThemeDeclarationsTest {
-@Test
-  fun noThemeDeclarationsAreRedundant() {
-for (theme in LanternaThemes.registeredThemes.filterNotNull())
-{
-val registeredTheme = LanternaThemes.getRegisteredTheme(theme)
-if (registeredTheme !is PropertyTheme) {
-continue
-}
-val redundantDeclarations = (registeredTheme as PropertyTheme).findRedundantDeclarations()
-try
-{
-Assert.assertEquals(Collections.emptyList<String>(), redundantDeclarations)
-}
-catch (e:AssertionError) {
-System.out.println("Redundant definitions in theme '" + theme + "':")
-for (declaration in redundantDeclarations.orEmpty())
-{
-System.out.println(declaration)
-}
-throw e
-}
-
-}
-}
+    @Test
+    fun noThemeDeclarationsAreRedundant() {
+        for (theme in LanternaThemes.registeredThemes.filterNotNull()) {
+            val registeredTheme = LanternaThemes.getRegisteredTheme(theme)
+            if (registeredTheme !is PropertyTheme) {
+                continue
+            }
+            val redundantDeclarations = (registeredTheme as PropertyTheme).findRedundantDeclarations()
+            try {
+                Assert.assertEquals(Collections.emptyList<String>(), redundantDeclarations)
+            } catch (e: AssertionError) {
+                System.out.println("Redundant definitions in theme '" + theme + "':")
+                for (declaration in redundantDeclarations.orEmpty()) {
+                    System.out.println(declaration)
+                }
+                throw e
+            }
+        }
+    }
 }

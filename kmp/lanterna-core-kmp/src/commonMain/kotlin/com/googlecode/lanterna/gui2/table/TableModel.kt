@@ -26,11 +26,36 @@ import java.util.Arrays
  */
 open class TableModel<V>(columnLabels: List<String?>) {
     interface Listener<V> {
-        fun onRowAdded(model: TableModel<V>?, index: Int)
-        fun onRowRemoved(model: TableModel<V>?, index: Int, oldRow: List<V>)
-        fun onColumnAdded(model: TableModel<V>?, index: Int)
-        fun onColumnRemoved(model: TableModel<V>?, index: Int, oldHeader: String?, oldColumn: List<V>)
-        fun onCellChanged(model: TableModel<V>?, row: Int, column: Int, oldValue: V, newValue: V)
+        fun onRowAdded(
+            model: TableModel<V>?,
+            index: Int,
+        )
+
+        fun onRowRemoved(
+            model: TableModel<V>?,
+            index: Int,
+            oldRow: List<V>,
+        )
+
+        fun onColumnAdded(
+            model: TableModel<V>?,
+            index: Int,
+        )
+
+        fun onColumnRemoved(
+            model: TableModel<V>?,
+            index: Int,
+            oldHeader: String?,
+            oldColumn: List<V>,
+        )
+
+        fun onCellChanged(
+            model: TableModel<V>?,
+            row: Int,
+            column: Int,
+            oldValue: V,
+            newValue: V,
+        )
     }
 
     private val columns: MutableList<String?> = ArrayList()
@@ -92,7 +117,10 @@ open class TableModel<V>(columnLabels: List<String?>) {
     }
 
     @Synchronized
-    fun insertRow(index: Int, values: Collection<V>): TableModel<V> {
+    fun insertRow(
+        index: Int,
+        values: Collection<V>,
+    ): TableModel<V> {
         val list = ArrayList(values)
         rows.add(index, list)
         for (listener in listeners) {
@@ -122,18 +150,28 @@ open class TableModel<V>(columnLabels: List<String?>) {
     fun getColumnLabel(index: Int): String? = columns[index]
 
     @Synchronized
-    fun setColumnLabel(index: Int, newLabel: String?): TableModel<V> {
+    fun setColumnLabel(
+        index: Int,
+        newLabel: String?,
+    ): TableModel<V> {
         columns[index] = newLabel
         return this
     }
 
     @Synchronized
-    fun addColumn(label: String?, newColumnValues: Array<V>?): TableModel<V> {
+    fun addColumn(
+        label: String?,
+        newColumnValues: Array<V>?,
+    ): TableModel<V> {
         return insertColumn(getColumnCount(), label, newColumnValues)
     }
 
     @Synchronized
-    fun insertColumn(index: Int, label: String?, newColumnValues: Array<V>?): TableModel<V> {
+    fun insertColumn(
+        index: Int,
+        label: String?,
+        newColumnValues: Array<V>?,
+    ): TableModel<V> {
         columns.add(index, label)
         for (i in rows.indices) {
             val row = rows[i]
@@ -166,7 +204,10 @@ open class TableModel<V>(columnLabels: List<String?>) {
     }
 
     @Synchronized
-    fun getCell(columnIndex: Int, rowIndex: Int): V {
+    fun getCell(
+        columnIndex: Int,
+        rowIndex: Int,
+    ): V {
         if (rowIndex < 0 || columnIndex < 0) {
             throw IndexOutOfBoundsException("Invalid row or column index: $rowIndex $columnIndex")
         } else if (rowIndex >= getRowCount()) {
@@ -179,7 +220,11 @@ open class TableModel<V>(columnLabels: List<String?>) {
     }
 
     @Synchronized
-    fun setCell(columnIndex: Int, rowIndex: Int, value: V): TableModel<V> {
+    fun setCell(
+        columnIndex: Int,
+        rowIndex: Int,
+        value: V,
+    ): TableModel<V> {
         getCell(columnIndex, rowIndex)
         val row = rows[rowIndex]
         for (j in row.size until columnIndex) {

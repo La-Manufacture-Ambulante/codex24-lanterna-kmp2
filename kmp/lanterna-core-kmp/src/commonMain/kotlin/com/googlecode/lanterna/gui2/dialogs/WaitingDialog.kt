@@ -37,7 +37,10 @@ class WaitingDialog private constructor(title: String?, text: String?) : DialogW
         return null
     }
 
-    fun showDialog(textGUI: WindowBasedTextGUI, blockUntilClosed: Boolean) {
+    fun showDialog(
+        textGUI: WindowBasedTextGUI,
+        blockUntilClosed: Boolean,
+    ) {
         textGUI.addWindow(this)
         if (blockUntilClosed) {
             waitUntilClosed()
@@ -45,11 +48,18 @@ class WaitingDialog private constructor(title: String?, text: String?) : DialogW
     }
 
     companion object {
-        fun createDialog(title: String?, text: String?): WaitingDialog {
+        fun createDialog(
+            title: String?,
+            text: String?,
+        ): WaitingDialog {
             return WaitingDialog(title, text)
         }
 
-        fun showDialog(textGUI: WindowBasedTextGUI, title: String?, text: String?): WaitingDialog {
+        fun showDialog(
+            textGUI: WindowBasedTextGUI,
+            title: String?,
+            text: String?,
+        ): WaitingDialog {
             val waitingDialog = createDialog(title, text)
             waitingDialog.showDialog(textGUI, false)
             return waitingDialog
