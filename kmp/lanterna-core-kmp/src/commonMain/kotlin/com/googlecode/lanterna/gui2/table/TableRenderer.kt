@@ -29,16 +29,12 @@ import com.googlecode.lanterna.gui2.TextGUIGraphics
 interface TableRenderer<V> : InteractableRenderer<Table<V?>?> {
     var isScrollBarsHidden: Boolean
 
-/**
+    /**
      * Returns the number of rows visible in the table cell area on the last draw operation
      * @return The number of rows visible in the table cell area on the last draw operation
      */
     val visibleRowsOnLastDraw: Int
 
-/**
-     * Returns the index of the first visible row with the renderers current state
-     * @return Index of the first visible row of the table
-     */
     /**
      * Modifies which row is the first visible, this may be overwritten depending on the circumstances when drawing the
      * table.
@@ -46,10 +42,6 @@ interface TableRenderer<V> : InteractableRenderer<Table<V?>?> {
      */
     var viewTopRow: Int
 
-/**
-     * Returns the index of the first visible column with the renderers current state
-     * @return Index of the first visible column of the table
-     */
     /**
      * Modifies which column is the first visible, this may be overwritten depending on the circumstances when drawing the
      * table.
@@ -57,8 +49,6 @@ interface TableRenderer<V> : InteractableRenderer<Table<V?>?> {
      */
     var viewLeftColumn: Int
 
-/** @see .setAllowPartialColumn
-     */
     /**
      * @param allowPartialColumn when not all columns fit on the screen, whether to render part of a column, or skip rendering that column entirely
      */

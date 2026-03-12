@@ -5,7 +5,6 @@ root = true
 [**/src/commonMain/**/*.kt]
 ktlint_standard_function-signature = disabled
 ktlint_standard_kdoc-wrapping = disabled
-ktlint_standard_no-consecutive-comments = disabled
 
 [**/src/jvmTest/**/*.kt]
 ktlint = disabled
