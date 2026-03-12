@@ -26,8 +26,7 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Run ktlint (advisory)
-        continue-on-error: true
+      - name: Run ktlint (required)
         run: |
           curl -sSLo ktlint https://github.com/pinterest/ktlint/releases/download/1.2.1/ktlint
           chmod +x ktlint
