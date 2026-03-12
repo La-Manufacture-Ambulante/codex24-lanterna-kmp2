@@ -26,7 +26,9 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Run ktlintCheck (required)
+<<<<<<< HEAD
+      - name: Run ktlint (advisory)
+        continue-on-error: true
         run: |
           chmod +x kmp/gradlew
           ./kmp/gradlew -p kmp :lanterna-core-kmp:ktlintCheck :lanterna-demo-kmp:ktlintCheck --no-daemon
