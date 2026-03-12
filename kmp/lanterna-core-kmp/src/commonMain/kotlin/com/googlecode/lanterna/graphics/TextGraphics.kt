@@ -16,11 +16,12 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-@file:Suppress("ktlint:standard:no-wildcard-imports")
-
 package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.*
+import com.googlecode.lanterna.SGR
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.screen.ScreenTranslator
 import com.googlecode.lanterna.screen.TabBehaviour
 

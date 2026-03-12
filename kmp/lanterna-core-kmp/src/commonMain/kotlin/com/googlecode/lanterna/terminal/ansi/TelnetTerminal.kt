@@ -16,8 +16,6 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-@file:Suppress("ktlint:standard:max-line-length")
-
 package com.googlecode.lanterna.terminal.ansi
 
 import com.googlecode.lanterna.terminal.ansi.TelnetProtocol.COMMAND_DO
@@ -348,7 +346,8 @@ class TelnetTerminal
                 ) {
                     if (position + 1 >= max) {
                         throw IllegalStateException(
-                            "State error, we got a command signal from the remote telnet client but not enough characters available in the stream",
+                            "State error, we got a command signal from the remote telnet client but " +
+                                "not enough characters available in the stream",
                         )
                     }
                     val command = buffer[position]

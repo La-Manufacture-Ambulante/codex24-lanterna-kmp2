@@ -16,8 +16,6 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-@file:Suppress("ktlint:standard:max-line-length")
-
 package com.googlecode.lanterna.terminal.virtual
 
 import com.googlecode.lanterna.SGR

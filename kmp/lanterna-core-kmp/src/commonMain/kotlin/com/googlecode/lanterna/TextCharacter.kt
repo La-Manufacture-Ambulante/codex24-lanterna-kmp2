@@ -16,8 +16,6 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-@file:Suppress("ktlint:standard:max-line-length")
-
 package com.googlecode.lanterna
 
 import java.io.Serializable
@@ -220,7 +218,8 @@ class TextCharacter private constructor(
     }
 
     override fun toString(): String {
-        return "TextCharacter{character=$characterString, foregroundColor=$foregroundColor, backgroundColor=$backgroundColor, modifiers=$modifiers}"
+        return "TextCharacter{character=$characterString, foregroundColor=$foregroundColor, " +
+            "backgroundColor=$backgroundColor, modifiers=$modifiers}"
     }
 
     companion object {

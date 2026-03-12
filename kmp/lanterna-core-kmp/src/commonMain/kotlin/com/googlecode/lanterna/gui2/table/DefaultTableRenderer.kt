@@ -16,8 +16,6 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-@file:Suppress("ktlint:standard:max-line-length")
-
 package com.googlecode.lanterna.gui2.table
 
 import com.googlecode.lanterna.Symbols
@@ -189,7 +187,10 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
                 preferredColumnSize += columnSize
             }
         } else {
-            for (columnIndex in localViewLeftColumn until kotlin.math.min(preferredColumnSizes.size, localViewLeftColumn + visibleColumns)) {
+            for (
+            columnIndex in localViewLeftColumn until
+                kotlin.math.min(preferredColumnSizes.size, localViewLeftColumn + visibleColumns)
+            ) {
                 preferredColumnSize += preferredColumnSizes[columnIndex]
             }
         }

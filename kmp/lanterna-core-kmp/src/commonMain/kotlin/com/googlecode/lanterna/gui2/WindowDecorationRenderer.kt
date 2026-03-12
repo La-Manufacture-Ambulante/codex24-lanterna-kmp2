@@ -16,11 +16,11 @@
  *
  * Copyright (C) 2010-2020 Martin Berglund
  */
-@file:Suppress("ktlint:standard:no-wildcard-imports")
-
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalRectangle
+import com.googlecode.lanterna.TerminalSize
 
 /**
  * Interface that defines a class that draws window decorations, i.e. a surrounding layer around the window that usually

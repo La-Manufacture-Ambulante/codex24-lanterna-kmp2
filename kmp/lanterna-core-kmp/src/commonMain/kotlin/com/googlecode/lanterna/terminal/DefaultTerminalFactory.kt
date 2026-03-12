@@ -16,8 +16,6 @@
  *
  * Copyright (C) 2010-2024 Martin Berglund
  */
-@file:Suppress("ktlint:standard:max-line-length")
-
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.TerminalSize
@@ -292,7 +290,8 @@ class DefaultTerminalFactory
                     return createCygwinTerminal(outputStream, inputStream, charset)
                 } catch (e: IOException) {
                     throw IOException(
-                        "To use Lanterna on Windows, either add JNA (and jna-platform) to the classpath or use javaw! (see https://github.com/mabe02/lanterna/issues/335)",
+                        "To use Lanterna on Windows, either add JNA (and jna-platform) to the classpath " +
+                            "or use javaw! (see https://github.com/mabe02/lanterna/issues/335)",
                         e,
                     )
                 }
@@ -301,7 +300,8 @@ class DefaultTerminalFactory
                     return createCygwinTerminal(outputStream, inputStream, charset)
                 } catch (e: IOException) {
                     throw IOException(
-                        "To use Lanterna on Windows, either add JNA (and jna-platform) to the classpath or use javaw! (see https://github.com/mabe02/lanterna/issues/335)",
+                        "To use Lanterna on Windows, either add JNA (and jna-platform) to the classpath " +
+                            "or use javaw! (see https://github.com/mabe02/lanterna/issues/335)",
                         e,
                     )
                 }
