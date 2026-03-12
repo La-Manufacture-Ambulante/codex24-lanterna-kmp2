@@ -18,10 +18,9 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestUtils
-import java.io.*
+import java.io.IOException
 import java.util.Timer
 import java.util.TimerTask
 

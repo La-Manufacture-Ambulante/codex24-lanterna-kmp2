@@ -18,10 +18,11 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.gui2.dialogs.*
+import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder
+import com.googlecode.lanterna.gui2.dialogs.ListSelectDialogBuilder
+import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder
 import com.googlecode.lanterna.gui2.table.DefaultTableCellRenderer
 import com.googlecode.lanterna.gui2.table.DefaultTableRenderer
 import com.googlecode.lanterna.gui2.table.Table

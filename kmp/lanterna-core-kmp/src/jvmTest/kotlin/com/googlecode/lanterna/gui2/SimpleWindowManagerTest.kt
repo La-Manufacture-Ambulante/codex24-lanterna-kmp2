@@ -18,9 +18,8 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestUtils
-import java.io.*
+import java.io.IOException
 import java.util.Arrays
 import java.util.Collections
 

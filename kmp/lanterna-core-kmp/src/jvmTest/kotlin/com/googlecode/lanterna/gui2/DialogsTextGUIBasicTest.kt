@@ -18,10 +18,14 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestTerminalFactory
-import com.googlecode.lanterna.gui2.dialogs.*
+import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder
+import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder
+import com.googlecode.lanterna.gui2.dialogs.MessageDialog
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
+import com.googlecode.lanterna.gui2.dialogs.TextInputDialog
+import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder
 import java.io.IOException
 import java.util.regex.Pattern
 

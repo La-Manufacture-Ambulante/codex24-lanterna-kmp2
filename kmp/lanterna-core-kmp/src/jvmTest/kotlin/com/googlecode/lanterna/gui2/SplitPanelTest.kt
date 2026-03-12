@@ -18,9 +18,11 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
-import com.googlecode.lanterna.bundle.*
-import com.googlecode.lanterna.graphics.*
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.bundle.LanternaThemes
+import com.googlecode.lanterna.graphics.BasicTextImage
+import com.googlecode.lanterna.graphics.TextImage
 
 /**
  *

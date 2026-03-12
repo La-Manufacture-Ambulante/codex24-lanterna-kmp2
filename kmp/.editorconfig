@@ -3,6 +3,3 @@ root = true
 [*.{kt,kts}]
 
 [**/src/jvmTest/**/*.kt]
-
-[**/src/jvmTest/kotlin/com/googlecode/lanterna/gui2/**/*.kt]
-ktlint_standard_no-wildcard-imports = disabled

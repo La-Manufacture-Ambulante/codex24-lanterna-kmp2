@@ -18,7 +18,6 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.bundle.LanternaThemes
 import com.googlecode.lanterna.screen.Screen
