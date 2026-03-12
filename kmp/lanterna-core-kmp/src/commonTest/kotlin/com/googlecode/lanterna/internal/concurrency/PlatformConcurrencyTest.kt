@@ -48,13 +48,12 @@ class PlatformConcurrencyTest {
         }
         thread.start()
         assertTrue(latch.await(2_000))
-        val thrown =
-            try {
+        val thrown = try {
             thread.start()
             null
-            } catch (error: Throwable) {
-                error
-            }
+        } catch (error: Throwable) {
+            error
+        }
         if (thrown == null) {
             fail("Expected second PlatformThread.start() call to fail, but it succeeded")
         }
