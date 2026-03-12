@@ -18,92 +18,100 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.internal.concurrency.PlatformCountdownLatch
-import com.googlecode.lanterna.internal.concurrency.PlatformMutex
+import java.io.EOFException
+import java.io.IOException
+import java.util.Queue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.LinkedBlockingQueue
 
 /**
  * Abstract implementation of [TextGUIThread] with common loop/task logic.
  */
-abstract class AbstractTextGUIThread protected constructor(
-    protected val textGUI: TextGUI,
-) : TextGUIThread {
-    private val taskLock = PlatformMutex()
-    private val customTasks: ArrayDeque<GuiTask> = ArrayDeque()
+abstract class AbstractTextGUIThread protected constructor(protected val textGUI: TextGUI) : TextGUIThread {
+    protected val customTasks: Queue<Runnable> = LinkedBlockingQueue()
+    protected var exceptionHandlerRef: TextGUIThread.ExceptionHandler? =
+        object : TextGUIThread.ExceptionHandler {
+            override fun onIOException(e: IOException?): Boolean {
+                e?.printStackTrace()
+                return true
+            }
 
-    protected var exceptionHandlerRef: TextGUIThread.ExceptionHandler? = object : TextGUIThread.ExceptionHandler {
-        override fun onException(error: Throwable): Boolean {
-            error.printStackTrace()
-            return true
+            override fun onRuntimeException(e: RuntimeException?): Boolean {
+                e?.printStackTrace()
+                return true
+            }
         }
-    }
 
-    override fun invokeLater(task: GuiTask?) {
-        if (task == null) {
-            return
-        }
-        taskLock.withLock {
-            customTasks.addLast(task)
+    override fun invokeLater(runnable: Runnable?) {
+        if (runnable != null) {
+            customTasks.add(runnable)
         }
     }
 
     override fun setExceptionHandler(exceptionHandler: TextGUIThread.ExceptionHandler?) {
-        requireNotNull(exceptionHandler) { "Cannot call setExceptionHandler(null)" }
+        if (exceptionHandler == null) {
+            throw IllegalArgumentException("Cannot call setExceptionHandler(null)")
+        }
         this.exceptionHandlerRef = exceptionHandler
     }
 
+    @Synchronized
+    @Throws(IOException::class)
     override fun processEventsAndUpdate(): Boolean {
-        if (!isCallingThread()) {
-            throw IllegalStateException("Calling processEventsAndUpdate outside of GUI thread")
+        if (thread != Thread.currentThread()) {
+            throw IllegalStateException("Calling processEventAndUpdate outside of GUI thread")
         }
-
-        return try {
+        try {
             textGUI.processInput()
-            drainQueuedTasks()
+            while (!customTasks.isEmpty()) {
+                val runnable = customTasks.poll()
+                runnable?.run()
+            }
             if (textGUI.isPendingUpdate) {
                 textGUI.updateScreen()
-                true
+                return true
+            }
+            return false
+        } catch (e: EOFException) {
+            throw e
+        } catch (e: IOException) {
+            val handler = exceptionHandlerRef
+            if (handler != null) {
+                handler.onIOException(e)
             } else {
-                false
+                throw e
             }
-        } catch (t: Throwable) {
-            val shouldStop = exceptionHandlerRef?.onException(t)
-            if (shouldStop == null) {
-                throw t
+        } catch (e: RuntimeException) {
+            val handler = exceptionHandlerRef
+            if (handler != null) {
+                handler.onRuntimeException(e)
+            } else {
+                throw e
             }
-            true
         }
+        return true
     }
 
-    override fun invokeAndWait(task: GuiTask?) {
-        if (task == null) {
+    @Throws(IllegalStateException::class, InterruptedException::class)
+    override fun invokeAndWait(runnable: Runnable?) {
+        val guiThread = thread
+        if (runnable == null) {
             return
         }
-        if (isCallingThread()) {
-            task()
-            return
-        }
-
-        val latch = PlatformCountdownLatch(1)
-        invokeLater {
-            try {
-                task()
-            } finally {
-                latch.countDown()
-            }
-        }
-        latch.await()
-    }
-
-    private fun drainQueuedTasks() {
-        while (true) {
-            val task = taskLock.withLock {
-                if (customTasks.isEmpty()) {
-                    null
-                } else {
-                    customTasks.removeFirst()
-                }
-            }
-            task?.invoke() ?: return
+        if (guiThread == null || Thread.currentThread() == guiThread) {
+            runnable.run()
+        } else {
+            val countDownLatch = CountDownLatch(1)
+            invokeLater(
+                Runnable {
+                    try {
+                        runnable.run()
+                    } finally {
+                        countDownLatch.countDown()
+                    }
+                },
+            )
+            countDownLatch.await()
         }
     }
 }

@@ -18,23 +18,23 @@
  */
 package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.internal.io.IOException
+import java.io.IOException
 
 /**
  * This interface is for abstracting the creation of your Terminal object. The bundled implementation is
  * DefaultTerminalFactory, which will use a simple auto-detection mechanism for figuring out which terminal
  * implementation to create based on characteristics of the system the program is running on.
- * 
- * 
+ *
+ *
  * @author martin
  */
-@Suppress("unused")
- interface TerminalFactory {
+@SuppressWarnings("WeakerAccess")
+interface TerminalFactory {
 /**
- * Instantiates a Terminal according to the factory implementation.
- * @return Terminal implementation
- * @throws IOException If there was an I/O error with the underlying input/output system
- */
+     * Instantiates a Terminal according to the factory implementation.
+     * @return Terminal implementation
+     * @throws IOException If there was an I/O error with the underlying input/output system
+     */
     @Throws(IOException::class)
- fun createTerminal():Terminal? 
+    fun createTerminal(): Terminal?
 }

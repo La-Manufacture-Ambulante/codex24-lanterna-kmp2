@@ -10,20 +10,19 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.nativeHeap
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.staticCFunction
-import kotlin.experimental.ExperimentalNativeApi
-import kotlin.native.ref.createCleaner
-import platform.posix.nanosleep
-import platform.posix.clock_gettime
 import platform.posix.CLOCK_REALTIME
-import platform.posix.pthread_create
-import platform.posix.pthread_equal
+import platform.posix.ETIMEDOUT
+import platform.posix.clock_gettime
+import platform.posix.nanosleep
 import platform.posix.pthread_cond_broadcast
 import platform.posix.pthread_cond_destroy
 import platform.posix.pthread_cond_init
 import platform.posix.pthread_cond_t
 import platform.posix.pthread_cond_timedwait
 import platform.posix.pthread_cond_wait
+import platform.posix.pthread_create
 import platform.posix.pthread_detach
+import platform.posix.pthread_equal
 import platform.posix.pthread_mutex_destroy
 import platform.posix.pthread_mutex_init
 import platform.posix.pthread_mutex_lock
@@ -33,7 +32,8 @@ import platform.posix.pthread_self
 import platform.posix.pthread_t
 import platform.posix.pthread_tVar
 import platform.posix.timespec
-import platform.posix.ETIMEDOUT
+import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.ref.createCleaner
 
 @OptIn(ExperimentalForeignApi::class)
 actual class PlatformMutex actual constructor() {
@@ -112,12 +112,13 @@ actual class PlatformThread actual constructor(
         val payload = StableRef.create(runBlock).asCPointer()
         memScoped {
             val threadId = alloc<pthread_tVar>()
-            val result = pthread_create(
-                threadId.ptr,
-                null,
-                THREAD_ENTRY,
-                payload,
-            )
+            val result =
+                pthread_create(
+                    threadId.ptr,
+                    null,
+                    THREAD_ENTRY,
+                    payload,
+                )
             if (result != 0) {
                 payload.asStableRef<() -> Unit>().dispose()
                 started = false
@@ -141,22 +142,23 @@ actual fun sleepCurrentThread(millis: Long) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private val THREAD_ENTRY = staticCFunction<COpaquePointer?, COpaquePointer?> { argument ->
-    val selfThread = pthread_self()
-    if (selfThread != null) {
-        pthread_detach(selfThread)
+private val THREAD_ENTRY =
+    staticCFunction<COpaquePointer?, COpaquePointer?> { argument ->
+        val selfThread = pthread_self()
+        if (selfThread != null) {
+            pthread_detach(selfThread)
+        }
+        if (argument == null) {
+            return@staticCFunction null
+        }
+        val blockRef = argument.asStableRef<() -> Unit>()
+        try {
+            blockRef.get().invoke()
+        } finally {
+            blockRef.dispose()
+        }
+        null
     }
-    if (argument == null) {
-        return@staticCFunction null
-    }
-    val blockRef = argument.asStableRef<() -> Unit>()
-    try {
-        blockRef.get().invoke()
-    } finally {
-        blockRef.dispose()
-    }
-    null
-}
 
 @OptIn(ExperimentalForeignApi::class)
 private class NativeMutex {
@@ -241,7 +243,10 @@ private class NativeLatch(initialCount: Int) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun addMillis(time: timespec, timeoutMillis: Long) {
+private fun addMillis(
+    time: timespec,
+    timeoutMillis: Long,
+) {
     val secondDelta = timeoutMillis / 1000
     val nanoDelta = (timeoutMillis % 1000) * 1_000_000
     val mergedNanos = time.tv_nsec.toLong() + nanoDelta

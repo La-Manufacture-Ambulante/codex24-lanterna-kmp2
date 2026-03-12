@@ -26,66 +26,68 @@ import java.io.OutputStream
 import java.nio.charset.Charset
 import java.util.regex.Pattern
 
-class CygwinTerminal @Throws(IOException::class) constructor(
-    terminalInput: InputStream,
-    terminalOutput: OutputStream,
-    terminalCharset: Charset,
-) : UnixLikeTTYTerminal(null, terminalInput, terminalOutput, terminalCharset, CtrlCBehaviour.TRAP) {
-    override fun findTerminalSize(): TerminalSize {
-        return try {
-            val stty = runSTTYCommand("-a")
-            val matcher = STTY_SIZE_PATTERN.matcher(stty)
-            if (matcher.matches()) {
-                TerminalSize(matcher.group(2).toInt(), matcher.group(1).toInt())
-            } else {
+class CygwinTerminal
+    @Throws(IOException::class)
+    constructor(
+        terminalInput: InputStream,
+        terminalOutput: OutputStream,
+        terminalCharset: Charset,
+    ) : UnixLikeTTYTerminal(null, terminalInput, terminalOutput, terminalCharset, CtrlCBehaviour.TRAP) {
+        override fun findTerminalSize(): TerminalSize {
+            return try {
+                val stty = runSTTYCommand("-a")
+                val matcher = STTY_SIZE_PATTERN.matcher(stty)
+                if (matcher.matches()) {
+                    TerminalSize(matcher.group(2).toInt(), matcher.group(1).toInt())
+                } else {
+                    TerminalSize(80, 24)
+                }
+            } catch (_: Throwable) {
                 TerminalSize(80, 24)
             }
-        } catch (_: Throwable) {
-            TerminalSize(80, 24)
+        }
+
+        @Throws(IOException::class)
+        override fun runSTTYCommand(vararg parameters: String): String {
+            val commandLine = mutableListOf(findSTTY(), "-F", pseudoTerminalDevice)
+            commandLine.addAll(parameters)
+            return exec(*commandLine.toTypedArray())
+        }
+
+        @Throws(IOException::class)
+        override fun acquire() {
+            super.acquire()
+        }
+
+        private fun findSTTY(): String {
+            return STTY_LOCATION
+        }
+
+        private val pseudoTerminalDevice: String
+            get() = "/dev/pty0"
+
+        companion object {
+            private const val JAVA_LIBRARY_PATH_PROPERTY = "java.library.path"
+            private const val CYGWIN_HOME_ENV = "CYGWIN_HOME"
+            private val STTY_LOCATION = findProgram("stty.exe")
+            private val STTY_SIZE_PATTERN = Pattern.compile(".*rows ([0-9]+);.*columns ([0-9]+);.*")
+
+            private fun findProgram(programName: String): String {
+                val cygwinHome = System.getenv(CYGWIN_HOME_ENV)
+                if (cygwinHome != null) {
+                    val cygwinHomeBinFile = File("$cygwinHome/bin", programName)
+                    if (cygwinHomeBinFile.exists()) {
+                        return cygwinHomeBinFile.absolutePath
+                    }
+                }
+                val paths = System.getProperty(JAVA_LIBRARY_PATH_PROPERTY).split(";")
+                for (path in paths) {
+                    val shBin = File(path, programName)
+                    if (shBin.exists()) {
+                        return shBin.absolutePath
+                    }
+                }
+                return programName
+            }
         }
     }
-
-    @Throws(IOException::class)
-    override fun runSTTYCommand(vararg parameters: String): String {
-        val commandLine = mutableListOf(findSTTY(), "-F", pseudoTerminalDevice)
-        commandLine.addAll(parameters)
-        return exec(*commandLine.toTypedArray())
-    }
-
-    @Throws(IOException::class)
-    override fun acquire() {
-        super.acquire()
-    }
-
-    private fun findSTTY(): String {
-        return STTY_LOCATION
-    }
-
-    private val pseudoTerminalDevice: String
-        get() = "/dev/pty0"
-
-    companion object {
-        private const val JAVA_LIBRARY_PATH_PROPERTY = "java.library.path"
-        private const val CYGWIN_HOME_ENV = "CYGWIN_HOME"
-        private val STTY_LOCATION = findProgram("stty.exe")
-        private val STTY_SIZE_PATTERN = Pattern.compile(".*rows ([0-9]+);.*columns ([0-9]+);.*")
-
-        private fun findProgram(programName: String): String {
-            val cygwinHome = System.getenv(CYGWIN_HOME_ENV)
-            if (cygwinHome != null) {
-                val cygwinHomeBinFile = File("$cygwinHome/bin", programName)
-                if (cygwinHomeBinFile.exists()) {
-                    return cygwinHomeBinFile.absolutePath
-                }
-            }
-            val paths = System.getProperty(JAVA_LIBRARY_PATH_PROPERTY).split(";")
-            for (path in paths) {
-                val shBin = File(path, programName)
-                if (shBin.exists()) {
-                    return shBin.absolutePath
-                }
-            }
-            return programName
-        }
-    }
-}

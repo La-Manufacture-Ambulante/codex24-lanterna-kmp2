@@ -20,10 +20,12 @@ package com.googlecode.lanterna.bundle
 
 import com.googlecode.lanterna.graphics.PropertyTheme
 import com.googlecode.lanterna.graphics.Theme
-import kotlin.collections.ArrayList
-import com.googlecode.lanterna.internal.compat.Properties
-import com.googlecode.lanterna.internal.compat.ConcurrentHashMap
-import com.googlecode.lanterna.internal.compat.StringReader
+import com.googlecode.lanterna.gui2.AbstractTextGUI
+import java.io.FileInputStream
+import java.io.IOException
+import java.util.ArrayList
+import java.util.Properties
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Catalog of available themes, this class will initially contain the themes bundled with Lanterna but it is possible to
@@ -32,9 +34,18 @@ import com.googlecode.lanterna.internal.compat.StringReader
 object LanternaThemes {
     private val REGISTERED_THEMES = ConcurrentHashMap<String, Theme>()
 
+    /**
+     * Returns a collection of all themes registered with this class, by their name. To get the associated [Theme]
+     * object, please use [getRegisteredTheme].
+     * @return Collection of theme names
+     */
     val registeredThemes: Collection<String?>
         get() = ArrayList(REGISTERED_THEMES.keys)
 
+    /**
+     * Returns lanterna's default theme which is used if no other theme is selected.
+     * @return Lanterna's default theme
+     */
     val defaultTheme: Theme?
         get() = REGISTERED_THEMES["default"]
 
@@ -53,9 +64,22 @@ object LanternaThemes {
         registerPropTheme("blaster", loadPropTheme("blaster-theme.properties"))
     }
 
+    /**
+     * Returns the [Theme] registered with this class under [name], or `null` if there is no such registration.
+     * @param name Name of the theme to retrieve
+     * @return Theme registered with the supplied name, or `null` if none
+     */
     fun getRegisteredTheme(name: String?): Theme? = REGISTERED_THEMES[name]
 
-    fun registerTheme(name: String?, theme: Theme?) {
+    /**
+     * Registers a [Theme] with this class under a certain [name].
+     * @param name Name to register the theme under
+     * @param theme Theme to register with this name
+     */
+    fun registerTheme(
+        name: String?,
+        theme: Theme?,
+    ) {
         if (theme == null) {
             throw IllegalArgumentException("Theme cannot be null")
         }
@@ -68,19 +92,31 @@ object LanternaThemes {
         }
     }
 
-    private fun registerPropTheme(name: String?, properties: Properties?) {
+    private fun registerPropTheme(
+        name: String?,
+        properties: Properties?,
+    ) {
         if (properties != null) {
             registerTheme(name, PropertyTheme(properties, false))
         }
     }
 
+    /**
+     * Attempts to load a bundled property theme file from the classpath, falling back to local resources for
+     * development/test execution.
+     */
     private fun loadPropTheme(resourceFileName: String): Properties? {
-        val raw = BundleResourceLoader.loadTextResource(resourceFileName) ?: return null
+        val properties = Properties()
         return try {
-            val properties = Properties()
-            properties.load(StringReader(raw))
+            val classLoader = AbstractTextGUI::class.java.classLoader
+            val resourceAsStream =
+                classLoader.getResourceAsStream(resourceFileName)
+                    ?: FileInputStream("src/main/resources/$resourceFileName")
+            resourceAsStream.use { stream ->
+                properties.load(stream)
+            }
             properties
-        } catch (_: Throwable) {
+        } catch (_: IOException) {
             null
         }
     }

@@ -14,7 +14,6 @@ import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
 import com.googlecode.lanterna.input.ScreenInfoCharacterPattern
 import com.googlecode.lanterna.internal.compat.LambdaReader
-import com.googlecode.lanterna.internal.compat.System as CompatSystem
 import com.googlecode.lanterna.internal.compat.TimeUnit
 import com.googlecode.lanterna.internal.concurrency.sleepCurrentThread
 import com.googlecode.lanterna.internal.io.IOException
@@ -23,15 +22,17 @@ import com.googlecode.lanterna.terminal.ExtendedTerminal
 import com.googlecode.lanterna.terminal.MouseCaptureMode
 import com.googlecode.lanterna.terminal.nativeposix.PosixTerminalIO
 import com.googlecode.lanterna.terminal.nativeposix.PosixTerminalRuntime
+import com.googlecode.lanterna.internal.compat.System as CompatSystem
 
 open class ANSITerminal : AbstractTerminal(), ExtendedTerminal {
     private val keyQueue = ArrayDeque<KeyStroke>()
-    private val inputDecoder = InputDecoder(
-        LambdaReader(
-            onRead = { PosixTerminalIO.readByte() ?: -1 },
-            onReady = { PosixTerminalIO.hasInput() },
-        ),
-    )
+    private val inputDecoder =
+        InputDecoder(
+            LambdaReader(
+                onRead = { PosixTerminalIO.readByte() ?: -1 },
+                onReady = { PosixTerminalIO.hasInput() },
+            ),
+        )
 
     private var inPrivateMode = false
     private var rawModeEnabled = false
@@ -82,7 +83,10 @@ open class ANSITerminal : AbstractTerminal(), ExtendedTerminal {
     }
 
     @Throws(IOException::class)
-    override fun setCursorPosition(x: Int, y: Int) {
+    override fun setCursorPosition(
+        x: Int,
+        y: Int,
+    ) {
         writeCSI("${y + 1};${x + 1}H")
         lastKnownCursorPosition = TerminalPosition(x, y)
     }
@@ -186,7 +190,10 @@ open class ANSITerminal : AbstractTerminal(), ExtendedTerminal {
         }
 
     @Throws(IOException::class)
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray {
+    override fun enquireTerminal(
+        timeout: Int,
+        timeoutUnit: TimeUnit?,
+    ): ByteArray {
         val effectiveTimeoutUnit = timeoutUnit ?: TimeUnit.MILLISECONDS
         PosixTerminalIO.writeByte(5)
         flush()
@@ -241,7 +248,10 @@ open class ANSITerminal : AbstractTerminal(), ExtendedTerminal {
     }
 
     @Throws(IOException::class)
-    override fun setTerminalSize(columns: Int, rows: Int) {
+    override fun setTerminalSize(
+        columns: Int,
+        rows: Int,
+    ) {
         writeCSI("8;$rows;$columns" + "t")
         onResized(TerminalSize(columns, rows))
     }
@@ -291,7 +301,11 @@ open class ANSITerminal : AbstractTerminal(), ExtendedTerminal {
     }
 
     @Throws(IOException::class)
-    override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int) {
+    override fun scrollLines(
+        firstLine: Int,
+        lastLine: Int,
+        distance: Int,
+    ) {
         var effectiveFirstLine = firstLine
         if (distance == 0) {
             return
@@ -358,7 +372,10 @@ open class ANSITerminal : AbstractTerminal(), ExtendedTerminal {
     }
 
     @Throws(IOException::class)
-    private fun updateMouseCaptureMode(mouseCaptureMode: MouseCaptureMode?, mode: Char) {
+    private fun updateMouseCaptureMode(
+        mouseCaptureMode: MouseCaptureMode?,
+        mode: Char,
+    ) {
         when (mouseCaptureMode) {
             null -> return
             MouseCaptureMode.CLICK -> writeCSI("?9$mode")
@@ -408,7 +425,10 @@ open class ANSITerminal : AbstractTerminal(), ExtendedTerminal {
     }
 
     @Throws(IOException::class)
-    private fun readInputInternal(blocking: Boolean, useKeyQueue: Boolean): KeyStroke? {
+    private fun readInputInternal(
+        blocking: Boolean,
+        useKeyQueue: Boolean,
+    ): KeyStroke? {
         while (true) {
             if (useKeyQueue) {
                 val queuedKey = keyQueue.removeFirstOrNull()

@@ -28,8 +28,11 @@ import com.googlecode.lanterna.graphics.ThemeDefinition
  * Default window decoration renderer.
  */
 class DefaultWindowDecorationRenderer : WindowDecorationRenderer {
-
-    override fun draw(textGUI: WindowBasedTextGUI?, graphics: TextGUIGraphics?, window: Window?): TextGUIGraphics? {
+    override fun draw(
+        textGUI: WindowBasedTextGUI?,
+        graphics: TextGUIGraphics?,
+        window: Window?,
+    ): TextGUIGraphics? {
         val w = window ?: return graphics
         val g = graphics ?: return null
 
@@ -51,10 +54,11 @@ class DefaultWindowDecorationRenderer : WindowDecorationRenderer {
         val titleMaxColumns = drawableArea.columns - titleHorizontalPosition * 2
         if (centerTitle) {
             titleHorizontalPosition = (drawableArea.columns / 2) - (TerminalTextUtils.getColumnWidth(title) / 2)
-            titleHorizontalPosition = kotlin.math.max(
-                titleHorizontalPosition,
-                if (useTitlePadding) TITLE_POSITION_WITH_PADDING else TITLE_POSITION_WITHOUT_PADDING,
-            )
+            titleHorizontalPosition =
+                kotlin.math.max(
+                    titleHorizontalPosition,
+                    if (useTitlePadding) TITLE_POSITION_WITH_PADDING else TITLE_POSITION_WITHOUT_PADDING,
+                )
         }
         val actualTitle = TerminalTextUtils.fitString(title, titleMaxColumns) ?: ""
         val titleActualColumns = TerminalTextUtils.getColumnWidth(actualTitle)
@@ -111,7 +115,10 @@ class DefaultWindowDecorationRenderer : WindowDecorationRenderer {
         )
     }
 
-    override fun getDecoratedSize(window: Window?, contentAreaSize: TerminalSize?): TerminalSize? {
+    override fun getDecoratedSize(
+        window: Window?,
+        contentAreaSize: TerminalSize?,
+    ): TerminalSize? {
         val w = window ?: return contentAreaSize
         val content = contentAreaSize ?: TerminalSize.ZERO
         val themeDefinition = w.theme?.getDefinition(DefaultWindowDecorationRenderer::class)

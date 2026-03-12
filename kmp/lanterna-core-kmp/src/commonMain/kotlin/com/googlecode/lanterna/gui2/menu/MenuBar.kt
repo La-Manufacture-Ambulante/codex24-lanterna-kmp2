@@ -30,9 +30,8 @@ import com.googlecode.lanterna.gui2.Interactable
 import com.googlecode.lanterna.gui2.InteractableLookupMap
 import com.googlecode.lanterna.gui2.TextGUIGraphics
 import com.googlecode.lanterna.input.KeyStroke
-import kotlin.collections.ArrayList
-import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
-import com.googlecode.lanterna.internal.concurrency.PlatformMutex
+import java.util.ArrayList
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * A menu bar offering drop-down menus.
@@ -44,7 +43,6 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
     }
 
     private val menus: MutableList<Menu> = CopyOnWriteArrayList()
-    private val stateLock = PlatformMutex()
 
     fun add(menu: Menu): MenuBar {
         menus.add(menu)
@@ -65,27 +63,25 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
         return menus.contains(component)
     }
 
+    @Synchronized
     override fun removeComponent(component: Component?): Boolean {
-        val hadMenu = stateLock.withLock {
-            menus.remove(component)
-        }
+        val hadMenu = menus.remove(component)
         if (hadMenu) {
             component?.onRemoved(this)
         }
         return hadMenu
     }
 
+    @Synchronized
     override fun nextFocus(fromThis: Interactable?): Interactable? {
-        return stateLock.withLock {
-            if (menus.isEmpty()) {
-                return@withLock null
-            } else if (fromThis == null) {
-                return@withLock menus[0]
-            } else if (!menus.contains(fromThis) || menus.indexOf(fromThis) == menus.size - 1) {
-                return@withLock null
-            }
-            menus[menus.indexOf(fromThis) + 1]
+        if (menus.isEmpty()) {
+            return null
+        } else if (fromThis == null) {
+            return menus[0]
+        } else if (!menus.contains(fromThis) || menus.indexOf(fromThis) == menus.size - 1) {
+            return null
         }
+        return menus[menus.indexOf(fromThis) + 1]
     }
 
     override fun previousFocus(fromThis: Interactable?): Interactable? {
@@ -100,12 +96,6 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
     }
 
     override fun handleInput(key: KeyStroke?): Boolean {
-        for (menu in menus) {
-            if (menu.isKeyboardAcceleratorStroke(key)) {
-                menu.handleInput(key)
-                return true
-            }
-        }
         return false
     }
 
@@ -120,11 +110,10 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
         return DefaultMenuBarRenderer()
     }
 
+    @Synchronized
     override fun updateLookupMap(interactableLookupMap: InteractableLookupMap?) {
-        stateLock.withLock {
-            for (menu in menus) {
-                interactableLookupMap?.add(menu)
-            }
+        for (menu in menus) {
+            interactableLookupMap?.add(menu)
         }
     }
 
@@ -151,7 +140,10 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
             return TerminalSize(totalWidth, maxHeight)
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, menuBar: MenuBar?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            menuBar: MenuBar?,
+        ) {
             val activeGraphics = graphics ?: return
             val activeMenuBar = menuBar ?: return
 

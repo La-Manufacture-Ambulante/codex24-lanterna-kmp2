@@ -82,7 +82,10 @@ class ScrollBar(val direction: Direction?) : AbstractComponent<ScrollBar>() {
             this.growScrollTracker = growScrollTracker
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, component: ScrollBar?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            component: ScrollBar?,
+        ) {
             val activeGraphics = graphics ?: return
             val activeComponent = component ?: return
             val size = activeGraphics.size ?: TerminalSize.ZERO
@@ -154,11 +157,12 @@ class ScrollBar(val direction: Direction?) : AbstractComponent<ScrollBar>() {
                         themeDefinition.getCharacter("DOWN_ARROW", Symbols.TRIANGLE_DOWN_POINTING_BLACK),
                     )
                     when (scrollTrackerSize) {
-                        1 -> graphics.setCharacter(
-                            0,
-                            scrollTrackerPosition,
-                            themeDefinition.getCharacter("VERTICAL_SMALL_TRACKER", Symbols.BLOCK_SOLID),
-                        )
+                        1 ->
+                            graphics.setCharacter(
+                                0,
+                                scrollTrackerPosition,
+                                themeDefinition.getCharacter("VERTICAL_SMALL_TRACKER", Symbols.BLOCK_SOLID),
+                            )
                         2 -> {
                             graphics.setCharacter(
                                 0,
@@ -209,11 +213,12 @@ class ScrollBar(val direction: Direction?) : AbstractComponent<ScrollBar>() {
             viewSize: Int,
         ) {
             when (size.columns) {
-                1 -> graphics.setCharacter(
-                    0,
-                    0,
-                    themeDefinition.getCharacter("HORIZONTAL_BACKGROUND", Symbols.BLOCK_MIDDLE),
-                )
+                1 ->
+                    graphics.setCharacter(
+                        0,
+                        0,
+                        themeDefinition.getCharacter("HORIZONTAL_BACKGROUND", Symbols.BLOCK_MIDDLE),
+                    )
                 2 -> {
                     graphics.setCharacter(0, 0, Symbols.TRIANGLE_LEFT_POINTING_BLACK)
                     graphics.setCharacter(1, 0, Symbols.TRIANGLE_RIGHT_POINTING_BLACK)
@@ -248,11 +253,12 @@ class ScrollBar(val direction: Direction?) : AbstractComponent<ScrollBar>() {
                         themeDefinition.getCharacter("RIGHT_ARROW", Symbols.TRIANGLE_RIGHT_POINTING_BLACK),
                     )
                     when (scrollTrackerSize) {
-                        1 -> graphics.setCharacter(
-                            scrollTrackerPosition,
-                            0,
-                            themeDefinition.getCharacter("HORIZONTAL_SMALL_TRACKER", Symbols.BLOCK_SOLID),
-                        )
+                        1 ->
+                            graphics.setCharacter(
+                                scrollTrackerPosition,
+                                0,
+                                themeDefinition.getCharacter("HORIZONTAL_SMALL_TRACKER", Symbols.BLOCK_SOLID),
+                            )
                         2 -> {
                             graphics.setCharacter(
                                 scrollTrackerPosition,

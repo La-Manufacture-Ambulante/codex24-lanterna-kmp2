@@ -49,18 +49,19 @@ object RenderScene {
         }
     }
 
-    private fun escapeXml(value: String): String = buildString(value.length) {
-        value.forEach { ch ->
-            when (ch) {
-                '&' -> append("&amp;")
-                '<' -> append("&lt;")
-                '>' -> append("&gt;")
-                '"' -> append("&quot;")
-                '\'' -> append("&apos;")
-                else -> append(ch)
+    private fun escapeXml(value: String): String =
+        buildString(value.length) {
+            value.forEach { ch ->
+                when (ch) {
+                    '&' -> append("&amp;")
+                    '<' -> append("&lt;")
+                    '>' -> append("&gt;")
+                    '"' -> append("&quot;")
+                    '\'' -> append("&apos;")
+                    else -> append(ch)
+                }
             }
         }
-    }
 }
 
 private class CharMatrix(
@@ -70,7 +71,11 @@ private class CharMatrix(
 ) {
     private val rows: Array<CharArray> = Array(height) { CharArray(width) { fill } }
 
-    fun write(x: Int, y: Int, text: String) {
+    fun write(
+        x: Int,
+        y: Int,
+        text: String,
+    ) {
         if (y !in 0 until height) {
             return
         }
@@ -84,7 +89,13 @@ private class CharMatrix(
         }
     }
 
-    fun drawBox(x: Int, y: Int, boxWidth: Int, boxHeight: Int, border: Char) {
+    fun drawBox(
+        x: Int,
+        y: Int,
+        boxWidth: Int,
+        boxHeight: Int,
+        border: Char,
+    ) {
         if (boxWidth <= 1 || boxHeight <= 1) {
             return
         }
@@ -100,7 +111,11 @@ private class CharMatrix(
         }
     }
 
-    private fun set(x: Int, y: Int, value: Char) {
+    private fun set(
+        x: Int,
+        y: Int,
+        value: Char,
+    ) {
         if (x !in 0 until width || y !in 0 until height) {
             return
         }

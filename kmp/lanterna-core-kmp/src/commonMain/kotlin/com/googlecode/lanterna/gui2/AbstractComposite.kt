@@ -27,7 +27,7 @@ import com.googlecode.lanterna.gui2.menu.MenuBar
 abstract class AbstractComposite<T : Container?> : AbstractComponent<T>(), Composite, Container {
     private var childComponent: Component? = null
 
-    override open var component: Component?
+    open override var component: Component?
         get() = childComponent
         set(value) {
             val oldComponent = childComponent
@@ -61,14 +61,14 @@ abstract class AbstractComposite<T : Container?> : AbstractComponent<T>(), Compo
     override val children: Collection<Component?>
         get() = childrenList
 
-    override open val isInvalid: Boolean
+    open override val isInvalid: Boolean
         get() = childComponent != null && childComponent?.isInvalid == true
 
     override fun containsComponent(component: Component?): Boolean {
         return component != null && component.hasParent(this)
     }
 
-    override open fun removeComponent(component: Component?): Boolean {
+    open override fun removeComponent(component: Component?): Boolean {
         if (childComponent === component) {
             childComponent = null
             component?.onRemoved(this)
@@ -78,12 +78,12 @@ abstract class AbstractComposite<T : Container?> : AbstractComponent<T>(), Compo
         return false
     }
 
-    override open fun invalidate() {
+    open override fun invalidate() {
         super.invalidate()
         childComponent?.invalidate()
     }
 
-    override open fun nextFocus(fromThis: Interactable?): Interactable? {
+    open override fun nextFocus(fromThis: Interactable?): Interactable? {
         val current = component
         if (fromThis == null && current is Interactable) {
             return if (current.isEnabled) current else null
@@ -94,7 +94,7 @@ abstract class AbstractComposite<T : Container?> : AbstractComponent<T>(), Compo
         return null
     }
 
-    override open fun previousFocus(fromThis: Interactable?): Interactable? {
+    open override fun previousFocus(fromThis: Interactable?): Interactable? {
         val current = component
         if (fromThis == null && current is Interactable) {
             return if (current.isEnabled) current else null
@@ -105,11 +105,11 @@ abstract class AbstractComposite<T : Container?> : AbstractComponent<T>(), Compo
         return null
     }
 
-    override open fun handleInput(key: com.googlecode.lanterna.input.KeyStroke?): Boolean {
+    open override fun handleInput(key: com.googlecode.lanterna.input.KeyStroke?): Boolean {
         return false
     }
 
-    override open fun updateLookupMap(interactableLookupMap: InteractableLookupMap?) {
+    open override fun updateLookupMap(interactableLookupMap: InteractableLookupMap?) {
         val current = component
         if (current is Container) {
             current.updateLookupMap(interactableLookupMap)

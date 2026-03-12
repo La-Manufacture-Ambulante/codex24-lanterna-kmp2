@@ -4,7 +4,9 @@ class EnumSet<E : Enum<E>> private constructor(
     private val delegate: LinkedHashSet<E>,
 ) : MutableSet<E> by delegate {
     companion object {
-        fun <E : Enum<E>> noneOf(@Suppress("UNUSED_PARAMETER") enumClass: kotlin.reflect.KClass<E>): EnumSet<E> {
+        fun <E : Enum<E>> noneOf(
+            @Suppress("UNUSED_PARAMETER") enumClass: kotlin.reflect.KClass<E>,
+        ): EnumSet<E> {
             return EnumSet(linkedSetOf())
         }
 
@@ -25,7 +27,10 @@ object Character {
 
     fun isDigit(value: Char): Boolean = value.isDigit()
 
-    fun digit(value: Char, radix: Int): Int = value.digitToIntOrNull(radix) ?: -1
+    fun digit(
+        value: Char,
+        radix: Int,
+    ): Int = value.digitToIntOrNull(radix) ?: -1
 
     enum class UnicodeBlock {
         HIRAGANA,
@@ -100,11 +105,17 @@ object System {
 }
 
 object Arrays {
-    fun fill(array: IntArray, value: Int) {
+    fun fill(
+        array: IntArray,
+        value: Int,
+    ) {
         array.fill(value)
     }
 
-    fun <T> fill(array: Array<T>, value: T) {
+    fun <T> fill(
+        array: Array<T>,
+        value: T,
+    ) {
         array.fill(value)
     }
 
@@ -112,15 +123,24 @@ object Arrays {
         return items.asList()
     }
 
-    fun <T> sort(array: Array<T>, comparator: Comparator<in T>) {
+    fun <T> sort(
+        array: Array<T>,
+        comparator: Comparator<in T>,
+    ) {
         array.sortWith(comparator)
     }
 
-    fun copyOf(array: CharArray, newSize: Int): CharArray {
+    fun copyOf(
+        array: CharArray,
+        newSize: Int,
+    ): CharArray {
         return array.copyOf(newSize)
     }
 
-    fun equals(left: CharArray, right: CharArray): Boolean {
+    fun equals(
+        left: CharArray,
+        right: CharArray,
+    ): Boolean {
         return left.contentEquals(right)
     }
 
@@ -152,7 +172,10 @@ object Collections {
 }
 
 object Objects {
-    fun equals(left: Any?, right: Any?): Boolean {
+    fun equals(
+        left: Any?,
+        right: Any?,
+    ): Boolean {
         return left == right
     }
 
@@ -163,6 +186,7 @@ object Objects {
 
 interface Queue<E> : MutableCollection<E> {
     fun poll(): E?
+
     fun offer(element: E): Boolean
 }
 
@@ -209,14 +233,20 @@ class TreeMap<K, V>(
 class Properties {
     private val entries = linkedMapOf<String, String>()
 
-    fun getProperty(key: String?, defaultValue: String? = null): String? {
+    fun getProperty(
+        key: String?,
+        defaultValue: String? = null,
+    ): String? {
         if (key == null) {
             return defaultValue
         }
         return entries[key] ?: defaultValue
     }
 
-    fun setProperty(key: String?, value: String?): Any? {
+    fun setProperty(
+        key: String?,
+        value: String?,
+    ): Any? {
         if (key != null && value != null) {
             entries[key] = value
         }
@@ -232,11 +262,12 @@ class Properties {
     }
 
     fun load(source: Any?) {
-        val raw = when (source) {
-            is String -> source
-            is StringReader -> source.readText()
-            else -> return
-        }
+        val raw =
+            when (source) {
+                is String -> source
+                is StringReader -> source.readText()
+                else -> return
+            }
         for (line in raw.lineSequence()) {
             val trimmed = line.trim()
             if (trimmed.isEmpty() || trimmed.startsWith("#") || trimmed.startsWith("!")) {
@@ -275,8 +306,7 @@ class WeakReference<T : Any>(
     }
 }
 
-class CopyOnWriteArrayList<E> : MutableList<E> by mutableListOf()
-{
+class CopyOnWriteArrayList<E> : MutableList<E> by mutableListOf() {
     fun addIfAbsent(element: E): Boolean {
         if (contains(element)) {
             return false
@@ -287,7 +317,10 @@ class CopyOnWriteArrayList<E> : MutableList<E> by mutableListOf()
 }
 
 class ConcurrentHashMap<K, V> : MutableMap<K, V> by linkedMapOf() {
-    fun putIfAbsent(key: K, value: V): V? {
+    fun putIfAbsent(
+        key: K,
+        value: V,
+    ): V? {
         if (containsKey(key)) {
             return get(key)
         }
@@ -305,7 +338,10 @@ class AtomicBoolean(initialValue: Boolean) {
         value = newValue
     }
 
-    fun compareAndSet(expect: Boolean, update: Boolean): Boolean {
+    fun compareAndSet(
+        expect: Boolean,
+        update: Boolean,
+    ): Boolean {
         if (value == expect) {
             value = update
             return true
@@ -336,6 +372,7 @@ class AtomicInteger(initialValue: Int) {
 
 interface BlockingQueue<E> : MutableCollection<E> {
     fun poll(): E?
+
     fun take(): E
 }
 
@@ -432,9 +469,15 @@ open class TimerTask {
 
 class Timer {
     constructor()
-    constructor(@Suppress("UNUSED_PARAMETER") name: String)
+    constructor(
+        @Suppress("UNUSED_PARAMETER") name: String,
+    )
 
-    fun scheduleAtFixedRate(task: TimerTask?, delay: Long, period: Long) {
+    fun scheduleAtFixedRate(
+        task: TimerTask?,
+        delay: Long,
+        period: Long,
+    ) {
         task?.run()
     }
 
@@ -624,6 +667,9 @@ interface Closeable {
     fun close()
 }
 
-inline fun <T> synchronizedCompat(lock: Any?, block: () -> T): T {
+inline fun <T> synchronizedCompat(
+    lock: Any?,
+    block: () -> T,
+): T {
     return block()
 }

@@ -19,14 +19,15 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.internal.compat.WeakReference
-import com.googlecode.lanterna.internal.compat.Timer
-import com.googlecode.lanterna.internal.compat.TimerTask
-import com.googlecode.lanterna.internal.compat.WeakHashMap
+import java.lang.ref.WeakReference
+import java.util.Timer
+import java.util.TimerTask
+import java.util.WeakHashMap
 
 /**
  * This is a special label that contains not just a single text to display but a number of frames that are cycled
- * through.
+ * through. The class will manage a timer on its own and ensure the label is updated and redrawn. There is a static
+ * helper method available to create the classic "spinning bar": `createClassicSpinningLine()`
  */
 class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
     private val frames: MutableList<Array<String>> = ArrayList()
@@ -34,15 +35,17 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
     private var currentFrame: Int = 0
 
     init {
-        val lines = splitIntoMultipleLines(firstFrameText ?: "")
+        val lines = splitIntoMultipleLines(firstFrameText!!)
         frames.add(lines)
         ensurePreferredSize(lines)
     }
 
+    @Synchronized
     override fun calculatePreferredSize(): TerminalSize {
         return (super.calculatePreferredSize() ?: TerminalSize.ZERO).max(combinedMaximumPreferredSize) ?: TerminalSize.ZERO
     }
 
+    @Synchronized
     fun addFrame(text: String?): AnimatedLabel {
         val lines = splitIntoMultipleLines(text ?: "")
         frames.add(lines)
@@ -55,12 +58,13 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
             combinedMaximumPreferredSize.max(getBounds(lines, combinedMaximumPreferredSize)!!) ?: combinedMaximumPreferredSize
     }
 
+    @Synchronized
     fun nextFrame() {
         currentFrame++
         if (currentFrame >= frames.size) {
             currentFrame = 0
         }
-        super.lines = frames[currentFrame]
+        setLines(frames[currentFrame])
         invalidate()
     }
 
@@ -68,16 +72,18 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
         stopAnimation()
     }
 
+    @Synchronized
     fun startAnimation(millisecondsPerFrame: Long): AnimatedLabel {
-        if (TIMER == null) {
-            TIMER = Timer("AnimatedLabel")
+        if (timer == null) {
+            timer = Timer("AnimatedLabel")
         }
         val animationTimerTask = AnimationTimerTask(this)
-        SCHEDULED_TASKS[this] = animationTimerTask
-        TIMER!!.scheduleAtFixedRate(animationTimerTask, millisecondsPerFrame, millisecondsPerFrame)
+        scheduledTasks[this] = animationTimerTask
+        timer!!.scheduleAtFixedRate(animationTimerTask, millisecondsPerFrame, millisecondsPerFrame)
         return this
     }
 
+    @Synchronized
     fun stopAnimation(): AnimatedLabel {
         removeTaskFromTimer(this)
         return this
@@ -102,10 +108,11 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
     }
 
     companion object {
-        private var TIMER: Timer? = null
-        private val SCHEDULED_TASKS: WeakHashMap<AnimatedLabel, TimerTask> = WeakHashMap()
+        private var timer: Timer? = null
+        private val scheduledTasks: WeakHashMap<AnimatedLabel, TimerTask> = WeakHashMap()
 
-                fun createClassicSpinningLine(speed: Int = 150): AnimatedLabel {
+        @JvmOverloads
+        fun createClassicSpinningLine(speed: Int = 150): AnimatedLabel {
             val animatedLabel = AnimatedLabel("-")
             animatedLabel.addFrame("\\")
             animatedLabel.addFrame("|")
@@ -114,16 +121,18 @@ class AnimatedLabel(firstFrameText: String?) : Label(firstFrameText) {
             return animatedLabel
         }
 
+        @Synchronized
         private fun removeTaskFromTimer(animatedLabel: AnimatedLabel) {
-            SCHEDULED_TASKS[animatedLabel]?.cancel()
-            SCHEDULED_TASKS.remove(animatedLabel)
+            scheduledTasks[animatedLabel]?.cancel()
+            scheduledTasks.remove(animatedLabel)
             canCloseTimer()
         }
 
+        @Synchronized
         private fun canCloseTimer() {
-            if (SCHEDULED_TASKS.isEmpty()) {
-                TIMER?.cancel()
-                TIMER = null
+            if (scheduledTasks.isEmpty()) {
+                timer?.cancel()
+                timer = null
             }
         }
     }

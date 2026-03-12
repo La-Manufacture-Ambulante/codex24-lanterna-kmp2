@@ -43,12 +43,12 @@ abstract class AbstractComponent<T : Component?> : Component {
 
     override var parent: Container? = null
 
-    override open val isInvalid: Boolean
+    open override val isInvalid: Boolean
         get() = invalidBacking
     private var invalidBacking: Boolean = true
 
-    override open val renderer: ComponentRenderer<T?>?
-        get() {
+    open override val renderer: ComponentRenderer<T?>?
+        @Synchronized get() {
             if (overrideRenderer != null) {
                 return overrideRenderer
             }
@@ -57,9 +57,7 @@ abstract class AbstractComponent<T : Component?> : Component {
             if ((themeRenderer == null && basePane != null) ||
                 (themeRenderer != null && currentTheme !== themeRenderersTheme)
             ) {
-                @Suppress("UNCHECKED_CAST")
-                val rendererFromTheme = currentTheme?.getDefinition(this::class)?.getRenderer(selfClass())
-                themeRenderer = rendererFromTheme as ComponentRenderer<T?>?
+                themeRenderer = currentTheme?.getDefinition(javaClass)?.getRenderer(selfClass())
                 if (themeRenderer != null) {
                     themeRenderersTheme = currentTheme
                 }
@@ -71,7 +69,7 @@ abstract class AbstractComponent<T : Component?> : Component {
             if (defaultRenderer == null) {
                 defaultRenderer = createDefaultRenderer()
                 if (defaultRenderer == null) {
-                    throw IllegalStateException("${this::class} returned a null default renderer")
+                    throw IllegalStateException("$javaClass returned a null default renderer")
                 }
             }
             return defaultRenderer
@@ -86,7 +84,7 @@ abstract class AbstractComponent<T : Component?> : Component {
     override val position: TerminalPosition?
         get() = positionBacking
 
-    override open val globalPosition: TerminalPosition?
+    open override val globalPosition: TerminalPosition?
         get() = toGlobal(TerminalPosition.TOP_LEFT_CORNER)
 
     override val layoutData: LayoutData?
@@ -95,11 +93,11 @@ abstract class AbstractComponent<T : Component?> : Component {
     override val isVisible: Boolean
         get() = visibleBacking
 
-    override open val textGUI: TextGUI?
+    open override val textGUI: TextGUI?
         get() = parent?.textGUI
 
-    override open val theme: Theme?
-        get() {
+    open override val theme: Theme?
+        @Synchronized get() {
             if (themeOverride != null) {
                 return themeOverride
             }
@@ -112,20 +110,20 @@ abstract class AbstractComponent<T : Component?> : Component {
             return LanternaThemes.defaultTheme
         }
 
-    override open val themeDefinition: ThemeDefinition?
-        get() = theme?.getDefinition(this::class)
+    open override val themeDefinition: ThemeDefinition?
+        get() = theme?.getDefinition(javaClass)
 
-    override open val basePane: BasePane?
+    open override val basePane: BasePane?
         get() = parent?.basePane
 
     protected abstract fun createDefaultRenderer(): ComponentRenderer<T?>?
 
-    protected fun runOnGUIThreadIfExistsOtherwiseRunDirect(runnable: Runnable?) {
+    protected fun runOnGUIThreadIfExistsOtherwiseRunDirect(runnable: Runnable) {
         val guiThread = textGUI?.guiThread
         if (guiThread != null) {
-            guiThread.invokeLater { runnable?.run() }
+            guiThread.invokeLater(runnable)
         } else {
-            runnable?.run()
+            runnable.run()
         }
     }
 
@@ -134,15 +132,17 @@ abstract class AbstractComponent<T : Component?> : Component {
         return self()
     }
 
-    override open fun invalidate() {
+    open override fun invalidate() {
         invalidBacking = true
     }
 
-    override open fun setSize(size: TerminalSize?): T? {
+    @Synchronized
+    open override fun setSize(size: TerminalSize?): T? {
         sizeBacking = size
         return self()
     }
 
+    @Synchronized
     override fun setPreferredSize(explicitPreferredSize: TerminalSize?): T? {
         this.explicitPreferredSize = explicitPreferredSize
         return self()
@@ -160,15 +160,18 @@ abstract class AbstractComponent<T : Component?> : Component {
         return self()
     }
 
+    @Synchronized
     protected open fun calculatePreferredSize(): TerminalSize? {
         return renderer?.getPreferredSize(self())
     }
 
-    override open fun setPosition(position: TerminalPosition?): T? {
+    @Synchronized
+    open override fun setPosition(position: TerminalPosition?): T? {
         positionBacking = position
         return self()
     }
 
+    @Synchronized
     final override fun draw(graphics: TextGUIGraphics?) {
         if (graphics == null) {
             return
@@ -189,7 +192,8 @@ abstract class AbstractComponent<T : Component?> : Component {
         // No operation by default
     }
 
-    override open fun setLayoutData(data: LayoutData?): T? {
+    @Synchronized
+    open override fun setLayoutData(data: LayoutData?): T? {
         if (layoutDataBacking !== data) {
             layoutDataBacking = data
             invalidate()
@@ -208,7 +212,8 @@ abstract class AbstractComponent<T : Component?> : Component {
         return false
     }
 
-    override open fun setTheme(theme: Theme?): Component? {
+    @Synchronized
+    open override fun setTheme(theme: Theme?): Component? {
         themeOverride = theme
         invalidate()
         return this
@@ -225,7 +230,7 @@ abstract class AbstractComponent<T : Component?> : Component {
         return false
     }
 
-    override open fun toBasePane(position: TerminalPosition?): TerminalPosition? {
+    open override fun toBasePane(position: TerminalPosition?): TerminalPosition? {
         if (position == null) {
             return null
         }
@@ -233,7 +238,7 @@ abstract class AbstractComponent<T : Component?> : Component {
         return parent?.toBasePane(localPosition.withRelative(position))
     }
 
-    override open fun toGlobal(position: TerminalPosition?): TerminalPosition? {
+    open override fun toGlobal(position: TerminalPosition?): TerminalPosition? {
         if (position == null) {
             return null
         }
@@ -241,24 +246,28 @@ abstract class AbstractComponent<T : Component?> : Component {
         return parent?.toGlobal(localPosition.withRelative(position))
     }
 
-    override open fun withBorder(border: Border?): Border? {
+    @Synchronized
+    open override fun withBorder(border: Border?): Border? {
         border?.component = this
         return border
     }
 
-    override open fun addTo(panel: Panel?): T? {
+    @Synchronized
+    open override fun addTo(panel: Panel?): T? {
         panel?.addComponent(this)
         return self()
     }
 
-    override open fun onAdded(container: Container?) {
+    @Synchronized
+    open override fun onAdded(container: Container?) {
         if (parent !== container && parent != null) {
             parent?.removeComponent(this)
         }
         parent = container
     }
 
-    override open fun onRemoved(container: Container?) {
+    @Synchronized
+    open override fun onRemoved(container: Container?) {
         if (parent === container) {
             parent = null
             themeRenderer = null
@@ -273,7 +282,7 @@ abstract class AbstractComponent<T : Component?> : Component {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun selfClass(): kotlin.reflect.KClass<out Component> {
-        return this::class as kotlin.reflect.KClass<out Component>
+    private fun selfClass(): Class<T?> {
+        return javaClass as Class<T?>
     }
 }

@@ -6,7 +6,9 @@ expect class PlatformMutex() {
 
 expect class PlatformCountdownLatch(initialCount: Int = 1) {
     fun await()
+
     fun await(timeoutMillis: Long): Boolean
+
     fun countDown()
 }
 

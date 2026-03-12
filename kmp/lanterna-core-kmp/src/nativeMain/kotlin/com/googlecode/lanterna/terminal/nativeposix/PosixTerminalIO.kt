@@ -22,15 +22,16 @@ object PosixTerminalIO {
         return if (value == EOF) null else value
     }
 
-    fun hasInput(timeoutMillis: Int = 0): Boolean = memScoped {
-        val descriptor = alloc<pollfd>()
-        descriptor.fd = STDIN_FILENO
-        descriptor.events = POLLIN.convert()
-        descriptor.revents = 0
+    fun hasInput(timeoutMillis: Int = 0): Boolean =
+        memScoped {
+            val descriptor = alloc<pollfd>()
+            descriptor.fd = STDIN_FILENO
+            descriptor.events = POLLIN.convert()
+            descriptor.revents = 0
 
-        val pollResult = poll(descriptor.ptr, 1.convert(), timeoutMillis)
-        pollResult > 0 && (descriptor.revents.toInt() and POLLIN) != 0
-    }
+            val pollResult = poll(descriptor.ptr, 1.convert(), timeoutMillis)
+            pollResult > 0 && (descriptor.revents.toInt() and POLLIN) != 0
+        }
 
     fun write(value: String) {
         fputs(value, stdout)

@@ -26,46 +26,52 @@ import java.awt.Color
  * by SwingTerminal when it renders the component.
  * @author martin
  */
- class TerminalEmulatorColorConfiguration private constructor(private val colorPalette:TerminalEmulatorPalette?, private val useBrightColorsOnBold:Boolean) {
+class TerminalEmulatorColorConfiguration private constructor(
+    private val colorPalette: TerminalEmulatorPalette?,
+    private val useBrightColorsOnBold: Boolean,
+) {
+    /**
+     * Given a TextColor and a hint as to if the color is to be used as foreground or not and if we currently have
+     * bold text enabled or not, it returns the closest AWT color that matches this.
+     * @param color What text color to convert
+     * @param isForeground Is the color intended to be used as foreground color
+     * @param inBoldContext Is the color intended to be used for on a character this is bold
+     * @return The AWT color that represents this text color
+     */
+    @Deprecated(
+        "This adds a runtime dependency to the java.desktop module which isn't declared in the module\n" +
+            "      descriptor of lanterna. If you want to call this method, make sure to add it to your module.",
+    )
+    fun toAWTColor(
+        color: TextColor?,
+        isForeground: Boolean,
+        inBoldContext: Boolean,
+    ): Color? {
+        if (color is TextColor.ANSI) {
+            return colorPalette!!.get(color, isForeground, inBoldContext && useBrightColorsOnBold)
+        }
+        return color?.toColor() as? Color
+    }
+
+    companion object {
+        /**
+         * This is the default settings that is used when you create a new SwingTerminal without specifying any color
+         * configuration. It will use classic VGA colors for the ANSI palette and bright colors on bold text.
+         * @return A terminal emulator color configuration object with values set to classic VGA palette
+         */
+        val default: TerminalEmulatorColorConfiguration
+            get() {
+                return newInstance(TerminalEmulatorPalette.STANDARD_VGA)
+            }
 
 /**
- * Given a TextColor and a hint as to if the color is to be used as foreground or not and if we currently have
- * bold text enabled or not, it returns the closest AWT color that matches this.
- * @param color What text color to convert
- * @param isForeground Is the color intended to be used as foreground color
- * @param inBoldContext Is the color intended to be used for on a character this is bold
- * @return The AWT color that represents this text color
- */
-    @Deprecated("This adds a runtime dependency to the java.desktop module which isn't declared in the module\n"+
-"      descriptor of lanterna. If you want to call this method, make sure to add it to your module.")
- fun toAWTColor(color:TextColor?, isForeground:Boolean, inBoldContext:Boolean):Color? {
-if (color is TextColor.ANSI)
-{
-return colorPalette!!.get(color, isForeground, inBoldContext && useBrightColorsOnBold)
-}
-return color?.toColor() as? Color
-}
-
-companion object {
-
-/**
- * This is the default settings that is used when you create a new SwingTerminal without specifying any color
- * configuration. It will use classic VGA colors for the ANSI palette and bright colors on bold text.
- * @return A terminal emulator color configuration object with values set to classic VGA palette
- */
-     val default:TerminalEmulatorColorConfiguration
-get() {
-return newInstance(TerminalEmulatorPalette.STANDARD_VGA)
-}
-
-/**
- * Creates a new color configuration based on a particular palette and with using brighter colors on bold text.
- * @param colorPalette Palette to use for this color configuration
- * @return The resulting color configuration
- */
-    @SuppressWarnings("SameParameterValue")
- fun newInstance(colorPalette:TerminalEmulatorPalette?):TerminalEmulatorColorConfiguration {
-return TerminalEmulatorColorConfiguration(colorPalette, true)
-}
-}
+         * Creates a new color configuration based on a particular palette and with using brighter colors on bold text.
+         * @param colorPalette Palette to use for this color configuration
+         * @return The resulting color configuration
+         */
+        @SuppressWarnings("SameParameterValue")
+        fun newInstance(colorPalette: TerminalEmulatorPalette?): TerminalEmulatorColorConfiguration {
+            return TerminalEmulatorColorConfiguration(colorPalette, true)
+        }
+    }
 }

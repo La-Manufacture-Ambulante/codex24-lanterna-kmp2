@@ -32,11 +32,12 @@ class InputUITest : TestBase() {
         val interactable = InputCaptureComponent()
         interactable.withBorder(Borders.doubleLineBevel("Press any key to test capturing the KeyStroke"))
 
-        window.component = Panels.vertical(
-            interactable,
-            Label("Use the TAB key to shift focus"),
-            Button("Close", Runnable { window.close() }),
-        )
+        window.component =
+            Panels.vertical(
+                interactable,
+                Label("Use the TAB key to shift focus"),
+                Button("Close", Runnable { window.close() }),
+            )
         textGUI.addWindow(window)
     }
 
@@ -47,11 +48,12 @@ class InputUITest : TestBase() {
             if (keyStroke.keyType == KeyType.TAB) {
                 return super.handleKeyStroke(keyStroke)
             }
-            lastKey = if (keyStroke.keyType == KeyType.CHARACTER) {
-                keyStroke.character?.toString() ?: ""
-            } else {
-                keyStroke.keyType.toString()
-            }
+            lastKey =
+                if (keyStroke.keyType == KeyType.CHARACTER) {
+                    keyStroke.character?.toString() ?: ""
+                } else {
+                    keyStroke.keyType.toString()
+                }
             if (keyStroke.isCtrlDown) lastKey += " + CTRL"
             if (keyStroke.isAltDown) lastKey += " + ALT"
             if (keyStroke.isShiftDown) lastKey += " + SHIFT"
@@ -70,7 +72,10 @@ class InputUITest : TestBase() {
                     return TerminalSize(70, 5)
                 }
 
-                override fun drawComponent(graphics: TextGUIGraphics?, component: InputCaptureComponent?) {
+                override fun drawComponent(
+                    graphics: TextGUIGraphics?,
+                    component: InputCaptureComponent?,
+                ) {
                     val g = graphics ?: return
                     g.setBackgroundColor(TextColor.ANSI.BLACK)
                     g.setForegroundColor(TextColor.ANSI.WHITE)
@@ -87,7 +92,6 @@ class InputUITest : TestBase() {
 
     companion object {
         @Throws(IOException::class, InterruptedException::class)
-        @JvmStatic
         fun main(args: Array<String?>?) {
             InputUITest().run(args)
         }

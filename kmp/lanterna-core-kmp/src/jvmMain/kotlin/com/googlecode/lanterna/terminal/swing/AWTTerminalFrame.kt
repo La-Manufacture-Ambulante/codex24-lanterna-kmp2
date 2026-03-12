@@ -25,6 +25,7 @@ import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.internal.compat.TimeUnit
 import com.googlecode.lanterna.terminal.IOSafeTerminal
 import com.googlecode.lanterna.terminal.TerminalResizeListener
 import java.awt.BorderLayout
@@ -32,7 +33,6 @@ import java.awt.Color
 import java.awt.Frame
 import java.awt.HeadlessException
 import java.util.EnumSet
-import com.googlecode.lanterna.internal.compat.TimeUnit
 
 @Suppress("serial")
 open class AWTTerminalFrame : Frame, IOSafeTerminal {
@@ -73,11 +73,12 @@ open class AWTTerminalFrame : Frame, IOSafeTerminal {
         vararg autoCloseTrigger: TerminalEmulatorAutoCloseTrigger,
     ) : super(title ?: "AWTTerminalFrame") {
         this.awtTerminal = awtTerminal
-        this.autoCloseTriggers = if (autoCloseTrigger.isEmpty()) {
-            EnumSet.noneOf(TerminalEmulatorAutoCloseTrigger::class.java)
-        } else {
-            EnumSet.copyOf(autoCloseTrigger.asList())
-        }
+        this.autoCloseTriggers =
+            if (autoCloseTrigger.isEmpty()) {
+                EnumSet.noneOf(TerminalEmulatorAutoCloseTrigger::class.java)
+            } else {
+                EnumSet.copyOf(autoCloseTrigger.asList())
+            }
 
         layout = BorderLayout()
         add(awtTerminal, BorderLayout.CENTER)
@@ -147,7 +148,10 @@ open class AWTTerminalFrame : Frame, IOSafeTerminal {
         awtTerminal.clearScreen()
     }
 
-    override fun setCursorPosition(x: Int, y: Int) {
+    override fun setCursorPosition(
+        x: Int,
+        y: Int,
+    ) {
         awtTerminal.setCursorPosition(x, y)
     }
 
@@ -194,7 +198,10 @@ open class AWTTerminalFrame : Frame, IOSafeTerminal {
     override val terminalSize: TerminalSize?
         get() = awtTerminal.terminalSize
 
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+    override fun enquireTerminal(
+        timeout: Int,
+        timeoutUnit: TimeUnit?,
+    ): ByteArray? {
         return awtTerminal.enquireTerminal(timeout, timeoutUnit)
     }
 

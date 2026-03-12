@@ -23,7 +23,7 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.graphics.TextImage
-import com.googlecode.lanterna.internal.io.IOException
+import java.io.IOException
 
 abstract class AbstractScreen(
     initialSize: TerminalSize?,
@@ -73,10 +73,11 @@ abstract class AbstractScreen(
 
     private var latestResizeRequest: TerminalSize? = null
 
-    override fun setCharacter(position: TerminalPosition?, screenCharacter: TextCharacter?) {
-        if (position != null) {
-            setCharacter(position.column, position.row, screenCharacter)
-        }
+    override fun setCharacter(
+        position: TerminalPosition?,
+        screenCharacter: TextCharacter?,
+    ) {
+        setCharacter(position!!.column, position.row, screenCharacter!!)
     }
 
     override fun newTextGraphics(): TextGraphics {
@@ -103,8 +104,13 @@ abstract class AbstractScreen(
         }
     }
 
-    override fun setCharacter(column: Int, row: Int, screenCharacter: TextCharacter?) {
-        var character = screenCharacter ?: return
+    @Synchronized
+    override fun setCharacter(
+        column: Int,
+        row: Int,
+        screenCharacter: TextCharacter?,
+    ) {
+        var character = screenCharacter!!
         if (character.`is`('\t')) {
             character = character.withCharacter(' ')
             val replacementLength = tabBehaviour?.replaceTabs("\t", column)?.length ?: 1
@@ -116,17 +122,19 @@ abstract class AbstractScreen(
         }
     }
 
-    override fun getFrontCharacter(column: Int, row: Int): TextCharacter? =
-        getCharacterFromBuffer(frontBuffer, column, row)
+    override fun getFrontCharacter(
+        column: Int,
+        row: Int,
+    ): TextCharacter? = getCharacterFromBuffer(frontBuffer, column, row)
 
-    override fun getFrontCharacter(position: TerminalPosition?): TextCharacter? =
-        if (position == null) null else getFrontCharacter(position.column, position.row)
+    override fun getFrontCharacter(position: TerminalPosition?): TextCharacter? = getFrontCharacter(position!!.column, position.row)
 
-    override fun getBackCharacter(column: Int, row: Int): TextCharacter? =
-        getCharacterFromBuffer(backBuffer, column, row)
+    override fun getBackCharacter(
+        column: Int,
+        row: Int,
+    ): TextCharacter? = getCharacterFromBuffer(backBuffer, column, row)
 
-    override fun getBackCharacter(position: TerminalPosition?): TextCharacter? =
-        if (position == null) null else getBackCharacter(position.column, position.row)
+    override fun getBackCharacter(position: TerminalPosition?): TextCharacter? = getBackCharacter(position!!.column, position.row)
 
     @Throws(IOException::class)
     override fun refresh() {
@@ -138,10 +146,12 @@ abstract class AbstractScreen(
         stopScreen()
     }
 
+    @Synchronized
     override fun clear() {
         backBuffer.setAll(defaultCharacter)
     }
 
+    @Synchronized
     override fun doResizeIfNecessary(): TerminalSize? {
         val pendingResize = getAndClearPendingResize() ?: return null
         backBuffer = backBuffer.resize(pendingResize, defaultCharacter)
@@ -153,6 +163,7 @@ abstract class AbstractScreen(
         latestResizeRequest = newSize
     }
 
+    @Synchronized
     private fun getAndClearPendingResize(): TerminalSize? {
         if (latestResizeRequest != null) {
             terminalSizeBacking = latestResizeRequest
@@ -162,13 +173,21 @@ abstract class AbstractScreen(
         return null
     }
 
-    private fun getCharacterFromBuffer(buffer: ScreenBuffer, column: Int, row: Int): TextCharacter? {
+    private fun getCharacterFromBuffer(
+        buffer: ScreenBuffer,
+        column: Int,
+        row: Int,
+    ): TextCharacter? {
         return buffer.getCharacterAt(column, row)
     }
 
     override fun toString(): String = backBuffer.toString()
 
-    override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int) {
+    override fun scrollLines(
+        firstLine: Int,
+        lastLine: Int,
+        distance: Int,
+    ) {
         backBuffer.scrollLines(firstLine, lastLine, distance)
     }
 }

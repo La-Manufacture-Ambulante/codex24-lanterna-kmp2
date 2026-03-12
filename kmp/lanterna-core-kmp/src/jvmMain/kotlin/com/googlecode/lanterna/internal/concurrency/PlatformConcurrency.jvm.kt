@@ -33,8 +33,7 @@ actual class PlatformCountdownLatch actual constructor(initialCount: Int) {
 actual class PlatformThreadToken internal constructor(
     private val thread: Thread,
 ) {
-    override fun equals(other: Any?): Boolean =
-        other is PlatformThreadToken && other.thread === thread
+    override fun equals(other: Any?): Boolean = other is PlatformThreadToken && other.thread === thread
 
     override fun hashCode(): Int = System.identityHashCode(thread)
 }

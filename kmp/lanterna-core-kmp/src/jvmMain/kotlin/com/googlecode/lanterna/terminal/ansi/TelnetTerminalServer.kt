@@ -24,35 +24,37 @@ import java.nio.charset.Charset
 import javax.net.ServerSocketFactory
 
 @Suppress("WeakerAccess")
-class TelnetTerminalServer @Throws(IOException::class) constructor(
-    serverSocketFactory: ServerSocketFactory,
-    port: Int,
-    private val charset: Charset,
-) {
-    val serverSocket: ServerSocket = serverSocketFactory.createServerSocket(port)
-
+class TelnetTerminalServer
     @Throws(IOException::class)
-    constructor(port: Int) : this(ServerSocketFactory.getDefault(), port)
+    constructor(
+        serverSocketFactory: ServerSocketFactory,
+        port: Int,
+        private val charset: Charset,
+    ) {
+        val serverSocket: ServerSocket = serverSocketFactory.createServerSocket(port)
 
-    @Throws(IOException::class)
-    constructor(port: Int, charset: Charset) : this(ServerSocketFactory.getDefault(), port, charset)
+        @Throws(IOException::class)
+        constructor(port: Int) : this(ServerSocketFactory.getDefault(), port)
 
-    @Throws(IOException::class)
-    constructor(serverSocketFactory: ServerSocketFactory, port: Int) : this(
-        serverSocketFactory,
-        port,
-        Charset.defaultCharset(),
-    )
+        @Throws(IOException::class)
+        constructor(port: Int, charset: Charset) : this(ServerSocketFactory.getDefault(), port, charset)
 
-    @Throws(IOException::class)
-    fun acceptConnection(): TelnetTerminal {
-        val clientSocket = serverSocket.accept()
-        clientSocket.tcpNoDelay = true
-        return TelnetTerminal(clientSocket, charset)
+        @Throws(IOException::class)
+        constructor(serverSocketFactory: ServerSocketFactory, port: Int) : this(
+            serverSocketFactory,
+            port,
+            Charset.defaultCharset(),
+        )
+
+        @Throws(IOException::class)
+        fun acceptConnection(): TelnetTerminal {
+            val clientSocket = serverSocket.accept()
+            clientSocket.tcpNoDelay = true
+            return TelnetTerminal(clientSocket, charset)
+        }
+
+        @Throws(IOException::class)
+        fun close() {
+            serverSocket.close()
+        }
     }
-
-    @Throws(IOException::class)
-    fun close() {
-        serverSocket.close()
-    }
-}

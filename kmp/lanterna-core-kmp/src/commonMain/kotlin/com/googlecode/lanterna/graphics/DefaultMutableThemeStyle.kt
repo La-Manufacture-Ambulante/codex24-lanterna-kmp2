@@ -20,88 +20,100 @@ package com.googlecode.lanterna.graphics
 
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TextColor
-
-import com.googlecode.lanterna.internal.compat.EnumSet
+import java.util.Arrays
+import java.util.EnumSet
 
 /**
  * This basic implementation of ThemeStyle keeps the styles in its internal state and allows you to mutate them. It can
  * be used to more easily override an existing theme and make small changes programmatically to it, see Issue409 in the
  * test section for an example of how to do this.
  * @see DelegatingThemeDefinition
- * 
+ *
  * @see DelegatingTheme
- * 
+ *
  * @see Theme
  */
- class DefaultMutableThemeStyle:ThemeStyle {
-override var foreground:TextColor? = null
-override var background:TextColor? = null
-private var sgrs:EnumSet<SGR>? = null
+class DefaultMutableThemeStyle : ThemeStyle {
+    override var foreground: TextColor? = null
+    override var background: TextColor? = null
+    private var sgrs: EnumSet<SGR>? = null
 
- override val sgRs:EnumSet<SGR>?
-get() {
-val current = sgrs
-return if (current == null) EnumSet.noneOf(SGR::class) else EnumSet.copyOf(current)
-}
+    override val sgRs: EnumSet<SGR>?
+        @Override
+        get() {
+            return if (sgrs == null) EnumSet.noneOf(SGR::class.java) else EnumSet.copyOf(sgrs)
+        }
 
-/**
- * Creates a new [DefaultMutableThemeStyle] based on an existing [ThemeStyle]. The values of this style
- * that is passed in will be copied into the new object that is created.
- * @param themeStyleToCopy [ThemeStyle] object to copy the style parameters from
- */
-     constructor(themeStyleToCopy:ThemeStyle) : this(themeStyleToCopy.foreground, 
-themeStyleToCopy.background, 
-themeStyleToCopy.sgRs) {}
+    /**
+     * Creates a new [DefaultMutableThemeStyle] based on an existing [ThemeStyle]. The values of this style
+     * that is passed in will be copied into the new object that is created.
+     * @param themeStyleToCopy [ThemeStyle] object to copy the style parameters from
+     */
+    constructor(themeStyleToCopy: ThemeStyle) : this(
+        themeStyleToCopy.foreground,
+        themeStyleToCopy.background,
+        themeStyleToCopy.sgRs,
+    ) {}
 
-/**
- * Creates a new [DefaultMutableThemeStyle] with a specified style (foreground, background and SGR state)
- * @param foreground Foreground color of the text with this style
- * @param background Background color of the text with this style
- * @param sgrs Modifiers to apply to the text with this style
- */
-     constructor(foreground:TextColor?, background:TextColor?, vararg sgrs:SGR?) : this(foreground, background, if (sgrs.size > 0) EnumSet.copyOf(listOf(*sgrs).filterNotNull()) else EnumSet.noneOf(SGR::class)) {}
+    /**
+     * Creates a new [DefaultMutableThemeStyle] with a specified style (foreground, background and SGR state)
+     * @param foreground Foreground color of the text with this style
+     * @param background Background color of the text with this style
+     * @param sgrs Modifiers to apply to the text with this style
+     */
+    constructor(
+        foreground: TextColor?,
+        background: TextColor?,
+        vararg sgrs: SGR?,
+    ) : this(
+        foreground,
+        background,
+        if (sgrs.size > 0) {
+            EnumSet.copyOf(Arrays.asList(*sgrs).filterNotNull())
+        } else {
+            EnumSet.noneOf(SGR::class.java)
+        },
+    )
 
-private constructor(foreground:TextColor?, background:TextColor?, sgrs:EnumSet<SGR>?) {
-if (foreground == null)
-{
-throw IllegalArgumentException("Cannot set SimpleTheme's style foreground to null")
-}
-if (background == null)
-{
-throw IllegalArgumentException("Cannot set SimpleTheme's style background to null")
-}
-this.foreground = foreground
-this.background = background
-this.sgrs = if (sgrs == null) EnumSet.noneOf(SGR::class) else EnumSet.copyOf(sgrs)
-}
+    private constructor(foreground: TextColor?, background: TextColor?, sgrs: EnumSet<SGR>?) {
+        if (foreground == null) {
+            throw IllegalArgumentException("Cannot set SimpleTheme's style foreground to null")
+        }
+        if (background == null) {
+            throw IllegalArgumentException("Cannot set SimpleTheme's style background to null")
+        }
+        this.foreground = foreground
+        this.background = background
+        this.sgrs = if (sgrs == null) EnumSet.noneOf(SGR::class.java) else EnumSet.copyOf(sgrs)
+    }
 
-/**
- * Modifies the foreground color of this [DefaultMutableThemeStyle] to the value passed in
- * @param foreground New foreground color for this theme style
- * @return Itself
- */
-     fun setForeground(foreground:TextColor?):DefaultMutableThemeStyle {
-this.foreground = foreground
-return this
-}
+    /**
+     * Modifies the foreground color of this [DefaultMutableThemeStyle] to the value passed in
+     * @param foreground New foreground color for this theme style
+     * @return Itself
+     */
+    fun setForeground(foreground: TextColor?): DefaultMutableThemeStyle {
+        this.foreground = foreground
+        return this
+    }
 
-/**
- * Modifies the background color of this [DefaultMutableThemeStyle] to the value passed in
- * @param background New background color for this theme style
- * @return Itself
- */
-     fun setBackground(background:TextColor?):DefaultMutableThemeStyle {
-this.background = background
-return this
-}
+    /**
+     * Modifies the background color of this [DefaultMutableThemeStyle] to the value passed in
+     * @param background New background color for this theme style
+     * @return Itself
+     */
+    fun setBackground(background: TextColor?): DefaultMutableThemeStyle {
+        this.background = background
+        return this
+    }
 
-/**
- * Modifies the SGR modifiers of this [DefaultMutableThemeStyle] to the values passed it.
- * @param sgrs New SGR modifiers for this theme style, the values in this set will be copied into the internal state
- * @return Itself
- */
-     fun setSGRs(sgrs:EnumSet<SGR>?):DefaultMutableThemeStyle {
-this.sgrs = if (sgrs == null) EnumSet.noneOf(SGR::class) else EnumSet.copyOf(sgrs)
-return this
-}
+    /**
+     * Modifies the SGR modifiers of this [DefaultMutableThemeStyle] to the values passed it.
+     * @param sgrs New SGR modifiers for this theme style, the values in this set will be copied into the internal state
+     * @return Itself
+     */
+    fun setSGRs(sgrs: EnumSet<SGR>?): DefaultMutableThemeStyle {
+        this.sgrs = if (sgrs == null) EnumSet.noneOf(SGR::class.java) else EnumSet.copyOf(sgrs)
+        return this
+    }
 }

@@ -25,7 +25,11 @@ import com.googlecode.lanterna.graphics.ThemedTextGraphics
  * WindowPostRenderer implementation that draws a shadow under the window.
  */
 class WindowShadowRenderer : WindowPostRenderer {
-    override fun postRender(textGraphics: ThemedTextGraphics?, textGUI: TextGUI?, window: Window?) {
+    override fun postRender(
+        textGraphics: ThemedTextGraphics?,
+        textGUI: TextGUI?,
+        window: Window?,
+    ) {
         val graphics = textGraphics ?: return
         val activeWindow = window ?: return
         val windowPosition = activeWindow.position ?: return
@@ -37,8 +41,9 @@ class WindowShadowRenderer : WindowPostRenderer {
         val useDoubleWidth = themeDefinition.getBooleanProperty("DOUBLE_WIDTH", true)
         val useTransparency = themeDefinition.getBooleanProperty("TRANSPARENT", false)
 
-        val lowerLeft = windowPosition.withRelativeColumn(if (useDoubleWidth) 2 else 1)!!
-            .withRelativeRow(decoratedWindowSize.rows)!!
+        val lowerLeft =
+            windowPosition.withRelativeColumn(if (useDoubleWidth) 2 else 1)!!
+                .withRelativeRow(decoratedWindowSize.rows)!!
         var lowerRight = lowerLeft.withRelativeColumn(decoratedWindowSize.columns - if (useDoubleWidth) 3 else 2)!!
         var column = lowerLeft.column
         while (column <= lowerRight.column + 1) {

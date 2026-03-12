@@ -24,12 +24,12 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.internal.compat.TimeUnit
 import com.googlecode.lanterna.terminal.IOSafeTerminal
 import com.googlecode.lanterna.terminal.TerminalResizeListener
 import java.awt.BorderLayout
 import java.awt.event.AdjustmentEvent
 import java.awt.event.AdjustmentListener
-import com.googlecode.lanterna.internal.compat.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JScrollBar
 import javax.swing.SwingUtilities
@@ -78,7 +78,10 @@ class ScrollingSwingTerminal(
         override var scrollingOffset: Int = 0
             private set
 
-        override fun updateModel(totalSize: Int, screenSize: Int) {
+        override fun updateModel(
+            totalSize: Int,
+            screenSize: Int,
+        ) {
             if (!SwingUtilities.isEventDispatchThread()) {
                 SwingUtilities.invokeLater { updateModel(totalSize, screenSize) }
                 return
@@ -158,7 +161,10 @@ class ScrollingSwingTerminal(
         swingTerminal.clearScreen()
     }
 
-    override fun setCursorPosition(x: Int, y: Int) {
+    override fun setCursorPosition(
+        x: Int,
+        y: Int,
+    ) {
         swingTerminal.setCursorPosition(x, y)
     }
 
@@ -196,7 +202,10 @@ class ScrollingSwingTerminal(
         swingTerminal.setBackgroundColor(color)
     }
 
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+    override fun enquireTerminal(
+        timeout: Int,
+        timeoutUnit: TimeUnit?,
+    ): ByteArray? {
         return swingTerminal.enquireTerminal(timeout, timeoutUnit)
     }
 

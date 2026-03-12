@@ -45,22 +45,34 @@ open class DelegatingThemeDefinition(private val themeDefinition: ThemeDefinitio
         return themeDefinition.getCustom(name)
     }
 
-    override fun getCustom(name: String?, defaultValue: ThemeStyle?): ThemeStyle? {
+    override fun getCustom(
+        name: String?,
+        defaultValue: ThemeStyle?,
+    ): ThemeStyle? {
         return themeDefinition.getCustom(name, defaultValue)
     }
 
-    override fun getBooleanProperty(name: String?, defaultValue: Boolean): Boolean {
+    override fun getBooleanProperty(
+        name: String?,
+        defaultValue: Boolean,
+    ): Boolean {
         return themeDefinition.getBooleanProperty(name, defaultValue)
     }
 
-    override fun getIntegerProperty(name: String?, defaultValue: Int): Int {
+    override fun getIntegerProperty(
+        name: String?,
+        defaultValue: Int,
+    ): Int {
         return themeDefinition.getIntegerProperty(name, defaultValue)
     }
 
     override val isCursorVisible: Boolean
         get() = themeDefinition.isCursorVisible
 
-    override fun getCharacter(name: String?, fallback: Char): Char {
+    override fun getCharacter(
+        name: String?,
+        fallback: Char,
+    ): Char {
         return themeDefinition.getCharacter(name, fallback)
     }
 

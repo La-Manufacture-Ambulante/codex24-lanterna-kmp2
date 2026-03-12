@@ -24,216 +24,275 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
-import kotlin.collections.ArrayList
-import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
+import java.util.ArrayList
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * List box where each item has its own checked state.
+ * This is a list box implementation where each item has its own checked state that can be toggled on and off.
+ * @author Martin
  */
-class CheckBoxList<V> constructor(preferredSize: TerminalSize? = null) :
+class CheckBoxList<V>
+    @JvmOverloads
+    constructor(preferredSize: TerminalSize? = null) :
     AbstractListBox<V, CheckBoxList<V>>(preferredSize) {
-
-    interface Listener {
-        fun onStatusChanged(itemIndex: Int, checked: Boolean)
-    }
-
-    private val listeners: MutableList<Listener> = CopyOnWriteArrayList()
-    private val itemStatus: MutableList<Boolean> = ArrayList()
-
-    private var stateForMouseDragged: Boolean = false
-    private var minIndexForMouseDragged: Int = 0
-    private var maxIndexForMouseDragged: Int = 0
-
-    override fun createDefaultListItemRenderer(): ListItemRenderer<V, CheckBoxList<V>> {
-        return CheckBoxListItemRenderer()
-    }
-
-    override fun clearItems(): CheckBoxList<V>? {
-        itemStatus.clear()
-        return super.clearItems()
-    }
-
-    override fun addItem(item: V?): CheckBoxList<V>? {
-        return addItem(item, false)
-    }
-
-    override fun removeItem(index: Int): V {
-        val item = super.removeItem(index)
-        itemStatus.removeAt(index)
-        return item
-    }
-
-    fun addItem(item: V?, checkedState: Boolean): CheckBoxList<V>? {
-        itemStatus.add(checkedState)
-        return super.addItem(item)
-    }
-
-    fun isChecked(item: V?): Boolean? {
-        val index = indexOf(item)
-        if (index == -1) {
-            return null
+        /**
+         * Listener interface that can be attached to the `CheckBoxList` in order to be notified on user actions.
+         */
+        interface Listener {
+            /**
+             * Called by the `CheckBoxList` when the user changes the toggle state of one item.
+             * @param itemIndex Index of the item that was toggled
+             * @param checked If the state of the item is now checked, this will be `true`, otherwise `false`
+             */
+            fun onStatusChanged(
+                itemIndex: Int,
+                checked: Boolean,
+            )
         }
-        return itemStatus[index]
-    }
 
-    fun isChecked(index: Int): Boolean? {
-        if (index < 0 || index >= itemStatus.size) {
-            return null
+        private val listeners: MutableList<Listener> = CopyOnWriteArrayList()
+        private val itemStatus: MutableList<Boolean> = ArrayList()
+
+        private var stateForMouseDragged: Boolean = false
+        private var minIndexForMouseDragged: Int = 0
+        private var maxIndexForMouseDragged: Int = 0
+
+        override fun createDefaultListItemRenderer(): ListItemRenderer<V, CheckBoxList<V>> {
+            return CheckBoxListItemRenderer()
         }
-        return itemStatus[index]
-    }
 
-    fun toggleChecked(index: Int): CheckBoxList<V>? {
-        setChecked(index, !(isChecked(index) ?: false))
-        return self()
-    }
-
-    fun setChecked(item: V?, checked: Boolean): CheckBoxList<V>? {
-        val index = indexOf(item)
-        if (index != -1) {
-            setChecked(index, checked)
+        @Synchronized
+        override fun clearItems(): CheckBoxList<V>? {
+            itemStatus.clear()
+            return super.clearItems()
         }
-        return self()
-    }
 
-    private fun setChecked(index: Int, checked: Boolean) {
-        if (index !in 0 until itemStatus.size) {
-            return
+        override fun addItem(item: V?): CheckBoxList<V>? {
+            return addItem(item, false)
         }
-        itemStatus[index] = checked
-        runOnGUIThreadIfExistsOtherwiseRunDirect(
-            Runnable {
-                for (listener in listeners) {
-                    listener.onStatusChanged(index, checked)
-                }
-            },
-        )
-    }
 
-    fun getCheckedItems(): List<V> {
-        val result: MutableList<V> = ArrayList()
-        for (i in 0 until itemStatus.size) {
-            if (itemStatus[i]) {
-                result.add(getItemAt(i))
+        @Synchronized
+        override fun removeItem(index: Int): V {
+            val item = super.removeItem(index)
+            itemStatus.removeAt(index)
+            return item
+        }
+
+        /**
+         * Adds an item to the checkbox list with an explicit checked status.
+         * @param item Object to add to the list
+         * @param checkedState If `true`, the new item will be initially checked
+         * @return Itself
+         */
+        @Synchronized
+        fun addItem(
+            item: V?,
+            checkedState: Boolean,
+        ): CheckBoxList<V>? {
+            itemStatus.add(checkedState)
+            return super.addItem(item)
+        }
+
+        @Synchronized
+        fun isChecked(item: V?): Boolean? {
+            val index = indexOf(item)
+            if (index == -1) {
+                return null
             }
+            return itemStatus[index]
         }
-        return result
-    }
 
-    fun addListener(listener: Listener?): CheckBoxList<V> {
-        if (listener != null && !listeners.contains(listener)) {
-            listeners.add(listener)
+        @Synchronized
+        fun isChecked(index: Int): Boolean? {
+            if (index < 0 || index >= itemStatus.size) {
+                return null
+            }
+            return itemStatus[index]
         }
-        return this
-    }
 
-    fun removeListener(listener: Listener?): CheckBoxList<V> {
-        listeners.remove(listener)
-        return this
-    }
+        @Synchronized
+        fun toggleChecked(index: Int): CheckBoxList<V>? {
+            setChecked(index, !(isChecked(index) ?: false))
+            return self()
+        }
 
-    override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
-        if (isKeyboardActivationStroke(keyStroke)) {
-            toggleChecked(getSelectedIndex())
-            return Interactable.Result.HANDLED
-        } else if (keyStroke.keyType == KeyType.MOUSE_EVENT) {
-            val mouseAction = keyStroke as MouseAction
-            val actionType = mouseAction.actionType
-
-            if (isMouseMove(keyStroke) ||
-                actionType == MouseActionType.CLICK_RELEASE ||
-                actionType == MouseActionType.SCROLL_UP ||
-                actionType == MouseActionType.SCROLL_DOWN
-            ) {
-                return super.handleKeyStroke(keyStroke)
+        @Synchronized
+        fun setChecked(
+            item: V?,
+            checked: Boolean,
+        ): CheckBoxList<V>? {
+            val index = indexOf(item)
+            if (index != -1) {
+                setChecked(index, checked)
             }
+            return self()
+        }
 
-            val result = super.handleKeyStroke(keyStroke)
-            val newIndex = getIndexByMouseAction(mouseAction)
-            if (actionType == MouseActionType.CLICK_DOWN) {
-                stateForMouseDragged = !(isChecked(newIndex) ?: false)
-                setChecked(newIndex, stateForMouseDragged)
-                minIndexForMouseDragged = newIndex
-                maxIndexForMouseDragged = newIndex
+        private fun setChecked(
+            index: Int,
+            checked: Boolean,
+        ) {
+            if (index !in 0 until itemStatus.size) {
+                return
             }
+            itemStatus[index] = checked
+            runOnGUIThreadIfExistsOtherwiseRunDirect(
+                Runnable {
+                    for (listener in listeners) {
+                        listener.onStatusChanged(index, checked)
+                    }
+                },
+            )
+        }
 
-            minIndexForMouseDragged = kotlin.math.min(minIndexForMouseDragged, newIndex)
-            maxIndexForMouseDragged = kotlin.math.max(maxIndexForMouseDragged, newIndex)
-
-            if (actionType == MouseActionType.DRAG) {
-                for (i in minIndexForMouseDragged..maxIndexForMouseDragged) {
-                    setChecked(i, stateForMouseDragged)
+        @Synchronized
+        fun getCheckedItems(): List<V> {
+            val result: MutableList<V> = ArrayList()
+            for (i in 0 until itemStatus.size) {
+                if (itemStatus[i]) {
+                    result.add(getItemAt(i))
                 }
             }
             return result
         }
 
-        return super.handleKeyStroke(keyStroke)
+        /**
+         * Adds a new listener to the `CheckBoxList` that will be called on certain user actions.
+         * @param listener Listener to attach to this `CheckBoxList`
+         * @return Itself
+         */
+        @Synchronized
+        fun addListener(listener: Listener?): CheckBoxList<V> {
+            if (listener != null && !listeners.contains(listener)) {
+                listeners.add(listener)
+            }
+            return this
+        }
+
+        /**
+         * Removes a listener from this `CheckBoxList` so that if it had been added earlier, it will no longer be called
+         * on user actions.
+         * @param listener Listener to remove from this `CheckBoxList`
+         * @return Itself
+         */
+        fun removeListener(listener: Listener?): CheckBoxList<V> {
+            listeners.remove(listener)
+            return this
+        }
+
+        @Synchronized
+        override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
+            if (isKeyboardActivationStroke(keyStroke)) {
+                toggleChecked(getSelectedIndex())
+                return Interactable.Result.HANDLED
+            } else if (keyStroke.keyType == KeyType.MOUSE_EVENT) {
+                val mouseAction = keyStroke as MouseAction
+                val actionType = mouseAction.actionType
+
+                if (isMouseMove(keyStroke) ||
+                    actionType == MouseActionType.CLICK_RELEASE ||
+                    actionType == MouseActionType.SCROLL_UP ||
+                    actionType == MouseActionType.SCROLL_DOWN
+                ) {
+                    return super.handleKeyStroke(keyStroke)
+                }
+
+                val result = super.handleKeyStroke(keyStroke)
+                val newIndex = getIndexByMouseAction(mouseAction)
+                if (actionType == MouseActionType.CLICK_DOWN) {
+                    stateForMouseDragged = !(isChecked(newIndex) ?: false)
+                    setChecked(newIndex, stateForMouseDragged)
+                    minIndexForMouseDragged = newIndex
+                    maxIndexForMouseDragged = newIndex
+                }
+
+                minIndexForMouseDragged = kotlin.math.min(minIndexForMouseDragged, newIndex)
+                maxIndexForMouseDragged = kotlin.math.max(maxIndexForMouseDragged, newIndex)
+
+                if (actionType == MouseActionType.DRAG) {
+                    for (i in minIndexForMouseDragged..maxIndexForMouseDragged) {
+                        setChecked(i, stateForMouseDragged)
+                    }
+                }
+                return result
+            }
+
+            return super.handleKeyStroke(keyStroke)
+        }
+
+        /**
+         * Default renderer for this component which is used unless overridden. The checked state is drawn on the left side
+         * of the item label using a "[ ]" block filled with an X if the item has checked state on.
+         * @param <V> Type of items in the [CheckBoxList]
+         */
+        class CheckBoxListItemRenderer<V> : ListItemRenderer<V, CheckBoxList<V>>() {
+            override fun getHotSpotPositionOnLine(selectedIndex: Int): Int {
+                return 1
+            }
+
+            override fun getLabel(
+                listBox: CheckBoxList<V>?,
+                index: Int,
+                item: V?,
+            ): String {
+                val lb = listBox ?: return "[ ] <null>"
+                val check = if (lb.itemStatus[index]) "x" else " "
+                val text = (item ?: "<null>").toString()
+                return "[$check] $text"
+            }
+
+            override fun drawItem(
+                graphics: TextGUIGraphics?,
+                listBox: CheckBoxList<V>?,
+                index: Int,
+                item: V?,
+                selected: Boolean,
+                focused: Boolean,
+            ) {
+                val g = graphics ?: return
+                val lb = listBox ?: return
+                val themeDefinition = lb.theme?.getDefinition(CheckBoxList::class.java) ?: return
+                val itemStyle: ThemeStyle =
+                    if (selected && !focused) {
+                        themeDefinition.selected ?: themeDefinition.normal ?: return
+                    } else if (selected) {
+                        themeDefinition.active ?: themeDefinition.normal ?: return
+                    } else if (focused) {
+                        themeDefinition.insensitive ?: themeDefinition.normal ?: return
+                    } else {
+                        themeDefinition.normal ?: return
+                    }
+
+                if (themeDefinition.getBooleanProperty("CLEAR_WITH_NORMAL", false)) {
+                    g.applyThemeStyle(themeDefinition.normal)
+                    g.fill(' ')
+                    g.applyThemeStyle(itemStyle)
+                } else {
+                    g.applyThemeStyle(itemStyle)
+                    g.fill(' ')
+                }
+
+                val brackets = "${themeDefinition.getCharacter("LEFT_BRACKET", '[')} ${themeDefinition.getCharacter("RIGHT_BRACKET", ']')}"
+                if (themeDefinition.getBooleanProperty("FIXED_BRACKET_COLOR", false)) {
+                    g.applyThemeStyle(themeDefinition.preLight)
+                    g.putString(0, 0, brackets)
+                    g.applyThemeStyle(itemStyle)
+                } else {
+                    g.putString(0, 0, brackets)
+                }
+
+                val text = (item ?: "<null>").toString()
+                g.putString(4, 0, text)
+
+                val itemChecked = lb.isChecked(index) ?: false
+                val marker = themeDefinition.getCharacter("MARKER", 'x')
+                if (themeDefinition.getBooleanProperty("MARKER_WITH_NORMAL", false)) {
+                    g.applyThemeStyle(themeDefinition.normal)
+                }
+                if (selected && focused && themeDefinition.getBooleanProperty("HOTSPOT_PRELIGHT", false)) {
+                    g.applyThemeStyle(themeDefinition.preLight)
+                }
+                g.setCharacter(1, 0, if (itemChecked) marker else ' ')
+            }
+        }
     }
-
-    class CheckBoxListItemRenderer<V> : ListItemRenderer<V, CheckBoxList<V>>() {
-        override fun getHotSpotPositionOnLine(selectedIndex: Int): Int {
-            return 1
-        }
-
-        override fun getLabel(listBox: CheckBoxList<V>?, index: Int, item: V?): String {
-            val lb = listBox ?: return "[ ] <null>"
-            val check = if (lb.itemStatus[index]) "x" else " "
-            val text = (item ?: "<null>").toString()
-            return "[$check] $text"
-        }
-
-        override fun drawItem(
-            graphics: TextGUIGraphics?,
-            listBox: CheckBoxList<V>?,
-            index: Int,
-            item: V?,
-            selected: Boolean,
-            focused: Boolean,
-        ) {
-            val g = graphics ?: return
-            val lb = listBox ?: return
-            val themeDefinition = lb.theme?.getDefinition(CheckBoxList::class) ?: return
-            val itemStyle: ThemeStyle = if (selected && !focused) {
-                themeDefinition.selected ?: themeDefinition.normal ?: return
-            } else if (selected) {
-                themeDefinition.active ?: themeDefinition.normal ?: return
-            } else if (focused) {
-                themeDefinition.insensitive ?: themeDefinition.normal ?: return
-            } else {
-                themeDefinition.normal ?: return
-            }
-
-            if (themeDefinition.getBooleanProperty("CLEAR_WITH_NORMAL", false)) {
-                g.applyThemeStyle(themeDefinition.normal)
-                g.fill(' ')
-                g.applyThemeStyle(itemStyle)
-            } else {
-                g.applyThemeStyle(itemStyle)
-                g.fill(' ')
-            }
-
-            val brackets = "${themeDefinition.getCharacter("LEFT_BRACKET", '[')} ${themeDefinition.getCharacter("RIGHT_BRACKET", ']')}"
-            if (themeDefinition.getBooleanProperty("FIXED_BRACKET_COLOR", false)) {
-                g.applyThemeStyle(themeDefinition.preLight)
-                g.putString(0, 0, brackets)
-                g.applyThemeStyle(itemStyle)
-            } else {
-                g.putString(0, 0, brackets)
-            }
-
-            val text = (item ?: "<null>").toString()
-            g.putString(4, 0, text)
-
-            val itemChecked = lb.isChecked(index) ?: false
-            val marker = themeDefinition.getCharacter("MARKER", 'x')
-            if (themeDefinition.getBooleanProperty("MARKER_WITH_NORMAL", false)) {
-                g.applyThemeStyle(themeDefinition.normal)
-            }
-            if (selected && focused && themeDefinition.getBooleanProperty("HOTSPOT_PRELIGHT", false)) {
-                g.applyThemeStyle(themeDefinition.preLight)
-            }
-            g.setCharacter(1, 0, if (itemChecked) marker else ' ')
-        }
-    }
-}

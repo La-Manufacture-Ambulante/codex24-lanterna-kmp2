@@ -43,11 +43,15 @@ class DefaultTerminalFactory : TerminalFactory {
         return this
     }
 
-    fun setForceTextTerminal(@Suppress("UNUSED_PARAMETER") forceTextTerminal: Boolean): DefaultTerminalFactory {
+    fun setForceTextTerminal(
+        @Suppress("UNUSED_PARAMETER") forceTextTerminal: Boolean,
+    ): DefaultTerminalFactory {
         return this
     }
 
-    fun setPreferTerminalEmulator(@Suppress("UNUSED_PARAMETER") preferTerminalEmulator: Boolean): DefaultTerminalFactory {
+    fun setPreferTerminalEmulator(
+        @Suppress("UNUSED_PARAMETER") preferTerminalEmulator: Boolean,
+    ): DefaultTerminalFactory {
         return this
     }
 
@@ -56,7 +60,9 @@ class DefaultTerminalFactory : TerminalFactory {
         return this
     }
 
-    fun setTelnetPort(@Suppress("UNUSED_PARAMETER") telnetPort: Int): DefaultTerminalFactory {
+    fun setTelnetPort(
+        @Suppress("UNUSED_PARAMETER") telnetPort: Int,
+    ): DefaultTerminalFactory {
         return this
     }
 
@@ -65,7 +71,9 @@ class DefaultTerminalFactory : TerminalFactory {
         return this
     }
 
-    fun setForceAWTOverSwing(@Suppress("UNUSED_PARAMETER") forceAWTOverSwing: Boolean): DefaultTerminalFactory {
+    fun setForceAWTOverSwing(
+        @Suppress("UNUSED_PARAMETER") forceAWTOverSwing: Boolean,
+    ): DefaultTerminalFactory {
         return this
     }
 
@@ -75,7 +83,9 @@ class DefaultTerminalFactory : TerminalFactory {
         return this
     }
 
-    fun setTerminalEmulatorTitle(@Suppress("UNUSED_PARAMETER") title: String?): DefaultTerminalFactory {
+    fun setTerminalEmulatorTitle(
+        @Suppress("UNUSED_PARAMETER") title: String?,
+    ): DefaultTerminalFactory {
         return this
     }
 

@@ -20,11 +20,11 @@ package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
-import kotlin.collections.ArrayList
-import com.googlecode.lanterna.internal.compat.IdentityHashMap
-import com.googlecode.lanterna.internal.compat.LinkedList
-import com.googlecode.lanterna.internal.compat.Queue
-import com.googlecode.lanterna.internal.compat.TreeSet
+import java.util.ArrayList
+import java.util.IdentityHashMap
+import java.util.LinkedList
+import java.util.Queue
+import java.util.TreeSet
 
 /**
  * This emulates the behaviour of the GridLayout in SWT (as opposed to the one in AWT/Swing). I originally ported the
@@ -168,7 +168,10 @@ class GridLayout(private val numberOfColumns: Int) : LayoutManager {
         return preferredSize
     }
 
-    override fun doLayout(area: TerminalSize?, components: List<Component?>?) {
+    override fun doLayout(
+        area: TerminalSize?,
+        components: List<Component?>?,
+    ) {
         if (area == null || components == null) {
             changed = false
             return
@@ -409,7 +412,10 @@ class GridLayout(private val numberOfColumns: Int) : LayoutManager {
         return expandableRows
     }
 
-    private fun shrinkWidthToFitArea(area: TerminalSize?, columnWidths: IntArray): Int {
+    private fun shrinkWidthToFitArea(
+        area: TerminalSize?,
+        columnWidths: IntArray,
+    ): Int {
         var totalWidth = 0
         for (width in columnWidths) {
             totalWidth += width
@@ -429,7 +435,10 @@ class GridLayout(private val numberOfColumns: Int) : LayoutManager {
         return totalWidth
     }
 
-    private fun shrinkHeightToFitArea(area: TerminalSize?, rowHeights: IntArray): Int {
+    private fun shrinkHeightToFitArea(
+        area: TerminalSize?,
+        rowHeights: IntArray,
+    ): Int {
         var totalHeight = 0
         for (height in rowHeights) {
             totalHeight += height
@@ -588,16 +597,18 @@ class GridLayout(private val numberOfColumns: Int) : LayoutManager {
     }
 
     companion object {
-        private val DEFAULT = GridLayoutData(
-            Alignment.BEGINNING,
-            Alignment.BEGINNING,
-            false,
-            false,
-            1,
-            1,
-        )
+        private val DEFAULT =
+            GridLayoutData(
+                Alignment.BEGINNING,
+                Alignment.BEGINNING,
+                false,
+                false,
+                1,
+                1,
+            )
 
-                fun createLayoutData(
+        @JvmOverloads
+        fun createLayoutData(
             horizontalAlignment: Alignment,
             verticalAlignment: Alignment,
             grabExtraHorizontalSpace: Boolean = false,

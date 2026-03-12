@@ -27,7 +27,11 @@ import com.googlecode.lanterna.TerminalTextUtils
  *
  */
 class FatWindowDecorationRenderer : WindowDecorationRenderer {
-    override fun draw(textGUI: WindowBasedTextGUI?, graphics: TextGUIGraphics?, window: Window?): TextGUIGraphics? {
+    override fun draw(
+        textGUI: WindowBasedTextGUI?,
+        graphics: TextGUIGraphics?,
+        window: Window?,
+    ): TextGUIGraphics? {
         var title: String? = window!!.title
         if (title == null) {
             title = ""
@@ -118,7 +122,10 @@ class FatWindowDecorationRenderer : WindowDecorationRenderer {
         )
     }
 
-    override fun getDecoratedSize(window: Window?, contentAreaSize: TerminalSize?): TerminalSize? {
+    override fun getDecoratedSize(
+        window: Window?,
+        contentAreaSize: TerminalSize?,
+    ): TerminalSize? {
         return if (hasTitle(window!!)) {
             contentAreaSize!!
                 .withRelativeColumns(2)!!

@@ -120,11 +120,12 @@ actual class LanternaFile private constructor(
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun currentWorkingDirectory(): String? = memScoped {
-    val bufferSize = 4096
-    val buffer = allocArray<ByteVar>(bufferSize)
-    getcwd(buffer, bufferSize.toULong())?.toKString()
-}
+private fun currentWorkingDirectory(): String? =
+    memScoped {
+        val bufferSize = 4096
+        val buffer = allocArray<ByteVar>(bufferSize)
+        getcwd(buffer, bufferSize.toULong())?.toKString()
+    }
 
 private fun normalizePath(path: String): String {
     if (path.isEmpty()) {
@@ -137,16 +138,20 @@ private fun normalizePath(path: String): String {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun pathMode(path: String): ULong? = memScoped {
-    val metadata = alloc<stat>()
-    if (stat(path, metadata.ptr) != 0) {
-        null
-    } else {
-        metadata.st_mode.toULong()
+private fun pathMode(path: String): ULong? =
+    memScoped {
+        val metadata = alloc<stat>()
+        if (stat(path, metadata.ptr) != 0) {
+            null
+        } else {
+            metadata.st_mode.toULong()
+        }
     }
-}
 
-private fun modeMatches(mode: ULong?, expectedType: ULong): Boolean {
+private fun modeMatches(
+    mode: ULong?,
+    expectedType: ULong,
+): Boolean {
     if (mode == null) {
         return false
     }

@@ -22,13 +22,16 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 
 /**
- * Default window manager implementation.
+ * The default window manager implementation used by Lanterna. New windows will be generally added in a tiled manner,
+ * starting in the top-left corner and moving down-right as new windows are added. By using the various window hints
+ * that are available you have some control over how the window manager will place and size the windows.
+ *
+ * @author Martin
  */
 open class DefaultWindowManager(
     private val windowDecorationRendererOverride: WindowDecorationRenderer?,
     initialScreenSize: TerminalSize?,
 ) : WindowManager {
-
     private var lastKnownScreenSize: TerminalSize = initialScreenSize ?: TerminalSize(80, 24)
 
     constructor() : this(null, null)
@@ -39,7 +42,7 @@ open class DefaultWindowManager(
         get() = false
 
     override fun getWindowDecorationRenderer(window: Window?): WindowDecorationRenderer? {
-        val w = window ?: return DefaultWindowDecorationRenderer()
+        val w = window!!
         return when {
             w.hints?.contains(Window.Hint.NO_DECORATIONS) == true -> EmptyWindowDecorationRenderer()
             windowDecorationRendererOverride != null -> windowDecorationRendererOverride
@@ -48,9 +51,13 @@ open class DefaultWindowManager(
         }
     }
 
-    override fun onAdded(textGUI: WindowBasedTextGUI?, window: Window?, allWindows: List<Window?>?) {
-        val w = window ?: return
-        val windows = allWindows ?: emptyList()
+    override fun onAdded(
+        textGUI: WindowBasedTextGUI?,
+        window: Window?,
+        allWindows: List<Window?>?,
+    ) {
+        val w = window!!
+        val windows = allWindows!!
         val decorationRenderer = getWindowDecorationRenderer(w) ?: DefaultWindowDecorationRenderer()
         val expectedDecoratedSize = decorationRenderer.getDecoratedSize(w, w.preferredSize) ?: TerminalSize.ZERO
         w.decoratedSize = expectedDecoratedSize
@@ -65,8 +72,9 @@ open class DefaultWindowManager(
             w.position = TerminalPosition(left, top)
         } else {
             val prev = windows[windows.size - 1]
-            var nextPosition = (prev?.position ?: TerminalPosition.OFFSET_1x1).withRelative(2, 1)
-                ?: TerminalPosition.OFFSET_1x1
+            var nextPosition =
+                (prev?.position ?: TerminalPosition.OFFSET_1x1).withRelative(2, 1)
+                    ?: TerminalPosition.OFFSET_1x1
             if (nextPosition.column + expectedDecoratedSize.columns > lastKnownScreenSize.columns ||
                 nextPosition.row + expectedDecoratedSize.rows > lastKnownScreenSize.rows
             ) {
@@ -78,25 +86,37 @@ open class DefaultWindowManager(
         prepareWindow(lastKnownScreenSize, w)
     }
 
-    override fun onRemoved(textGUI: WindowBasedTextGUI?, window: Window?, allWindows: List<Window?>?) {
+    override fun onRemoved(
+        textGUI: WindowBasedTextGUI?,
+        window: Window?,
+        allWindows: List<Window?>?,
+    ) {
         // NOP
     }
 
-    override fun prepareWindows(textGUI: WindowBasedTextGUI?, allWindows: List<Window?>?, screenSize: TerminalSize?) {
-        lastKnownScreenSize = screenSize ?: lastKnownScreenSize
-        for (window in allWindows.orEmpty()) {
+    override fun prepareWindows(
+        textGUI: WindowBasedTextGUI?,
+        allWindows: List<Window?>?,
+        screenSize: TerminalSize?,
+    ) {
+        lastKnownScreenSize = screenSize!!
+        for (window in allWindows!!) {
             if (window != null) {
                 prepareWindow(lastKnownScreenSize, window)
             }
         }
     }
 
-    protected fun prepareWindow(screenSize: TerminalSize, window: Window) {
-        val contentAreaSize = if (window.hints?.contains(Window.Hint.FIXED_SIZE) == true) {
-            window.size
-        } else {
-            window.preferredSize
-        }
+    protected fun prepareWindow(
+        screenSize: TerminalSize,
+        window: Window,
+    ) {
+        val contentAreaSize =
+            if (window.hints?.contains(Window.Hint.FIXED_SIZE) == true) {
+                window.size
+            } else {
+                window.preferredSize
+            }
 
         var size = getWindowDecorationRenderer(window)?.getDecoratedSize(window, contentAreaSize) ?: TerminalSize.ZERO
         var position = window.position ?: TerminalPosition.TOP_LEFT_CORNER

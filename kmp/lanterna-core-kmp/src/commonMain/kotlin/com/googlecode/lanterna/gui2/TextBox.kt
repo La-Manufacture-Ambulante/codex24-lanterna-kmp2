@@ -18,18 +18,16 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
-import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.graphics.ThemeDefinition
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
-import kotlin.collections.ArrayList
-import com.googlecode.lanterna.internal.compat.Pattern
+import java.util.ArrayList
+import java.util.regex.Pattern
 
 /**
  * Editable text component supporting single-line and multi-line modes.
@@ -44,7 +42,6 @@ open class TextBox constructor(
             Style.SINGLE_LINE
         },
 ) : AbstractInteractableComponent<TextBox>() {
-
     enum class Style {
         SINGLE_LINE,
         MULTI_LINE,
@@ -99,7 +96,8 @@ open class TextBox constructor(
 
     var validationRegex: Pattern?
         get() = validationPattern
-        set(value) {
+
+        @Synchronized set(value) {
             if (value != null) {
                 for (line in lines) {
                     if (!validated(line)) {
@@ -110,16 +108,19 @@ open class TextBox constructor(
             validationPattern = value
         }
 
+    @Synchronized
     fun setValidationPattern(validationPattern: Pattern?): TextBox {
         validationRegex = validationPattern
         return this
     }
 
+    @Synchronized
     fun setTextChangeListener(textChangeListener: TextChangeListener?): TextBox {
         this.textChangeListener = textChangeListener
         return this
     }
 
+    @Synchronized
     fun setText(text: String): TextBox {
         var split = text.split("\n")
         if (split.isEmpty()) {
@@ -143,6 +144,7 @@ open class TextBox constructor(
     override val renderer: TextBoxRenderer?
         get() = super.renderer as TextBoxRenderer?
 
+    @Synchronized
     fun addLine(line: String): TextBox {
         val bob = StringBuilder()
         for (i in line.indices) {
@@ -156,7 +158,7 @@ open class TextBox constructor(
                 }
                 addLine(line.substring(i + 1))
                 return this
-            } else if (com.googlecode.lanterna.internal.compat.Character.isISOControl(c)) {
+            } else if (Character.isISOControl(c)) {
                 continue
             }
             bob.append(c)
@@ -176,17 +178,18 @@ open class TextBox constructor(
         return this
     }
 
+    @Synchronized
     fun removeLine(lineIndex: Int): TextBox {
         if (style == Style.SINGLE_LINE) {
             if (lineIndex == 0) {
                 setText("")
                 return this
             }
-            throw IndexOutOfBoundsException("Cannot remove line $lineIndex from a single-line TextBox")
+            throw ArrayIndexOutOfBoundsException("Cannot remove line $lineIndex from a single-line TextBox")
         }
 
         if (lineIndex < 0 || lineIndex >= lines.size) {
-            throw IndexOutOfBoundsException("Invalid line index for TextBox with ${lines.size} lines: $lineIndex")
+            throw ArrayIndexOutOfBoundsException("Invalid line index for TextBox with ${lines.size} lines: $lineIndex")
         }
         lines.removeAt(lineIndex)
         when {
@@ -206,11 +209,16 @@ open class TextBox constructor(
 
     fun getCaretPosition(): TerminalPosition = caretPosition
 
+    @Synchronized
     fun setCaretPosition(column: Int): TextBox {
         return setCaretPosition(caretPosition.row, column)
     }
 
-    fun setCaretPosition(line: Int, column: Int): TextBox {
+    @Synchronized
+    fun setCaretPosition(
+        line: Int,
+        column: Int,
+    ): TextBox {
         var resolvedLine = line
         var resolvedColumn = column
         if (resolvedLine < 0) {
@@ -228,18 +236,13 @@ open class TextBox constructor(
     }
 
     val text: String
-        get() {
+        @Synchronized get() {
             val bob = StringBuilder(lines[0])
             for (i in 1 until lines.size) {
                 bob.append("\n").append(lines[i])
             }
             return bob.toString()
         }
-
-    fun getTextOrDefault(defaultValueIfEmpty: String): String {
-        val text = text
-        return if (text.isEmpty()) defaultValueIfEmpty else text
-    }
 
     fun getMask(): Char? = mask
 
@@ -274,14 +277,17 @@ open class TextBox constructor(
         return this
     }
 
+    @Synchronized
     fun getLine(index: Int): String = lines[index]
 
+    @Synchronized
     fun getLineCount(): Int = lines.size
 
     override fun createDefaultRenderer(): TextBoxRenderer {
         return DefaultTextBoxRenderer()
     }
 
+    @Synchronized
     override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
         if (readOnly) {
             return handleKeyStrokeReadOnly(keyStroke)
@@ -636,7 +642,10 @@ open class TextBox constructor(
             this.hideScrollBars = hideScrollBars
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, component: TextBox?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            component: TextBox?,
+        ) {
             val activeGraphics = graphics ?: return
             val activeComponent = component ?: return
 
@@ -692,7 +701,10 @@ open class TextBox constructor(
             }
         }
 
-        private fun drawTextArea(graphics: TextGUIGraphics?, component: TextBox) {
+        private fun drawTextArea(
+            graphics: TextGUIGraphics?,
+            component: TextBox,
+        ) {
             val activeGraphics = graphics ?: return
             val textAreaSize = activeGraphics.size ?: TerminalSize.ZERO
             if (viewTopLeft.column + textAreaSize.columns > component.longestRow) {
@@ -764,6 +776,9 @@ open class TextBox constructor(
     }
 
     interface TextChangeListener {
-        fun onTextChanged(newText: String, changedByUserInteraction: Boolean)
+        fun onTextChanged(
+            newText: String,
+            changedByUserInteraction: Boolean,
+        )
     }
 }

@@ -29,10 +29,21 @@ import com.googlecode.lanterna.TextCharacter
  */
 internal class DefaultShapeRenderer(private val callback: Callback) : ShapeRenderer {
     internal interface Callback {
-        fun onPoint(column: Int, row: Int, character: TextCharacter?)
+        fun onPoint(
+            column: Int,
+            row: Int,
+            character: TextCharacter?,
+        )
     }
 
-    override fun drawLine(p1: TerminalPosition?, p2: TerminalPosition?, character: TextCharacter?) {
+    override fun drawLine(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        character: TextCharacter?,
+    ) {
+        // Bresenham's line algorithm. References:
+        // http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+        // Graphics Programming Black Book (Michael Abrash)
         var point1 = requireNotNull(p1) { "p1" }
         var point2 = requireNotNull(p2) { "p2" }
 
@@ -65,7 +76,7 @@ internal class DefaultShapeRenderer(private val callback: Callback) : ShapeRende
         deltaX: Int,
         deltaY: Int,
         leftToRight: Boolean,
-        character: TextCharacter?
+        character: TextCharacter?,
     ) {
         var remaining = deltaX
         var x = start.column
@@ -91,7 +102,7 @@ internal class DefaultShapeRenderer(private val callback: Callback) : ShapeRende
         deltaX: Int,
         deltaY: Int,
         leftToRight: Boolean,
-        character: TextCharacter?
+        character: TextCharacter?,
     ) {
         var remaining = deltaY
         var x = start.column
@@ -116,7 +127,7 @@ internal class DefaultShapeRenderer(private val callback: Callback) : ShapeRende
         p1: TerminalPosition?,
         p2: TerminalPosition?,
         p3: TerminalPosition?,
-        character: TextCharacter?
+        character: TextCharacter?,
     ) {
         val point1 = requireNotNull(p1) { "p1" }
         val point2 = requireNotNull(p2) { "p2" }
@@ -126,7 +137,11 @@ internal class DefaultShapeRenderer(private val callback: Callback) : ShapeRende
         drawLine(point3, point1, character)
     }
 
-    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: TextCharacter?) {
+    override fun drawRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: TextCharacter?,
+    ) {
         val origin = requireNotNull(topLeft) { "topLeft" }
         val rectSize = requireNotNull(size) { "size" }
         val topRight = requireNotNull(origin.withRelativeColumn(rectSize.columns - 1))
@@ -142,8 +157,10 @@ internal class DefaultShapeRenderer(private val callback: Callback) : ShapeRende
         p1: TerminalPosition?,
         p2: TerminalPosition?,
         p3: TerminalPosition?,
-        character: TextCharacter?
+        character: TextCharacter?,
     ) {
+        // Algorithm reference:
+        // http://www-users.mat.uni.torun.pl/~wrona/3d_tutor/tri_fillers.html
         val point1 = requireNotNull(p1) { "p1" }
         val point2 = requireNotNull(p2) { "p2" }
         val point3 = requireNotNull(p3) { "p3" }
@@ -151,21 +168,24 @@ internal class DefaultShapeRenderer(private val callback: Callback) : ShapeRende
         val points = arrayOf(point1, point2, point3)
         points.sortBy { it.row }
 
-        val dx1 = if (points[1].row - points[0].row > 0) {
-            (points[1].column - points[0].column).toFloat() / (points[1].row - points[0].row).toFloat()
-        } else {
-            0f
-        }
-        val dx2 = if (points[2].row - points[0].row > 0) {
-            (points[2].column - points[0].column).toFloat() / (points[2].row - points[0].row).toFloat()
-        } else {
-            0f
-        }
-        val dx3 = if (points[2].row - points[1].row > 0) {
-            (points[2].column - points[1].column).toFloat() / (points[2].row - points[1].row).toFloat()
-        } else {
-            0f
-        }
+        val dx1 =
+            if (points[1].row - points[0].row > 0) {
+                (points[1].column - points[0].column).toFloat() / (points[1].row - points[0].row).toFloat()
+            } else {
+                0f
+            }
+        val dx2 =
+            if (points[2].row - points[0].row > 0) {
+                (points[2].column - points[0].column).toFloat() / (points[2].row - points[0].row).toFloat()
+            } else {
+                0f
+            }
+        val dx3 =
+            if (points[2].row - points[1].row > 0) {
+                (points[2].column - points[1].column).toFloat() / (points[2].row - points[1].row).toFloat()
+            } else {
+                0f
+            }
 
         var startX = points[0].column.toFloat()
         var endX = points[0].column.toFloat()
@@ -219,7 +239,11 @@ internal class DefaultShapeRenderer(private val callback: Callback) : ShapeRende
         }
     }
 
-    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: TextCharacter?) {
+    override fun fillRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: TextCharacter?,
+    ) {
         val origin = requireNotNull(topLeft) { "topLeft" }
         val rectSize = requireNotNull(size) { "size" }
         val fill = requireNotNull(character) { "character" }

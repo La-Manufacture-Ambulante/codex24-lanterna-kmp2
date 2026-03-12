@@ -43,11 +43,12 @@ abstract class UnixLikeTerminal protected constructor(
         val catchSpecialCharactersPropValue =
             System.getProperty("com.googlecode.lanterna.terminal.UnixTerminal.catchSpecialCharacters", "")
         catchSpecialCharacters = !"false".equals(catchSpecialCharactersPropValue.trim().lowercase())
-        shutdownHook = object : Thread("Lanterna STTY restore") {
-            override fun run() {
-                exitPrivateModeAndRestoreState()
+        shutdownHook =
+            object : Thread("Lanterna STTY restore") {
+                override fun run() {
+                    exitPrivateModeAndRestoreState()
+                }
             }
-        }
         acquire()
     }
 

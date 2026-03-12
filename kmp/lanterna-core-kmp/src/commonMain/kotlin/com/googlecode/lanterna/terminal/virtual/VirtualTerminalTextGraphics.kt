@@ -34,7 +34,11 @@ internal class VirtualTerminalTextGraphics(
     override val size: TerminalSize
         get() = virtualTerminal.terminalSize ?: TerminalSize.ZERO
 
-    override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
+    override fun setCharacter(
+        columnIndex: Int,
+        rowIndex: Int,
+        textCharacter: TextCharacter?,
+    ): TextGraphics {
         val size = size
         if (columnIndex < 0 || columnIndex >= size.columns || rowIndex < 0 || rowIndex >= size.rows) {
             return this
@@ -48,5 +52,8 @@ internal class VirtualTerminalTextGraphics(
 
     override fun getCharacter(position: TerminalPosition?): TextCharacter? = virtualTerminal.getCharacter(position)
 
-    override fun getCharacter(column: Int, row: Int): TextCharacter? = getCharacter(TerminalPosition(column, row))
+    override fun getCharacter(
+        column: Int,
+        row: Int,
+    ): TextCharacter? = getCharacter(TerminalPosition(column, row))
 }

@@ -24,83 +24,78 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.graphics.ThemeDefinition
 import com.googlecode.lanterna.input.KeyStroke
-import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * Simple labeled button.
+ * Simple labeled button that the user can trigger by pressing the Enter or the Spacebar key on the keyboard when the
+ * component is in focus. You can specify an initial action through one of the constructors and you can also add
+ * additional actions to the button using [addListener]. To remove a previously attached action, use
+ * [removeListener].
  */
-class Button(label: String?) : AbstractInteractableComponent<Button?>() {
+class Button(label: String) : AbstractInteractableComponent<Button>() {
+    /**
+     * Listener interface that can be used to catch user events on the button
+     */
     interface Listener {
-        fun onTriggered(button: Button?)
+        /**
+         * This is called when the user has triggered the button
+         * @param button Button which was triggered
+         */
+        fun onTriggered(button: Button)
     }
 
     private val listeners: MutableList<Listener> = CopyOnWriteArrayList()
     private var label: String = " "
 
-    constructor(label: String?, action: Runnable?) : this(label) {
-        if (action != null) {
-            listeners.add(object : Listener {
-                override fun onTriggered(button: Button?) {
+    constructor(label: String, action: Runnable) : this(label) {
+        listeners.add(
+            object : Listener {
+                override fun onTriggered(button: Button) {
                     action.run()
                 }
-            })
-        }
+            },
+        )
     }
 
     init {
         setLabel(label)
     }
 
-    override fun createDefaultRenderer(): ButtonRenderer {
+    override fun createDefaultRenderer(): ButtonRenderer? {
         return DefaultButtonRenderer()
     }
 
     override val cursorLocation: TerminalPosition?
+        @Synchronized
         get() = renderer?.getCursorLocation(this)
 
-    public override fun setAccelerator(keyStroke: KeyStroke?): Button? {
-        return super.setAccelerator(keyStroke)
-    }
-
-    public override fun getAccelerator(): KeyStroke? {
-        return super.getAccelerator()
-    }
-
+    @Synchronized
     override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
-        if (isActivationStroke(keyStroke) || isKeyboardAcceleratorStroke(keyStroke)) {
-            basePane?.focusedInteractable = this
+        if (isActivationStroke(keyStroke)) {
             triggerActions()
             return Interactable.Result.HANDLED
         }
         return super.handleKeyStroke(keyStroke)
     }
 
+    @Synchronized
     protected fun triggerActions() {
         for (listener in listeners) {
             listener.onTriggered(this)
         }
     }
 
-    fun setLabel(label: String?) {
-        var value = label
-        if (value == null) {
-            throw IllegalArgumentException("null label to a button is not allowed")
-        }
-        if (value.isEmpty()) {
-            value = " "
-        }
-        this.label = value
+    @Synchronized
+    fun setLabel(label: String) {
+        this.label = if (label.isEmpty()) " " else label
         invalidate()
     }
 
-    fun addListener(listener: Listener?) {
-        if (listener == null) {
-            throw IllegalArgumentException("null listener to a button is not allowed")
-        }
+    fun addListener(listener: Listener) {
         listeners.add(listener)
     }
 
-    fun removeListener(listener: Listener?): Boolean {
+    fun removeListener(listener: Listener): Boolean {
         return listeners.remove(listener)
     }
 
@@ -112,6 +107,9 @@ class Button(label: String?) : AbstractInteractableComponent<Button?>() {
         return "Button{$label}"
     }
 
+    /**
+     * Helper interface that doesn't add any new methods but makes coding new button renderers a little bit more clear
+     */
     interface ButtonRenderer : InteractableRenderer<Button?>
 
     class DefaultButtonRenderer : ButtonRenderer {
@@ -129,7 +127,10 @@ class Button(label: String?) : AbstractInteractableComponent<Button?>() {
             return TerminalSize(kotlin.math.max(8, TerminalTextUtils.getColumnWidth(b.getLabel()) + 2), 1)
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, button: Button?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            button: Button?,
+        ) {
             val g = graphics ?: return
             val b = button ?: return
             val themeDefinition: ThemeDefinition = b.themeDefinition ?: return
@@ -162,7 +163,10 @@ class Button(label: String?) : AbstractInteractableComponent<Button?>() {
             g.putString(1 + labelShift + 1, 0, b.getLabel().substring(1))
         }
 
-        private fun getLabelShift(button: Button, size: TerminalSize): Int {
+        private fun getLabelShift(
+            button: Button,
+            size: TerminalSize,
+        ): Int {
             val availableSpace = size.columns - 2
             if (availableSpace <= 0) {
                 return 0
@@ -186,7 +190,10 @@ class Button(label: String?) : AbstractInteractableComponent<Button?>() {
             return TerminalSize(TerminalTextUtils.getColumnWidth(c.getLabel()), 1)
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, button: Button?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            button: Button?,
+        ) {
             val g = graphics ?: return
             val b = button ?: return
             val themeDefinition = b.themeDefinition ?: return
@@ -216,7 +223,10 @@ class Button(label: String?) : AbstractInteractableComponent<Button?>() {
             return TerminalSize(TerminalTextUtils.getColumnWidth(c.getLabel()) + 5, 4)
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, button: Button?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            button: Button?,
+        ) {
             val g = graphics ?: return
             val b = button ?: return
             val themeDefinition = b.themeDefinition ?: return

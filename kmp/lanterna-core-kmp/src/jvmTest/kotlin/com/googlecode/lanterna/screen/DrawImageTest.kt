@@ -18,64 +18,70 @@
  */
 package com.googlecode.lanterna.screen
 
-import com.googlecode.lanterna.*
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.BasicTextImage
-import com.googlecode.lanterna.graphics.TextGraphics
-import com.googlecode.lanterna.graphics.TextImage
-
 import java.io.IOException
 
 /**
  * Test to try out drawImage in TextGraphics
  */
- object DrawImageTest {
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
- //Setup a standard Screen
+object DrawImageTest {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        // Setup a standard Screen
         val screen = TestTerminalFactory(args).createScreen()
-screen!!.startScreen()
-screen!!.cursorPosition = null
+        screen!!.startScreen()
+        screen!!.cursorPosition = null
 
- //Create an 'image' that we fill with recognizable characters
+        // Create an 'image' that we fill with recognizable characters
         val image = BasicTextImage(5, 5)
-val imageCharacter = TextCharacter('X')
-val textGraphics = image.newTextGraphics()
-textGraphics!!.drawRectangle(
-TerminalPosition.TOP_LEFT_CORNER, 
-TerminalSize(5, 5), 
-imageCharacter.withBackgroundColor(TextColor.ANSI.RED))
-textGraphics!!.drawRectangle(
-TerminalPosition.OFFSET_1x1, 
-TerminalSize(3, 3), 
-imageCharacter.withBackgroundColor(TextColor.ANSI.MAGENTA))
-textGraphics!!.setCharacter(2, 2, 
-imageCharacter.withBackgroundColor(TextColor.ANSI.CYAN))
+        val imageCharacter = TextCharacter('X')
+        val textGraphics = image.newTextGraphics()
+        textGraphics!!.drawRectangle(
+            TerminalPosition.TOP_LEFT_CORNER,
+            TerminalSize(5, 5),
+            imageCharacter.withBackgroundColor(TextColor.ANSI.RED),
+        )
+        textGraphics!!.drawRectangle(
+            TerminalPosition.OFFSET_1x1,
+            TerminalSize(3, 3),
+            imageCharacter.withBackgroundColor(TextColor.ANSI.MAGENTA),
+        )
+        textGraphics!!.setCharacter(
+            2,
+            2,
+            imageCharacter.withBackgroundColor(TextColor.ANSI.CYAN),
+        )
 
-val screenGraphics = screen!!.newTextGraphics()
-screenGraphics!!.setBackgroundColor(TextColor.Indexed.fromRGB(50, 50, 50))
-screenGraphics!!.fill(' ')
-screenGraphics!!.drawImage(TerminalPosition.OFFSET_1x1, image)
-screenGraphics!!.drawImage(TerminalPosition(8, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(-4))
-screenGraphics!!.drawImage(TerminalPosition(10, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(-3))
-screenGraphics!!.drawImage(TerminalPosition(13, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(-2))
-screenGraphics!!.drawImage(TerminalPosition(17, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(-1))
-screenGraphics!!.drawImage(TerminalPosition(22, 1), image)
-screenGraphics!!.drawImage(TerminalPosition(28, 1), image, TerminalPosition(1, 0), image.size)
-screenGraphics!!.drawImage(TerminalPosition(33, 1), image, TerminalPosition(2, 0), image.size)
-screenGraphics!!.drawImage(TerminalPosition(37, 1), image, TerminalPosition(3, 0), image.size)
-screenGraphics!!.drawImage(TerminalPosition(40, 1), image, TerminalPosition(4, 0), image.size)
+        val screenGraphics = screen!!.newTextGraphics()
+        screenGraphics!!.setBackgroundColor(TextColor.Indexed.fromRGB(50, 50, 50))
+        screenGraphics!!.fill(' ')
+        screenGraphics!!.drawImage(TerminalPosition.OFFSET_1x1, image)
+        screenGraphics!!.drawImage(TerminalPosition(8, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(-4))
+        screenGraphics!!.drawImage(TerminalPosition(10, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(-3))
+        screenGraphics!!.drawImage(TerminalPosition(13, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(-2))
+        screenGraphics!!.drawImage(TerminalPosition(17, 1), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(-1))
+        screenGraphics!!.drawImage(TerminalPosition(22, 1), image)
+        screenGraphics!!.drawImage(TerminalPosition(28, 1), image, TerminalPosition(1, 0), image.size)
+        screenGraphics!!.drawImage(TerminalPosition(33, 1), image, TerminalPosition(2, 0), image.size)
+        screenGraphics!!.drawImage(TerminalPosition(37, 1), image, TerminalPosition(3, 0), image.size)
+        screenGraphics!!.drawImage(TerminalPosition(40, 1), image, TerminalPosition(4, 0), image.size)
 
- //Try to draw bigger than the image size, this should ignore the extra size
+        // Try to draw bigger than the image size, this should ignore the extra size
         screenGraphics!!.drawImage(TerminalPosition(1, 7), image, TerminalPosition.TOP_LEFT_CORNER, image.size.withRelativeColumns(10))
 
- //0 size should draw nothing
+        // 0 size should draw nothing
         screenGraphics!!.drawImage(TerminalPosition(8, 7), image, TerminalPosition.TOP_LEFT_CORNER, TerminalSize.ZERO)
 
- //Drawing with a negative source image offset will move the target position
+        // Drawing with a negative source image offset will move the target position
         screenGraphics!!.drawImage(TerminalPosition(8, 7), image, TerminalPosition(-2, -2), image.size)
 
-screen!!.refresh()
-screen!!.readInput()
-screen!!.stopScreen()
-}
+        screen!!.refresh()
+        screen!!.readInput()
+        screen!!.stopScreen()
+    }
 }

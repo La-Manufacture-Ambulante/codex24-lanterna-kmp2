@@ -25,13 +25,13 @@ import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.internal.compat.TimeUnit
 import com.googlecode.lanterna.terminal.IOSafeTerminal
 import com.googlecode.lanterna.terminal.TerminalResizeListener
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.HeadlessException
 import java.util.EnumSet
-import com.googlecode.lanterna.internal.compat.TimeUnit
 import javax.swing.JFrame
 
 @Suppress("serial")
@@ -73,11 +73,12 @@ class SwingTerminalFrame : JFrame, IOSafeTerminal {
         vararg autoCloseTriggers: TerminalEmulatorAutoCloseTrigger,
     ) : super(title ?: "SwingTerminalFrame") {
         this.swingTerminal = swingTerminal
-        this.autoCloseTriggers = if (autoCloseTriggers.isEmpty()) {
-            EnumSet.noneOf(TerminalEmulatorAutoCloseTrigger::class.java)
-        } else {
-            EnumSet.copyOf(autoCloseTriggers.asList())
-        }
+        this.autoCloseTriggers =
+            if (autoCloseTriggers.isEmpty()) {
+                EnumSet.noneOf(TerminalEmulatorAutoCloseTrigger::class.java)
+            } else {
+                EnumSet.copyOf(autoCloseTriggers.asList())
+            }
 
         contentPane.layout = BorderLayout()
         contentPane.add(swingTerminal, BorderLayout.CENTER)
@@ -170,7 +171,10 @@ class SwingTerminalFrame : JFrame, IOSafeTerminal {
         swingTerminal.clearScreen()
     }
 
-    override fun setCursorPosition(x: Int, y: Int) {
+    override fun setCursorPosition(
+        x: Int,
+        y: Int,
+    ) {
         swingTerminal.setCursorPosition(x, y)
     }
 
@@ -217,7 +221,10 @@ class SwingTerminalFrame : JFrame, IOSafeTerminal {
     override val terminalSize: TerminalSize?
         get() = swingTerminal.terminalSize
 
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+    override fun enquireTerminal(
+        timeout: Int,
+        timeoutUnit: TimeUnit?,
+    ): ByteArray? {
         return swingTerminal.enquireTerminal(timeout, timeoutUnit)
     }
 

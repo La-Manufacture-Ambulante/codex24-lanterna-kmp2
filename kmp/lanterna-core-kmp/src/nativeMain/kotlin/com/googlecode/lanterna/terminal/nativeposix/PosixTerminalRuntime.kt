@@ -7,8 +7,8 @@ import kotlinx.cinterop.ptr
 import platform.posix.STDIN_FILENO
 import platform.posix.STDOUT_FILENO
 import platform.posix.TIOCGWINSZ
-import platform.posix.isatty
 import platform.posix.ioctl
+import platform.posix.isatty
 import platform.posix.system
 import platform.posix.winsize
 
@@ -40,13 +40,14 @@ object PosixTerminalRuntime {
         return system("stty sane >/dev/null 2>&1") == 0
     }
 
-    private fun readWinsize(): Pair<Int, Int>? = memScoped {
-        val ws = alloc<winsize>()
-        val result = ioctl(STDOUT_FILENO, TIOCGWINSZ.toULong(), ws.ptr)
-        if (result == 0) {
-            Pair(ws.ws_col.toInt(), ws.ws_row.toInt())
-        } else {
-            null
+    private fun readWinsize(): Pair<Int, Int>? =
+        memScoped {
+            val ws = alloc<winsize>()
+            val result = ioctl(STDOUT_FILENO, TIOCGWINSZ.toULong(), ws.ptr)
+            if (result == 0) {
+                Pair(ws.ws_col.toInt(), ws.ws_row.toInt())
+            } else {
+                null
+            }
         }
-    }
 }

@@ -26,12 +26,10 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Run ktlint (advisory)
-        continue-on-error: true
+      - name: Run ktlintCheck (required)
         run: |
-          curl -sSLo ktlint https://github.com/pinterest/ktlint/releases/download/1.2.1/ktlint
-          chmod +x ktlint
-          ./ktlint "kmp/**/*.kt" --reporter=plain --reporter=checkstyle,output=ktlint-report.xml
+          chmod +x kmp/gradlew
+          ./kmp/gradlew -p kmp :lanterna-core-kmp:ktlintCheck :lanterna-demo-kmp:ktlintCheck --no-daemon
 
       - name: Run detekt (advisory)
         continue-on-error: true
@@ -45,7 +43,7 @@ jobs:
         with:
           name: lint-reports
           path: |
-            ktlint-report.xml
+            kmp/**/build/reports/ktlint/*.xml
             detekt-report.txt
             detekt-report.sarif
 
@@ -58,8 +56,9 @@ jobs:
           detekt_count=0
           detekt_sarif_count=0
 
-          if [ -f ktlint-report.xml ]; then
-            ktlint_count=$(grep -o "<error " ktlint-report.xml | wc -l | tr -d ' ')
+          ktlint_reports=$(find kmp -path "*/build/reports/ktlint/*.xml" -type f)
+          if [ -n "$ktlint_reports" ]; then
+            ktlint_count=$(echo "$ktlint_reports" | xargs grep -h -o "<error " | wc -l | tr -d ' ')
           fi
           if [ -f detekt-report.txt ]; then
             detekt_count=$(wc -l < detekt-report.txt | tr -d ' ')

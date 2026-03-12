@@ -26,7 +26,12 @@ import com.googlecode.lanterna.gui2.TextGUIGraphics
  * Default implementation of [TableCellRenderer].
  */
 open class DefaultTableCellRenderer<V> : TableCellRenderer<V?> {
-    override fun getPreferredSize(table: Table<V?>?, cell: V?, columnIndex: Int, rowIndex: Int): TerminalSize {
+    override fun getPreferredSize(
+        table: Table<V?>?,
+        cell: V?,
+        columnIndex: Int,
+        rowIndex: Int,
+    ): TerminalSize {
         val lines = getContent(cell)
         var maxWidth = 0
         for (line in lines) {

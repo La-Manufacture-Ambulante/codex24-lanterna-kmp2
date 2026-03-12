@@ -27,7 +27,6 @@ import java.net.SocketException
 
 object GUIOverTelnet {
     @Throws(IOException::class)
-    @JvmStatic
     fun main(args: Array<String?>?) {
         val telnetTerminalServer = TelnetTerminalServer(1024)
         println("Listening on port 1024, please connect with a telnet client")
@@ -66,14 +65,19 @@ object GUIOverTelnet {
             val textBox = TextBox(TerminalSize(30, 4))
             textBox.withBorder(Borders.singleLine("Text editor"))
 
-            val openMessageButton = Button("Button", Runnable {
-                val messageBox = BasicWindow("Response")
-                messageBox.component = Panels.vertical(
-                    Label("Hello!"),
-                    Button("Close", Runnable { messageBox.close() }),
+            val openMessageButton =
+                Button(
+                    "Button",
+                    Runnable {
+                        val messageBox = BasicWindow("Response")
+                        messageBox.component =
+                            Panels.vertical(
+                                Label("Hello!"),
+                                Button("Close", Runnable { messageBox.close() }),
+                            )
+                        textGUI.addWindow(messageBox)
+                    },
                 )
-                textGUI.addWindow(messageBox)
-            })
             openMessageButton.withBorder(Borders.singleLine("This is a button"))
 
             contentArea.addComponent(openMessageButton)

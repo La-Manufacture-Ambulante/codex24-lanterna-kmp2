@@ -18,63 +18,61 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
-
 import java.io.IOException
 
- class PanelTest:TestBase() {
+class PanelTest : TestBase() {
+    fun init(textGUI: WindowBasedTextGUI) {
+        val window = BasicWindow("Grid layout test")
 
-@Override
- fun init(textGUI:WindowBasedTextGUI) {
-val window = BasicWindow("Grid layout test")
+        val mainPanel = Panel()
+        mainPanel.setLayoutManager(LinearLayout(Direction.HORIZONTAL))
 
-val mainPanel = Panel()
-mainPanel.setLayoutManager(LinearLayout(Direction.HORIZONTAL))
+        val leftPanel = Panel()
+        mainPanel.addComponent(leftPanel.withBorder(Borders.singleLine("Left")))
 
-val leftPanel = Panel()
-mainPanel.addComponent(leftPanel.withBorder(Borders.singleLine("Left")))
+        var panel: Panel? = Panel()
+        panel!!.addComponent(Button("Panel 1 Button"))
+        leftPanel.addComponent(panel!!.withBorder(Borders.singleLine()))
+        panel = Panel()
+        panel!!.addComponent(Button("Panel 2 Button"))
+        leftPanel.addComponent(panel!!.withBorder(Borders.singleLine("Title")))
+        panel = Panel()
+        panel!!.addComponent(Button("Panel 3 Button"))
+        leftPanel.addComponent(panel!!.withBorder(Borders.doubleLine()))
+        panel = Panel()
+        panel!!.addComponent(Button("Panel 4 Button"))
+        leftPanel.addComponent(panel!!.withBorder(Borders.doubleLine("Title")))
 
-var panel:Panel? = Panel()
-panel!!.addComponent(Button("Panel 1 Button"))
-leftPanel.addComponent(panel!!.withBorder(Borders.singleLine()))
-panel = Panel()
-panel!!.addComponent(Button("Panel 2 Button"))
-leftPanel.addComponent(panel!!.withBorder(Borders.singleLine("Title")))
-panel = Panel()
-panel!!.addComponent(Button("Panel 3 Button"))
-leftPanel.addComponent(panel!!.withBorder(Borders.doubleLine()))
-panel = Panel()
-panel!!.addComponent(Button("Panel 4 Button"))
-leftPanel.addComponent(panel!!.withBorder(Borders.doubleLine("Title")))
+        val rightPanel = Panel()
+        mainPanel.addComponent(rightPanel.withBorder(Borders.singleLine("Right")))
 
-val rightPanel = Panel()
-mainPanel.addComponent(rightPanel.withBorder(Borders.singleLine("Right")))
+        panel = Panel()
+        panel!!.addComponent(Button("Panel 1 Button"))
+        panel!!.addComponent(Panel().withBorder(Borders.singleLine("A")))
+        panel!!.addComponent(Panel().withBorder(Borders.singleLine("Some Text")))
+        rightPanel.addComponent(panel!!.withBorder(Borders.singleLine("B")))
+        panel = Panel()
+        panel!!.addComponent(Button("Panel 2 Button"))
+        rightPanel.addComponent(panel!!.withBorder(Borders.singleLine("Title")))
+        panel = Panel()
+        panel!!.addComponent(Button("Panel 3 Button"))
+        rightPanel.addComponent(panel!!.withBorder(Borders.doubleLine()))
+        panel = Panel()
+        panel!!.addComponent(Button("Panel 4 Button"))
+        rightPanel.addComponent(panel!!.withBorder(Borders.doubleLine("Title")))
 
-panel = Panel()
-panel!!.addComponent(Button("Panel 1 Button"))
-panel!!.addComponent(Panel().withBorder(Borders.singleLine("A")))
-panel!!.addComponent(Panel().withBorder(Borders.singleLine("Some Text")))
-rightPanel.addComponent(panel!!.withBorder(Borders.singleLine("B")))
-panel = Panel()
-panel!!.addComponent(Button("Panel 2 Button"))
-rightPanel.addComponent(panel!!.withBorder(Borders.singleLine("Title")))
-panel = Panel()
-panel!!.addComponent(Button("Panel 3 Button"))
-rightPanel.addComponent(panel!!.withBorder(Borders.doubleLine()))
-panel = Panel()
-panel!!.addComponent(Button("Panel 4 Button"))
-rightPanel.addComponent(panel!!.withBorder(Borders.doubleLine("Title")))
+        window.component =
+            Panels.vertical(
+                mainPanel.withBorder(Borders.singleLine("Main")),
+                Button("OK", Runnable { window.close() }),
+            )
+        textGUI.addWindow(window)
+    }
 
-window.setComponent(Panels.vertical(
-mainPanel.withBorder(Borders.singleLine("Main")), 
-Button("OK", Runnable({ window.close() }))))
-textGUI.addWindow(window)
-}
-
-companion object {
-@Throws(IOException::class, InterruptedException::class)
- fun main(args:Array<String?>?) {
-PanelTest().run(args)
-}
-}
+    companion object {
+        @Throws(IOException::class, InterruptedException::class)
+        fun main(args: Array<String?>?) {
+            PanelTest().run(args)
+        }
+    }
 }

@@ -24,6 +24,7 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.internal.compat.TimeUnit
 import com.googlecode.lanterna.terminal.IOSafeTerminal
 import com.googlecode.lanterna.terminal.MouseCaptureMode
 import com.googlecode.lanterna.terminal.TerminalResizeListener
@@ -33,7 +34,6 @@ import java.awt.event.InputMethodEvent
 import java.awt.event.InputMethodListener
 import java.awt.im.InputMethodRequests
 import java.text.AttributedCharacterIterator
-import com.googlecode.lanterna.internal.compat.TimeUnit
 import javax.swing.JComponent
 
 @Suppress("serial")
@@ -92,19 +92,23 @@ class SwingTerminal : JComponent, IOSafeTerminal {
         }
 
         enableInputMethods(true)
-        addInputMethodListener(object : InputMethodListener {
-            override fun inputMethodTextChanged(event: InputMethodEvent) = Unit
-            override fun caretPositionChanged(event: InputMethodEvent) = Unit
-        })
+        addInputMethodListener(
+            object : InputMethodListener {
+                override fun inputMethodTextChanged(event: InputMethodEvent) = Unit
 
-        terminalImplementation = SwingTerminalImplementation(
-            this,
-            resolvedFontConfiguration,
-            initialTerminalSize,
-            resolvedDeviceConfiguration,
-            resolvedColorConfiguration,
-            scrollController,
+                override fun caretPositionChanged(event: InputMethodEvent) = Unit
+            },
         )
+
+        terminalImplementation =
+            SwingTerminalImplementation(
+                this,
+                resolvedFontConfiguration,
+                initialTerminalSize,
+                resolvedDeviceConfiguration,
+                resolvedColorConfiguration,
+                scrollController,
+            )
         inputMethodRequests = TerminalInputMethodRequests(this, terminalImplementation)
     }
 
@@ -155,7 +159,10 @@ class SwingTerminal : JComponent, IOSafeTerminal {
         terminalImplementation.clearScreen()
     }
 
-    override fun setCursorPosition(x: Int, y: Int) {
+    override fun setCursorPosition(
+        x: Int,
+        y: Int,
+    ) {
         terminalImplementation.setCursorPosition(x, y)
     }
 
@@ -200,7 +207,10 @@ class SwingTerminal : JComponent, IOSafeTerminal {
     override val terminalSize: TerminalSize?
         get() = terminalImplementation.terminalSize
 
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+    override fun enquireTerminal(
+        timeout: Int,
+        timeoutUnit: TimeUnit?,
+    ): ByteArray? {
         return terminalImplementation.enquireTerminal(timeout, timeoutUnit)
     }
 

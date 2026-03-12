@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,42 +13,52 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
 package com.googlecode.lanterna.screen
 
 /**
  * What to do when line length is exceeded.
- * 
+ *
  * @author avl42
  */
- enum class WrapBehaviour private constructor(private val allowLineFeed:Boolean, private val autoWrap:Boolean, private val keepWords:Boolean) {
+enum class WrapBehaviour private constructor(
+    private val allowLineFeed: Boolean,
+    private val autoWrap: Boolean,
+    private val keepWords: Boolean,
+) {
 /**
- * Never ever leave current line.
- */
-    SINGLE_LINE(false, false, false), 
-/**
- * Don't wrap lines automatically, but honor explicit line-feeds.
- */
-    CLIP(true, false, false), 
-/**
- * Wrap at any character boundaries.
- */
-    CHAR(true, true, false), 
-/**
- * Only wrap at word boundaries. If a single word exceeds line
- * length, it will still be broken to line length.
- */
-    WORD(true, true, true);
+     * Never ever leave current line.
+     */
+    SINGLE_LINE(false, false, false),
 
- fun allowLineFeed():Boolean {
-return allowLineFeed
-}
- fun autoWrap():Boolean {
-return autoWrap
-}
- fun keepWords():Boolean {
-return keepWords
-}
+/**
+     * Don't wrap lines automatically, but honor explicit line-feeds.
+     */
+    CLIP(true, false, false),
+
+/**
+     * Wrap at any character boundaries.
+     */
+    CHAR(true, true, false),
+
+/**
+     * Only wrap at word boundaries. If a single word exceeds line
+     * length, it will still be broken to line length.
+     */
+    WORD(true, true, true),
+    ;
+
+    fun allowLineFeed(): Boolean {
+        return allowLineFeed
+    }
+
+    fun autoWrap(): Boolean {
+        return autoWrap
+    }
+
+    fun keepWords(): Boolean {
+        return keepWords
+    }
 }

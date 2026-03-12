@@ -1,0 +1,5 @@
+root = true
+
+[*.{kt,kts}]
+
+[**/src/jvmTest/**/*.kt]

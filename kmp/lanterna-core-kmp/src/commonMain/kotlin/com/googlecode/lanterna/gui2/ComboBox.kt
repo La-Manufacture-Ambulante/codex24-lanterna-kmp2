@@ -22,19 +22,35 @@ import com.googlecode.lanterna.Symbols
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
-import com.googlecode.lanterna.graphics.Theme
 import com.googlecode.lanterna.graphics.ThemeDefinition
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
-import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
-import com.googlecode.lanterna.internal.compat.synchronizedCompat
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * Simple combo box implementation.
+ * This is a simple combo box implementation that allows the user to select one out of multiple items through a
+ * drop-down menu. If the combo box is not in read-only mode, the user can also enter free text in the combo box, much
+ * like a `TextBox`.
+ * @param <V> Type to use for the items in the combo box
+ * @author Martin
  */
 class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractableComponent<ComboBox<V>?>() {
+    /**
+     * Listener interface that can be used to catch user events on the combo box
+     */
     interface Listener {
-        fun onSelectionChanged(selectedIndex: Int, previousSelection: Int, changedByUserInteraction: Boolean)
+        /**
+         * This method is called whenever the user changes selection from one item to another in the combo box
+         * @param selectedIndex Index of the item which is now selected
+         * @param previousSelection Index of the item which was previously selected
+         * @param changedByUserInteraction If `true` then this selection change happened because of user
+         * interaction with the combo box. If `false` then the selected item was set programmatically.
+         */
+        fun onSelectionChanged(
+            selectedIndex: Int,
+            previousSelection: Int,
+            changedByUserInteraction: Boolean,
+        )
     }
 
     private val items: MutableList<V> = ArrayList()
@@ -47,8 +63,26 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
 
     private var readOnly: Boolean = true
     private var dropDownFocused: Boolean = true
+
+    /**
+     * For writable combo boxes, this method returns the position where the text input cursor is right now. Meaning, if
+     * the user types some character, where are those are going to be inserted in the string that is currently
+     * displayed. If the text input position equals the size of the currently displayed text, new characters will be
+     * appended at the end. The user can usually move the text input position by using left and right arrow keys on the
+     * keyboard.
+     * @return Current text input position
+     */
     var textInputPosition: Int = 0
         private set
+
+    /**
+     * Returns the number of items to display in drop down at one time, if there are more items in the model there will
+     * be a scrollbar to help the user navigate. If this returns 0, the combo box will always grow to show all items in
+     * the list, which might cause undesired effects if you put really a lot of items into the combo box.
+     *
+     * @return Number of items (rows) that will be displayed in the combo box, or 0 if the combo box will always grow to
+     * accommodate
+     */
     var dropDownNumberOfRows: Int = 10
 
     constructor(vararg items: V) : this(items.asList())
@@ -74,6 +108,7 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         this.text = if (selectedIndex != -1) this.items[selectedIndex].toString() else ""
     }
 
+    @Synchronized
     fun addItem(item: V?): ComboBox<V> {
         if (item == null) {
             throw IllegalArgumentException("Cannot add null elements to a ComboBox")
@@ -86,7 +121,11 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return this
     }
 
-    fun addItem(index: Int, item: V?): ComboBox<V> {
+    @Synchronized
+    fun addItem(
+        index: Int,
+        item: V?,
+    ): ComboBox<V> {
         if (item == null) {
             throw IllegalArgumentException("Cannot add null elements to a ComboBox")
         }
@@ -98,6 +137,7 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return this
     }
 
+    @Synchronized
     fun clearItems(): ComboBox<V> {
         items.clear()
         setSelectedIndex(-1)
@@ -105,6 +145,7 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return this
     }
 
+    @Synchronized
     fun removeItem(item: V?): ComboBox<V> {
         val index = items.indexOf(item)
         if (index == -1) {
@@ -113,6 +154,7 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return removeItem(index)
     }
 
+    @Synchronized
     fun removeItem(index: Int): ComboBox<V> {
         items.removeAt(index)
         if (index < selectedIndex) {
@@ -124,7 +166,11 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return this
     }
 
-    fun setItem(index: Int, item: V?): ComboBox<V> {
+    @Synchronized
+    fun setItem(
+        index: Int,
+        item: V?,
+    ): ComboBox<V> {
         if (item == null) {
             throw IllegalArgumentException("Cannot add null elements to a ComboBox")
         }
@@ -133,14 +179,17 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return this
     }
 
+    @Synchronized
     fun getItemCount(): Int {
         return items.size
     }
 
+    @Synchronized
     fun getItem(index: Int): V {
         return items[index]
     }
 
+    @Synchronized
     fun setReadOnly(readOnly: Boolean): ComboBox<V> {
         this.readOnly = readOnly
         if (readOnly) {
@@ -161,7 +210,11 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         setSelectedIndex(selectedIndex, false)
     }
 
-    private fun setSelectedIndex(selectedIndex: Int, changedByUserInteraction: Boolean) {
+    @Synchronized
+    private fun setSelectedIndex(
+        selectedIndex: Int,
+        changedByUserInteraction: Boolean,
+    ) {
         if (items.size <= selectedIndex || selectedIndex < -1) {
             throw IndexOutOfBoundsException("Illegal argument to ComboBox.setSelectedIndex: $selectedIndex")
         }
@@ -182,6 +235,7 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         invalidate()
     }
 
+    @Synchronized
     fun setSelectedItem(item: V?) {
         if (item == null) {
             setSelectedIndex(-1)
@@ -206,6 +260,7 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return selectedIndex
     }
 
+    @Synchronized
     fun getSelectedItem(): V? {
         return if (getSelectedIndex() > -1) getItem(getSelectedIndex()) else null
     }
@@ -222,14 +277,21 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return this
     }
 
-    override fun afterEnterFocus(direction: Interactable.FocusChangeDirection?, previouslyInFocus: Interactable?) {
+    override fun afterEnterFocus(
+        direction: Interactable.FocusChangeDirection?,
+        previouslyInFocus: Interactable?,
+    ) {
         if (direction == Interactable.FocusChangeDirection.RIGHT && !isReadOnly()) {
             dropDownFocused = false
             selectedIndex = 0
         }
     }
 
-    override fun afterLeaveFocus(direction: Interactable.FocusChangeDirection?, nextInFocus: Interactable?) {
+    @Synchronized
+    override fun afterLeaveFocus(
+        direction: Interactable.FocusChangeDirection?,
+        nextInFocus: Interactable?,
+    ) {
         popupWindow?.close()
     }
 
@@ -237,6 +299,7 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
         return DefaultComboBoxRenderer()
     }
 
+    @Synchronized
     override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
         return if (isReadOnly()) {
             handleReadOnlyCBKeyStroke(keyStroke)
@@ -266,11 +329,12 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
     }
 
     protected fun showPopup(keyStroke: KeyStroke?) {
-        popupWindow = PopupWindow()
-        popupWindow?.position = toGlobal(TerminalPosition(0, 1))
+        val popup = PopupWindow()
+        popupWindow = popup
+        popup.position = toGlobal(TerminalPosition(0, 1))
         val gui = textGUI as? WindowBasedTextGUI ?: return
-        gui.addWindow(popupWindow)
-        gui.setActiveWindow(popupWindow)
+        gui.addWindow(popup)
+        gui.setActiveWindow(popup)
     }
 
     private fun handleEditableCBKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
@@ -366,15 +430,22 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
             for (i in 0 until getItemCount()) {
                 val item = items[i]
                 val index = i
-                listBox.addItem(item.toString(), Runnable {
-                    setSelectedIndex(index, true)
-                    close()
-                })
+                listBox.addItem(
+                    item.toString(),
+                    Runnable {
+                        setSelectedIndex(index, true)
+                        close()
+                    },
+                )
             }
             listBox.setSelectedIndex(getSelectedIndex())
             val dropDownListPreferredSize = listBox.preferredSize ?: TerminalSize.ZERO
             if (dropDownNumberOfRows > 0) {
-                listBox.setPreferredSize(dropDownListPreferredSize.withRows(kotlin.math.min(dropDownNumberOfRows, dropDownListPreferredSize.rows)))
+                listBox.setPreferredSize(
+                    dropDownListPreferredSize.withRows(
+                        kotlin.math.min(dropDownNumberOfRows, dropDownListPreferredSize.rows),
+                    ),
+                )
             }
             component = listBox
         }
@@ -384,6 +455,7 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
             popupWindow = null
         }
 
+        @Synchronized
         override fun handleInput(keyStroke: KeyStroke?): Boolean {
             if (keyStroke?.keyType == KeyType.ESCAPE) {
                 close()
@@ -416,9 +488,10 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
 
         override fun getPreferredSize(comboBox: ComboBox<V>?): TerminalSize {
             val cb = comboBox ?: return TerminalSize.ONE
-            var size = TerminalSize.ONE.withColumns((if (cb.getItemCount() == 0) TerminalTextUtils.getColumnWidth(cb.text) else 0) + 2)
-                ?: TerminalSize.ONE
-            synchronizedCompat(cb) {
+            var size =
+                TerminalSize.ONE.withColumns((if (cb.getItemCount() == 0) TerminalTextUtils.getColumnWidth(cb.text) else 0) + 2)
+                    ?: TerminalSize.ONE
+            synchronized(cb) {
                 for (i in 0 until cb.getItemCount()) {
                     val item = cb.getItem(i)
                     size = size.max(TerminalSize(TerminalTextUtils.getColumnWidth(item.toString()) + 3, 1)) ?: size
@@ -427,7 +500,10 @@ class ComboBox<V>(items: Collection<V>, selectedIndex: Int) : AbstractInteractab
             return size
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, comboBox: ComboBox<V>?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            comboBox: ComboBox<V>?,
+        ) {
             val g = graphics ?: return
             val cb = comboBox ?: return
             val themeDefinition: ThemeDefinition = cb.themeDefinition ?: return

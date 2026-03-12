@@ -52,7 +52,10 @@ private fun normalizeResourcePath(resourcePath: String): String? {
     return resourcePath.trimStart('/').takeIf { it.isNotBlank() }
 }
 
-private fun resolveResourcePath(basePath: String, normalizedPath: String): String {
+private fun resolveResourcePath(
+    basePath: String,
+    normalizedPath: String,
+): String {
     val trimmedBasePath = basePath.trim()
     return if (trimmedBasePath.endsWith("/")) {
         "$trimmedBasePath$normalizedPath"
@@ -71,9 +74,10 @@ private fun readUtf8File(path: String): String? {
         val bytes = ArrayList<Byte>()
         val chunk = ByteArray(4096)
         while (true) {
-            val readCount = chunk.usePinned { pinned ->
-                read(descriptor, pinned.addressOf(0), chunk.size.convert())
-            }
+            val readCount =
+                chunk.usePinned { pinned ->
+                    read(descriptor, pinned.addressOf(0), chunk.size.convert())
+                }
             if (readCount < 0) {
                 return null
             }

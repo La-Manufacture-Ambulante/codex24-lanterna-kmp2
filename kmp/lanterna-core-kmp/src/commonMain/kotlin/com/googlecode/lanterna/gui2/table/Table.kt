@@ -18,7 +18,6 @@
  */
 package com.googlecode.lanterna.gui2.table
 
-import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.gui2.AbstractInteractableComponent
 import com.googlecode.lanterna.gui2.Interactable
 import com.googlecode.lanterna.input.KeyStroke
@@ -45,38 +44,60 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
     constructor(vararg columnLabels: String?) : this(TableModel<V?>(*columnLabels))
 
     init {
-        tableModelListener = object : TableModel.Listener<V?> {
-            override fun onRowAdded(model: TableModel<V?>?, index: Int) {
-                if (index <= selectedRow) {
-                    selectedRow = kotlin.math.min((model?.getRowCount() ?: 1) - 1, selectedRow + 1)
-                }
-                invalidate()
-            }
-
-            override fun onRowRemoved(model: TableModel<V?>?, index: Int, oldRow: List<V?>) {
-                if (index < selectedRow) {
-                    selectedRow = kotlin.math.max(0, selectedRow - 1)
-                } else {
-                    val rowCount = model?.getRowCount() ?: 0
-                    if (selectedRow > rowCount - 1) {
-                        selectedRow = kotlin.math.max(0, rowCount - 1)
+        tableModelListener =
+            object : TableModel.Listener<V?> {
+                override fun onRowAdded(
+                    model: TableModel<V?>?,
+                    index: Int,
+                ) {
+                    if (index <= selectedRow) {
+                        selectedRow = kotlin.math.min((model?.getRowCount() ?: 1) - 1, selectedRow + 1)
                     }
+                    invalidate()
                 }
-                invalidate()
-            }
 
-            override fun onColumnAdded(model: TableModel<V?>?, index: Int) {
-                invalidate()
-            }
+                override fun onRowRemoved(
+                    model: TableModel<V?>?,
+                    index: Int,
+                    oldRow: List<V?>,
+                ) {
+                    if (index < selectedRow) {
+                        selectedRow = kotlin.math.max(0, selectedRow - 1)
+                    } else {
+                        val rowCount = model?.getRowCount() ?: 0
+                        if (selectedRow > rowCount - 1) {
+                            selectedRow = kotlin.math.max(0, rowCount - 1)
+                        }
+                    }
+                    invalidate()
+                }
 
-            override fun onColumnRemoved(model: TableModel<V?>?, index: Int, oldHeader: String?, oldColumn: List<V?>) {
-                invalidate()
-            }
+                override fun onColumnAdded(
+                    model: TableModel<V?>?,
+                    index: Int,
+                ) {
+                    invalidate()
+                }
 
-            override fun onCellChanged(model: TableModel<V?>?, row: Int, column: Int, oldValue: V?, newValue: V?) {
-                invalidate()
+                override fun onColumnRemoved(
+                    model: TableModel<V?>?,
+                    index: Int,
+                    oldHeader: String?,
+                    oldColumn: List<V?>,
+                ) {
+                    invalidate()
+                }
+
+                override fun onCellChanged(
+                    model: TableModel<V?>?,
+                    row: Int,
+                    column: Int,
+                    oldValue: V?,
+                    newValue: V?,
+                ) {
+                    invalidate()
+                }
             }
-        }
         this.tableModel.addListener(tableModelListener)
     }
 
@@ -166,20 +187,28 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
         require(selectedRow >= 0) { "selectedRow must be >= 0 but was $selectedRow" }
         var nextSelectedRow = selectedRow
         val rowCount = tableModel.getRowCount()
-        nextSelectedRow = if (rowCount == 0) {
-            0
-        } else if (nextSelectedRow > rowCount - 1) {
-            rowCount - 1
-        } else {
-            nextSelectedRow
-        }
+        nextSelectedRow =
+            if (rowCount == 0) {
+                0
+            } else if (nextSelectedRow > rowCount - 1) {
+                rowCount - 1
+            } else {
+                nextSelectedRow
+            }
         this.selectedRow = nextSelectedRow
         return self()
     }
 
     fun setCellSelection(cellSelection: Boolean): Table<V?> {
         this.cellSelection = cellSelection
-        selectedColumn = if (cellSelection && selectedColumn == -1) 0 else if (!cellSelection) -1 else selectedColumn
+        selectedColumn =
+            if (cellSelection && selectedColumn == -1) {
+                0
+            } else if (!cellSelection) {
+                -1
+            } else {
+                selectedColumn
+            }
         return self()
     }
 

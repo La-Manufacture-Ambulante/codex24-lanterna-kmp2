@@ -22,36 +22,49 @@ import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.internal.compat.EnumSet
+import java.util.EnumSet
 
 /**
  * Label is a simple read-only text display component. It supports customized colors and multi-line text.
+ * @author Martin
  */
 open class Label(text: String?) : AbstractComponent<Label?>() {
-    protected var lines: Array<String> = emptyArray()
+    private var lineBuffer: Array<String> = emptyArray()
     private var labelWidth: Int? = 0
     private var labelSize: TerminalSize? = TerminalSize.ZERO
     private var foregroundColor: TextColor? = null
     private var backgroundColor: TextColor? = null
-    private val additionalStyles: EnumSet<SGR> = EnumSet.noneOf(SGR::class)
+    private val additionalStyles: EnumSet<SGR> = EnumSet.noneOf(SGR::class.java)
 
     init {
-        setText(text ?: "")
+        setText(text!!)
     }
 
+    /**
+     * Protected access to set the internal representation of the text in this label, to be used by sub-classes of label
+     * in certain cases where `setText(..)` doesn't work. In general, you probably want to stick to
+     * `setText(..)` instead of this method unless you have a good reason not to.
+     * @param lines New lines this label will display
+     */
+    protected fun setLines(lines: Array<String>) {
+        this.lineBuffer = lines
+    }
+
+    @Synchronized
     fun setText(text: String) {
-        lines = splitIntoMultipleLines(text)
-        this.labelSize = getBounds(lines, labelSize)
+        setLines(splitIntoMultipleLines(text))
+        this.labelSize = getBounds(lineBuffer, labelSize)
         invalidate()
     }
 
+    @Synchronized
     fun getText(): String {
-        if (lines.isEmpty()) {
+        if (lineBuffer.isEmpty()) {
             return ""
         }
-        val bob = StringBuilder(lines[0])
-        for (i in 1 until lines.size) {
-            bob.append("\n").append(lines[i])
+        val bob = StringBuilder(lineBuffer[0])
+        for (i in 1 until lineBuffer.size) {
+            bob.append("\n").append(lineBuffer[i])
         }
         return bob.toString()
     }
@@ -60,7 +73,10 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
         return text.replace("\r", "").split("\n").toTypedArray()
     }
 
-    protected fun getBounds(lines: Array<String>, currentBounds: TerminalSize?): TerminalSize? {
+    protected fun getBounds(
+        lines: Array<String>,
+        currentBounds: TerminalSize?,
+    ): TerminalSize? {
         var bounds: TerminalSize? = currentBounds ?: TerminalSize.ZERO
         bounds = bounds?.withRows(lines.size)
         if (labelWidth == null || labelWidth == 0) {
@@ -80,6 +96,7 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
         return bounds
     }
 
+    @Synchronized
     fun setForegroundColor(foregroundColor: TextColor?): Label {
         this.foregroundColor = foregroundColor
         return this
@@ -89,6 +106,7 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
         return foregroundColor
     }
 
+    @Synchronized
     fun setBackgroundColor(backgroundColor: TextColor?): Label {
         this.backgroundColor = backgroundColor
         return this
@@ -98,16 +116,19 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
         return backgroundColor
     }
 
+    @Synchronized
     fun addStyle(sgr: SGR): Label {
         additionalStyles.add(sgr)
         return this
     }
 
+    @Synchronized
     fun removeStyle(sgr: SGR): Label {
         additionalStyles.remove(sgr)
         return this
     }
 
+    @Synchronized
     fun setLabelWidth(labelWidth: Int?): Label {
         this.labelWidth = labelWidth
         return this
@@ -123,7 +144,10 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
                 return labelSize
             }
 
-            override fun drawComponent(graphics: TextGUIGraphics?, component: Label?) {
+            override fun drawComponent(
+                graphics: TextGUIGraphics?,
+                component: Label?,
+            ) {
                 val themeDefinition = component!!.themeDefinition!!
                 graphics!!.applyThemeStyle(themeDefinition.normal)
                 if (foregroundColor != null) {
@@ -136,13 +160,14 @@ open class Label(text: String?) : AbstractComponent<Label?>() {
                     graphics.enableModifiers(sgr)
                 }
 
-                val linesToDraw: Array<String> = if (component.getLabelWidth() == null) {
-                    component.lines
-                } else {
-                    TerminalTextUtils.getWordWrappedText(graphics.size!!.columns, *component.lines)
-                        .map { it ?: "" }
-                        .toTypedArray()
-                }
+                val linesToDraw: Array<String> =
+                    if (component.getLabelWidth() == null) {
+                        component.lineBuffer
+                    } else {
+                        TerminalTextUtils.getWordWrappedText(graphics.size!!.columns, *component.lineBuffer)
+                            .map { it ?: "" }
+                            .toTypedArray()
+                    }
 
                 for (row in 0 until kotlin.math.min(graphics.size!!.rows, linesToDraw.size)) {
                     val line = linesToDraw[row]

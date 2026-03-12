@@ -24,6 +24,7 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.internal.compat.TimeUnit
 import com.googlecode.lanterna.terminal.IOSafeTerminal
 import com.googlecode.lanterna.terminal.MouseCaptureMode
 import com.googlecode.lanterna.terminal.TerminalResizeListener
@@ -34,7 +35,6 @@ import java.awt.event.InputMethodEvent
 import java.awt.event.InputMethodListener
 import java.awt.im.InputMethodRequests
 import java.text.AttributedCharacterIterator
-import com.googlecode.lanterna.internal.compat.TimeUnit
 
 @Suppress("serial")
 class AWTTerminal : Panel, IOSafeTerminal {
@@ -99,20 +99,23 @@ class AWTTerminal : Panel, IOSafeTerminal {
         }
 
         enableInputMethods(true)
-        addInputMethodListener(object : InputMethodListener {
-            override fun inputMethodTextChanged(event: InputMethodEvent) = Unit
+        addInputMethodListener(
+            object : InputMethodListener {
+                override fun inputMethodTextChanged(event: InputMethodEvent) = Unit
 
-            override fun caretPositionChanged(event: InputMethodEvent) = Unit
-        })
-
-        terminalImplementation = AWTTerminalImplementation(
-            this,
-            resolvedFontConfiguration,
-            initialTerminalSize,
-            resolvedDeviceConfiguration,
-            resolvedColorConfiguration,
-            scrollController,
+                override fun caretPositionChanged(event: InputMethodEvent) = Unit
+            },
         )
+
+        terminalImplementation =
+            AWTTerminalImplementation(
+                this,
+                resolvedFontConfiguration,
+                initialTerminalSize,
+                resolvedDeviceConfiguration,
+                resolvedColorConfiguration,
+                scrollController,
+            )
         inputMethodRequests = TerminalInputMethodRequests(this, terminalImplementation)
     }
 
@@ -172,7 +175,10 @@ class AWTTerminal : Panel, IOSafeTerminal {
         terminalImplementation.clearScreen()
     }
 
-    override fun setCursorPosition(x: Int, y: Int) {
+    override fun setCursorPosition(
+        x: Int,
+        y: Int,
+    ) {
         terminalImplementation.setCursorPosition(x, y)
     }
 
@@ -217,7 +223,10 @@ class AWTTerminal : Panel, IOSafeTerminal {
     override val terminalSize: TerminalSize?
         get() = terminalImplementation.terminalSize
 
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray? {
+    override fun enquireTerminal(
+        timeout: Int,
+        timeoutUnit: TimeUnit?,
+    ): ByteArray? {
         return terminalImplementation.enquireTerminal(timeout, timeoutUnit)
     }
 

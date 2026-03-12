@@ -91,11 +91,12 @@ class WindowList {
         }
 
         val originalActiveWindow = activeWindow
-        var nextWindow = if (originalActiveWindow == null) {
-            if (reverse) windows.last else windows.first
-        } else {
-            getNextWindow(reverse, originalActiveWindow)
-        }
+        var nextWindow =
+            if (originalActiveWindow == null) {
+                if (reverse) windows.last else windows.first
+            } else {
+                getNextWindow(reverse, originalActiveWindow)
+            }
 
         var noFocusWindows = 0
         while (nextWindow.hints?.contains(Window.Hint.NO_FOCUS) == true) {
@@ -118,7 +119,10 @@ class WindowList {
         return this
     }
 
-    private fun getNextWindow(reverse: Boolean, window: Window): Window {
+    private fun getNextWindow(
+        reverse: Boolean,
+        window: Window,
+    ): Window {
         var index = windows.indexOf(window)
         if (reverse) {
             index++

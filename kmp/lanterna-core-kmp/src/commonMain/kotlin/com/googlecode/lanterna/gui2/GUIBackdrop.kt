@@ -31,8 +31,11 @@ class GUIBackdrop : EmptySpace() {
                 return TerminalSize.ONE
             }
 
-            override fun drawComponent(graphics: TextGUIGraphics?, component: EmptySpace?) {
-                val themeDefinition = component!!.theme!!.getDefinition(GUIBackdrop::class)!!
+            override fun drawComponent(
+                graphics: TextGUIGraphics?,
+                component: EmptySpace?,
+            ) {
+                val themeDefinition = component!!.theme!!.getDefinition(GUIBackdrop::class.java)!!
                 graphics!!.applyThemeStyle(themeDefinition.normal)
                 graphics.fill(themeDefinition.getCharacter("BACKGROUND", ' '))
             }

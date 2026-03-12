@@ -1,3 +1,21 @@
+/*
+ * This file is part of lanterna (https://github.com/mabe02/lanterna).
+ *
+ * lanterna is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2010-2020 Martin Berglund
+ */
 package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.TerminalSize
@@ -14,12 +32,14 @@ import com.googlecode.lanterna.gui2.Panels
 import com.googlecode.lanterna.gui2.Separator
 import com.googlecode.lanterna.gui2.TextBox
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
-import com.googlecode.lanterna.input.KeyStroke
-import com.googlecode.lanterna.filesystem.LanternaFile
-import kotlin.Comparator
+import java.io.File
+import java.util.Arrays
+import java.util.Comparator
 
 /**
  * Dialog that allows the user to iterate the file system and pick file to open/save.
+ *
+ * @author Martin
  */
 class FileDialog(
     title: String?,
@@ -27,20 +47,20 @@ class FileDialog(
     actionLabel: String?,
     dialogSize: TerminalSize,
     private val showHiddenFilesAndDirs: Boolean,
-    selectedObject: LanternaFile?,
+    selectedObject: File?,
 ) : DialogWindow(title) {
     private val fileListBox: ActionListBox
     private val directoryListBox: ActionListBox
     private val fileBox: TextBox
     private val okButton: Button
 
-    private var directory: LanternaFile? = null
-    private var selectedFile: LanternaFile? = null
+    private var directory: File? = null
+    private var selectedFile: File? = null
 
     init {
         var resolvedSelectedObject = selectedObject
         if (resolvedSelectedObject == null || !resolvedSelectedObject.exists()) {
-            resolvedSelectedObject = LanternaFile("").absoluteFile
+            resolvedSelectedObject = File("").absoluteFile
         }
         resolvedSelectedObject = resolvedSelectedObject.absoluteFile
 
@@ -121,12 +141,13 @@ class FileDialog(
         )
         separator.addTo(contentPane)
 
-        okButton = Button(actionLabel, OkHandler()).setAccelerator(KeyStroke.fromString("<a-o>")) ?: Button(actionLabel, OkHandler())
-        val buttonPanel = Panels.grid(
-            2,
-            okButton,
-            Button(LocalizedString.Cancel.toString(), CancelHandler()).setAccelerator(KeyStroke.fromString("<a-c>")),
-        )
+        okButton = Button(requireNotNull(actionLabel), OkHandler())
+        val buttonPanel =
+            Panels.grid(
+                2,
+                okButton,
+                Button(LocalizedString.Cancel.toString(), CancelHandler()),
+            )
         buttonPanel?.setLayoutData(
             GridLayout.createLayoutData(
                 GridLayout.Alignment.END,
@@ -147,11 +168,14 @@ class FileDialog(
             resolvedSelectedObject.isDirectory -> directory = resolvedSelectedObject
         }
 
-        reloadViews(directory ?: LanternaFile("").absoluteFile)
+        reloadViews(directory ?: File("").absoluteFile)
         component = contentPane
     }
 
-    override fun showDialog(textGUI: WindowBasedTextGUI): LanternaFile? {
+    /**
+     * The file selected in the dialog, or `null` if the dialog was cancelled.
+     */
+    override fun showDialog(textGUI: WindowBasedTextGUI): File? {
         selectedFile = null
         super.showDialog(textGUI)
         return selectedFile
@@ -160,8 +184,8 @@ class FileDialog(
     private inner class OkHandler : Runnable {
         override fun run() {
             if (fileBox.text.isNotEmpty()) {
-                val file = LanternaFile(fileBox.text)
-                selectedFile = if (file.isAbsolute) file else LanternaFile(directory, fileBox.text)
+                val file = File(fileBox.text)
+                selectedFile = if (file.isAbsolute) file else File(directory, fileBox.text)
                 close()
             } else {
                 val activeTextGUI = textGUI ?: return
@@ -186,11 +210,11 @@ class FileDialog(
         override fun run() {}
     }
 
-    private fun reloadViews(directory: LanternaFile) {
+    private fun reloadViews(directory: File) {
         directoryListBox.clearItems()
         fileListBox.clearItems()
         val entries = directory.listFiles() ?: return
-        entries.sortBy { file -> file.name.lowercase() }
+        Arrays.sort(entries, Comparator.comparing { file -> file.name.lowercase() })
         val parent = directory.absoluteFile.parentFile
         if (parent != null) {
             directoryListBox.addItem(
@@ -201,7 +225,7 @@ class FileDialog(
                 },
             )
         } else {
-            val roots = LanternaFile.listRoots()
+            val roots = File.listRoots()
             for (entry in roots) {
                 if (entry.canRead()) {
                     directoryListBox.addItem(

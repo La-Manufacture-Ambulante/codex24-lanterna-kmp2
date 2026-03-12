@@ -22,7 +22,9 @@ expect class LanternaFile {
     val isHidden: Boolean
 
     fun canRead(): Boolean
+
     fun listFiles(): Array<LanternaFile>?
+
     fun exists(): Boolean
 
     companion object {

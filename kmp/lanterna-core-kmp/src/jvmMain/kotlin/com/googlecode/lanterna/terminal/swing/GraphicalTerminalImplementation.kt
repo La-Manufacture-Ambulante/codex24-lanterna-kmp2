@@ -40,7 +40,6 @@ import java.awt.Color
 import java.awt.Font
 import java.awt.FontMetrics
 import java.awt.Graphics
-import java.awt.Graphics2D
 import java.awt.MouseInfo
 import java.awt.Rectangle
 import java.awt.RenderingHints
@@ -59,7 +58,6 @@ import java.util.ArrayList
 import java.util.Arrays
 import java.util.BitSet
 import java.util.HashSet
-import java.util.LinkedList
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.BlockingQueue
@@ -122,14 +120,17 @@ internal abstract class GraphicalTerminalImplementation(
     internal abstract val height: Int
     internal abstract val width: Int
     internal abstract val isTextAntiAliased: Boolean
+
     internal abstract fun getFontForCharacter(character: TextCharacter): Font
+
     internal abstract fun repaint()
 
     internal val preferredSize: java.awt.Dimension
-        @Synchronized get() = java.awt.Dimension(
-            fontWidth * requireNotNull(virtualTerminal.terminalSize).columns,
-            fontHeight * requireNotNull(virtualTerminal.terminalSize).rows,
-        )
+        @Synchronized get() =
+            java.awt.Dimension(
+                fontWidth * requireNotNull(virtualTerminal.terminalSize).columns,
+                fontHeight * requireNotNull(virtualTerminal.terminalSize).rows,
+            )
 
     @Synchronized
     fun onCreated() {
@@ -152,14 +153,18 @@ internal abstract class GraphicalTerminalImplementation(
         }
         blinkTimer = Timer("LanternaTerminalBlinkTimer", true)
         val blinkLength = requireNotNull(deviceConfiguration).blinkLengthInMilliSeconds.toLong()
-        blinkTimer!!.schedule(object : TimerTask() {
-            override fun run() {
-                blinkOn = !blinkOn
-                if (hasBlinkingText) {
-                    repaint()
+        blinkTimer!!.schedule(
+            object : TimerTask() {
+                override fun run() {
+                    blinkOn = !blinkOn
+                    if (hasBlinkingText) {
+                        repaint()
+                    }
                 }
-            }
-        }, blinkLength, blinkLength)
+            },
+            blinkLength,
+            blinkLength,
+        )
     }
 
     @Synchronized
@@ -183,9 +188,10 @@ internal abstract class GraphicalTerminalImplementation(
         if (currentWidth != lastComponentWidth || currentHeight != lastComponentHeight) {
             val columns = currentWidth / fontWidth
             val rows = currentHeight / fontHeight
-            val terminalSize = requireNotNull(
-                requireNotNull(virtualTerminal.terminalSize).withColumns(columns),
-            ).withRows(rows)
+            val terminalSize =
+                requireNotNull(
+                    requireNotNull(virtualTerminal.terminalSize).withColumns(columns),
+                ).withRows(rows)
             virtualTerminal.setTerminalSize(terminalSize)
             needToUpdateBackBuffer = true
         }
@@ -304,54 +310,54 @@ internal abstract class GraphicalTerminalImplementation(
                     rowNumber: Int,
                     bufferLine: com.googlecode.lanterna.terminal.virtual.VirtualTerminal.BufferLine?,
                 ) {
-            var column = 0
-            while (column < viewportSize.columns) {
-                val textCharacter = requireNotNull(requireNotNull(bufferLine).getCharacterAt(column))
-                var atCursorLocation = cursorPosition.equals(column, rowNumber)
-                if (
-                    !atCursorLocation &&
-                    cursorPosition.column == column + 1 &&
-                    cursorPosition.row == rowNumber &&
-                    textCharacter.isDoubleWidth
-                ) {
-                    atCursorLocation = true
-                }
-                val isBlinking = textCharacter.getModifiers().contains(SGR.BLINK)
-                if (isBlinking) {
-                    foundBlinkingCharacters.set(true)
-                }
-                if (dirtyCellsLookupTable.isAllDirty() || dirtyCellsLookupTable.isDirty(rowNumber, column) || isBlinking) {
-                    val characterWidth = currentFontWidth * if (textCharacter.isDoubleWidth) 2 else 1
-                    var foregroundColor = deriveTrueForegroundColor(textCharacter, atCursorLocation)
-                    var backgroundColor = deriveTrueBackgroundColor(textCharacter, atCursorLocation)
-                    val drawCursor =
-                        atCursorLocation &&
-                            cursorIsVisible &&
-                            (!requireNotNull(deviceConfiguration).isCursorBlinking || blinkOn)
-                    if (bellOn) {
-                        val temp = foregroundColor
-                        foregroundColor = backgroundColor
-                        backgroundColor = temp
+                    var column = 0
+                    while (column < viewportSize.columns) {
+                        val textCharacter = requireNotNull(requireNotNull(bufferLine).getCharacterAt(column))
+                        var atCursorLocation = cursorPosition.equals(column, rowNumber)
+                        if (
+                            !atCursorLocation &&
+                            cursorPosition.column == column + 1 &&
+                            cursorPosition.row == rowNumber &&
+                            textCharacter.isDoubleWidth
+                        ) {
+                            atCursorLocation = true
+                        }
+                        val isBlinking = textCharacter.getModifiers().contains(SGR.BLINK)
+                        if (isBlinking) {
+                            foundBlinkingCharacters.set(true)
+                        }
+                        if (dirtyCellsLookupTable.isAllDirty() || dirtyCellsLookupTable.isDirty(rowNumber, column) || isBlinking) {
+                            val characterWidth = currentFontWidth * if (textCharacter.isDoubleWidth) 2 else 1
+                            var foregroundColor = deriveTrueForegroundColor(textCharacter, atCursorLocation)
+                            var backgroundColor = deriveTrueBackgroundColor(textCharacter, atCursorLocation)
+                            val drawCursor =
+                                atCursorLocation &&
+                                    cursorIsVisible &&
+                                    (!requireNotNull(deviceConfiguration).isCursorBlinking || blinkOn)
+                            if (bellOn) {
+                                val temp = foregroundColor
+                                foregroundColor = backgroundColor
+                                backgroundColor = temp
+                            }
+                            drawCharacter(
+                                backbufferGraphics,
+                                textCharacter,
+                                column,
+                                rowNumber,
+                                foregroundColor,
+                                backgroundColor,
+                                currentFontWidth,
+                                currentFontHeight,
+                                characterWidth,
+                                scrollOffsetFromTopInPixels,
+                                drawCursor,
+                            )
+                        }
+                        if (textCharacter.isDoubleWidth) {
+                            column++
+                        }
+                        column++
                     }
-                    drawCharacter(
-                        backbufferGraphics,
-                        textCharacter,
-                        column,
-                        rowNumber,
-                        foregroundColor,
-                        backgroundColor,
-                        currentFontWidth,
-                        currentFontHeight,
-                        characterWidth,
-                        scrollOffsetFromTopInPixels,
-                        drawCursor,
-                    )
-                }
-                if (textCharacter.isDoubleWidth) {
-                    column++
-                }
-                column++
-            }
                 }
             },
         )
@@ -363,7 +369,10 @@ internal abstract class GraphicalTerminalImplementation(
         needFullRedraw = false
     }
 
-    private fun buildDirtyCellsLookupTable(firstRowOffset: Int, lastRowOffset: Int) {
+    private fun buildDirtyCellsLookupTable(
+        firstRowOffset: Int,
+        lastRowOffset: Int,
+    ) {
         if (virtualTerminal.isWholeBufferDirtyThenReset || needFullRedraw) {
             dirtyCellsLookupTable.setAllDirty()
             return
@@ -410,11 +419,12 @@ internal abstract class GraphicalTerminalImplementation(
             requireNotNull(backbuffer).height < height ||
             requireNotNull(backbuffer).height > height * 4
         ) {
-            val newBackbuffer = BufferedImage(
-                maxOf(width, 1) * 2,
-                maxOf(height, 1) * 2,
-                BufferedImage.TYPE_INT_RGB,
-            )
+            val newBackbuffer =
+                BufferedImage(
+                    maxOf(width, 1) * 2,
+                    maxOf(height, 1) * 2,
+                    BufferedImage.TYPE_INT_RGB,
+                )
             val graphics = newBackbuffer.createGraphics()
             graphics.fillRect(0, 0, newBackbuffer.width, newBackbuffer.height)
             graphics.drawImage(backbuffer, 0, 0, null)
@@ -475,7 +485,10 @@ internal abstract class GraphicalTerminalImplementation(
         }
     }
 
-    private fun deriveTrueForegroundColor(character: TextCharacter, atCursorLocation: Boolean): Color {
+    private fun deriveTrueForegroundColor(
+        character: TextCharacter,
+        atCursorLocation: Boolean,
+    ): Color {
         val foregroundColor = character.foregroundColor
         val backgroundColor = character.backgroundColor
         var reverse = character.isReversed
@@ -492,11 +505,13 @@ internal abstract class GraphicalTerminalImplementation(
 
         return when {
             reverse && (!blink || !blinkOn) ->
-                requireNotNull(requireNotNull(colorConfiguration).toAWTColor(
-                    backgroundColor,
-                    backgroundColor != TextColor.ANSI.DEFAULT,
-                    character.isBold,
-                ))
+                requireNotNull(
+                    requireNotNull(colorConfiguration).toAWTColor(
+                        backgroundColor,
+                        backgroundColor != TextColor.ANSI.DEFAULT,
+                        character.isBold,
+                    ),
+                )
             !reverse && blink && blinkOn ->
                 requireNotNull(requireNotNull(colorConfiguration).toAWTColor(backgroundColor, false, character.isBold))
             else ->
@@ -504,7 +519,10 @@ internal abstract class GraphicalTerminalImplementation(
         }
     }
 
-    private fun deriveTrueBackgroundColor(character: TextCharacter, atCursorLocation: Boolean): Color {
+    private fun deriveTrueBackgroundColor(
+        character: TextCharacter,
+        atCursorLocation: Boolean,
+    ): Color {
         val foregroundColor = character.foregroundColor
         var backgroundColor: TextColor? = character.backgroundColor
         var reverse = character.isReversed
@@ -522,11 +540,13 @@ internal abstract class GraphicalTerminalImplementation(
         }
 
         return if (reverse) {
-            requireNotNull(requireNotNull(colorConfiguration).toAWTColor(
-                foregroundColor,
-                backgroundColor == TextColor.ANSI.DEFAULT,
-                character.isBold,
-            ))
+            requireNotNull(
+                requireNotNull(colorConfiguration).toAWTColor(
+                    foregroundColor,
+                    backgroundColor == TextColor.ANSI.DEFAULT,
+                    character.isBold,
+                ),
+            )
         } else {
             requireNotNull(requireNotNull(colorConfiguration).toAWTColor(backgroundColor, false, false))
         }
@@ -581,7 +601,10 @@ internal abstract class GraphicalTerminalImplementation(
         }
     }
 
-    override fun setCursorPosition(x: Int, y: Int) {
+    override fun setCursorPosition(
+        x: Int,
+        y: Int,
+    ) {
         cursorPosition = TerminalPosition(x, y)
     }
 
@@ -635,7 +658,10 @@ internal abstract class GraphicalTerminalImplementation(
     override val terminalSize: TerminalSize?
         get() = virtualTerminal.terminalSize
 
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray = enquiryString.toByteArray()
+    override fun enquireTerminal(
+        timeout: Int,
+        timeoutUnit: TimeUnit?,
+    ): ByteArray = enquiryString.toByteArray()
 
     override fun bell() {
         if (bellOn) {
@@ -899,7 +925,11 @@ internal abstract class GraphicalTerminalImplementation(
         private var firstRowIndex: Int = -1
         private var allDirty: Boolean = false
 
-        fun resetAndInitialize(firstRowIndex: Int, lastRowIndex: Int, columns: Int) {
+        fun resetAndInitialize(
+            firstRowIndex: Int,
+            lastRowIndex: Int,
+            columns: Int,
+        ) {
             this.firstRowIndex = firstRowIndex
             allDirty = false
             val rows = lastRowIndex - firstRowIndex + 1
@@ -947,7 +977,10 @@ internal abstract class GraphicalTerminalImplementation(
             }
         }
 
-        fun isDirty(row: Int, column: Int): Boolean {
+        fun isDirty(
+            row: Int,
+            column: Int,
+        ): Boolean {
             if (row < firstRowIndex || row >= firstRowIndex + table.size) {
                 return false
             }
@@ -957,8 +990,9 @@ internal abstract class GraphicalTerminalImplementation(
     }
 
     companion object {
-        private val TYPED_KEYS_TO_IGNORE: Set<Char> = HashSet(
-            Arrays.asList('\n', '\t', '\r', '\b', '\u001b', 127.toChar()),
-        )
+        private val TYPED_KEYS_TO_IGNORE: Set<Char> =
+            HashSet(
+                Arrays.asList('\n', '\t', '\r', '\b', '\u001b', 127.toChar()),
+            )
     }
 }

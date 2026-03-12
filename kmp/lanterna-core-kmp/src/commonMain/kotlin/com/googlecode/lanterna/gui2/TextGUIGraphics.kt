@@ -24,13 +24,13 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.StyleSet
+import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.graphics.TextImage
 import com.googlecode.lanterna.graphics.ThemeStyle
 import com.googlecode.lanterna.graphics.ThemedTextGraphics
-import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.screen.TabBehaviour
-import kotlin.collections.Collection
-import com.googlecode.lanterna.internal.compat.EnumSet
+import java.util.Collection
+import java.util.EnumSet
 
 /**
  * TextGraphics implementation used by TextGUI when doing drawing operations.
@@ -39,7 +39,10 @@ interface TextGUIGraphics : ThemedTextGraphics, TextGraphics {
     val textGUI: TextGUI?
 
     @Throws(IllegalArgumentException::class)
-    override fun newTextGraphics(topLeftCorner: TerminalPosition?, size: TerminalSize?): TextGUIGraphics?
+    override fun newTextGraphics(
+        topLeftCorner: TerminalPosition?,
+        size: TerminalSize?,
+    ): TextGUIGraphics?
 
     override fun applyThemeStyle(themeStyle: ThemeStyle?): TextGUIGraphics?
 
@@ -59,7 +62,11 @@ interface TextGUIGraphics : ThemedTextGraphics, TextGraphics {
 
     override fun fill(c: Char): TextGUIGraphics?
 
-    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGUIGraphics?
+    override fun fillRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: Char,
+    ): TextGUIGraphics?
 
     override fun fillRectangle(
         topLeft: TerminalPosition?,
@@ -67,7 +74,11 @@ interface TextGUIGraphics : ThemedTextGraphics, TextGraphics {
         character: TextCharacter?,
     ): TextGUIGraphics?
 
-    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGUIGraphics?
+    override fun drawRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: Char,
+    ): TextGUIGraphics?
 
     override fun drawRectangle(
         topLeft: TerminalPosition?,
@@ -115,7 +126,13 @@ interface TextGUIGraphics : ThemedTextGraphics, TextGraphics {
         character: TextCharacter?,
     ): TextGUIGraphics?
 
-    override fun drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, character: Char): TextGUIGraphics?
+    override fun drawLine(
+        fromX: Int,
+        fromY: Int,
+        toX: Int,
+        toY: Int,
+        character: Char,
+    ): TextGUIGraphics?
 
     override fun drawLine(
         fromX: Int,
@@ -125,7 +142,10 @@ interface TextGUIGraphics : ThemedTextGraphics, TextGraphics {
         character: TextCharacter?,
     ): TextGUIGraphics?
 
-    override fun drawImage(topLeft: TerminalPosition?, image: TextImage?): TextGUIGraphics?
+    override fun drawImage(
+        topLeft: TerminalPosition?,
+        image: TextImage?,
+    ): TextGUIGraphics?
 
     override fun drawImage(
         topLeft: TerminalPosition?,
@@ -134,17 +154,38 @@ interface TextGUIGraphics : ThemedTextGraphics, TextGraphics {
         sourceImageSize: TerminalSize?,
     ): TextGUIGraphics?
 
-    override fun setCharacter(position: TerminalPosition?, character: Char): TextGUIGraphics?
+    override fun setCharacter(
+        position: TerminalPosition?,
+        character: Char,
+    ): TextGUIGraphics?
 
-    override fun setCharacter(position: TerminalPosition?, character: TextCharacter?): TextGUIGraphics?
+    override fun setCharacter(
+        position: TerminalPosition?,
+        character: TextCharacter?,
+    ): TextGUIGraphics?
 
-    override fun setCharacter(column: Int, row: Int, character: Char): TextGUIGraphics?
+    override fun setCharacter(
+        column: Int,
+        row: Int,
+        character: Char,
+    ): TextGUIGraphics?
 
-    override fun setCharacter(column: Int, row: Int, character: TextCharacter?): TextGUIGraphics?
+    override fun setCharacter(
+        column: Int,
+        row: Int,
+        character: TextCharacter?,
+    ): TextGUIGraphics?
 
-    override fun putString(column: Int, row: Int, string: String?): TextGUIGraphics?
+    override fun putString(
+        column: Int,
+        row: Int,
+        string: String?,
+    ): TextGUIGraphics?
 
-    override fun putString(position: TerminalPosition?, string: String?): TextGUIGraphics?
+    override fun putString(
+        position: TerminalPosition?,
+        string: String?,
+    ): TextGUIGraphics?
 
     override fun putString(
         column: Int,
@@ -168,9 +209,16 @@ interface TextGUIGraphics : ThemedTextGraphics, TextGraphics {
         extraModifiers: kotlin.collections.Collection<SGR?>?,
     ): TextGUIGraphics?
 
-    override fun putCSIStyledString(column: Int, row: Int, string: String?): TextGUIGraphics?
+    override fun putCSIStyledString(
+        column: Int,
+        row: Int,
+        string: String?,
+    ): TextGUIGraphics?
 
-    override fun putCSIStyledString(position: TerminalPosition?, string: String?): TextGUIGraphics?
+    override fun putCSIStyledString(
+        position: TerminalPosition?,
+        string: String?,
+    ): TextGUIGraphics?
 
     override fun setStyleFrom(source: StyleSet<*>?): TextGUIGraphics?
 }

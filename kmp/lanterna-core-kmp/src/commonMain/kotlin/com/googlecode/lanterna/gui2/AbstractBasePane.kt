@@ -26,8 +26,8 @@ import com.googlecode.lanterna.gui2.menu.MenuBar
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
-import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
-import com.googlecode.lanterna.internal.compat.AtomicBoolean
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * This abstract implementation of [BasePane] has the common code shared by all different concrete implementations.
@@ -79,13 +79,14 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
         }
 
     override var theme: Theme?
-        get() {
+        @Synchronized get() {
             if (themeOverride != null) {
                 return themeOverride
             }
             return textGUI?.theme
         }
-        set(value) {
+
+        @Synchronized set(value) {
             themeOverride = value
             invalidate()
         }
@@ -109,7 +110,7 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
             return
         }
 
-        graphics.applyThemeStyle(theme?.getDefinition(Window::class)?.normal)
+        graphics.applyThemeStyle(theme?.getDefinition(Window::class.java)?.normal)
         graphics.fill(' ')
 
         val graphicsSize = graphics.size ?: TerminalSize.ZERO
@@ -137,10 +138,6 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
 
         var handled = doHandleInput(event)
         if (!handled) {
-            handled = doHandleAccelerator(event)
-        }
-
-        if (!handled) {
             val hasBeenHandled = AtomicBoolean(false)
             for (listener in listeners) {
                 listener.onUnhandledInput(self(), event, hasBeenHandled)
@@ -151,34 +148,6 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
     }
 
     protected abstract fun self(): T
-
-    private fun doHandleAccelerator(key: KeyStroke): Boolean {
-        if (key.keyType == KeyType.MOUSE_EVENT) {
-            return false
-        }
-
-        val activeMenuBar = menuBar
-        if (activeMenuBar != null && activeMenuBar.handleInput(key)) {
-            return true
-        }
-
-        return handleAccelerator(contentHolder, key)
-    }
-
-    private fun handleAccelerator(container: Container, key: KeyStroke): Boolean {
-        for (child in container.children.orEmpty()) {
-            if (child is Button && child.handleInput(key) == Result.HANDLED) {
-                return true
-            }
-
-            if (child is Container && child.childCount > 0) {
-                if (handleAccelerator(child, key)) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
 
     private fun doHandleInput(key: KeyStroke): Boolean {
         if (key.keyType == KeyType.MOUSE_EVENT) {
@@ -198,21 +167,23 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
                     direction = Interactable.FocusChangeDirection.NEXT
                     nextFocus = activeMenuBar?.nextFocus(null)
                     if (nextFocus == null) {
-                        nextFocus = when (baseComponent) {
-                            is Container -> baseComponent.nextFocus(null)
-                            is Interactable -> baseComponent
-                            else -> null
-                        }
+                        nextFocus =
+                            when (baseComponent) {
+                                is Container -> baseComponent.nextFocus(null)
+                                is Interactable -> baseComponent
+                                else -> null
+                            }
                     }
                 }
 
                 KeyType.REVERSE_TAB, KeyType.ARROW_UP, KeyType.ARROW_LEFT -> {
                     direction = Interactable.FocusChangeDirection.PREVIOUS
-                    nextFocus = when (baseComponent) {
-                        is Container -> baseComponent.previousFocus(null)
-                        is Interactable -> baseComponent
-                        else -> null
-                    }
+                    nextFocus =
+                        when (baseComponent) {
+                            is Container -> baseComponent.previousFocus(null)
+                            is Interactable -> baseComponent
+                            else -> null
+                        }
                     if (nextFocus == null) {
                         nextFocus = activeMenuBar?.previousFocus(null)
                     }
@@ -335,7 +306,10 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
         return target.handleInput(mouseAction) == Result.HANDLED
     }
 
-    protected fun setFocusedInteractable(toFocus: Interactable?, direction: Interactable.FocusChangeDirection) {
+    protected fun setFocusedInteractable(
+        toFocus: Interactable?,
+        direction: Interactable.FocusChangeDirection,
+    ) {
         if (focusedInteractableBacking === toFocus) {
             return
         }
@@ -438,7 +412,10 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
                     return subComponent.preferredSize ?: TerminalSize.ZERO
                 }
 
-                override fun drawComponent(graphics: TextGUIGraphics?, component: Container?) {
+                override fun drawComponent(
+                    graphics: TextGUIGraphics?,
+                    component: Container?,
+                ) {
                     var activeGraphics = graphics ?: return
 
                     if (!internalMenuBar.isEmptyMenuBar) {

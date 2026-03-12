@@ -19,9 +19,8 @@
 package com.googlecode.lanterna.terminal.virtual
 
 import com.googlecode.lanterna.TextCharacter
-import kotlin.collections.ArrayList
-import com.googlecode.lanterna.internal.compat.LinkedList
-import kotlin.collections.ListIterator
+import java.util.ArrayList
+import java.util.LinkedList
 
 /**
  * This class is used to store lines of text inside of a terminal emulator. As used by [DefaultVirtualTerminal], it keeps
@@ -31,22 +30,25 @@ internal class TextBuffer {
     private val lines: LinkedList<MutableList<TextCharacter>> = LinkedList()
 
     val lineCount: Int
-        get() = lines.size
+        @Synchronized get() = lines.size
 
     init {
         newLine()
     }
 
+    @Synchronized
     fun newLine() {
         lines.add(ArrayList(200))
     }
 
+    @Synchronized
     fun removeTopLines(numberOfLinesToRemove: Int) {
         repeat(numberOfLinesToRemove) {
             lines.removeFirst()
         }
     }
 
+    @Synchronized
     fun clear() {
         lines.clear()
         newLine()
@@ -54,7 +56,12 @@ internal class TextBuffer {
 
     fun getLinesFrom(rowNumber: Int): MutableListIterator<MutableList<TextCharacter>> = lines.listIterator(rowNumber)
 
-    fun setCharacter(lineNumber: Int, columnIndex: Int, textCharacter: TextCharacter?): Int {
+    @Synchronized
+    fun setCharacter(
+        lineNumber: Int,
+        columnIndex: Int,
+        textCharacter: TextCharacter?,
+    ): Int {
         if (lineNumber < 0 || columnIndex < 0) {
             throw IllegalArgumentException(
                 "Illegal argument to TextBuffer.setCharacter(..), lineNumber = $lineNumber, columnIndex = $columnIndex",
@@ -85,7 +92,11 @@ internal class TextBuffer {
         return returnStyle
     }
 
-    fun getCharacter(lineNumber: Int, columnIndex: Int): TextCharacter {
+    @Synchronized
+    fun getCharacter(
+        lineNumber: Int,
+        columnIndex: Int,
+    ): TextCharacter {
         if (lineNumber < 0 || columnIndex < 0) {
             throw IllegalArgumentException(
                 "Illegal argument to TextBuffer.getCharacter(..), lineNumber = $lineNumber, columnIndex = $columnIndex",

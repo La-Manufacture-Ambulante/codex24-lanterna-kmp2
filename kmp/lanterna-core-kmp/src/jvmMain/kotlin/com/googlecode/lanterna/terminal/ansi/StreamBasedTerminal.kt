@@ -39,221 +39,230 @@ import java.util.Queue
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-abstract class StreamBasedTerminal @Suppress("WeakerAccess") constructor(
-    private val terminalInput: InputStream?,
-    private val terminalOutput: OutputStream?,
-    terminalCharset: Charset?,
-) : AbstractTerminal() {
-    companion object {
-        private val TERMINAL_SIZE_TIMEOUT =
-            Integer.getInteger("com.googlecode.lanterna.streamTerminalSizeTimeout", 5000)
-        private val UTF8_REFERENCE: Charset = StandardCharsets.UTF_8
-    }
-
-    private val terminalCharset: Charset = terminalCharset ?: Charset.defaultCharset()
-    private val terminalReader = terminalInput?.let { InputStreamReader(it, this.terminalCharset) }
-    val inputDecoder: InputDecoder = InputDecoder(
-        terminalReader?.let { reader ->
-            LambdaReader(
-                onRead = { reader.read() },
-                onReady = { reader.ready() },
-            )
-        },
-    )
-    private val keyQueue: Queue<KeyStroke> = LinkedList()
-    private val readLock: Lock = ReentrantLock()
-
-    @Volatile
-    private var lastReportedCursorPosition: TerminalPosition? = null
-
-    @Throws(IOException::class)
-    override fun putCharacter(c: Char) {
-        if (TerminalTextUtils.isPrintableCharacter(c)) {
-            writeToTerminal(*translateCharacter(c))
-        }
-    }
-
-    @Throws(IOException::class)
-    override fun putString(string: String?) {
-        if (string == null) {
-            return
-        }
-        for (character in string) {
-            putCharacter(character)
-        }
-    }
-
+abstract class StreamBasedTerminal
     @Suppress("WeakerAccess")
-    @Throws(IOException::class)
-    protected fun writeToTerminal(vararg bytes: Byte) {
-        synchronized(terminalOutput as Any) {
-            terminalOutput.write(bytes)
-        }
-    }
-
-    @Throws(IOException::class)
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray {
-        val effectiveTimeoutUnit = timeoutUnit ?: TimeUnit.MILLISECONDS
-        synchronized(terminalOutput as Any) {
-            terminalOutput.write(5)
-            flush()
+    constructor(
+        private val terminalInput: InputStream?,
+        private val terminalOutput: OutputStream?,
+        terminalCharset: Charset?,
+    ) : AbstractTerminal() {
+        companion object {
+            private val TERMINAL_SIZE_TIMEOUT =
+                Integer.getInteger("com.googlecode.lanterna.streamTerminalSizeTimeout", 5000)
+            private val UTF8_REFERENCE: Charset = StandardCharsets.UTF_8
         }
 
-        val startTime = System.currentTimeMillis()
-        while (terminalInput!!.available() == 0) {
-            if (System.currentTimeMillis() - startTime > effectiveTimeoutUnit.toMillis(timeout.toLong())) {
-                return ByteArray(0)
+        private val terminalCharset: Charset = terminalCharset ?: Charset.defaultCharset()
+        private val terminalReader = terminalInput?.let { InputStreamReader(it, this.terminalCharset) }
+        val inputDecoder: InputDecoder =
+            InputDecoder(
+                terminalReader?.let { reader ->
+                    LambdaReader(
+                        onRead = { reader.read() },
+                        onReady = { reader.ready() },
+                    )
+                },
+            )
+        private val keyQueue: Queue<KeyStroke> = LinkedList()
+        private val readLock: Lock = ReentrantLock()
+
+        @Volatile
+        private var lastReportedCursorPosition: TerminalPosition? = null
+
+        @Throws(IOException::class)
+        override fun putCharacter(c: Char) {
+            if (TerminalTextUtils.isPrintableCharacter(c)) {
+                writeToTerminal(*translateCharacter(c))
             }
-            try {
-                Thread.sleep(1)
-            } catch (_: InterruptedException) {
-                return ByteArray(0)
+        }
+
+        @Throws(IOException::class)
+        override fun putString(string: String?) {
+            if (string == null) {
+                return
+            }
+            for (character in string) {
+                putCharacter(character)
             }
         }
 
-        val buffer = ByteArrayOutputStream()
-        while (terminalInput.available() > 0) {
-            buffer.write(terminalInput.read())
-        }
-        return buffer.toByteArray()
-    }
-
-    @Throws(IOException::class)
-    override fun bell() {
-        terminalOutput!!.write(7.toByte().toInt())
-        terminalOutput.flush()
-    }
-
-    internal fun resetMemorizedCursorPosition() {
-        lastReportedCursorPosition = null
-    }
-
-    @Synchronized
-    @Throws(IOException::class)
-    internal fun waitForCursorPositionReport(): TerminalPosition? {
-        val startTime = System.currentTimeMillis()
-        var cursorPosition = lastReportedCursorPosition
-        while (cursorPosition == null) {
-            if (System.currentTimeMillis() - startTime > TERMINAL_SIZE_TIMEOUT.toLong()) {
-                return null
+        @Suppress("WeakerAccess")
+        @Throws(IOException::class)
+        protected fun writeToTerminal(vararg bytes: Byte) {
+            synchronized(terminalOutput as Any) {
+                terminalOutput.write(bytes)
             }
-            val keyStroke = readInput(false, false)
-            if (keyStroke != null) {
-                keyQueue.add(keyStroke)
-            } else {
+        }
+
+        @Throws(IOException::class)
+        override fun enquireTerminal(
+            timeout: Int,
+            timeoutUnit: TimeUnit?,
+        ): ByteArray {
+            val effectiveTimeoutUnit = timeoutUnit ?: TimeUnit.MILLISECONDS
+            synchronized(terminalOutput as Any) {
+                terminalOutput.write(5)
+                flush()
+            }
+
+            val startTime = System.currentTimeMillis()
+            while (terminalInput!!.available() == 0) {
+                if (System.currentTimeMillis() - startTime > effectiveTimeoutUnit.toMillis(timeout.toLong())) {
+                    return ByteArray(0)
+                }
                 try {
                     Thread.sleep(1)
                 } catch (_: InterruptedException) {
+                    return ByteArray(0)
                 }
             }
-            cursorPosition = lastReportedCursorPosition
+
+            val buffer = ByteArrayOutputStream()
+            while (terminalInput.available() > 0) {
+                buffer.write(terminalInput.read())
+            }
+            return buffer.toByteArray()
         }
-        return cursorPosition
-    }
 
-    @Throws(IOException::class)
-    override fun pollInput(): KeyStroke? {
-        return readInput(false, true)
-    }
-
-    @Throws(IOException::class)
-    override fun readInput(): KeyStroke? {
-        return readInput(true, true)
-    }
-
-    @Throws(IOException::class)
-    private fun readInput(blocking: Boolean, useKeyQueue: Boolean): KeyStroke? {
-        while (true) {
-            if (useKeyQueue) {
-                val previouslyReadKey = keyQueue.poll()
-                if (previouslyReadKey != null) {
-                    return previouslyReadKey
-                }
-            }
-            if (blocking) {
-                readLock.lock()
-            } else if (!readLock.tryLock()) {
-                return null
-            }
-            try {
-                val key = inputDecoder.getNextCharacter(blocking)
-                val report = ScreenInfoCharacterPattern.tryToAdopt(key)
-                if (lastReportedCursorPosition == null && report != null) {
-                    lastReportedCursorPosition = report.position
-                } else {
-                    return key
-                }
-            } finally {
-                readLock.unlock()
-            }
-        }
-    }
-
-    @Throws(IOException::class)
-    override fun flush() {
-        synchronized(terminalOutput as Any) {
+        @Throws(IOException::class)
+        override fun bell() {
+            terminalOutput!!.write(7.toByte().toInt())
             terminalOutput.flush()
         }
-    }
 
-    @Throws(IOException::class)
-    override fun close() {
-    }
-
-    protected fun getCharset(): Charset {
-        return terminalCharset
-    }
-
-    @Suppress("WeakerAccess")
-    protected fun translateCharacter(input: Char): ByteArray {
-        if (UTF8_REFERENCE == terminalCharset) {
-            return convertToCharset(input)
+        internal fun resetMemorizedCursorPosition() {
+            lastReportedCursorPosition = null
         }
-        return when (input) {
-            Symbols.ARROW_DOWN -> convertToVT100('v')
-            Symbols.ARROW_LEFT -> convertToVT100('<')
-            Symbols.ARROW_RIGHT -> convertToVT100('>')
-            Symbols.ARROW_UP -> convertToVT100('^')
-            Symbols.BLOCK_DENSE, Symbols.BLOCK_MIDDLE, Symbols.BLOCK_SOLID, Symbols.BLOCK_SPARSE -> convertToVT100('a')
-            Symbols.HEART, Symbols.CLUB, Symbols.SPADES -> convertToVT100('?')
-            Symbols.FACE_BLACK, Symbols.FACE_WHITE, Symbols.DIAMOND -> convertToVT100('`')
-            Symbols.BULLET -> convertToVT100('f')
-            Symbols.DOUBLE_LINE_CROSS, Symbols.SINGLE_LINE_CROSS -> convertToVT100('n')
-            Symbols.DOUBLE_LINE_HORIZONTAL, Symbols.SINGLE_LINE_HORIZONTAL -> convertToVT100('q')
-            Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER, Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER -> convertToVT100('m')
-            Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER, Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER -> convertToVT100('j')
-            Symbols.DOUBLE_LINE_T_DOWN,
-            Symbols.SINGLE_LINE_T_DOWN,
-            Symbols.DOUBLE_LINE_T_SINGLE_DOWN,
-            Symbols.SINGLE_LINE_T_DOUBLE_DOWN,
-            -> convertToVT100('w')
-            Symbols.DOUBLE_LINE_T_LEFT,
-            Symbols.SINGLE_LINE_T_LEFT,
-            Symbols.DOUBLE_LINE_T_SINGLE_LEFT,
-            Symbols.SINGLE_LINE_T_DOUBLE_LEFT,
-            -> convertToVT100('u')
-            Symbols.DOUBLE_LINE_T_RIGHT,
-            Symbols.SINGLE_LINE_T_RIGHT,
-            Symbols.DOUBLE_LINE_T_SINGLE_RIGHT,
-            Symbols.SINGLE_LINE_T_DOUBLE_RIGHT,
-            -> convertToVT100('t')
-            Symbols.DOUBLE_LINE_T_UP,
-            Symbols.SINGLE_LINE_T_UP,
-            Symbols.DOUBLE_LINE_T_SINGLE_UP,
-            Symbols.SINGLE_LINE_T_DOUBLE_UP,
-            -> convertToVT100('v')
-            Symbols.DOUBLE_LINE_TOP_LEFT_CORNER, Symbols.SINGLE_LINE_TOP_LEFT_CORNER -> convertToVT100('l')
-            Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER, Symbols.SINGLE_LINE_TOP_RIGHT_CORNER -> convertToVT100('k')
-            Symbols.DOUBLE_LINE_VERTICAL, Symbols.SINGLE_LINE_VERTICAL -> convertToVT100('x')
-            else -> convertToCharset(input)
+
+        @Synchronized
+        @Throws(IOException::class)
+        internal fun waitForCursorPositionReport(): TerminalPosition? {
+            val startTime = System.currentTimeMillis()
+            var cursorPosition = lastReportedCursorPosition
+            while (cursorPosition == null) {
+                if (System.currentTimeMillis() - startTime > TERMINAL_SIZE_TIMEOUT.toLong()) {
+                    return null
+                }
+                val keyStroke = readInput(false, false)
+                if (keyStroke != null) {
+                    keyQueue.add(keyStroke)
+                } else {
+                    try {
+                        Thread.sleep(1)
+                    } catch (_: InterruptedException) {
+                    }
+                }
+                cursorPosition = lastReportedCursorPosition
+            }
+            return cursorPosition
+        }
+
+        @Throws(IOException::class)
+        override fun pollInput(): KeyStroke? {
+            return readInput(false, true)
+        }
+
+        @Throws(IOException::class)
+        override fun readInput(): KeyStroke? {
+            return readInput(true, true)
+        }
+
+        @Throws(IOException::class)
+        private fun readInput(
+            blocking: Boolean,
+            useKeyQueue: Boolean,
+        ): KeyStroke? {
+            while (true) {
+                if (useKeyQueue) {
+                    val previouslyReadKey = keyQueue.poll()
+                    if (previouslyReadKey != null) {
+                        return previouslyReadKey
+                    }
+                }
+                if (blocking) {
+                    readLock.lock()
+                } else if (!readLock.tryLock()) {
+                    return null
+                }
+                try {
+                    val key = inputDecoder.getNextCharacter(blocking)
+                    val report = ScreenInfoCharacterPattern.tryToAdopt(key)
+                    if (lastReportedCursorPosition == null && report != null) {
+                        lastReportedCursorPosition = report.position
+                    } else {
+                        return key
+                    }
+                } finally {
+                    readLock.unlock()
+                }
+            }
+        }
+
+        @Throws(IOException::class)
+        override fun flush() {
+            synchronized(terminalOutput as Any) {
+                terminalOutput.flush()
+            }
+        }
+
+        @Throws(IOException::class)
+        override fun close() {
+        }
+
+        protected fun getCharset(): Charset {
+            return terminalCharset
+        }
+
+        @Suppress("WeakerAccess")
+        protected fun translateCharacter(input: Char): ByteArray {
+            if (UTF8_REFERENCE == terminalCharset) {
+                return convertToCharset(input)
+            }
+            return when (input) {
+                Symbols.ARROW_DOWN -> convertToVT100('v')
+                Symbols.ARROW_LEFT -> convertToVT100('<')
+                Symbols.ARROW_RIGHT -> convertToVT100('>')
+                Symbols.ARROW_UP -> convertToVT100('^')
+                Symbols.BLOCK_DENSE, Symbols.BLOCK_MIDDLE, Symbols.BLOCK_SOLID, Symbols.BLOCK_SPARSE -> convertToVT100('a')
+                Symbols.HEART, Symbols.CLUB, Symbols.SPADES -> convertToVT100('?')
+                Symbols.FACE_BLACK, Symbols.FACE_WHITE, Symbols.DIAMOND -> convertToVT100('`')
+                Symbols.BULLET -> convertToVT100('f')
+                Symbols.DOUBLE_LINE_CROSS, Symbols.SINGLE_LINE_CROSS -> convertToVT100('n')
+                Symbols.DOUBLE_LINE_HORIZONTAL, Symbols.SINGLE_LINE_HORIZONTAL -> convertToVT100('q')
+                Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER, Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER -> convertToVT100('m')
+                Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER, Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER -> convertToVT100('j')
+                Symbols.DOUBLE_LINE_T_DOWN,
+                Symbols.SINGLE_LINE_T_DOWN,
+                Symbols.DOUBLE_LINE_T_SINGLE_DOWN,
+                Symbols.SINGLE_LINE_T_DOUBLE_DOWN,
+                -> convertToVT100('w')
+                Symbols.DOUBLE_LINE_T_LEFT,
+                Symbols.SINGLE_LINE_T_LEFT,
+                Symbols.DOUBLE_LINE_T_SINGLE_LEFT,
+                Symbols.SINGLE_LINE_T_DOUBLE_LEFT,
+                -> convertToVT100('u')
+                Symbols.DOUBLE_LINE_T_RIGHT,
+                Symbols.SINGLE_LINE_T_RIGHT,
+                Symbols.DOUBLE_LINE_T_SINGLE_RIGHT,
+                Symbols.SINGLE_LINE_T_DOUBLE_RIGHT,
+                -> convertToVT100('t')
+                Symbols.DOUBLE_LINE_T_UP,
+                Symbols.SINGLE_LINE_T_UP,
+                Symbols.DOUBLE_LINE_T_SINGLE_UP,
+                Symbols.SINGLE_LINE_T_DOUBLE_UP,
+                -> convertToVT100('v')
+                Symbols.DOUBLE_LINE_TOP_LEFT_CORNER, Symbols.SINGLE_LINE_TOP_LEFT_CORNER -> convertToVT100('l')
+                Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER, Symbols.SINGLE_LINE_TOP_RIGHT_CORNER -> convertToVT100('k')
+                Symbols.DOUBLE_LINE_VERTICAL, Symbols.SINGLE_LINE_VERTICAL -> convertToVT100('x')
+                else -> convertToCharset(input)
+            }
+        }
+
+        private fun convertToVT100(code: Char): ByteArray {
+            return byteArrayOf(27, 40, 48, code.code.toByte(), 27, 40, 66)
+        }
+
+        private fun convertToCharset(input: Char): ByteArray {
+            return terminalCharset.encode(Character.toString(input)).array()
         }
     }
-
-    private fun convertToVT100(code: Char): ByteArray {
-        return byteArrayOf(27, 40, 48, code.code.toByte(), 27, 40, 66)
-    }
-
-    private fun convertToCharset(input: Char): ByteArray {
-        return terminalCharset.encode(Character.toString(input)).array()
-    }
-}

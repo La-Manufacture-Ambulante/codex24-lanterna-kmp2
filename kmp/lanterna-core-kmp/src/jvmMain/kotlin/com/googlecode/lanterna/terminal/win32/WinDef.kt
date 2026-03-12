@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:class-naming", "ktlint:standard:property-naming")
+
 package com.googlecode.lanterna.terminal.win32
 
 import com.sun.jna.Structure

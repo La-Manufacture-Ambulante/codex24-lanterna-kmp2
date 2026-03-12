@@ -18,66 +18,86 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.internal.concurrency.PlatformThreadToken
-import com.googlecode.lanterna.internal.concurrency.currentThreadToken
-
-typealias GuiTask = () -> Unit
+import java.io.IOException
 
 /**
- * Represents the thread expected to run the event/input/update loop for a [TextGUI].
+ * Class that represents the thread this is expected to run the event/input/update loop for the `TextGUI`. There
+ * are mainly two implementations of this interface, one for having lanterna automatically spawn a new thread for doing
+ * all the processing and leaving the creator thread free to do other things, and one that assumes the creator thread
+ * will hand over control to lanterna for as long as the GUI is running.
+ * @see SameTextGUIThread
  *
- * There are mainly two implementations:
- * [SameTextGUIThread] where the caller thread drives the loop, and
- * [SeparateTextGUIThread] where the loop runs on a dedicated thread.
+ * @see SeparateTextGUIThread
  *
  * @author Martin
  */
 interface TextGUIThread {
-    val ownerThreadToken: PlatformThreadToken?
-
-    fun isCallingThread(): Boolean {
-        val owner = ownerThreadToken ?: return false
-        return owner == currentThreadToken()
-    }
-
     /**
-     * Invokes custom code on the GUI thread. Even if the current thread is the GUI thread, the code is queued and
-     * executed after the current event-processing cycle.
+     * Returns the Java thread which is processing GUI events and updating the screen
+     * @return Thread which is processing events and updating the screen
+     */
+    val thread: Thread?
+
+/**
+     * Invokes custom code on the GUI thread. Even if the current thread **is** the GUI thread, the code will be
+     * executed at a later time when the event processing is done.
      *
-     * @throws IllegalStateException If the GUI thread is not running
+     * @param runnable Code to run asynchronously
+     * @throws java.lang.IllegalStateException If the GUI thread is not running
      */
     @Throws(IllegalStateException::class)
-    fun invokeLater(task: GuiTask?)
+    fun invokeLater(runnable: Runnable?)
 
-    /**
-     * Runs one event/input/update cycle.
-     *
-     * @return `true` if there was anything to process or the GUI updated, otherwise `false`
+/**
+     * Main method to call when you are managing the event/input/update loop yourself. This method will run one round
+     * through the GUI's event/input queue and update the visuals if required. If the operation did nothing (returning
+     * `false`) you could sleep for a millisecond and then try again. If you use `SameTextGUIThread` you
+     * must either call this method directly to make the GUI update or use one of the methods on
+     * `WindowBasedTextGUI` that blocks until a particular window has closed.
+     * @return `true` if there was anything to process or the GUI was updated, otherwise `false`
+     * @throws IOException If there was an I/O error when processing and updating the GUI
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    @Throws(IOException::class)
     fun processEventsAndUpdate(): Boolean
 
-    /**
-     * Schedules custom code on the GUI thread and waits for completion.
-     * If called from the GUI thread itself, the task executes immediately.
+/**
+     * Schedules custom code to be executed on the GUI thread and waits until the code has been executed before
+     * returning. If this is run on the GUI thread, it will immediately run the `Runnable` and then return.
      *
+     * @param runnable Code to be run and waited for completion before this method returns
      * @throws IllegalStateException If the GUI thread is not running
+     * @throws InterruptedException If the caller thread was interrupted while waiting for the task to be executed
      */
-    @Throws(IllegalStateException::class)
-    fun invokeAndWait(task: GuiTask?)
+    @Throws(IllegalStateException::class, InterruptedException::class)
+    fun invokeAndWait(runnable: Runnable?)
 
-    /**
-     * Updates the exception handler used by this TextGUI thread.
+/**
+     * Updates the exception handler used by this TextGUIThread. The exception handler will be invoked when an exception
+     * occurs in the main event loop. You can then decide how to log this exception and if you want to terminate the
+     * thread or not.
+     * @param exceptionHandler Handler to inspect exceptions
      */
     fun setExceptionHandler(exceptionHandler: ExceptionHandler?)
 
-    /**
-     * Defines an exception handler used by the GUI event loop.
-     * Returning `true` indicates the GUI thread should terminate.
+/**
+     * This interface defines an exception handler, that is used for looking at exceptions that occurs during the main
+     * event loop of the TextGUIThread. You can for example use this for logging, but also decide if you want the
+     * exception to kill the thread.
      */
     interface ExceptionHandler {
-        /**
-         * @return true when the event thread should terminate.
+/**
+         * Will be called when an IOException has occurred in the main event thread
+         * @param e IOException that occurred
+         * @return If you return `true`, the event thread will be terminated
          */
-        fun onException(error: Throwable): Boolean
+        fun onIOException(e: IOException?): Boolean
+
+/**
+         * Will be called when a RuntimeException has occurred in the main event thread
+         * @param e RuntimeException that occurred
+         * @return If you return `true`, the event thread will be terminated
+         */
+        fun onRuntimeException(e: RuntimeException?): Boolean
     }
 }

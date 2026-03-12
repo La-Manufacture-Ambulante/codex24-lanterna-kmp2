@@ -108,11 +108,12 @@ class TextInputDialog internal constructor(
             description: String?,
             initialContent: String?,
         ): String? {
-            val textInputDialog = TextInputDialogBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .setInitialContent(initialContent)
-                .build()
+            val textInputDialog =
+                TextInputDialogBuilder()
+                    .setTitle(title)
+                    .setDescription(description)
+                    .setInitialContent(initialContent)
+                    .build()
             return textInputDialog.showDialog(textGUI)
         }
 
@@ -122,12 +123,13 @@ class TextInputDialog internal constructor(
             description: String?,
             initialContent: String?,
         ): BigInteger? {
-            val textInputDialog = TextInputDialogBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .setInitialContent(initialContent)
-                .setValidationPattern(Pattern.compile("[0-9]+"), "Not a number")
-                .build()
+            val textInputDialog =
+                TextInputDialogBuilder()
+                    .setTitle(title)
+                    .setDescription(description)
+                    .setInitialContent(initialContent)
+                    .setValidationPattern(Pattern.compile("[0-9]+"), "Not a number")
+                    .build()
             val numberString = textInputDialog.showDialog(textGUI)
             return if (numberString != null) BigInteger(numberString) else null
         }
@@ -138,12 +140,13 @@ class TextInputDialog internal constructor(
             description: String?,
             initialContent: String?,
         ): String? {
-            val textInputDialog = TextInputDialogBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .setInitialContent(initialContent)
-                .setPasswordInput(true)
-                .build()
+            val textInputDialog =
+                TextInputDialogBuilder()
+                    .setTitle(title)
+                    .setDescription(description)
+                    .setInitialContent(initialContent)
+                    .setPasswordInput(true)
+                    .build()
             return textInputDialog.showDialog(textGUI)
         }
     }

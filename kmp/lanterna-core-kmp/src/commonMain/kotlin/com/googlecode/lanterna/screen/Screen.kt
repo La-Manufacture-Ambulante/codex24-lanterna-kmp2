@@ -43,17 +43,30 @@ interface Screen : InputProvider, Scrollable, Closeable {
 
     fun clear()
 
-    fun setCharacter(column: Int, row: Int, screenCharacter: TextCharacter?)
+    fun setCharacter(
+        column: Int,
+        row: Int,
+        screenCharacter: TextCharacter?,
+    )
 
-    fun setCharacter(position: TerminalPosition?, screenCharacter: TextCharacter?)
+    fun setCharacter(
+        position: TerminalPosition?,
+        screenCharacter: TextCharacter?,
+    )
 
     fun newTextGraphics(): TextGraphics?
 
-    fun getFrontCharacter(column: Int, row: Int): TextCharacter?
+    fun getFrontCharacter(
+        column: Int,
+        row: Int,
+    ): TextCharacter?
 
     fun getFrontCharacter(position: TerminalPosition?): TextCharacter?
 
-    fun getBackCharacter(column: Int, row: Int): TextCharacter?
+    fun getBackCharacter(
+        column: Int,
+        row: Int,
+    ): TextCharacter?
 
     fun getBackCharacter(position: TerminalPosition?): TextCharacter?
 
@@ -65,7 +78,11 @@ interface Screen : InputProvider, Scrollable, Closeable {
 
     fun doResizeIfNecessary(): TerminalSize?
 
-    override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int)
+    override fun scrollLines(
+        firstLine: Int,
+        lastLine: Int,
+        distance: Int,
+    )
 
     enum class RefreshType {
         AUTOMATIC,

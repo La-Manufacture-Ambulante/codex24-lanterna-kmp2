@@ -1,9 +1,9 @@
 package com.googlecode.lanterna.bundle
 
+import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.io.File
 
 internal actual object BundleResourceLoader {
     actual fun loadTextResource(resourcePath: String): String? {
@@ -47,7 +47,10 @@ private fun normalizeResourcePath(resourcePath: String): String? {
     return resourcePath.trimStart('/').takeIf { it.isNotBlank() }
 }
 
-private fun resolveResourcePath(basePath: String, normalizedPath: String): String {
+private fun resolveResourcePath(
+    basePath: String,
+    normalizedPath: String,
+): String {
     val trimmedBasePath = basePath.trim()
     return if (trimmedBasePath.endsWith("/")) {
         "$trimmedBasePath$normalizedPath"

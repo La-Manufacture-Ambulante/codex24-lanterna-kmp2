@@ -26,14 +26,21 @@ import com.googlecode.lanterna.TextCharacter
  * Wraps another TextGraphics and prints each character twice horizontally.
  */
 class DoublePrintingTextGraphics(private val underlyingTextGraphics: TextGraphics) : AbstractTextGraphics() {
-    override fun setCharacter(columnIndex: Int, rowIndex: Int, textCharacter: TextCharacter?): TextGraphics {
+    override fun setCharacter(
+        columnIndex: Int,
+        rowIndex: Int,
+        textCharacter: TextCharacter?,
+    ): TextGraphics {
         val adjustedColumn = columnIndex * 2
         underlyingTextGraphics.setCharacter(adjustedColumn, rowIndex, textCharacter)
         underlyingTextGraphics.setCharacter(adjustedColumn + 1, rowIndex, textCharacter)
         return this
     }
 
-    override fun getCharacter(columnIndex: Int, rowIndex: Int): TextCharacter? {
+    override fun getCharacter(
+        columnIndex: Int,
+        rowIndex: Int,
+    ): TextCharacter? {
         val adjustedColumn = columnIndex * 2
         return underlyingTextGraphics.getCharacter(adjustedColumn, rowIndex)
     }
