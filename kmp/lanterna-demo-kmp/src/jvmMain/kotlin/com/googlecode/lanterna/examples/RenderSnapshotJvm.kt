@@ -8,10 +8,9 @@ import java.io.File
 import javax.imageio.ImageIO
 
 fun main() {
-    val outputDir =
-        File(System.getProperty("demo.outputDir", "build/reports/demos/jvm")).apply {
-            mkdirs()
-        }
+    val outputDir = File(System.getProperty("demo.outputDir", "build/reports/demos/jvm")).apply {
+        mkdirs()
+    }
     val target = System.getProperty("demo.target", "jvm")
 
     File(outputDir, "snapshot.txt").writeText(RenderScene.asText(target))
@@ -21,10 +20,7 @@ fun main() {
     println("Wrote demo snapshots to ${outputDir.absolutePath}")
 }
 
-private fun writePng(
-    outputDir: File,
-    target: String,
-) {
+private fun writePng(outputDir: File, target: String) {
     val lines = RenderScene.lines(target)
     val cellWidth = 11
     val cellHeight = 19

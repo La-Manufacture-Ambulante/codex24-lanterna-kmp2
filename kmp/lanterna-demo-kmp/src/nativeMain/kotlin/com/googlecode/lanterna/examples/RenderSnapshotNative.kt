@@ -26,13 +26,9 @@ fun nativeSnapshotMain() {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun writeTextFile(
-    path: String,
-    content: String,
-) {
-    val handle =
-        fopen(path, "w")
-            ?: error("Unable to open output file: $path")
+private fun writeTextFile(path: String, content: String) {
+    val handle = fopen(path, "w")
+        ?: error("Unable to open output file: $path")
     try {
         fputs(content, handle)
     } finally {
