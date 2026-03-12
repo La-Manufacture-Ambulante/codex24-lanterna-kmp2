@@ -2,6 +2,7 @@ import org.gradle.testing.jacoco.tasks.JacocoReport
 
 plugins {
     kotlin("multiplatform") version "2.1.21"
+    jacoco
     id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
 }
 
@@ -43,7 +44,7 @@ tasks.register<JacocoReport>("jvmTestCoverageReport") {
     executionData.setFrom(
         fileTree(layout.buildDirectory.dir("jacoco")) {
             include("jvmTest.exec", "jvmTest*.exec")
-        }
+        },
     )
 
     reports {
