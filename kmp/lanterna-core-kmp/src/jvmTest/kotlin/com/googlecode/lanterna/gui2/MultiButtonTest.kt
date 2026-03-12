@@ -18,41 +18,34 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestTerminalFactory
-import com.googlecode.lanterna.screen.Screen
-
 import java.io.IOException
 
- object MultiButtonTest {
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-val screen = TestTerminalFactory(args).createScreen()
-screen!!.startScreen()
-val textGUI = MultiWindowTextGUI(screen)
-textGUI.isEOFWhenNoWindows = true
-try
-{
-val window = BasicWindow("Button test")
-val contentArea = Panel()
-contentArea.setLayoutManager(LinearLayout(Direction.VERTICAL))
-contentArea.addComponent(Button(""))
-contentArea.addComponent(Button("TRE"))
-contentArea.addComponent(Button("Button"))
-contentArea.addComponent(Button("Another button"))
-contentArea.addComponent(EmptySpace(TerminalSize(5, 1)))
- //contentArea.addComponent(new Button("Here is a\nmulti-line\ntext segment that is using \\n"));
+object MultiButtonTest {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        val screen = TestTerminalFactory(args).createScreen()
+        screen!!.startScreen()
+        val textGUI = MultiWindowTextGUI(screen)
+        textGUI.isEOFWhenNoWindows = true
+        try {
+            val window = BasicWindow("Button test")
+            val contentArea = Panel()
+            contentArea.setLayoutManager(LinearLayout(Direction.VERTICAL))
+            contentArea.addComponent(Button(""))
+            contentArea.addComponent(Button("TRE"))
+            contentArea.addComponent(Button("Button"))
+            contentArea.addComponent(Button("Another button"))
+            contentArea.addComponent(EmptySpace(TerminalSize(5, 1)))
+            // contentArea.addComponent(new Button("Here is a\nmulti-line\ntext segment that is using \\n"));
             contentArea.addComponent(Button("OK", Runnable { window.close() }))
 
-window.component = contentArea
-textGUI.addWindowAndWait(window)
-}
-
-finally
-{
-screen!!.stopScreen()
-}
-}
+            window.component = contentArea
+            textGUI.addWindowAndWait(window)
+        } finally
+        {
+            screen!!.stopScreen()
+        }
+    }
 }

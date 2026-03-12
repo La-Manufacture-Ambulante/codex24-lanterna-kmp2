@@ -62,11 +62,18 @@ class TerminalRectangle(
         return TerminalRectangle(x, y, columns, rows)
     }
 
-    fun whenContains(p: TerminalPosition, op: Runnable?): Boolean {
+    fun whenContains(
+        p: TerminalPosition,
+        op: Runnable?,
+    ): Boolean {
         return whenContains(p.column, p.row, op)
     }
 
-    fun whenContains(x: Int, y: Int, op: Runnable?): Boolean {
+    fun whenContains(
+        x: Int,
+        y: Int,
+        op: Runnable?,
+    ): Boolean {
         if (this.x <= x && x < xAndWidth && this.y <= y && y < yAndHeight) {
             requireNotNull(op).run()
             return true

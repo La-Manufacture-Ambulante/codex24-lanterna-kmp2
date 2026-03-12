@@ -116,21 +116,26 @@ class InteractableLookupMap internal constructor(size: TerminalSize) {
         return findNextUpOrDown(interactable!!, true)
     }
 
-    private fun findNextUpOrDown(interactable: Interactable, isDown: Boolean): Interactable? {
+    private fun findNextUpOrDown(
+        interactable: Interactable,
+        isDown: Boolean,
+    ): Interactable? {
         val directionTerm = if (isDown) 1 else -1
         var startPosition = interactable.cursorLocation
         if (startPosition == null) {
-            startPosition = if (isDown) {
-                TerminalPosition(0, interactable.size!!.rows - 1)
-            } else {
-                TerminalPosition.TOP_LEFT_CORNER
-            }
+            startPosition =
+                if (isDown) {
+                    TerminalPosition(0, interactable.size!!.rows - 1)
+                } else {
+                    TerminalPosition.TOP_LEFT_CORNER
+                }
         } else {
-            startPosition = if (isDown) {
-                startPosition.withRow(interactable.size!!.rows - 1)
-            } else {
-                startPosition.withRow(0)
-            }
+            startPosition =
+                if (isDown) {
+                    startPosition.withRow(interactable.size!!.rows - 1)
+                } else {
+                    startPosition.withRow(0)
+                }
         }
         startPosition = interactable.toBasePane(startPosition)
         if (startPosition == null) {
@@ -189,21 +194,26 @@ class InteractableLookupMap internal constructor(size: TerminalSize) {
         return findNextLeftOrRight(interactable!!, true)
     }
 
-    private fun findNextLeftOrRight(interactable: Interactable, isRight: Boolean): Interactable? {
+    private fun findNextLeftOrRight(
+        interactable: Interactable,
+        isRight: Boolean,
+    ): Interactable? {
         val directionTerm = if (isRight) 1 else -1
         var startPosition = interactable.cursorLocation
         if (startPosition == null) {
-            startPosition = if (isRight) {
-                TerminalPosition(interactable.size!!.columns - 1, 0)
-            } else {
-                TerminalPosition.TOP_LEFT_CORNER
-            }
+            startPosition =
+                if (isRight) {
+                    TerminalPosition(interactable.size!!.columns - 1, 0)
+                } else {
+                    TerminalPosition.TOP_LEFT_CORNER
+                }
         } else {
-            startPosition = if (isRight) {
-                startPosition.withColumn(interactable.size!!.columns - 1)
-            } else {
-                startPosition.withColumn(0)
-            }
+            startPosition =
+                if (isRight) {
+                    startPosition.withColumn(interactable.size!!.columns - 1)
+                } else {
+                    startPosition.withColumn(0)
+                }
         }
         startPosition = interactable.toBasePane(startPosition)
         if (startPosition == null) {
@@ -240,7 +250,10 @@ class InteractableLookupMap internal constructor(size: TerminalSize) {
         return null
     }
 
-    private fun getDisqualifiedInteractables(startPosition: TerminalPosition, scanHorizontally: Boolean): Set<Interactable> {
+    private fun getDisqualifiedInteractables(
+        startPosition: TerminalPosition,
+        scanHorizontally: Boolean,
+    ): Set<Interactable> {
         var localStartPosition = startPosition
         val disqualified: MutableSet<Interactable> = HashSet()
         if (lookupMap.isEmpty()) {

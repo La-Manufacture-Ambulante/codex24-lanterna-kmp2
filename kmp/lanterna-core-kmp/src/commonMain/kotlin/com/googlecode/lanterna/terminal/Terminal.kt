@@ -39,7 +39,10 @@ interface Terminal : InputProvider, Closeable {
     fun clearScreen()
 
     @Throws(IOException::class)
-    fun setCursorPosition(x: Int, y: Int)
+    fun setCursorPosition(
+        x: Int,
+        y: Int,
+    )
 
     @get:Throws(IOException::class)
     @set:Throws(IOException::class)
@@ -80,7 +83,10 @@ interface Terminal : InputProvider, Closeable {
     val terminalSize: TerminalSize?
 
     @Throws(IOException::class)
-    fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray?
+    fun enquireTerminal(
+        timeout: Int,
+        timeoutUnit: TimeUnit?,
+    ): ByteArray?
 
     @Throws(IOException::class)
     fun bell()

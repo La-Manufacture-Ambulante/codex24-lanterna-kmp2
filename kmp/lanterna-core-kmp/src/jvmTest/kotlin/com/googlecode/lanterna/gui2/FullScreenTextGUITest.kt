@@ -20,7 +20,6 @@ import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.Symbols
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.BasicTextImage
@@ -36,21 +35,27 @@ object FullScreenTextGUITest {
     @JvmStatic
     @Throws(IOException::class, InterruptedException::class)
     fun main(args: Array<String?>?) {
-        val screen: Screen = TestTerminalFactory(args).createScreen()
-            ?: return
+        val screen: Screen =
+            TestTerminalFactory(args).createScreen()
+                ?: return
         screen.startScreen()
 
         val stop = AtomicBoolean(false)
         val textGUI = MultiWindowTextGUI(screen)
-        textGUI.addListener(object : TextGUI.Listener {
-            override fun onUnhandledKeyStroke(textGUI: TextGUI?, keyStroke: KeyStroke?): Boolean {
-                if (keyStroke?.keyType == KeyType.ESCAPE) {
-                    stop.set(true)
-                    return true
+        textGUI.addListener(
+            object : TextGUI.Listener {
+                override fun onUnhandledKeyStroke(
+                    textGUI: TextGUI?,
+                    keyStroke: KeyStroke?,
+                ): Boolean {
+                    if (keyStroke?.keyType == KeyType.ESCAPE) {
+                        stop.set(true)
+                        return true
+                    }
+                    return false
                 }
-                return false
-            }
-        })
+            },
+        )
 
         try {
             textGUI.backgroundPane.component = BIOS()
@@ -71,22 +76,23 @@ object FullScreenTextGUITest {
 
         init {
             setLayoutManager(AbsoluteLayout())
-            val labels = listOf(
-                "Standard Lanterna Features",
-                "Advanced Lanterna Features",
-                "Advanced Terminal Features",
-                "Unintegrated Peripherals",
-                "Power Management Setup",
-                "Non-PnP/ISA Configurations",
-                "Terminal Health Status",
-                "Frequency/Current Control",
-                "Load Fail-Safe Defaults",
-                "Load Optimized Defaults",
-                "Set Supervisor Password",
-                "Set User Password",
-                "Save & Exit Setup",
-                "Exit Without Saving",
-            )
+            val labels =
+                listOf(
+                    "Standard Lanterna Features",
+                    "Advanced Lanterna Features",
+                    "Advanced Terminal Features",
+                    "Unintegrated Peripherals",
+                    "Power Management Setup",
+                    "Non-PnP/ISA Configurations",
+                    "Terminal Health Status",
+                    "Frequency/Current Control",
+                    "Load Fail-Safe Defaults",
+                    "Load Optimized Defaults",
+                    "Set Supervisor Password",
+                    "Set User Password",
+                    "Save & Exit Setup",
+                    "Exit Without Saving",
+                )
 
             labels.forEachIndexed { index, label ->
                 val col = if (index < 7) 3 else 43
@@ -154,7 +160,10 @@ object FullScreenTextGUITest {
                     return TerminalSize(80, 24)
                 }
 
-                override fun drawComponent(graphics: TextGUIGraphics?, component: Panel?) {
+                override fun drawComponent(
+                    graphics: TextGUIGraphics?,
+                    component: Panel?,
+                ) {
                     val g = graphics ?: return
                     g.setBackgroundColor(TextColor.ANSI.BLACK)
                     g.fill(' ')

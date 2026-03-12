@@ -25,36 +25,36 @@ import com.googlecode.lanterna.gui2.WindowPostRenderer
  * The main theme interface, from which you can retrieve theme definitions
  * @author Martin
  */
- interface Theme {
+interface Theme {
 /**
- * Returns what this theme considers to be the default definition
- * @return The default theme definition
- */
-     val defaultDefinition:ThemeDefinition?
+     * Returns what this theme considers to be the default definition
+     * @return The default theme definition
+     */
+    val defaultDefinition: ThemeDefinition?
 
 /**
- * Returns a post-renderer to invoke after drawing each window, unless the GUI system or individual windows has
- * their own renderers set. If `null`, no post-renderer will be done (unless the GUI system or the windows
- * has a post-renderer).
- * @return A [com.googlecode.lanterna.gui2.WindowPostRenderer] to invoke after drawing each window unless
- * overridden, or `null` if none
- */
-     val windowPostRenderer:WindowPostRenderer?
+     * Returns a post-renderer to invoke after drawing each window, unless the GUI system or individual windows has
+     * their own renderers set. If `null`, no post-renderer will be done (unless the GUI system or the windows
+     * has a post-renderer).
+     * @return A [com.googlecode.lanterna.gui2.WindowPostRenderer] to invoke after drawing each window unless
+     * overridden, or `null` if none
+     */
+    val windowPostRenderer: WindowPostRenderer?
 
 /**
- * Returns the [WindowDecorationRenderer] to use for windows drawn in this theme. If `null` then
- * lanterna will fall back to use [com.googlecode.lanterna.gui2.DefaultWindowDecorationRenderer].
- * 
- * @return The decoration renderer to use for this theme, or `null` to use system default
- */
-     val windowDecorationRenderer:WindowDecorationRenderer?
+     * Returns the [WindowDecorationRenderer] to use for windows drawn in this theme. If `null` then
+     * lanterna will fall back to use [com.googlecode.lanterna.gui2.DefaultWindowDecorationRenderer].
+     *
+     * @return The decoration renderer to use for this theme, or `null` to use system default
+     */
+    val windowDecorationRenderer: WindowDecorationRenderer?
 
 /**
- * Returns the theme definition associated with this class. The implementation of Theme should ensure that this
- * call never returns `null`, it should always give back a valid value (falling back to the default is nothing
- * else can be used).
- * @param clazz Class to get the theme definition for
- * @return The ThemeDefinition for the class passed in
- */
-     fun getDefinition(clazz:Class<*>?):ThemeDefinition? 
+     * Returns the theme definition associated with this class. The implementation of Theme should ensure that this
+     * call never returns `null`, it should always give back a valid value (falling back to the default is nothing
+     * else can be used).
+     * @param clazz Class to get the theme definition for
+     * @return The ThemeDefinition for the class passed in
+     */
+    fun getDefinition(clazz: Class<*>?): ThemeDefinition?
 }

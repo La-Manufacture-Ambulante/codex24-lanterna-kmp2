@@ -89,11 +89,12 @@ object Borders {
         override fun getPreferredSize(component: Border?): TerminalSize {
             val border = component as StandardBorder
             val wrappedComponent = border.component
-            var preferredSize = if (wrappedComponent == null) {
-                TerminalSize.ZERO
-            } else {
-                wrappedComponent.preferredSize ?: TerminalSize.ZERO
-            }
+            var preferredSize =
+                if (wrappedComponent == null) {
+                    TerminalSize.ZERO
+                } else {
+                    wrappedComponent.preferredSize ?: TerminalSize.ZERO
+                }
             preferredSize = preferredSize.withRelativeColumns(2)?.withRelativeRows(2) ?: TerminalSize.ZERO
             val borderTitle = border.getTitle()
             val titleWidth = if (borderTitle.isEmpty()) 2 else TerminalTextUtils.getColumnWidth(borderTitle) + 4
@@ -108,7 +109,10 @@ object Borders {
                 ?: TerminalSize.ZERO
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, component: Border?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            component: Border?,
+        ) {
             val border = component as? StandardBorder ?: return
             val wrappedComponent = border.component ?: return
             val g = graphics ?: return
@@ -179,12 +183,19 @@ object Borders {
         }
 
         protected abstract fun getHorizontalLine(theme: Theme): Char
+
         protected abstract fun getVerticalLine(theme: Theme): Char
+
         protected abstract fun getBottomLeftCorner(theme: Theme): Char
+
         protected abstract fun getTopLeftCorner(theme: Theme): Char
+
         protected abstract fun getBottomRightCorner(theme: Theme): Char
+
         protected abstract fun getTopRightCorner(theme: Theme): Char
+
         protected abstract fun getTitleLeft(theme: Theme): Char
+
         protected abstract fun getTitleRight(theme: Theme): Char
     }
 
@@ -199,118 +210,126 @@ object Borders {
         val leftRow = 0
         val rightRow = drawableArea.columns - 1
 
-        val junctionFromBelowSingle = listOf(
-            Symbols.SINGLE_LINE_VERTICAL,
-            Symbols.BOLD_FROM_NORMAL_SINGLE_LINE_VERTICAL,
-            Symbols.BOLD_SINGLE_LINE_VERTICAL,
-            Symbols.SINGLE_LINE_CROSS,
-            Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS,
-            Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER,
-            Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER,
-            Symbols.SINGLE_LINE_T_LEFT,
-            Symbols.SINGLE_LINE_T_RIGHT,
-            Symbols.SINGLE_LINE_T_UP,
-            Symbols.SINGLE_LINE_T_DOUBLE_LEFT,
-            Symbols.SINGLE_LINE_T_DOUBLE_RIGHT,
-            Symbols.DOUBLE_LINE_T_SINGLE_UP,
-        )
-        val junctionFromBelowDouble = listOf(
-            Symbols.DOUBLE_LINE_VERTICAL,
-            Symbols.DOUBLE_LINE_CROSS,
-            Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS,
-            Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER,
-            Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER,
-            Symbols.DOUBLE_LINE_T_LEFT,
-            Symbols.DOUBLE_LINE_T_RIGHT,
-            Symbols.DOUBLE_LINE_T_UP,
-            Symbols.DOUBLE_LINE_T_SINGLE_LEFT,
-            Symbols.DOUBLE_LINE_T_SINGLE_RIGHT,
-            Symbols.SINGLE_LINE_T_DOUBLE_UP,
-        )
-        val junctionFromAboveSingle = listOf(
-            Symbols.SINGLE_LINE_VERTICAL,
-            Symbols.BOLD_TO_NORMAL_SINGLE_LINE_VERTICAL,
-            Symbols.BOLD_SINGLE_LINE_VERTICAL,
-            Symbols.SINGLE_LINE_CROSS,
-            Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS,
-            Symbols.SINGLE_LINE_TOP_LEFT_CORNER,
-            Symbols.SINGLE_LINE_TOP_RIGHT_CORNER,
-            Symbols.SINGLE_LINE_T_LEFT,
-            Symbols.SINGLE_LINE_T_RIGHT,
-            Symbols.SINGLE_LINE_T_DOWN,
-            Symbols.SINGLE_LINE_T_DOUBLE_LEFT,
-            Symbols.SINGLE_LINE_T_DOUBLE_RIGHT,
-            Symbols.DOUBLE_LINE_T_SINGLE_DOWN,
-        )
-        val junctionFromAboveDouble = listOf(
-            Symbols.DOUBLE_LINE_VERTICAL,
-            Symbols.DOUBLE_LINE_CROSS,
-            Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS,
-            Symbols.DOUBLE_LINE_TOP_LEFT_CORNER,
-            Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER,
-            Symbols.DOUBLE_LINE_T_LEFT,
-            Symbols.DOUBLE_LINE_T_RIGHT,
-            Symbols.DOUBLE_LINE_T_DOWN,
-            Symbols.DOUBLE_LINE_T_SINGLE_LEFT,
-            Symbols.DOUBLE_LINE_T_SINGLE_RIGHT,
-            Symbols.SINGLE_LINE_T_DOUBLE_DOWN,
-        )
-        val junctionFromLeftSingle = listOf(
-            Symbols.SINGLE_LINE_HORIZONTAL,
-            Symbols.BOLD_TO_NORMAL_SINGLE_LINE_HORIZONTAL,
-            Symbols.BOLD_SINGLE_LINE_HORIZONTAL,
-            Symbols.SINGLE_LINE_CROSS,
-            Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS,
-            Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER,
-            Symbols.SINGLE_LINE_TOP_LEFT_CORNER,
-            Symbols.SINGLE_LINE_T_UP,
-            Symbols.SINGLE_LINE_T_DOWN,
-            Symbols.SINGLE_LINE_T_RIGHT,
-            Symbols.SINGLE_LINE_T_DOUBLE_UP,
-            Symbols.SINGLE_LINE_T_DOUBLE_DOWN,
-            Symbols.DOUBLE_LINE_T_SINGLE_RIGHT,
-        )
-        val junctionFromLeftDouble = listOf(
-            Symbols.DOUBLE_LINE_HORIZONTAL,
-            Symbols.DOUBLE_LINE_CROSS,
-            Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS,
-            Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER,
-            Symbols.DOUBLE_LINE_TOP_LEFT_CORNER,
-            Symbols.DOUBLE_LINE_T_UP,
-            Symbols.DOUBLE_LINE_T_DOWN,
-            Symbols.DOUBLE_LINE_T_RIGHT,
-            Symbols.DOUBLE_LINE_T_SINGLE_UP,
-            Symbols.DOUBLE_LINE_T_SINGLE_DOWN,
-            Symbols.SINGLE_LINE_T_DOUBLE_RIGHT,
-        )
-        val junctionFromRightSingle = listOf(
-            Symbols.SINGLE_LINE_HORIZONTAL,
-            Symbols.BOLD_FROM_NORMAL_SINGLE_LINE_HORIZONTAL,
-            Symbols.BOLD_SINGLE_LINE_HORIZONTAL,
-            Symbols.SINGLE_LINE_CROSS,
-            Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS,
-            Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER,
-            Symbols.SINGLE_LINE_TOP_RIGHT_CORNER,
-            Symbols.SINGLE_LINE_T_UP,
-            Symbols.SINGLE_LINE_T_DOWN,
-            Symbols.SINGLE_LINE_T_LEFT,
-            Symbols.SINGLE_LINE_T_DOUBLE_UP,
-            Symbols.SINGLE_LINE_T_DOUBLE_DOWN,
-            Symbols.DOUBLE_LINE_T_SINGLE_LEFT,
-        )
-        val junctionFromRightDouble = listOf(
-            Symbols.DOUBLE_LINE_HORIZONTAL,
-            Symbols.DOUBLE_LINE_CROSS,
-            Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS,
-            Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER,
-            Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER,
-            Symbols.DOUBLE_LINE_T_UP,
-            Symbols.DOUBLE_LINE_T_DOWN,
-            Symbols.DOUBLE_LINE_T_LEFT,
-            Symbols.DOUBLE_LINE_T_SINGLE_UP,
-            Symbols.DOUBLE_LINE_T_SINGLE_DOWN,
-            Symbols.SINGLE_LINE_T_DOUBLE_LEFT,
-        )
+        val junctionFromBelowSingle =
+            listOf(
+                Symbols.SINGLE_LINE_VERTICAL,
+                Symbols.BOLD_FROM_NORMAL_SINGLE_LINE_VERTICAL,
+                Symbols.BOLD_SINGLE_LINE_VERTICAL,
+                Symbols.SINGLE_LINE_CROSS,
+                Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS,
+                Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER,
+                Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER,
+                Symbols.SINGLE_LINE_T_LEFT,
+                Symbols.SINGLE_LINE_T_RIGHT,
+                Symbols.SINGLE_LINE_T_UP,
+                Symbols.SINGLE_LINE_T_DOUBLE_LEFT,
+                Symbols.SINGLE_LINE_T_DOUBLE_RIGHT,
+                Symbols.DOUBLE_LINE_T_SINGLE_UP,
+            )
+        val junctionFromBelowDouble =
+            listOf(
+                Symbols.DOUBLE_LINE_VERTICAL,
+                Symbols.DOUBLE_LINE_CROSS,
+                Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS,
+                Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER,
+                Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER,
+                Symbols.DOUBLE_LINE_T_LEFT,
+                Symbols.DOUBLE_LINE_T_RIGHT,
+                Symbols.DOUBLE_LINE_T_UP,
+                Symbols.DOUBLE_LINE_T_SINGLE_LEFT,
+                Symbols.DOUBLE_LINE_T_SINGLE_RIGHT,
+                Symbols.SINGLE_LINE_T_DOUBLE_UP,
+            )
+        val junctionFromAboveSingle =
+            listOf(
+                Symbols.SINGLE_LINE_VERTICAL,
+                Symbols.BOLD_TO_NORMAL_SINGLE_LINE_VERTICAL,
+                Symbols.BOLD_SINGLE_LINE_VERTICAL,
+                Symbols.SINGLE_LINE_CROSS,
+                Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS,
+                Symbols.SINGLE_LINE_TOP_LEFT_CORNER,
+                Symbols.SINGLE_LINE_TOP_RIGHT_CORNER,
+                Symbols.SINGLE_LINE_T_LEFT,
+                Symbols.SINGLE_LINE_T_RIGHT,
+                Symbols.SINGLE_LINE_T_DOWN,
+                Symbols.SINGLE_LINE_T_DOUBLE_LEFT,
+                Symbols.SINGLE_LINE_T_DOUBLE_RIGHT,
+                Symbols.DOUBLE_LINE_T_SINGLE_DOWN,
+            )
+        val junctionFromAboveDouble =
+            listOf(
+                Symbols.DOUBLE_LINE_VERTICAL,
+                Symbols.DOUBLE_LINE_CROSS,
+                Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS,
+                Symbols.DOUBLE_LINE_TOP_LEFT_CORNER,
+                Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER,
+                Symbols.DOUBLE_LINE_T_LEFT,
+                Symbols.DOUBLE_LINE_T_RIGHT,
+                Symbols.DOUBLE_LINE_T_DOWN,
+                Symbols.DOUBLE_LINE_T_SINGLE_LEFT,
+                Symbols.DOUBLE_LINE_T_SINGLE_RIGHT,
+                Symbols.SINGLE_LINE_T_DOUBLE_DOWN,
+            )
+        val junctionFromLeftSingle =
+            listOf(
+                Symbols.SINGLE_LINE_HORIZONTAL,
+                Symbols.BOLD_TO_NORMAL_SINGLE_LINE_HORIZONTAL,
+                Symbols.BOLD_SINGLE_LINE_HORIZONTAL,
+                Symbols.SINGLE_LINE_CROSS,
+                Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS,
+                Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER,
+                Symbols.SINGLE_LINE_TOP_LEFT_CORNER,
+                Symbols.SINGLE_LINE_T_UP,
+                Symbols.SINGLE_LINE_T_DOWN,
+                Symbols.SINGLE_LINE_T_RIGHT,
+                Symbols.SINGLE_LINE_T_DOUBLE_UP,
+                Symbols.SINGLE_LINE_T_DOUBLE_DOWN,
+                Symbols.DOUBLE_LINE_T_SINGLE_RIGHT,
+            )
+        val junctionFromLeftDouble =
+            listOf(
+                Symbols.DOUBLE_LINE_HORIZONTAL,
+                Symbols.DOUBLE_LINE_CROSS,
+                Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS,
+                Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER,
+                Symbols.DOUBLE_LINE_TOP_LEFT_CORNER,
+                Symbols.DOUBLE_LINE_T_UP,
+                Symbols.DOUBLE_LINE_T_DOWN,
+                Symbols.DOUBLE_LINE_T_RIGHT,
+                Symbols.DOUBLE_LINE_T_SINGLE_UP,
+                Symbols.DOUBLE_LINE_T_SINGLE_DOWN,
+                Symbols.SINGLE_LINE_T_DOUBLE_RIGHT,
+            )
+        val junctionFromRightSingle =
+            listOf(
+                Symbols.SINGLE_LINE_HORIZONTAL,
+                Symbols.BOLD_FROM_NORMAL_SINGLE_LINE_HORIZONTAL,
+                Symbols.BOLD_SINGLE_LINE_HORIZONTAL,
+                Symbols.SINGLE_LINE_CROSS,
+                Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS,
+                Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER,
+                Symbols.SINGLE_LINE_TOP_RIGHT_CORNER,
+                Symbols.SINGLE_LINE_T_UP,
+                Symbols.SINGLE_LINE_T_DOWN,
+                Symbols.SINGLE_LINE_T_LEFT,
+                Symbols.SINGLE_LINE_T_DOUBLE_UP,
+                Symbols.SINGLE_LINE_T_DOUBLE_DOWN,
+                Symbols.DOUBLE_LINE_T_SINGLE_LEFT,
+            )
+        val junctionFromRightDouble =
+            listOf(
+                Symbols.DOUBLE_LINE_HORIZONTAL,
+                Symbols.DOUBLE_LINE_CROSS,
+                Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS,
+                Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER,
+                Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER,
+                Symbols.DOUBLE_LINE_T_UP,
+                Symbols.DOUBLE_LINE_T_DOWN,
+                Symbols.DOUBLE_LINE_T_LEFT,
+                Symbols.DOUBLE_LINE_T_SINGLE_UP,
+                Symbols.DOUBLE_LINE_T_SINGLE_DOWN,
+                Symbols.SINGLE_LINE_T_DOUBLE_LEFT,
+            )
 
         for (column in 1 until drawableArea.columns - 1) {
             var borderCharacter = graphics.getCharacter(column, upperRow)

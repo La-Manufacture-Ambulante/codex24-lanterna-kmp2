@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
 
@@ -24,15 +24,14 @@ package com.googlecode.lanterna
  * symbol character conversions...
  * @author Martin
  */
- object TestAllCodes {
-@Throws(Exception::class)
- fun main(args:Array<String?>?) {
-System.out.write(byteArrayOf(0x1B.toByte(), 0x28, 0x30))
-for (i in 0..199)
-{
-System.out.write((i.toString() + " = " + (i.toChar()) + "\n").toByteArray())
-}
-System.out.write(byteArrayOf(0x1B.toByte(), 0x28, 0x42))
- //System.out.write(new byte[] { (byte)0x1B, (byte)0x21, (byte)0x40, 15 });
+object TestAllCodes {
+    @Throws(Exception::class)
+    fun main(args: Array<String?>?) {
+        System.out.write(byteArrayOf(0x1B.toByte(), 0x28, 0x30))
+        for (i in 0..199) {
+            System.out.write((i.toString() + " = " + (i.toChar()) + "\n").toByteArray())
+        }
+        System.out.write(byteArrayOf(0x1B.toByte(), 0x28, 0x42))
+        // System.out.write(new byte[] { (byte)0x1B, (byte)0x21, (byte)0x40, 15 });
     }
 }

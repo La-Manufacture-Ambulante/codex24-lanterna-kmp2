@@ -66,18 +66,21 @@ class Tree<V>(
 
     override fun createDefaultRenderer(): InteractableRenderer<Tree<V>?>? {
         val activeThemeDefinition = themeDefinition
-        val spacing = activeThemeDefinition?.getIntegerProperty(
-            DefaultTreeRenderer.TREE_LEVEL_INDENT,
-            DefaultTreeRenderer.DEFAULT_TREE_LEVEL_INDENT,
-        ) ?: DefaultTreeRenderer.DEFAULT_TREE_LEVEL_INDENT
-        val displayBrackets = activeThemeDefinition?.getBooleanProperty(
-            DefaultTreeRenderer.DISPLAY_BRACKETS,
-            true,
-        ) ?: true
-        val displayBlock = activeThemeDefinition?.getBooleanProperty(
-            DefaultTreeRenderer.DISPLAY_BLOCK,
-            false,
-        ) ?: false
+        val spacing =
+            activeThemeDefinition?.getIntegerProperty(
+                DefaultTreeRenderer.TREE_LEVEL_INDENT,
+                DefaultTreeRenderer.DEFAULT_TREE_LEVEL_INDENT,
+            ) ?: DefaultTreeRenderer.DEFAULT_TREE_LEVEL_INDENT
+        val displayBrackets =
+            activeThemeDefinition?.getBooleanProperty(
+                DefaultTreeRenderer.DISPLAY_BRACKETS,
+                true,
+            ) ?: true
+        val displayBlock =
+            activeThemeDefinition?.getBooleanProperty(
+                DefaultTreeRenderer.DISPLAY_BLOCK,
+                false,
+            ) ?: false
         return DefaultTreeRenderer<V>(spacing, displayBrackets, displayBlock)
     }
 
@@ -291,11 +294,12 @@ class Tree<V>(
         override fun getPreferredSize(component: Tree<V>?): TerminalSize {
             val tree = component ?: return TerminalSize.ZERO
             val bracketsSize = if (displayBrackets) 4 else 2
-            val width = if (tree.root.isExpanded()) {
-                tree.root.getMaxExpandedWidth(0, bracketsSize)
-            } else {
-                4 + TerminalTextUtils.getColumnWidth(tree.root.label)
-            }
+            val width =
+                if (tree.root.isExpanded()) {
+                    tree.root.getMaxExpandedWidth(0, bracketsSize)
+                } else {
+                    4 + TerminalTextUtils.getColumnWidth(tree.root.label)
+                }
             var height = 1
             if (tree.root.isExpanded()) {
                 height = tree.root.expandedLength
@@ -303,7 +307,10 @@ class Tree<V>(
             return TerminalSize(width, height)
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, component: Tree<V>?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            component: Tree<V>?,
+        ) {
             val activeGraphics = graphics ?: return
             val tree = component ?: return
             val activeThemeDefinition = tree.themeDefinition ?: return
@@ -351,16 +358,17 @@ class Tree<V>(
                 graphics.applyThemeStyle(themeDefinition.normal)
             }
             val labelOffset = 4 + indent * level + offset * 2
-            val label = if (displayBlock) {
-                getBlockLabel(
-                    labelOffset,
-                    treeNode.label,
-                    columns,
-                    themeDefinition.getCharacter(DISPLAY_BLOCK_FILLER, '.'),
-                )
-            } else {
-                treeNode.label
-            }
+            val label =
+                if (displayBlock) {
+                    getBlockLabel(
+                        labelOffset,
+                        treeNode.label,
+                        columns,
+                        themeDefinition.getCharacter(DISPLAY_BLOCK_FILLER, '.'),
+                    )
+                } else {
+                    treeNode.label
+                }
             graphics.putString(labelOffset, depth, label)
 
             if (displayBrackets) {
@@ -392,7 +400,12 @@ class Tree<V>(
             return nextDepth
         }
 
-        private fun getBlockLabel(labelOffset: Int, label: String, columns: Int, filler: Char): String {
+        private fun getBlockLabel(
+            labelOffset: Int,
+            label: String,
+            columns: Int,
+            filler: Char,
+        ): String {
             val fillSpace = columns - labelOffset - label.length
             if (fillSpace > 0) {
                 val sb = StringBuilder()
@@ -405,7 +418,10 @@ class Tree<V>(
             return label
         }
 
-        private fun getMarker(themeDefinition: ThemeDefinition, treeNode: TreeNode<V>): Char {
+        private fun getMarker(
+            themeDefinition: ThemeDefinition,
+            treeNode: TreeNode<V>,
+        ): Char {
             return when {
                 treeNode.isLeaf -> themeDefinition.getCharacter(LEAF_MARKER, ' ')
                 treeNode.isExpanded() -> themeDefinition.getCharacter(EXPANDED_MARKER, '-')

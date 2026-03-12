@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
@@ -23,13 +23,14 @@ package com.googlecode.lanterna.gui2
  * `Separator`.
  * @author Martin
  */
- enum class Direction {
+enum class Direction {
 /**
- * Horizontal direction, meaning something is moving along the x-axis (or column-axis)
- */
-    HORIZONTAL, //See? I can spell it!
+     * Horizontal direction, meaning something is moving along the x-axis (or column-axis)
+     */
+    HORIZONTAL, // See? I can spell it!
+
     /**
- * Vertical directory, meaning something is moving along the y-axis (or row-axis)
- */
-    VERTICAL
+     * Vertical directory, meaning something is moving along the y-axis (or row-axis)
+     */
+    VERTICAL,
 }

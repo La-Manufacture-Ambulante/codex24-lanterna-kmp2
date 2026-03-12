@@ -26,7 +26,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.OutputStream
-import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import java.nio.charset.Charset
 
@@ -41,122 +40,125 @@ import java.nio.charset.Charset
  * @author Andreas
  * @author Martin
  */
-abstract class UnixLikeTTYTerminal @Throws(IOException::class) protected constructor(
-    private val ttyDev: File?,
-    terminalInput: InputStream?,
-    terminalOutput: OutputStream?,
-    terminalCharset: Charset?,
-    terminalCtrlCBehaviour: CtrlCBehaviour,
-) : UnixLikeTerminal(terminalInput, terminalOutput, terminalCharset, terminalCtrlCBehaviour) {
-    private var sttyStatusToRestore: String? = null
-
-    init {
-        realAcquire()
-    }
-
+abstract class UnixLikeTTYTerminal
     @Throws(IOException::class)
-    override fun acquire() {
-    }
+    protected constructor(
+        private val ttyDev: File?,
+        terminalInput: InputStream?,
+        terminalOutput: OutputStream?,
+        terminalCharset: Charset?,
+        terminalCtrlCBehaviour: CtrlCBehaviour,
+    ) : UnixLikeTerminal(terminalInput, terminalOutput, terminalCharset, terminalCtrlCBehaviour) {
+        private var sttyStatusToRestore: String? = null
 
-    @Throws(IOException::class)
-    private fun realAcquire() {
-        super.acquire()
-    }
+        init {
+            realAcquire()
+        }
 
-    @Throws(IOException::class)
-    override fun registerTerminalResizeListener(onResize: Runnable) {
-        try {
-            val signalClass = Class.forName("sun.misc.Signal")
-            for (method in signalClass.declaredMethods) {
-                if (method.name == "handle") {
-                    val windowResizeHandler = Proxy.newProxyInstance(
-                        javaClass.classLoader,
-                        arrayOf(Class.forName("sun.misc.SignalHandler")),
-                    ) { _, invokedMethod, _ ->
-                        if (invokedMethod.name == "handle") {
-                            onResize.run()
-                        }
-                        null
+        @Throws(IOException::class)
+        override fun acquire() {
+        }
+
+        @Throws(IOException::class)
+        private fun realAcquire() {
+            super.acquire()
+        }
+
+        @Throws(IOException::class)
+        override fun registerTerminalResizeListener(onResize: Runnable) {
+            try {
+                val signalClass = Class.forName("sun.misc.Signal")
+                for (method in signalClass.declaredMethods) {
+                    if (method.name == "handle") {
+                        val windowResizeHandler =
+                            Proxy.newProxyInstance(
+                                javaClass.classLoader,
+                                arrayOf(Class.forName("sun.misc.SignalHandler")),
+                            ) { _, invokedMethod, _ ->
+                                if (invokedMethod.name == "handle") {
+                                    onResize.run()
+                                }
+                                null
+                            }
+                        method.invoke(null, signalClass.getConstructor(String::class.java).newInstance("WINCH"), windowResizeHandler)
                     }
-                    method.invoke(null, signalClass.getConstructor(String::class.java).newInstance("WINCH"), windowResizeHandler)
                 }
+            } catch (_: Throwable) {
             }
-        } catch (_: Throwable) {
+        }
+
+        @Throws(IOException::class)
+        override fun saveTerminalSettings() {
+            sttyStatusToRestore = runSTTYCommand("-g").trim()
+        }
+
+        @Throws(IOException::class)
+        override fun restoreTerminalSettings() {
+            if (sttyStatusToRestore != null) {
+                runSTTYCommand(sttyStatusToRestore!!)
+            }
+        }
+
+        @Throws(IOException::class)
+        override fun keyEchoEnabled(enabled: Boolean) {
+            runSTTYCommand(if (enabled) "echo" else "-echo")
+        }
+
+        @Throws(IOException::class)
+        override fun canonicalMode(enabled: Boolean) {
+            runSTTYCommand(if (enabled) "icanon" else "-icanon")
+            if (!enabled) {
+                runSTTYCommand("min", "1")
+            }
+        }
+
+        @Throws(IOException::class)
+        override fun keyStrokeSignalsEnabled(enabled: Boolean) {
+            if (enabled) {
+                runSTTYCommand("intr", "^C")
+            } else {
+                runSTTYCommand("intr", "undef")
+            }
+        }
+
+        @Throws(IOException::class)
+        protected open fun runSTTYCommand(vararg parameters: String): String {
+            val commandLine = getSTTYCommand().toMutableList()
+            commandLine.addAll(parameters)
+            return exec(*commandLine.toTypedArray())
+        }
+
+        @Throws(IOException::class)
+        protected fun exec(vararg cmd: String): String {
+            val processBuilder = ProcessBuilder(*cmd)
+            if (ttyDev != null) {
+                processBuilder.redirectInput(ProcessBuilder.Redirect.from(ttyDev))
+            }
+            val process = processBuilder.start()
+            val stdoutBuffer = ByteArrayOutputStream()
+            val stdout = process.inputStream
+            var readByte = stdout.read()
+            while (readByte >= 0) {
+                stdoutBuffer.write(readByte)
+                readByte = stdout.read()
+            }
+            val reader = BufferedReader(InputStreamReader(ByteArrayInputStream(stdoutBuffer.toByteArray())))
+            val builder = StringBuilder()
+            var line = reader.readLine()
+            while (line != null) {
+                builder.append(line)
+                line = reader.readLine()
+            }
+            reader.close()
+            return builder.toString()
+        }
+
+        protected open fun getSTTYCommand(): Array<String> {
+            val sttyOverride = System.getProperty("com.googlecode.lanterna.terminal.UnixTerminal.sttyCommand")
+            return if (sttyOverride != null) {
+                arrayOf(sttyOverride)
+            } else {
+                arrayOf("/usr/bin/env", "stty")
+            }
         }
     }
-
-    @Throws(IOException::class)
-    override fun saveTerminalSettings() {
-        sttyStatusToRestore = runSTTYCommand("-g").trim()
-    }
-
-    @Throws(IOException::class)
-    override fun restoreTerminalSettings() {
-        if (sttyStatusToRestore != null) {
-            runSTTYCommand(sttyStatusToRestore!!)
-        }
-    }
-
-    @Throws(IOException::class)
-    override fun keyEchoEnabled(enabled: Boolean) {
-        runSTTYCommand(if (enabled) "echo" else "-echo")
-    }
-
-    @Throws(IOException::class)
-    override fun canonicalMode(enabled: Boolean) {
-        runSTTYCommand(if (enabled) "icanon" else "-icanon")
-        if (!enabled) {
-            runSTTYCommand("min", "1")
-        }
-    }
-
-    @Throws(IOException::class)
-    override fun keyStrokeSignalsEnabled(enabled: Boolean) {
-        if (enabled) {
-            runSTTYCommand("intr", "^C")
-        } else {
-            runSTTYCommand("intr", "undef")
-        }
-    }
-
-    @Throws(IOException::class)
-    protected open fun runSTTYCommand(vararg parameters: String): String {
-        val commandLine = getSTTYCommand().toMutableList()
-        commandLine.addAll(parameters)
-        return exec(*commandLine.toTypedArray())
-    }
-
-    @Throws(IOException::class)
-    protected fun exec(vararg cmd: String): String {
-        val processBuilder = ProcessBuilder(*cmd)
-        if (ttyDev != null) {
-            processBuilder.redirectInput(ProcessBuilder.Redirect.from(ttyDev))
-        }
-        val process = processBuilder.start()
-        val stdoutBuffer = ByteArrayOutputStream()
-        val stdout = process.inputStream
-        var readByte = stdout.read()
-        while (readByte >= 0) {
-            stdoutBuffer.write(readByte)
-            readByte = stdout.read()
-        }
-        val reader = BufferedReader(InputStreamReader(ByteArrayInputStream(stdoutBuffer.toByteArray())))
-        val builder = StringBuilder()
-        var line = reader.readLine()
-        while (line != null) {
-            builder.append(line)
-            line = reader.readLine()
-        }
-        reader.close()
-        return builder.toString()
-    }
-
-    protected open fun getSTTYCommand(): Array<String> {
-        val sttyOverride = System.getProperty("com.googlecode.lanterna.terminal.UnixTerminal.sttyCommand")
-        return if (sttyOverride != null) {
-            arrayOf(sttyOverride)
-        } else {
-            arrayOf("/usr/bin/env", "stty")
-        }
-    }
-}

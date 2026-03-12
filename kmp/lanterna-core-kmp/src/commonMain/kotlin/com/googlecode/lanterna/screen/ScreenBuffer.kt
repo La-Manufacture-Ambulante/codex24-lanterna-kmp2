@@ -37,11 +37,17 @@ class ScreenBuffer private constructor(private val backend: BasicTextImage) : Te
     override val size: TerminalSize?
         get() = backend.size
 
-    override fun resize(newSize: TerminalSize?, filler: TextCharacter?): ScreenBuffer {
+    override fun resize(
+        newSize: TerminalSize?,
+        filler: TextCharacter?,
+    ): ScreenBuffer {
         return ScreenBuffer(backend.resize(newSize, filler))
     }
 
-    internal fun isVeryDifferent(other: ScreenBuffer, threshold: Int): Boolean {
+    internal fun isVeryDifferent(
+        other: ScreenBuffer,
+        threshold: Int,
+    ): Boolean {
         require(size == other.size) {
             "Can only call isVeryDifferent comparing two ScreenBuffers of the same size! This is probably a bug in Lanterna."
         }
@@ -58,13 +64,23 @@ class ScreenBuffer private constructor(private val backend: BasicTextImage) : Te
 
     override fun getCharacterAt(position: TerminalPosition?): TextCharacter? = backend.getCharacterAt(position)
 
-    override fun getCharacterAt(column: Int, row: Int): TextCharacter? = backend.getCharacterAt(column, row)
+    override fun getCharacterAt(
+        column: Int,
+        row: Int,
+    ): TextCharacter? = backend.getCharacterAt(column, row)
 
-    override fun setCharacterAt(position: TerminalPosition?, character: TextCharacter?) {
+    override fun setCharacterAt(
+        position: TerminalPosition?,
+        character: TextCharacter?,
+    ) {
         backend.setCharacterAt(position, character)
     }
 
-    override fun setCharacterAt(column: Int, row: Int, character: TextCharacter?) {
+    override fun setCharacterAt(
+        column: Int,
+        row: Int,
+        character: TextCharacter?,
+    ) {
         backend.setCharacterAt(column, row, character)
     }
 
@@ -120,7 +136,11 @@ class ScreenBuffer private constructor(private val backend: BasicTextImage) : Te
         )
     }
 
-    override fun scrollLines(firstLine: Int, lastLine: Int, distance: Int) {
+    override fun scrollLines(
+        firstLine: Int,
+        lastLine: Int,
+        distance: Int,
+    ) {
         backend.scrollLines(firstLine, lastLine, distance)
     }
 

@@ -18,9 +18,7 @@
  */
 package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestTerminalFactory
-import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import java.io.IOException
 import java.io.InputStream
@@ -31,162 +29,139 @@ import java.util.ArrayList
 import java.util.TreeMap
 
 /**
- * 
+ *
  * @author martin
  */
- object PseudoTerminal {
+object PseudoTerminal {
+    @Throws(InterruptedException::class, IOException::class)
+    fun main(args: Array<String?>?) {
+        val rawTerminal = TestTerminalFactory(args).createTerminal()
 
-@Throws(InterruptedException::class, IOException::class)
- fun main(args:Array<String?>?) {
-val rawTerminal = TestTerminalFactory(args).createTerminal()
-
- //assume bash is available
+        // assume bash is available
         val bashProcess = Runtime.getRuntime().exec("bash", makeEnvironmentVariables())
-val stdout = ProcessOutputReader(bashProcess!!.getInputStream(), rawTerminal)
-val stderr = ProcessOutputReader(bashProcess!!.getErrorStream(), rawTerminal)
-val stdin = ProcessInputWriter(bashProcess!!.getOutputStream(), rawTerminal)
-stdout.start()
-stderr.start()
-stdin.start()
-val returnCode = bashProcess!!.waitFor()
-stdout.stop()
-stderr.stop()
-stdin.stop()
-System.exit(returnCode)
-}
+        val stdout = ProcessOutputReader(bashProcess!!.getInputStream(), rawTerminal)
+        val stderr = ProcessOutputReader(bashProcess!!.getErrorStream(), rawTerminal)
+        val stdin = ProcessInputWriter(bashProcess!!.getOutputStream(), rawTerminal)
+        stdout.start()
+        stderr.start()
+        stdin.start()
+        val returnCode = bashProcess!!.waitFor()
+        stdout.stop()
+        stderr.stop()
+        stdin.stop()
+        System.exit(returnCode)
+    }
 
-private fun makeEnvironmentVariables():Array<String?>? {
-	val environment = ArrayList<String>()
-	val env = TreeMap<String, String>(System.getenv())
-env.put("TERM", "xterm")   //Will this make bash detect us as a proper terminal??
-for (key in env.keys)
-{
-environment.add(key + "=" + env.get(key))
-}
-return environment.toArray(arrayOfNulls<String?>(0))
-}
+    private fun makeEnvironmentVariables(): Array<String?>? {
+        val environment = ArrayList<String>()
+        val env = TreeMap<String, String>(System.getenv())
+        env.put("TERM", "xterm") // Will this make bash detect us as a proper terminal??
+        for (key in env.keys) {
+            environment.add(key + "=" + env.get(key))
+        }
+        return environment.toArray(arrayOfNulls<String?>(0))
+    }
 
-private class ProcessOutputReader(inputStream:InputStream?, private val terminalEmulator:Terminal?) {
+    private class ProcessOutputReader(inputStream: InputStream?, private val terminalEmulator: Terminal?) {
+        private val inputStreamReader: InputStreamReader?
+        private var stop: Boolean = false
 
-private val inputStreamReader:InputStreamReader?
-private var stop:Boolean = false
+        init {
+            this.inputStreamReader = InputStreamReader(inputStream, Charset.defaultCharset())
+            this.stop = false
+        }
 
-init{
-this.inputStreamReader = InputStreamReader(inputStream, Charset.defaultCharset())
-this.stop = false
-}
+        fun start() {
+            object : Thread("OutputReader") {
+                override fun run() {
+                    try {
+                        val buffer = CharArray(1024)
+                        var readCharacters = inputStreamReader!!.read(buffer)
+                        while (readCharacters != -1 && !stop) {
+                            if (readCharacters > 0) {
+                                for (i in 0 until readCharacters) {
+                                    terminalEmulator!!.putCharacter(buffer[i])
+                                }
+                                terminalEmulator!!.flush()
+                            } else {
+                                try {
+                                    Thread.sleep(1)
+                                } catch (e: InterruptedException) {
+                                }
+                            }
+                            readCharacters = inputStreamReader!!.read(buffer)
+                        }
+                    } catch (e: IOException) {
+                        e!!.printStackTrace()
+                    } finally
+                    {
+                        try {
+                            inputStreamReader!!.close()
+                        } catch (e: IOException) {
+                        }
+                    }
+                }
+            }.start()
+        }
 
-fun start() {
-object:Thread("OutputReader") {
-  override fun run() {
-try
-{
-val buffer = CharArray(1024)
-var readCharacters = inputStreamReader!!.read(buffer)
-while (readCharacters != -1 && !stop)
-{
-if (readCharacters > 0)
-{
-for (i in 0 until readCharacters)
-{
-terminalEmulator!!.putCharacter(buffer[i])
-}
-terminalEmulator!!.flush()
-}
-else
-{
-try
-{
-Thread.sleep(1)
-}
-catch (e:InterruptedException) {}
+        fun stop() {
+            stop = true
+        }
+    }
 
-}
-readCharacters = inputStreamReader!!.read(buffer)
-}
-}
-catch (e:IOException) {
-e!!.printStackTrace()
-}
-finally
-{
-try
-{
-inputStreamReader!!.close()
-}
-catch (e:IOException) {}
+    private class ProcessInputWriter(private val outputStream: OutputStream?, private val terminalEmulator: Terminal?) {
+        private var stop: Boolean = false
 
-}
-}
-}.start()
-}
+        init {
+            this.stop = false
+        }
 
-fun stop() {
-stop = true
-}
-}
+        fun start() {
+            object : Thread("InputWriter") {
+                override fun run() {
+                    try {
+                        while (!stop) {
+                            val keyStroke = terminalEmulator!!.pollInput()
+                            if (keyStroke == null) {
+                                Thread.sleep(1)
+                            } else {
+                                when (keyStroke!!.keyType) {
+                                    KeyType.CHARACTER -> writeCharacter(keyStroke!!.character!!)
+                                    KeyType.ENTER -> writeCharacter('\n')
+                                    KeyType.BACKSPACE -> writeCharacter('\b')
+                                    KeyType.TAB -> writeCharacter('\t')
+                                    else -> {}
+                                }
+                                flush()
+                            }
+                        }
+                    } catch (e: IOException) {
+                    } catch (e: InterruptedException) {
+                    } finally
+                    {
+                        try {
+                            outputStream!!.close()
+                        } catch (e: IOException) {
+                        }
+                    }
+                }
+            }.start()
+        }
 
-private class ProcessInputWriter(private val outputStream:OutputStream?, private val terminalEmulator:Terminal?) {
-private var stop:Boolean = false
+        @Throws(IOException::class)
+        private fun writeCharacter(character: Char) {
+            outputStream!!.write(character.code)
+            terminalEmulator!!.putCharacter(character)
+        }
 
-init{
-this.stop = false
-}
+        @Throws(IOException::class)
+        private fun flush() {
+            outputStream!!.flush()
+            terminalEmulator!!.flush()
+        }
 
-fun start() {
-object:Thread("InputWriter") {
-  override fun run() {
-try
-{
-while (!stop)
-{
-val keyStroke = terminalEmulator!!.pollInput()
-if (keyStroke == null)
-{
-Thread.sleep(1)
-}
-else
-{
-when (keyStroke!!.keyType) {
-KeyType.CHARACTER -> writeCharacter(keyStroke!!.character!!)
-KeyType.ENTER -> writeCharacter('\n')
-KeyType.BACKSPACE -> writeCharacter('\b')
-KeyType.TAB -> writeCharacter('\t')
-else -> {}
-}
-flush()
-}
-}
-}
-catch (e:IOException) {}
-catch (e:InterruptedException) {}
-finally
-{
-try
-{
-outputStream!!.close()
-}
-catch (e:IOException) {}
-
-}
-}
-}.start()
-}
-
-@Throws(IOException::class)
-private fun writeCharacter(character:Char) {
-	outputStream!!.write(character.code)
-	terminalEmulator!!.putCharacter(character)
-}
-
-@Throws(IOException::class)
-private fun flush() {
-outputStream!!.flush()
-terminalEmulator!!.flush()
-}
-
-fun stop() {
-stop = true
-}
-}
+        fun stop() {
+            stop = true
+        }
+    }
 }

@@ -40,42 +40,52 @@ class LocalizedString private constructor(
          * "OK"
          */
         val OK = LocalizedString("short.label.ok", "OK")
+
         /**
          * "Cancel"
          */
         val Cancel = LocalizedString("short.label.cancel", "Cancel")
+
         /**
          * "Yes"
          */
         val Yes = LocalizedString("short.label.yes", "Yes")
+
         /**
          * "No"
          */
         val No = LocalizedString("short.label.no", "No")
+
         /**
          * "Close"
          */
         val Close = LocalizedString("short.label.close", "Close")
+
         /**
          * "Abort"
          */
         val Abort = LocalizedString("short.label.abort", "Abort")
+
         /**
          * "Ignore"
          */
         val Ignore = LocalizedString("short.label.ignore", "Ignore")
+
         /**
          * "Retry"
          */
         val Retry = LocalizedString("short.label.retry", "Retry")
+
         /**
          * "Continue"
          */
         val Continue = LocalizedString("short.label.continue", "Continue")
+
         /**
          * "Open"
          */
         val Open = LocalizedString("short.label.open", "Open")
+
         /**
          * "Save"
          */

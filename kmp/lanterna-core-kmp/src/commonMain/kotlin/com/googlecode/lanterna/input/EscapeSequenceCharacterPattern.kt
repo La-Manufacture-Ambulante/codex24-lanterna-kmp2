@@ -105,7 +105,10 @@ open class EscapeSequenceCharacterPattern : CharacterPattern {
         stdMap[33] = KeyType.F19
     }
 
-    protected open fun getKeyStroke(key: KeyType?, mods: Int): KeyStroke? {
+    protected open fun getKeyStroke(
+        key: KeyType?,
+        mods: Int,
+    ): KeyStroke? {
         if (key == null) {
             return null
         }
@@ -119,25 +122,32 @@ open class EscapeSequenceCharacterPattern : CharacterPattern {
         return KeyStroke(key, ctrl, alt, shift)
     }
 
-    protected open fun getKeyStrokeRaw(first: Char, num1: Int, num2: Int, last: Char, escaped: Boolean): KeyStroke? {
+    protected open fun getKeyStrokeRaw(
+        first: Char,
+        num1: Int,
+        num2: Int,
+        last: Char,
+        escaped: Boolean,
+    ): KeyStroke? {
         var puttyCtrl = false
         var realF3 = false
 
-        val keyType = when {
-            last == '~' && stdMap.containsKey(num1) -> stdMap[num1]
-            finMap.containsKey(last) -> {
-                if (first == 'O') {
-                    if (last in 'A'..'D') {
-                        puttyCtrl = true
+        val keyType =
+            when {
+                last == '~' && stdMap.containsKey(num1) -> stdMap[num1]
+                finMap.containsKey(last) -> {
+                    if (first == 'O') {
+                        if (last in 'A'..'D') {
+                            puttyCtrl = true
+                        }
+                        if (last == 'R') {
+                            realF3 = true
+                        }
                     }
-                    if (last == 'R') {
-                        realF3 = true
-                    }
+                    finMap[last]
                 }
-                finMap[last]
+                else -> null
             }
-            else -> null
-        }
 
         var mods = num2 - 1
         if (escaped) {

@@ -43,9 +43,8 @@ import java.util.regex.Pattern
  */
 abstract class AbstractTheme protected constructor(
     final override val windowPostRenderer: WindowPostRenderer?,
-    final override val windowDecorationRenderer: WindowDecorationRenderer?
+    final override val windowDecorationRenderer: WindowDecorationRenderer?,
 ) : Theme {
-
     private val rootNode: ThemeTreeNode = ThemeTreeNode(Any::class.java, null)
 
     override val defaultDefinition: ThemeDefinition
@@ -64,7 +63,11 @@ abstract class AbstractTheme protected constructor(
         Button.BorderedButtonRenderer::class.java.toString()
     }
 
-    protected fun addStyle(definition: String?, style: String?, value: String?): Boolean {
+    protected fun addStyle(
+        definition: String?,
+        style: String?,
+        value: String?,
+    ): Boolean {
         val node = getNode(definition) ?: return false
         node.apply(style, value)
         return true
@@ -129,7 +132,10 @@ abstract class AbstractTheme protected constructor(
         return result
     }
 
-    private fun findRedundantDeclarations(result: MutableList<String?>, node: ThemeTreeNode) {
+    private fun findRedundantDeclarations(
+        result: MutableList<String?>,
+        node: ThemeTreeNode,
+    ) {
         for (style in node.foregroundMap.keys) {
             var formattedStyle = "[$style]"
             if (formattedStyle.length == 2) {
@@ -204,12 +210,18 @@ abstract class AbstractTheme protected constructor(
             return StyleImpl(node, name)
         }
 
-        override fun getCustom(name: String?, defaultValue: ThemeStyle?): ThemeStyle? {
+        override fun getCustom(
+            name: String?,
+            defaultValue: ThemeStyle?,
+        ): ThemeStyle? {
             val customStyle = getCustom(name)
             return customStyle ?: defaultValue
         }
 
-        override fun getCharacter(name: String?, fallback: Char): Char {
+        override fun getCharacter(
+            name: String?,
+            fallback: Char,
+        ): Char {
             val character = node.characterMap[name]
             if (character == null) {
                 return if (node === rootNode) {
@@ -221,7 +233,10 @@ abstract class AbstractTheme protected constructor(
             return character
         }
 
-        override fun getIntegerProperty(name: String?, defaultValue: Int): Int {
+        override fun getIntegerProperty(
+            name: String?,
+            defaultValue: Int,
+        ): Int {
             val propertyValue = node.propertyMap[name]
             if (propertyValue == null) {
                 return if (node === rootNode) {
@@ -233,7 +248,10 @@ abstract class AbstractTheme protected constructor(
             return Integer.parseInt(propertyValue)
         }
 
-        override fun getBooleanProperty(name: String?, defaultValue: Boolean): Boolean {
+        override fun getBooleanProperty(
+            name: String?,
+            defaultValue: Boolean,
+        ): Boolean {
             val propertyValue = node.propertyMap[name]
             if (propertyValue == null) {
                 return if (node === rootNode) {
@@ -261,9 +279,8 @@ abstract class AbstractTheme protected constructor(
 
     private inner class StyleImpl(
         private val styleNode: ThemeTreeNode?,
-        private val name: String?
+        private val name: String?,
     ) : ThemeStyle {
-
         override val foreground: TextColor
             get() {
                 var node = styleNode
@@ -305,7 +322,7 @@ abstract class AbstractTheme protected constructor(
 
     private class ThemeTreeNode(
         val clazz: Class<*>,
-        val parent: ThemeTreeNode?
+        val parent: ThemeTreeNode?,
     ) {
         val childMap: MutableMap<Class<*>, ThemeTreeNode> = HashMap()
         val foregroundMap: MutableMap<String?, TextColor> = HashMap()
@@ -316,7 +333,10 @@ abstract class AbstractTheme protected constructor(
         var cursorVisible: Boolean? = true
         var renderer: String? = null
 
-        fun apply(style: String?, value: String?) {
+        fun apply(
+            style: String?,
+            value: String?,
+        ) {
             val trimmedValue = value?.trim() ?: ""
             val matcher = STYLE_FORMAT.matcher(style ?: "")
             if (!matcher.matches()) {
@@ -337,7 +357,7 @@ abstract class AbstractTheme protected constructor(
                 }
 
                 else -> throw IllegalArgumentException(
-                    "Unknown style component \"$styleComponent\" in style \"$style\""
+                    "Unknown style component \"$styleComponent\" in style \"$style\"",
                 )
             }
         }

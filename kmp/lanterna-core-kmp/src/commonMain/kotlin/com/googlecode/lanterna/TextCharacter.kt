@@ -21,7 +21,6 @@ package com.googlecode.lanterna
 import java.io.Serializable
 import java.text.BreakIterator
 import java.util.ArrayList
-import java.util.Arrays
 import java.util.EnumSet
 
 /**
@@ -33,7 +32,6 @@ class TextCharacter private constructor(
     val backgroundColor: TextColor,
     private val modifiers: EnumSet<SGR>,
 ) : Serializable {
-
     @Deprecated("This won't work with advanced characters like emoji")
     val character: Char
         get() = characterString[0]
@@ -64,7 +62,7 @@ class TextCharacter private constructor(
             TerminalTextUtils.isCharDoubleWidth(characterString[0]) ||
                 isEmoji(characterString) ||
                 (characterString.length > 1 && !TerminalTextUtils.isCharThai(characterString[0]))
-            )
+        )
 
     @Deprecated("Use fromCharacter instead")
     constructor(character: Char) : this(
@@ -141,6 +139,7 @@ class TextCharacter private constructor(
         }
     }
 
+    @Suppress("ktlint:standard:function-naming")
     fun `is`(otherCharacter: Char): Boolean {
         return otherCharacter == characterString[0] && characterString.length == 1
     }
@@ -219,7 +218,8 @@ class TextCharacter private constructor(
     }
 
     override fun toString(): String {
-        return "TextCharacter{character=$characterString, foregroundColor=$foregroundColor, backgroundColor=$backgroundColor, modifiers=$modifiers}"
+        return "TextCharacter{character=$characterString, foregroundColor=$foregroundColor, " +
+            "backgroundColor=$backgroundColor, modifiers=$modifiers}"
     }
 
     companion object {
@@ -303,8 +303,8 @@ class TextCharacter private constructor(
                             TerminalTextUtils.isCharThai(firstCharacter) ||
                             TerminalTextUtils.isCharCJK(firstCharacter) ||
                             TerminalTextUtils.isControlCharacter(firstCharacter)
-                        )
-                )
+                    )
+            )
         }
     }
 }

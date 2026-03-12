@@ -43,6 +43,7 @@ abstract class UnixLikeTerminal protected constructor(
          * Pressing ctrl+c doesn't kill the application, it will be added to the input queue as any other key stroke
          */
         TRAP,
+
         /**
          * Pressing ctrl+c will restore the terminal and kill the application as it normally does with terminal
          * applications. Lanterna will restore the terminal and then call `System.exit(1)` for this.
@@ -58,11 +59,12 @@ abstract class UnixLikeTerminal protected constructor(
         val catchSpecialCharactersPropValue =
             System.getProperty("com.googlecode.lanterna.terminal.UnixTerminal.catchSpecialCharacters", "")
         catchSpecialCharacters = !"false".equals(catchSpecialCharactersPropValue.trim().lowercase())
-        shutdownHook = object : Thread("Lanterna STTY restore") {
-            override fun run() {
-                exitPrivateModeAndRestoreState()
+        shutdownHook =
+            object : Thread("Lanterna STTY restore") {
+                override fun run() {
+                    exitPrivateModeAndRestoreState()
+                }
             }
-        }
         acquire()
     }
 

@@ -18,92 +18,73 @@
  */
 package com.googlecode.lanterna.screen
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
-import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.terminal.Terminal
-import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame
-
-import java.awt.*
+import java.awt.Window
 import java.io.IOException
 
 /**
  * Test that demonstrates switching between two different screens
  * @author martin
  */
- object MultiScreenTest {
-@Throws(IOException::class, InterruptedException::class)
- fun main(args:Array<String?>?) {
-val terminalFactory = TestTerminalFactory(args)
-val terminal = terminalFactory.createTerminal() as Terminal
-val redScreen = TerminalScreen(terminal)
-val greenScreen = TerminalScreen(terminal)
+object MultiScreenTest {
+    @Throws(IOException::class, InterruptedException::class)
+    fun main(args: Array<String?>?) {
+        val terminalFactory = TestTerminalFactory(args)
+        val terminal = terminalFactory.createTerminal() as Terminal
+        val redScreen = TerminalScreen(terminal)
+        val greenScreen = TerminalScreen(terminal)
 
-if (terminal is SwingTerminalFrame)
-{
-(terminal as SwingTerminalFrame).setVisible(true)
-}
+        if (terminal is SwingTerminalFrame) {
+            (terminal as SwingTerminalFrame).setVisible(true)
+        }
 
-var screenWriter:TextGraphics? = ScreenTextGraphics(redScreen)
-screenWriter!!.setForegroundColor(TextColor.ANSI.BLACK)
-screenWriter!!.setBackgroundColor(TextColor.ANSI.RED)
-screenWriter!!.fill(' ')
-screenWriter!!.putString(2, 2, "Press space to switch screen or ESC to exit")
+        var screenWriter: TextGraphics? = ScreenTextGraphics(redScreen)
+        screenWriter!!.setForegroundColor(TextColor.ANSI.BLACK)
+        screenWriter!!.setBackgroundColor(TextColor.ANSI.RED)
+        screenWriter!!.fill(' ')
+        screenWriter!!.putString(2, 2, "Press space to switch screen or ESC to exit")
 
+        screenWriter = ScreenTextGraphics(greenScreen)
+        screenWriter!!.setBackgroundColor(TextColor.ANSI.GREEN)
+        screenWriter!!.fill(' ')
+        screenWriter!!.putString(4, 4, "Press space to switch screen or ESC to exit")
 
-screenWriter = ScreenTextGraphics(greenScreen)
-screenWriter!!.setBackgroundColor(TextColor.ANSI.GREEN)
-screenWriter!!.fill(' ')
-screenWriter!!.putString(4, 4, "Press space to switch screen or ESC to exit")
-
-mainLoop@ while (true)
-{
-redScreen.startScreen()
-redScreen.refresh()
-while (true)
-{
-val keyStroke = terminal!!.pollInput()
-if (keyStroke == null)
-{
-Thread.sleep(1)
-}
-else if (keyStroke!!.keyType == KeyType.ESCAPE)
-{
-break@mainLoop
-}
-else if (keyStroke!!.character == ' ')
-{
-break
-}
-}
-redScreen.stopScreen()
-greenScreen.startScreen()
-greenScreen.refresh()
-while (true)
-{
-val keyStroke = terminal!!.pollInput()
-if (keyStroke == null)
-{
-Thread.sleep(1)
-}
-else if (keyStroke!!.keyType == KeyType.ESCAPE)
-{
-break@mainLoop
-}
-else if (keyStroke!!.character == ' ')
-{
-break
-}
-}
-greenScreen.stopScreen()
-}
-terminal.clearScreen()
-if (terminal is Window)
-{
-(terminal as Window).dispose()
-}
-}
+        mainLoop@ while (true) {
+            redScreen.startScreen()
+            redScreen.refresh()
+            while (true) {
+                val keyStroke = terminal!!.pollInput()
+                if (keyStroke == null) {
+                    Thread.sleep(1)
+                } else if (keyStroke!!.keyType == KeyType.ESCAPE) {
+                    break@mainLoop
+                } else if (keyStroke!!.character == ' ') {
+                    break
+                }
+            }
+            redScreen.stopScreen()
+            greenScreen.startScreen()
+            greenScreen.refresh()
+            while (true) {
+                val keyStroke = terminal!!.pollInput()
+                if (keyStroke == null) {
+                    Thread.sleep(1)
+                } else if (keyStroke!!.keyType == KeyType.ESCAPE) {
+                    break@mainLoop
+                } else if (keyStroke!!.character == ' ') {
+                    break
+                }
+            }
+            greenScreen.stopScreen()
+        }
+        terminal.clearScreen()
+        if (terminal is Window) {
+            (terminal as Window).dispose()
+        }
+    }
 }

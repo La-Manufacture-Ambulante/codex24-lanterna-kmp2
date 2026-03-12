@@ -119,7 +119,12 @@ class ListSelectDialog<T> internal constructor(
         /**
          * Convenience helper creating and showing a [ListSelectDialog] with automatic list-box sizing.
          */
-        fun <T> showDialog(textGUI: WindowBasedTextGUI, title: String?, description: String?, vararg items: T): T? {
+        fun <T> showDialog(
+            textGUI: WindowBasedTextGUI,
+            title: String?,
+            description: String?,
+            vararg items: T,
+        ): T? {
             return showDialog(textGUI, title, description, null, *items)
         }
 
@@ -151,12 +156,13 @@ class ListSelectDialog<T> internal constructor(
             listBoxSize: TerminalSize?,
             vararg items: T,
         ): T? {
-            val listSelectDialog = ListSelectDialogBuilder<T>()
-                .setTitle(title)
-                .setDescription(description)
-                .setListBoxSize(listBoxSize)
-                .addListItems(*items)
-                .build()
+            val listSelectDialog =
+                ListSelectDialogBuilder<T>()
+                    .setTitle(title)
+                    .setDescription(description)
+                    .setListBoxSize(listBoxSize)
+                    .addListItems(*items)
+                    .build()
             return listSelectDialog.showDialog(textGUI)
         }
     }

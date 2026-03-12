@@ -80,7 +80,10 @@ class TextInputDialogBuilder : AbstractDialogBuilder<TextInputDialogBuilder, Tex
     /**
      * Configures validation from a regular expression pattern.
      */
-    fun setValidationPattern(pattern: Pattern, errorMessage: String?): TextInputDialogBuilder {
+    fun setValidationPattern(
+        pattern: Pattern,
+        errorMessage: String?,
+    ): TextInputDialogBuilder {
         return setValidator(
             object : TextInputDialogResultValidator {
                 override fun validate(content: String?): String? {

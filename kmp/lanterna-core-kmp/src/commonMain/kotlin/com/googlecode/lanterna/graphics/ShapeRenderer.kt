@@ -28,9 +28,35 @@ import com.googlecode.lanterna.TextCharacter
  * @author Martin
  */
 internal interface ShapeRenderer {
- fun drawLine(p1:TerminalPosition?, p2:TerminalPosition?, character:TextCharacter?) 
- fun drawTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:TextCharacter?) 
- fun drawRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:TextCharacter?) 
- fun fillTriangle(p1:TerminalPosition?, p2:TerminalPosition?, p3:TerminalPosition?, character:TextCharacter?) 
- fun fillRectangle(topLeft:TerminalPosition?, size:TerminalSize?, character:TextCharacter?) 
+    fun drawLine(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        character: TextCharacter?,
+    )
+
+    fun drawTriangle(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        p3: TerminalPosition?,
+        character: TextCharacter?,
+    )
+
+    fun drawRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: TextCharacter?,
+    )
+
+    fun fillTriangle(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        p3: TerminalPosition?,
+        character: TextCharacter?,
+    )
+
+    fun fillRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: TextCharacter?,
+    )
 }

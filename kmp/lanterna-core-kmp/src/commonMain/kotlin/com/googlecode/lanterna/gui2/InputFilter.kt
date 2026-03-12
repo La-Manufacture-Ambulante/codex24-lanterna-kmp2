@@ -24,13 +24,16 @@ import com.googlecode.lanterna.input.KeyStroke
  * This interface can be used to programmatically intercept input from the user and decide if the input should be passed
  * on to the interactable. It's also possible to fire custom actions for certain keystrokes.
  */
- interface InputFilter {
-/**
- * Called when the component is about to receive input from the user and decides if the input should be passed on to
- * the component or not
- * @param interactable Interactable that the input is directed to
- * @param keyStroke User input
- * @return `true` if the input should be passed on to the interactable, `false` otherwise
- */
-     fun onInput(interactable:Interactable?, keyStroke:KeyStroke?):Boolean 
+interface InputFilter {
+    /**
+     * Called when the component is about to receive input from the user and decides if the input should be passed on to
+     * the component or not
+     * @param interactable Interactable that the input is directed to
+     * @param keyStroke User input
+     * @return `true` if the input should be passed on to the interactable, `false` otherwise
+     */
+    fun onInput(
+        interactable: Interactable?,
+        keyStroke: KeyStroke?,
+    ): Boolean
 }

@@ -18,54 +18,74 @@
  */
 package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.gui2.BasicWindow
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.CheckBoxList
+import com.googlecode.lanterna.gui2.DefaultWindowManager
+import com.googlecode.lanterna.gui2.EmptySpace
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.gui2.Panels
+import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder
-import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
-import com.googlecode.lanterna.terminal.Terminal
-
 import java.io.IOException
 
- object Issue155 {
-@Throws(IOException::class)
- fun main(vararg args:String?) {
-val term = DefaultTerminalFactory().createTerminal()!!
-val screen = TerminalScreen(term!!)
-val windowManager = DefaultWindowManager()
-val background = EmptySpace(TextColor.ANSI.DEFAULT)
-val gui = MultiWindowTextGUI(screen, windowManager, background)
-screen.startScreen()
-gui.addWindowAndWait(object:BasicWindow("Issue155") {
-init{
-component = createUi(gui, this)
-}
-})
-screen.stopScreen()
-}
+object Issue155 {
+    @Throws(IOException::class)
+    fun main(vararg args: String?) {
+        val term = DefaultTerminalFactory().createTerminal()!!
+        val screen = TerminalScreen(term!!)
+        val windowManager = DefaultWindowManager()
+        val background = EmptySpace(TextColor.ANSI.DEFAULT)
+        val gui = MultiWindowTextGUI(screen, windowManager, background)
+        screen.startScreen()
+        gui.addWindowAndWait(
+            object : BasicWindow("Issue155") {
+                init {
+                    component = createUi(gui, this)
+                }
+            },
+        )
+        screen.stopScreen()
+    }
 
-private fun createUi(gui:WindowBasedTextGUI, window:BasicWindow, counter:Int = 1):Panel {
-val nextCounter = counter + 3
-val checkBoxList = CheckBoxList<String>()
-for (i in counter until nextCounter)
-{
-checkBoxList.addItem(i.toString())
-}
-return Panels.vertical(
-Button("Open Dialog (and crush stuff)", openDialog(gui, window, nextCounter)), 
-checkBoxList, 
-Button("Quit", Runnable { window.close() })
-)
-}
+    private fun createUi(
+        gui: WindowBasedTextGUI,
+        window: BasicWindow,
+        counter: Int = 1,
+    ): Panel {
+        val nextCounter = counter + 3
+        val checkBoxList = CheckBoxList<String>()
+        for (i in counter until nextCounter) {
+            checkBoxList.addItem(i.toString())
+        }
+        return Panels.vertical(
+            Button("Open Dialog (and crush stuff)", openDialog(gui, window, nextCounter)),
+            checkBoxList,
+            Button("Quit", Runnable { window.close() }),
+        )
+    }
 
-private fun openDialog(gui:WindowBasedTextGUI, window:BasicWindow, counter:Int):Runnable {
-return Runnable { ActionListDialogBuilder().setCanCancel(true).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui) }
-}
+    private fun openDialog(
+        gui: WindowBasedTextGUI,
+        window: BasicWindow,
+        counter: Int,
+    ): Runnable {
+        return Runnable {
+            ActionListDialogBuilder().setCanCancel(
+                true,
+            ).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui)
+        }
+    }
 
-private fun setupUI(gui:WindowBasedTextGUI, window:BasicWindow, counter:Int):Runnable {
-return Runnable { window.component = createUi(gui, window, counter) }
-}
+    private fun setupUI(
+        gui: WindowBasedTextGUI,
+        window: BasicWindow,
+        counter: Int,
+    ): Runnable {
+        return Runnable { window.component = createUi(gui, window, counter) }
+    }
 }

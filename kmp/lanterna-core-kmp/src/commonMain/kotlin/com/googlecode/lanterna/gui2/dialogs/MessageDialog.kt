@@ -37,11 +37,12 @@ class MessageDialog internal constructor(
     private var result: MessageDialogButton? = null
 
     init {
-        val resolvedButtons = if (buttons.isEmpty()) {
-            arrayOf(MessageDialogButton.OK)
-        } else {
-            buttons
-        }
+        val resolvedButtons =
+            if (buttons.isEmpty()) {
+                arrayOf(MessageDialogButton.OK)
+            } else {
+                buttons
+            }
 
         val buttonPanel = Panel()
         buttonPanel.setLayoutManager(GridLayout(resolvedButtons.size).setHorizontalSpacing(1))
@@ -101,9 +102,10 @@ class MessageDialog internal constructor(
             text: String?,
             vararg buttons: MessageDialogButton,
         ): MessageDialogButton? {
-            val builder = MessageDialogBuilder()
-                .setTitle(title)
-                .setText(text)
+            val builder =
+                MessageDialogBuilder()
+                    .setTitle(title)
+                    .setText(text)
             if (buttons.isEmpty()) {
                 builder.addButton(MessageDialogButton.OK)
             }

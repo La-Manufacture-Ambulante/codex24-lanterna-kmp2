@@ -23,7 +23,10 @@ import java.io.IOException
 
 interface ExtendedTerminal : Terminal, Scrollable {
     @Throws(IOException::class)
-    fun setTerminalSize(columns: Int, rows: Int)
+    fun setTerminalSize(
+        columns: Int,
+        rows: Int,
+    )
 
     @Throws(IOException::class)
     fun setTitle(title: String?)

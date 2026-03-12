@@ -23,23 +23,23 @@ import com.googlecode.lanterna.TerminalPosition
 /**
  * Mixin interface of an area or location object that that provides translation to screen (absolute)
  * coordinates.
- * 
+ *
  * @author sdedic
  */
- interface ScreenTranslator {
+interface ScreenTranslator {
 /**
- * Returns the screen on terminal coordinates of the given position within the implementing area.
- * The result value can be used with [Screen] object,or its [Screen.newTextGraphics],
- * it accommodates all coordinate translations from the chain of TextGraphics.
- * If `pos' is `null`, the method returns screen coordinates of origin (usually top-left corner)
- * of this area object.
- * 
- * 
- * Will return `null`, if the position is outside area implementing ScreenTranslator.
- * 
- * @param pos the position to translate, or `null` to convert position of top-left corner of this area
- * @return screen coordinates of the given position, or origin (usually top-left corner) of this area, if `pos'
- * is `null`.
- */
-     fun toScreenPosition(pos:TerminalPosition?):TerminalPosition? 
+     * Returns the screen on terminal coordinates of the given position within the implementing area.
+     * The result value can be used with [Screen] object,or its [Screen.newTextGraphics],
+     * it accommodates all coordinate translations from the chain of TextGraphics.
+     * If `pos' is `null`, the method returns screen coordinates of origin (usually top-left corner)
+     * of this area object.
+     *
+     *
+     * Will return `null`, if the position is outside area implementing ScreenTranslator.
+     *
+     * @param pos the position to translate, or `null` to convert position of top-left corner of this area
+     * @return screen coordinates of the given position, or origin (usually top-left corner) of this area, if `pos'
+     * is `null`.
+     */
+    fun toScreenPosition(pos: TerminalPosition?): TerminalPosition?
 }

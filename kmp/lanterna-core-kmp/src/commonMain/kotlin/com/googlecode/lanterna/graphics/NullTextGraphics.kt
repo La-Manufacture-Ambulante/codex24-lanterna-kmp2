@@ -48,7 +48,10 @@ internal class NullTextGraphics(override val size: TerminalSize?) : TextGraphics
         return null
     }
 
-    override fun newTextGraphics(topLeftCorner: TerminalPosition?, size: TerminalSize?): TextGraphics {
+    override fun newTextGraphics(
+        topLeftCorner: TerminalPosition?,
+        size: TerminalSize?,
+    ): TextGraphics {
         return this
     }
 
@@ -92,39 +95,112 @@ internal class NullTextGraphics(override val size: TerminalSize?) : TextGraphics
 
     override fun fill(c: Char): TextGraphics = this
 
-    override fun setCharacter(column: Int, row: Int, character: Char): TextGraphics = this
+    override fun setCharacter(
+        column: Int,
+        row: Int,
+        character: Char,
+    ): TextGraphics = this
 
-    override fun setCharacter(column: Int, row: Int, character: TextCharacter?): TextGraphics = this
+    override fun setCharacter(
+        column: Int,
+        row: Int,
+        character: TextCharacter?,
+    ): TextGraphics = this
 
-    override fun setCharacter(position: TerminalPosition?, character: Char): TextGraphics = this
+    override fun setCharacter(
+        position: TerminalPosition?,
+        character: Char,
+    ): TextGraphics = this
 
-    override fun setCharacter(position: TerminalPosition?, character: TextCharacter?): TextGraphics = this
+    override fun setCharacter(
+        position: TerminalPosition?,
+        character: TextCharacter?,
+    ): TextGraphics = this
 
-    override fun drawLine(fromPoint: TerminalPosition?, toPoint: TerminalPosition?, character: Char): TextGraphics = this
+    override fun drawLine(
+        fromPoint: TerminalPosition?,
+        toPoint: TerminalPosition?,
+        character: Char,
+    ): TextGraphics = this
 
-    override fun drawLine(fromPoint: TerminalPosition?, toPoint: TerminalPosition?, character: TextCharacter?): TextGraphics = this
+    override fun drawLine(
+        fromPoint: TerminalPosition?,
+        toPoint: TerminalPosition?,
+        character: TextCharacter?,
+    ): TextGraphics = this
 
-    override fun drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, character: Char): TextGraphics = this
+    override fun drawLine(
+        fromX: Int,
+        fromY: Int,
+        toX: Int,
+        toY: Int,
+        character: Char,
+    ): TextGraphics = this
 
-    override fun drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, character: TextCharacter?): TextGraphics = this
+    override fun drawLine(
+        fromX: Int,
+        fromY: Int,
+        toX: Int,
+        toY: Int,
+        character: TextCharacter?,
+    ): TextGraphics = this
 
-    override fun drawTriangle(p1: TerminalPosition?, p2: TerminalPosition?, p3: TerminalPosition?, character: Char): TextGraphics = this
+    override fun drawTriangle(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        p3: TerminalPosition?,
+        character: Char,
+    ): TextGraphics = this
 
-    override fun drawTriangle(p1: TerminalPosition?, p2: TerminalPosition?, p3: TerminalPosition?, character: TextCharacter?): TextGraphics = this
+    override fun drawTriangle(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        p3: TerminalPosition?,
+        character: TextCharacter?,
+    ): TextGraphics = this
 
-    override fun fillTriangle(p1: TerminalPosition?, p2: TerminalPosition?, p3: TerminalPosition?, character: Char): TextGraphics = this
+    override fun fillTriangle(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        p3: TerminalPosition?,
+        character: Char,
+    ): TextGraphics = this
 
-    override fun fillTriangle(p1: TerminalPosition?, p2: TerminalPosition?, p3: TerminalPosition?, character: TextCharacter?): TextGraphics = this
+    override fun fillTriangle(
+        p1: TerminalPosition?,
+        p2: TerminalPosition?,
+        p3: TerminalPosition?,
+        character: TextCharacter?,
+    ): TextGraphics = this
 
-    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGraphics = this
+    override fun drawRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: Char,
+    ): TextGraphics = this
 
-    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: TextCharacter?): TextGraphics = this
+    override fun drawRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: TextCharacter?,
+    ): TextGraphics = this
 
-    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGraphics = this
+    override fun fillRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: Char,
+    ): TextGraphics = this
 
-    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: TextCharacter?): TextGraphics = this
+    override fun fillRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: TextCharacter?,
+    ): TextGraphics = this
 
-    override fun drawImage(topLeft: TerminalPosition?, image: TextImage?): TextGraphics = this
+    override fun drawImage(
+        topLeft: TerminalPosition?,
+        image: TextImage?,
+    ): TextGraphics = this
 
     override fun drawImage(
         topLeft: TerminalPosition?,
@@ -133,21 +209,54 @@ internal class NullTextGraphics(override val size: TerminalSize?) : TextGraphics
         sourceImageSize: TerminalSize?,
     ): TextGraphics = this
 
-    override fun putString(column: Int, row: Int, string: String?): TextGraphics = this
+    override fun putString(
+        column: Int,
+        row: Int,
+        string: String?,
+    ): TextGraphics = this
 
-    override fun putString(position: TerminalPosition?, string: String?): TextGraphics = this
+    override fun putString(
+        position: TerminalPosition?,
+        string: String?,
+    ): TextGraphics = this
 
-    override fun putString(column: Int, row: Int, string: String?, extraModifier: SGR?, vararg optionalExtraModifiers: SGR?): TextGraphics = this
+    override fun putString(
+        column: Int,
+        row: Int,
+        string: String?,
+        extraModifier: SGR?,
+        vararg optionalExtraModifiers: SGR?,
+    ): TextGraphics = this
 
-    override fun putString(position: TerminalPosition?, string: String?, extraModifier: SGR?, vararg optionalExtraModifiers: SGR?): TextGraphics = this
+    override fun putString(
+        position: TerminalPosition?,
+        string: String?,
+        extraModifier: SGR?,
+        vararg optionalExtraModifiers: SGR?,
+    ): TextGraphics = this
 
-    override fun putString(column: Int, row: Int, string: String?, extraModifiers: kotlin.collections.Collection<SGR?>?): TextGraphics = this
+    override fun putString(
+        column: Int,
+        row: Int,
+        string: String?,
+        extraModifiers: kotlin.collections.Collection<SGR?>?,
+    ): TextGraphics = this
 
-    override fun putCSIStyledString(column: Int, row: Int, string: String?): TextGraphics = this
+    override fun putCSIStyledString(
+        column: Int,
+        row: Int,
+        string: String?,
+    ): TextGraphics = this
 
-    override fun putCSIStyledString(position: TerminalPosition?, string: String?): TextGraphics = this
+    override fun putCSIStyledString(
+        position: TerminalPosition?,
+        string: String?,
+    ): TextGraphics = this
 
-    override fun getCharacter(column: Int, row: Int): TextCharacter? = null
+    override fun getCharacter(
+        column: Int,
+        row: Int,
+    ): TextCharacter? = null
 
     override fun getCharacter(position: TerminalPosition?): TextCharacter? = null
 

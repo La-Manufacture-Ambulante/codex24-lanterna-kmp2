@@ -41,13 +41,18 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
     override val activeModifiers: EnumSet<SGR>?
         get() = EnumSet.copyOf(activeModifiersBacking)
 
-    private val shapeRenderer: ShapeRenderer = DefaultShapeRenderer(
-        object : DefaultShapeRenderer.Callback {
-            override fun onPoint(column: Int, row: Int, character: TextCharacter?) {
-                this@AbstractTextGraphics.setCharacter(column, row, character)
-            }
-        },
-    )
+    private val shapeRenderer: ShapeRenderer =
+        DefaultShapeRenderer(
+            object : DefaultShapeRenderer.Callback {
+                override fun onPoint(
+                    column: Int,
+                    row: Int,
+                    character: TextCharacter?,
+                ) {
+                    this@AbstractTextGraphics.setCharacter(column, row, character)
+                }
+            },
+        )
 
     /**
      * Screen coordinates of the top-left corner of this [TextGraphics].
@@ -113,37 +118,67 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
         return this
     }
 
-    override fun setCharacter(column: Int, row: Int, character: Char): TextGraphics? {
+    override fun setCharacter(
+        column: Int,
+        row: Int,
+        character: Char,
+    ): TextGraphics? {
         return setCharacter(column, row, newTextCharacter(character))
     }
 
-    override fun setCharacter(position: TerminalPosition?, character: TextCharacter?): TextGraphics? {
+    override fun setCharacter(
+        position: TerminalPosition?,
+        character: TextCharacter?,
+    ): TextGraphics? {
         if (position != null) {
             setCharacter(position.column, position.row, character)
         }
         return this
     }
 
-    override fun setCharacter(position: TerminalPosition?, character: Char): TextGraphics? {
+    override fun setCharacter(
+        position: TerminalPosition?,
+        character: Char,
+    ): TextGraphics? {
         return if (position == null) this else setCharacter(position.column, position.row, character)
     }
 
-    override fun drawLine(fromPoint: TerminalPosition?, toPoint: TerminalPosition?, character: Char): TextGraphics? {
+    override fun drawLine(
+        fromPoint: TerminalPosition?,
+        toPoint: TerminalPosition?,
+        character: Char,
+    ): TextGraphics? {
         return drawLine(fromPoint, toPoint, newTextCharacter(character))
     }
 
-    override fun drawLine(fromPoint: TerminalPosition?, toPoint: TerminalPosition?, character: TextCharacter?): TextGraphics? {
+    override fun drawLine(
+        fromPoint: TerminalPosition?,
+        toPoint: TerminalPosition?,
+        character: TextCharacter?,
+    ): TextGraphics? {
         if (fromPoint != null && toPoint != null) {
             shapeRenderer.drawLine(fromPoint, toPoint, character)
         }
         return this
     }
 
-    override fun drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, character: Char): TextGraphics? {
+    override fun drawLine(
+        fromX: Int,
+        fromY: Int,
+        toX: Int,
+        toY: Int,
+        character: Char,
+    ): TextGraphics? {
         return drawLine(fromX, fromY, toX, toY, newTextCharacter(character))
     }
 
-    override fun drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, character: TextCharacter?): TextGraphics? {
+    override fun drawLine(
+        fromX: Int,
+        fromY: Int,
+        toX: Int,
+        toY: Int,
+        character: TextCharacter?,
+    ): TextGraphics? {
         return drawLine(TerminalPosition(fromX, fromY), TerminalPosition(toX, toY), character)
     }
 
@@ -181,29 +216,48 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
         return this
     }
 
-    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGraphics? {
+    override fun drawRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: Char,
+    ): TextGraphics? {
         return drawRectangle(topLeft, size, newTextCharacter(character))
     }
 
-    override fun drawRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: TextCharacter?): TextGraphics? {
+    override fun drawRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: TextCharacter?,
+    ): TextGraphics? {
         if (topLeft != null && size != null) {
             shapeRenderer.drawRectangle(topLeft, size, character)
         }
         return this
     }
 
-    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: Char): TextGraphics? {
+    override fun fillRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: Char,
+    ): TextGraphics? {
         return fillRectangle(topLeft, size, newTextCharacter(character))
     }
 
-    override fun fillRectangle(topLeft: TerminalPosition?, size: TerminalSize?, character: TextCharacter?): TextGraphics? {
+    override fun fillRectangle(
+        topLeft: TerminalPosition?,
+        size: TerminalSize?,
+        character: TextCharacter?,
+    ): TextGraphics? {
         if (topLeft != null && size != null && character != null) {
             shapeRenderer.fillRectangle(topLeft, size, character)
         }
         return this
     }
 
-    override fun drawImage(topLeft: TerminalPosition?, image: TextImage?): TextGraphics? {
+    override fun drawImage(
+        topLeft: TerminalPosition?,
+        image: TextImage?,
+    ): TextGraphics? {
         return drawImage(topLeft, image, TerminalPosition.TOP_LEFT_CORNER, image?.size)
     }
 
@@ -255,7 +309,11 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
         return this
     }
 
-    override fun putString(column: Int, row: Int, string: String?): TextGraphics? {
+    override fun putString(
+        column: Int,
+        row: Int,
+        string: String?,
+    ): TextGraphics? {
         val prepared = prepareStringForPut(column, string ?: "")
         var offset = 0
         for (character in prepared) {
@@ -265,7 +323,10 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
         return this
     }
 
-    override fun putString(position: TerminalPosition?, string: String?): TextGraphics? {
+    override fun putString(
+        position: TerminalPosition?,
+        string: String?,
+    ): TextGraphics? {
         if (position != null) {
             putString(position.column, position.row, string)
         }
@@ -297,7 +358,12 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
         return putString(column, row, string)
     }
 
-    override fun putString(column: Int, row: Int, string: String?, extraModifiers: Collection<SGR?>?): TextGraphics? {
+    override fun putString(
+        column: Int,
+        row: Int,
+        string: String?,
+        extraModifiers: Collection<SGR?>?,
+    ): TextGraphics? {
         val newModifiers = EnumSet.noneOf(SGR::class.java)
         if (extraModifiers != null) {
             for (modifier in extraModifiers) {
@@ -329,7 +395,11 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
     }
 
     @Synchronized
-    override fun putCSIStyledString(column: Int, row: Int, string: String?): TextGraphics? {
+    override fun putCSIStyledString(
+        column: Int,
+        row: Int,
+        string: String?,
+    ): TextGraphics? {
         val original = StyleSet.Set(this)
         val prepared = prepareStringForPut(column, string ?: "")
         var offset = 0
@@ -351,7 +421,10 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
         return this
     }
 
-    override fun putCSIStyledString(position: TerminalPosition?, string: String?): TextGraphics? {
+    override fun putCSIStyledString(
+        position: TerminalPosition?,
+        string: String?,
+    ): TextGraphics? {
         return if (position == null) this else putCSIStyledString(position.column, position.row, string)
     }
 
@@ -377,7 +450,10 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
      * Creates a sub-graphics view, or a [NullTextGraphics] if the requested area is fully outside this graphics.
      */
     @Throws(IllegalArgumentException::class)
-    override fun newTextGraphics(topLeftCorner: TerminalPosition?, size: TerminalSize?): TextGraphics? {
+    override fun newTextGraphics(
+        topLeftCorner: TerminalPosition?,
+        size: TerminalSize?,
+    ): TextGraphics? {
         if (topLeftCorner == null || size == null) {
             return this
         }
@@ -402,7 +478,10 @@ abstract class AbstractTextGraphics protected constructor() : TextGraphics {
         )
     }
 
-    private fun prepareStringForPut(column: Int, string: String): String {
+    private fun prepareStringForPut(
+        column: Int,
+        string: String,
+    ): String {
         var out = string
         if (out.contains("\n")) {
             out = out.substring(0, out.indexOf("\n"))

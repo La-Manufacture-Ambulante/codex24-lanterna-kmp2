@@ -30,21 +30,44 @@ interface IOSafeTerminal : Terminal {
     override val terminalSize: TerminalSize?
 
     override fun enterPrivateMode()
+
     override fun exitPrivateMode()
+
     override fun clearScreen()
-    override fun setCursorPosition(x: Int, y: Int)
+
+    override fun setCursorPosition(
+        x: Int,
+        y: Int,
+    )
+
     override fun setCursorVisible(visible: Boolean)
+
     override fun putCharacter(c: Char)
+
     override fun putString(string: String?)
+
     override fun enableSGR(sgr: SGR?)
+
     override fun disableSGR(sgr: SGR?)
+
     override fun resetColorAndSGR()
+
     override fun setForegroundColor(color: TextColor?)
+
     override fun setBackgroundColor(color: TextColor?)
-    override fun enquireTerminal(timeout: Int, timeoutUnit: TimeUnit?): ByteArray?
+
+    override fun enquireTerminal(
+        timeout: Int,
+        timeoutUnit: TimeUnit?,
+    ): ByteArray?
+
     override fun bell()
+
     override fun flush()
+
     override fun pollInput(): KeyStroke?
+
     override fun readInput(): KeyStroke?
+
     override fun close()
 }

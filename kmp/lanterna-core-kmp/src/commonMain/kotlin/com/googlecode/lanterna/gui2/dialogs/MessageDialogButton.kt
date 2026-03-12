@@ -27,20 +27,28 @@ import com.googlecode.lanterna.gui2.LocalizedString
 enum class MessageDialogButton(private val label: LocalizedString) {
     /** "OK" button. */
     OK(LocalizedString.OK),
+
     /** "Cancel" button. */
     CANCEL(LocalizedString.Cancel),
+
     /** "Yes" button. */
     YES(LocalizedString.Yes),
+
     /** "No" button. */
     NO(LocalizedString.No),
+
     /** "Close" button. */
     CLOSE(LocalizedString.Close),
+
     /** "Abort" button. */
     ABORT(LocalizedString.Abort),
+
     /** "Ignore" button. */
     IGNORE(LocalizedString.Ignore),
+
     /** "Retry" button. */
     RETRY(LocalizedString.Retry),
+
     /** "Continue" button. */
     CONTINUE(LocalizedString.Continue),
     ;

@@ -168,7 +168,10 @@ class GridLayout(private val numberOfColumns: Int) : LayoutManager {
         return preferredSize
     }
 
-    override fun doLayout(area: TerminalSize?, components: List<Component?>?) {
+    override fun doLayout(
+        area: TerminalSize?,
+        components: List<Component?>?,
+    ) {
         if (area == null || components == null) {
             changed = false
             return
@@ -409,7 +412,10 @@ class GridLayout(private val numberOfColumns: Int) : LayoutManager {
         return expandableRows
     }
 
-    private fun shrinkWidthToFitArea(area: TerminalSize?, columnWidths: IntArray): Int {
+    private fun shrinkWidthToFitArea(
+        area: TerminalSize?,
+        columnWidths: IntArray,
+    ): Int {
         var totalWidth = 0
         for (width in columnWidths) {
             totalWidth += width
@@ -429,7 +435,10 @@ class GridLayout(private val numberOfColumns: Int) : LayoutManager {
         return totalWidth
     }
 
-    private fun shrinkHeightToFitArea(area: TerminalSize?, rowHeights: IntArray): Int {
+    private fun shrinkHeightToFitArea(
+        area: TerminalSize?,
+        rowHeights: IntArray,
+    ): Int {
         var totalHeight = 0
         for (height in rowHeights) {
             totalHeight += height
@@ -588,14 +597,15 @@ class GridLayout(private val numberOfColumns: Int) : LayoutManager {
     }
 
     companion object {
-        private val DEFAULT = GridLayoutData(
-            Alignment.BEGINNING,
-            Alignment.BEGINNING,
-            false,
-            false,
-            1,
-            1,
-        )
+        private val DEFAULT =
+            GridLayoutData(
+                Alignment.BEGINNING,
+                Alignment.BEGINNING,
+                false,
+                false,
+                1,
+                1,
+            )
 
         @JvmOverloads
         fun createLayoutData(

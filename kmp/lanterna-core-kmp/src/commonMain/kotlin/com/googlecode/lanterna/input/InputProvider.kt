@@ -23,28 +23,28 @@ import java.io.IOException
 /**
  * Objects implementing this interface can read character streams and transform them into `Key` objects which can
  * be read in a FIFO manner.
- * 
+ *
  * @author Martin
  */
- interface InputProvider {
+interface InputProvider {
 /**
- * Returns the next `Key` off the input queue or null if there is no more input events available. Note, this
- * method call is **not** blocking, it returns null immediately if there is nothing on the input stream.
- * @return Key object which represents a keystroke coming in through the input stream
- * @throws java.io.IOException Propagated error if the underlying stream gave errors
- */
+     * Returns the next `Key` off the input queue or null if there is no more input events available. Note, this
+     * method call is **not** blocking, it returns null immediately if there is nothing on the input stream.
+     * @return Key object which represents a keystroke coming in through the input stream
+     * @throws java.io.IOException Propagated error if the underlying stream gave errors
+     */
     @Throws(IOException::class)
- fun pollInput():KeyStroke? 
+    fun pollInput(): KeyStroke?
 
 /**
- * Returns the next `Key` off the input queue or blocks until one is available. **NOTE:** In previous
- * versions of Lanterna, this method was **not** blocking. From lanterna 3, it is blocking and you can call
- * `pollInput()` for the non-blocking version.
- * @return Key object which represents a keystroke coming in through the input stream
- * @throws java.io.IOException Propagated error if the underlying stream gave errors
- */
+     * Returns the next `Key` off the input queue or blocks until one is available. **NOTE:** In previous
+     * versions of Lanterna, this method was **not** blocking. From lanterna 3, it is blocking and you can call
+     * `pollInput()` for the non-blocking version.
+     * @return Key object which represents a keystroke coming in through the input stream
+     * @throws java.io.IOException Propagated error if the underlying stream gave errors
+     */
     @Throws(IOException::class)
- fun readInput():KeyStroke? 
+    fun readInput(): KeyStroke?
 
- //TODO: Add a version of readInput() that takes a timeout specification, in a future version of lanterna
+    // TODO: Add a version of readInput() that takes a timeout specification, in a future version of lanterna
 }

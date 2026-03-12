@@ -29,7 +29,6 @@ import com.googlecode.lanterna.input.KeyStroke
  * @author ginkoblongata
  */
 open class ImageComponent : AbstractInteractableComponent<ImageComponent?>() {
-
     private var textImage: TextImage? = null
 
     init {
@@ -43,7 +42,10 @@ open class ImageComponent : AbstractInteractableComponent<ImageComponent?>() {
 
     override fun createDefaultRenderer(): InteractableRenderer<ImageComponent?>? {
         return object : InteractableRenderer<ImageComponent?> {
-            override fun drawComponent(graphics: TextGUIGraphics?, panel: ImageComponent?) {
+            override fun drawComponent(
+                graphics: TextGUIGraphics?,
+                panel: ImageComponent?,
+            ) {
                 graphics!!.drawImage(TerminalPosition.TOP_LEFT_CORNER, textImage)
             }
 

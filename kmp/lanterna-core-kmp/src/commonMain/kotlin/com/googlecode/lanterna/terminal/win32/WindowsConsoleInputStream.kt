@@ -5,7 +5,6 @@ import com.googlecode.lanterna.terminal.win32.WinDef.KEY_EVENT_RECORD
 import com.googlecode.lanterna.terminal.win32.WinDef.MOUSE_EVENT_RECORD
 import com.googlecode.lanterna.terminal.win32.WinDef.WINDOW_BUFFER_SIZE_RECORD
 import com.sun.jna.platform.win32.WinNT.HANDLE
-import com.sun.jna.platform.win32.Wincon as JnaWincon
 import com.sun.jna.ptr.IntByReference
 import java.io.EOFException
 import java.io.IOException
@@ -15,6 +14,7 @@ import java.nio.CharBuffer
 import java.nio.charset.Charset
 import java.util.Arrays
 import java.util.function.Consumer
+import com.sun.jna.platform.win32.Wincon as JnaWincon
 
 class WindowsConsoleInputStream(
     private val hConsoleInput: HANDLE?,
@@ -63,7 +63,11 @@ class WindowsConsoleInputStream(
 
     @Synchronized
     @Throws(IOException::class)
-    override fun read(b: ByteArray, offset: Int, length: Int): Int {
+    override fun read(
+        b: ByteArray,
+        offset: Int,
+        length: Int,
+    ): Int {
         while (length > 0 && !buffer.hasRemaining()) {
             buffer = readKeyEvents(true)
         }
@@ -96,7 +100,10 @@ class WindowsConsoleInputStream(
     }
 
     @Throws(IOException::class)
-    private fun filter(input: INPUT_RECORD, keyEvents: Appendable) {
+    private fun filter(
+        input: INPUT_RECORD,
+        keyEvents: Appendable,
+    ) {
         when (input.EventType) {
             INPUT_RECORD.KEY_EVENT -> {
                 if (input.Event.KeyEvent.uChar.code != 0 && input.Event.KeyEvent.bKeyDown) {

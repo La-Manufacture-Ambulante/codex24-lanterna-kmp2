@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2020 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
@@ -21,20 +21,19 @@ package com.googlecode.lanterna.gui2
 /**
  * Simple AbstractWindow implementation that you can use as a building block when creating new windows without having
  * to create new classes.
- * 
+ *
  * @author Martin
  */
-open class BasicWindow:AbstractWindow {
+open class BasicWindow : AbstractWindow {
+    /**
+     * Default constructor, creates a new window with no title
+     */
+    constructor() : super() {}
 
 /**
- * Default constructor, creates a new window with no title
- */
-     constructor() : super() {}
-
-/**
- * This constructor creates a window with a specific title, that is (probably) going to be displayed in the window
- * decoration
- * @param title Title of the window
- */
-     constructor(title:String?) : super(title) {}
+     * This constructor creates a window with a specific title, that is (probably) going to be displayed in the window
+     * decoration
+     * @param title Title of the window
+     */
+    constructor(title: String?) : super(title) {}
 }

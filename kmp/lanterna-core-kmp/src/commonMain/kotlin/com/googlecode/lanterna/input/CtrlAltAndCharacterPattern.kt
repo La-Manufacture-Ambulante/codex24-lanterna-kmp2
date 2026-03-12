@@ -37,15 +37,16 @@ class CtrlAltAndCharacterPattern : CharacterPattern {
         val ch = sequence[1]
         // Control-chars: exclude Esc(^[), but still include ^\, ^], ^^ and ^_
         if (ch.code < 32 && ch != '\b') {
-            val ctrlCode = when (ch) {
-                KeyDecodingProfile.ESC_CODE -> return null
-                '\u0000' -> ' '
-                '\u001c' -> '\\'
-                '\u001d' -> ']'
-                '\u001e' -> '^'
-                '\u001f' -> '_'
-                else -> ('a'.code - 1 + ch.code).toChar()
-            }
+            val ctrlCode =
+                when (ch) {
+                    KeyDecodingProfile.ESC_CODE -> return null
+                    '\u0000' -> ' '
+                    '\u001c' -> '\\'
+                    '\u001d' -> ']'
+                    '\u001e' -> '^'
+                    '\u001f' -> '_'
+                    else -> ('a'.code - 1 + ch.code).toChar()
+                }
             return CharacterPattern.Matching(KeyStroke(ctrlCode, true, true))
         }
         if (ch.code == 0x7f || ch == '\b') {

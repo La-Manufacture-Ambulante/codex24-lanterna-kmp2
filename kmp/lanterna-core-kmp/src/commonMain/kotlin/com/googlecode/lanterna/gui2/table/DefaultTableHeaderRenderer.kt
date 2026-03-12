@@ -26,14 +26,23 @@ import com.googlecode.lanterna.gui2.TextGUIGraphics
  * Default implementation of [TableHeaderRenderer].
  */
 open class DefaultTableHeaderRenderer<V> : TableHeaderRenderer<V?> {
-    override fun getPreferredSize(table: Table<V?>?, label: String?, columnIndex: Int): TerminalSize {
+    override fun getPreferredSize(
+        table: Table<V?>?,
+        label: String?,
+        columnIndex: Int,
+    ): TerminalSize {
         if (label == null) {
             return TerminalSize.ZERO
         }
         return TerminalSize(TerminalTextUtils.getColumnWidth(label), 1)
     }
 
-    override fun drawHeader(table: Table<V?>?, label: String?, index: Int, textGUIGraphics: TextGUIGraphics?) {
+    override fun drawHeader(
+        table: Table<V?>?,
+        label: String?,
+        index: Int,
+        textGUIGraphics: TextGUIGraphics?,
+    ) {
         val activeTable = table ?: return
         val activeGraphics = textGUIGraphics ?: return
         val themeDefinition = activeTable.themeDefinition ?: return

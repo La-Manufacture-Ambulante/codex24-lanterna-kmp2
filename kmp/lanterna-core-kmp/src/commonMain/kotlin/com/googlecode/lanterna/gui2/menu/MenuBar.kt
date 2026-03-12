@@ -140,7 +140,10 @@ open class MenuBar : AbstractComponent<MenuBar?>(), Container {
             return TerminalSize(totalWidth, maxHeight)
         }
 
-        override fun drawComponent(graphics: TextGUIGraphics?, menuBar: MenuBar?) {
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            menuBar: MenuBar?,
+        ) {
             val activeGraphics = graphics ?: return
             val activeMenuBar = menuBar ?: return
 

@@ -1,6 +1,6 @@
 /*
  * This file is part of lanterna (https://github.com/mabe02/lanterna).
- * 
+ *
  * lanterna is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,39 +13,40 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2010-2024 Martin Berglund
  */
 
 package com.googlecode.lanterna
 
-import java.io.*
+import java.io.BufferedReader
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.InputStreamReader
 
 /**
- * 
+ *
  * @author Martin
  */
- object TestShellCommand {
-@Throws(Exception::class)
- fun main(args:Array<String?>?) {
-val pb = ProcessBuilder(*(args ?: emptyArray()).filterNotNull().toTypedArray())
-val process = pb.start()
-val baos = ByteArrayOutputStream()
-val stdout = process.inputStream
-var readByte = stdout.read()
-while (readByte >= 0)
-{
-baos.write(readByte)
-readByte = stdout.read()
-}
-val bais = ByteArrayInputStream(baos.toByteArray())
-val reader = BufferedReader(InputStreamReader(bais))
-val builder = StringBuilder()
-while (reader.ready())
-{
-builder.append(reader.readLine())
-}
-reader.close()
-System.out.println(builder.toString())
-}
+object TestShellCommand {
+    @Throws(Exception::class)
+    fun main(args: Array<String?>?) {
+        val pb = ProcessBuilder(*(args ?: emptyArray()).filterNotNull().toTypedArray())
+        val process = pb.start()
+        val baos = ByteArrayOutputStream()
+        val stdout = process.inputStream
+        var readByte = stdout.read()
+        while (readByte >= 0) {
+            baos.write(readByte)
+            readByte = stdout.read()
+        }
+        val bais = ByteArrayInputStream(baos.toByteArray())
+        val reader = BufferedReader(InputStreamReader(bais))
+        val builder = StringBuilder()
+        while (reader.ready()) {
+            builder.append(reader.readLine())
+        }
+        reader.close()
+        System.out.println(builder.toString())
+    }
 }

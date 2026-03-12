@@ -50,7 +50,10 @@ class AbsoluteLayout : LayoutManager {
         return size ?: TerminalSize.ZERO
     }
 
-    override fun doLayout(area: TerminalSize?, components: List<Component?>?) {
+    override fun doLayout(
+        area: TerminalSize?,
+        components: List<Component?>?,
+    ) {
         // Do nothing
     }
 

@@ -18,53 +18,52 @@
  */
 package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.SGR
-import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.screen.Screen
 import java.io.IOException
 
 internal object IssueX {
+    @Throws(InterruptedException::class, IOException::class)
+    fun main(args: Array<String?>?) {
+        val writer = LanternaTerminalWriter(args)
+        for (i in 0..999) {
+            writer.write(i.toString(), SGR.BOLD)
+            Thread.sleep(100)
+        }
+        writer.close()
+    }
 
-@Throws(InterruptedException::class, IOException::class)
- fun main(args:Array<String?>?) {
-val writer = LanternaTerminalWriter(args)
-for (i in 0..999)
-{
-writer.write(i.toString(), SGR.BOLD)
-Thread.sleep(100)
-}
-writer.close()
-}
+    class LanternaTerminalWriter
+        @Throws(IOException::class)
+        constructor(args: Array<String?>?) {
+            private val screen: Screen?
+            private val screenWriter: TextGraphics?
 
- class LanternaTerminalWriter @Throws(IOException::class)
- constructor(args:Array<String?>?) {
+            init {
+                screen = TestTerminalFactory(args).createScreen()
+                screen!!.startScreen()
 
-private val screen:Screen?
-private val screenWriter:TextGraphics?
+                screenWriter = screen!!.newTextGraphics()
+            }
 
-init{
-screen = TestTerminalFactory(args).createScreen()
-screen!!.startScreen()
+            @Throws(IOException::class)
+            fun close() {
+                screen!!.stopScreen()
+            }
 
-screenWriter = screen!!.newTextGraphics()
-}
-
-@Throws(IOException::class)
- fun close() {
-screen!!.stopScreen()
-}
-
-@Throws(IOException::class)
- fun write(string:String?, vararg styles:SGR?) {
-screenWriter!!.enableModifiers(*styles)
-val current_y = 1
-val default_x = 3
-screenWriter!!.putString(default_x, current_y, string)
-screen!!.pollInput()
-screen!!.refresh()
-}
-
-}
+            @Throws(IOException::class)
+            fun write(
+                string: String?,
+                vararg styles: SGR?,
+            ) {
+                screenWriter!!.enableModifiers(*styles)
+                val currentY = 1
+                val defaultX = 3
+                screenWriter!!.putString(defaultX, currentY, string)
+                screen!!.pollInput()
+                screen!!.refresh()
+            }
+        }
 }

@@ -18,62 +18,69 @@
  */
 package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.*
-
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.gui2.*
-import com.googlecode.lanterna.screen.*
-import com.googlecode.lanterna.terminal.*
-
+import com.googlecode.lanterna.gui2.ActionListBox
+import com.googlecode.lanterna.gui2.BasicWindow
+import com.googlecode.lanterna.gui2.BorderLayout
+import com.googlecode.lanterna.gui2.Borders
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.DefaultWindowManager
+import com.googlecode.lanterna.gui2.EmptySpace
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.gui2.TextBox
+import com.googlecode.lanterna.gui2.Window
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.IOException
 import java.util.Arrays
 
- object Issue190 {
-@Throws(IOException::class)
- fun main(args:Array<String?>?) {
-val factory = DefaultTerminalFactory()
-factory.setInitialTerminalSize(TerminalSize(150, 50))
-factory.setTerminalEmulatorTitle("name")
-val terminal = factory.createTerminal()!!
-val screen = TerminalScreen(terminal)
-screen.startScreen()
+object Issue190 {
+    @Throws(IOException::class)
+    fun main(args: Array<String?>?) {
+        val factory = DefaultTerminalFactory()
+        factory.setInitialTerminalSize(TerminalSize(150, 50))
+        factory.setTerminalEmulatorTitle("name")
+        val terminal = factory.createTerminal()!!
+        val screen = TerminalScreen(terminal)
+        screen.startScreen()
 
-val panel = Panel()
-panel.setLayoutManager(BorderLayout())
+        val panel = Panel()
+        panel.setLayoutManager(BorderLayout())
 
-val channels = ActionListBox()
-channels.setLayoutData(BorderLayout.Location.LEFT)
-panel.addComponent(channels.withBorder(Borders.singleLine("Channels")))
+        val channels = ActionListBox()
+        channels.setLayoutData(BorderLayout.Location.LEFT)
+        panel.addComponent(channels.withBorder(Borders.singleLine("Channels")))
 
-val log = TextBox("", TextBox.Style.MULTI_LINE)
-log.setReadOnly(true)
-log.setLayoutData(BorderLayout.Location.CENTER)
-panel.addComponent(log.withBorder(Borders.singleLine("Log")))
+        val log = TextBox("", TextBox.Style.MULTI_LINE)
+        log.setReadOnly(true)
+        log.setLayoutData(BorderLayout.Location.CENTER)
+        panel.addComponent(log.withBorder(Borders.singleLine("Log")))
 
-val options = Panel()
-options.setLayoutData(BorderLayout.Location.BOTTOM)
+        val options = Panel()
+        options.setLayoutData(BorderLayout.Location.BOTTOM)
 
-options.withBorder(Borders.singleLine("Send Message"))
+        options.withBorder(Borders.singleLine("Send Message"))
 
-options.setLayoutManager(BorderLayout())
+        options.setLayoutManager(BorderLayout())
 
-val input = TextBox("Message", TextBox.Style.SINGLE_LINE)
-input.setLayoutData(BorderLayout.Location.CENTER)
-options.addComponent(input)
+        val input = TextBox("Message", TextBox.Style.SINGLE_LINE)
+        input.setLayoutData(BorderLayout.Location.CENTER)
+        options.addComponent(input)
 
-val send = Button("Send", { input.setText("") })
-send.setLayoutData(BorderLayout.Location.RIGHT)
-options.addComponent(send)
+        val send = Button("Send", { input.setText("") })
+        send.setLayoutData(BorderLayout.Location.RIGHT)
+        options.addComponent(send)
 
-panel.addComponent(options.withBorder(Borders.singleLine("Send Message")))
+        panel.addComponent(options.withBorder(Borders.singleLine("Send Message")))
 
-val window = BasicWindow()
-window.component = panel.withBorder(Borders.doubleLine("DarkOwlBot"))
+        val window = BasicWindow()
+        window.component = panel.withBorder(Borders.doubleLine("DarkOwlBot"))
 
-window.setHints(Arrays.asList(Window.Hint.EXPANDED, Window.Hint.FIT_TERMINAL_WINDOW))
+        window.setHints(Arrays.asList(Window.Hint.EXPANDED, Window.Hint.FIT_TERMINAL_WINDOW))
 
-val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
-gui.addWindowAndWait(window)
-}
+        val gui = MultiWindowTextGUI(screen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
+        gui.addWindowAndWait(window)
+    }
 }

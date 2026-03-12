@@ -27,13 +27,19 @@ import java.util.LinkedList
  * This class contains a number of utility methods for analyzing characters and strings in a terminal context.
  */
 object TerminalTextUtils {
-    fun getANSIControlSequenceAt(string: String?, index: Int): String? {
+    fun getANSIControlSequenceAt(
+        string: String?,
+        index: Int,
+    ): String? {
         val s = string ?: return null
         val len = getANSIControlSequenceLength(s, index)
         return if (len == 0) null else s.substring(index, index + len)
     }
 
-    fun getANSIControlSequenceLength(string: String, index: Int): Int {
+    fun getANSIControlSequenceLength(
+        string: String,
+        index: Int,
+    ): Int {
         var len = 0
         val restLen = string.length - index
         if (restLen >= 3) {
@@ -59,21 +65,23 @@ object TerminalTextUtils {
 
     fun isCharCJK(c: Char): Boolean {
         val unicodeBlock = Character.UnicodeBlock.of(c)
-        return ((unicodeBlock === Character.UnicodeBlock.HIRAGANA)
-            || (unicodeBlock === Character.UnicodeBlock.KATAKANA)
-            || (unicodeBlock === Character.UnicodeBlock.KATAKANA_PHONETIC_EXTENSIONS)
-            || (unicodeBlock === Character.UnicodeBlock.HANGUL_COMPATIBILITY_JAMO)
-            || (unicodeBlock === Character.UnicodeBlock.HANGUL_JAMO)
-            || (unicodeBlock === Character.UnicodeBlock.HANGUL_SYLLABLES)
-            || (unicodeBlock === Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS)
-            || (unicodeBlock === Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A)
-            || (unicodeBlock === Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B)
-            || (unicodeBlock === Character.UnicodeBlock.CJK_COMPATIBILITY_FORMS)
-            || (unicodeBlock === Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS)
-            || (unicodeBlock === Character.UnicodeBlock.CJK_RADICALS_SUPPLEMENT)
-            || (unicodeBlock === Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION)
-            || (unicodeBlock === Character.UnicodeBlock.ENCLOSED_CJK_LETTERS_AND_MONTHS)
-            || (unicodeBlock === Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS && c.code < 0xFF61))
+        return (
+            (unicodeBlock === Character.UnicodeBlock.HIRAGANA) ||
+                (unicodeBlock === Character.UnicodeBlock.KATAKANA) ||
+                (unicodeBlock === Character.UnicodeBlock.KATAKANA_PHONETIC_EXTENSIONS) ||
+                (unicodeBlock === Character.UnicodeBlock.HANGUL_COMPATIBILITY_JAMO) ||
+                (unicodeBlock === Character.UnicodeBlock.HANGUL_JAMO) ||
+                (unicodeBlock === Character.UnicodeBlock.HANGUL_SYLLABLES) ||
+                (unicodeBlock === Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS) ||
+                (unicodeBlock === Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A) ||
+                (unicodeBlock === Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B) ||
+                (unicodeBlock === Character.UnicodeBlock.CJK_COMPATIBILITY_FORMS) ||
+                (unicodeBlock === Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS) ||
+                (unicodeBlock === Character.UnicodeBlock.CJK_RADICALS_SUPPLEMENT) ||
+                (unicodeBlock === Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION) ||
+                (unicodeBlock === Character.UnicodeBlock.ENCLOSED_CJK_LETTERS_AND_MONTHS) ||
+                (unicodeBlock === Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS && c.code < 0xFF61)
+        )
     }
 
     fun isCharThai(c: Char): Boolean {
@@ -112,7 +120,10 @@ object TerminalTextUtils {
         return index
     }
 
-    fun getStringCharacterIndex(s: String?, columnIndex: Int): Int {
+    fun getStringCharacterIndex(
+        s: String?,
+        columnIndex: Int,
+    ): Int {
         val text = s ?: return 0
         var index = 0
         var counter = 0
@@ -128,9 +139,16 @@ object TerminalTextUtils {
         return index
     }
 
-    fun fitString(string: String?, availableColumnSpace: Int): String? = fitString(string, 0, availableColumnSpace)
+    fun fitString(
+        string: String?,
+        availableColumnSpace: Int,
+    ): String? = fitString(string, 0, availableColumnSpace)
 
-    fun fitString(string: String?, fromColumn: Int, availableColumnSpace: Int): String? {
+    fun fitString(
+        string: String?,
+        fromColumn: Int,
+        availableColumnSpace: Int,
+    ): String? {
         var available = availableColumnSpace
         if (available <= 0) {
             return ""
@@ -161,7 +179,10 @@ object TerminalTextUtils {
         return out.toString()
     }
 
-    fun getWordWrappedText(maxWidth: Int, vararg lines: String?): List<String?> {
+    fun getWordWrappedText(
+        maxWidth: Int,
+        vararg lines: String?,
+    ): List<String?> {
         if (maxWidth <= 0) {
             return lines.asList()
         }
@@ -177,15 +198,15 @@ object TerminalTextUtils {
                 val text = row ?: ""
                 val characterIndexMax = getStringCharacterIndex(text, maxWidth)
                 var characterIndex = characterIndexMax
-                while (characterIndex >= 0
-                    && !Character.isSpaceChar(text[characterIndex])
-                    && !isCharCJK(text[characterIndex])
+                while (characterIndex >= 0 &&
+                    !Character.isSpaceChar(text[characterIndex]) &&
+                    !isCharCJK(text[characterIndex])
                 ) {
                     characterIndex--
                 }
-                if (characterIndex >= 0
-                    && characterIndex < characterIndexMax
-                    && isCharCJK(text[characterIndex])
+                if (characterIndex >= 0 &&
+                    characterIndex < characterIndexMax &&
+                    isCharCJK(text[characterIndex])
                 ) {
                     characterIndex++
                 }
@@ -226,7 +247,11 @@ object TerminalTextUtils {
         return result
     }
 
-    fun updateModifiersFromCSICode(controlSequence: String, target: StyleSet<*>?, original: StyleSet<*>?) {
+    fun updateModifiersFromCSICode(
+        controlSequence: String,
+        target: StyleSet<*>?,
+        original: StyleSet<*>?,
+    ) {
         if (target == null || original == null || controlSequence.length < 3) {
             return
         }

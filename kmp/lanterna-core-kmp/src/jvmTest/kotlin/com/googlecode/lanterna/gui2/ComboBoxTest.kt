@@ -18,11 +18,9 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
-
 import java.io.IOException
 import java.util.TimeZone
 import java.util.regex.Pattern
@@ -46,7 +44,10 @@ class ComboBoxTest : TestBase() {
         }
         comboBoxCJK.addItem("维基百科人人可編輯的自由百科全書")
         comboBoxCJK.addItem("ウィキペディアは誰でも編集できるフリー百科事典です")
-        comboBoxCJK.addItem("위키백과는 전 세계 여러 언어로 만들어 나가는 자유 백과사전으로, 누구나 참여하실 수 있습니다.")
+        comboBoxCJK.addItem(
+            "위키백과는 전 세계 여러 언어로 만들어 나가는 자유 백과사전으로, " +
+                "누구나 참여하실 수 있습니다.",
+        )
         comboBoxCJK.addItem("This is a string without double-width characters")
         comboBoxCJK.setPreferredSize(TerminalSize(13, 1))
 
@@ -60,32 +61,35 @@ class ComboBoxTest : TestBase() {
         mainPanel.addComponent(EmptySpace(TerminalSize.ONE))
 
         val textBoxNewItem = TextBox(TerminalSize(20, 1))
-        val buttonAddItem = Button("Add") {
-            comboBoxEditable.addItem(textBoxNewItem.text)
-            comboBoxReadOnly.addItem(textBoxNewItem.text)
-            textBoxNewItem.setText("")
-            window.focusedInteractable = textBoxNewItem
-        }
+        val buttonAddItem =
+            Button("Add") {
+                comboBoxEditable.addItem(textBoxNewItem.text)
+                comboBoxReadOnly.addItem(textBoxNewItem.text)
+                textBoxNewItem.setText("")
+                window.focusedInteractable = textBoxNewItem
+            }
         val textBoxSetSelectedIndex = TextBox(TerminalSize(20, 1), "0")
         textBoxSetSelectedIndex.setValidationPattern(Pattern.compile("-?[0-9]+"))
-        val buttonSetSelectedIndex = Button("Set Selected Index") {
-            try {
-                val selectedIndex = textBoxSetSelectedIndex.text.toInt()
-                comboBoxEditable.setSelectedIndex(selectedIndex)
-                comboBoxReadOnly.setSelectedIndex(selectedIndex)
-            } catch (e: Exception) {
-                MessageDialog.showMessageDialog(requireNotNull(textGUI), e::class.java.name, e.message, MessageDialogButton.OK)
+        val buttonSetSelectedIndex =
+            Button("Set Selected Index") {
+                try {
+                    val selectedIndex = textBoxSetSelectedIndex.text.toInt()
+                    comboBoxEditable.setSelectedIndex(selectedIndex)
+                    comboBoxReadOnly.setSelectedIndex(selectedIndex)
+                } catch (e: Exception) {
+                    MessageDialog.showMessageDialog(requireNotNull(textGUI), e::class.java.name, e.message, MessageDialogButton.OK)
+                }
             }
-        }
         val textBoxSetSelectedItem = TextBox(TerminalSize(20, 1))
-        val buttonSetSelectedItem = Button("Set Selected Item") {
-            try {
-                comboBoxEditable.setSelectedItem(textBoxSetSelectedItem.text)
-                comboBoxReadOnly.setSelectedItem(textBoxSetSelectedItem.text)
-            } catch (e: Exception) {
-                MessageDialog.showMessageDialog(requireNotNull(textGUI), e::class.java.name, e.message, MessageDialogButton.OK)
+        val buttonSetSelectedItem =
+            Button("Set Selected Item") {
+                try {
+                    comboBoxEditable.setSelectedItem(textBoxSetSelectedItem.text)
+                    comboBoxReadOnly.setSelectedItem(textBoxSetSelectedItem.text)
+                } catch (e: Exception) {
+                    MessageDialog.showMessageDialog(requireNotNull(textGUI), e::class.java.name, e.message, MessageDialogButton.OK)
+                }
             }
-        }
         mainPanel.addComponent(
             Panels.vertical(
                 Panels.horizontal(textBoxNewItem, buttonAddItem),

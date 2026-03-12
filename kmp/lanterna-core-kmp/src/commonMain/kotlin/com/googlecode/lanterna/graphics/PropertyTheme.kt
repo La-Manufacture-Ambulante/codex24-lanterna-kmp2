@@ -54,13 +54,13 @@ open class PropertyTheme : AbstractTheme {
     constructor(properties: Properties, ignoreUnknownClasses: Boolean = false) :
         super(
             instanceByClassName(properties.getProperty("postrenderer", "")) as WindowPostRenderer?,
-            instanceByClassName(properties.getProperty("windowdecoration", "")) as WindowDecorationRenderer?
+            instanceByClassName(properties.getProperty("windowdecoration", "")) as WindowDecorationRenderer?,
         ) {
         for (key in properties.stringPropertyNames()) {
             val definition = getDefinition(key)
             if (!addStyle(definition, getStyle(key), properties.getProperty(key)) && !ignoreUnknownClasses) {
                 throw IllegalArgumentException(
-                    "Unknown class encountered when parsing theme: '" + definition + "'"
+                    "Unknown class encountered when parsing theme: '" + definition + "'",
                 )
             }
         }
