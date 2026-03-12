@@ -18,64 +18,17 @@
  */
 package com.googlecode.lanterna.screen
 
-/**
- * What to do about the tab character when putting on a `Screen`. Since tabs are a bit special, their meaning
- * depends on which column the cursor is in when it's printed, we'll need to have some way to tell the Screen what to
- * do when encountering a tab character.
- *
- * @author martin
- */
 enum class TabBehaviour(private val replaceFactor: Int?, private val alignFactor: Int?) {
-    /**
-     * Tab characters are not replaced, this will probably have undefined and weird behaviour!
-     */
     IGNORE(null, null),
-
-    /**
-     * Tab characters are replaced with a single blank space, no matter where the tab was placed.
-     */
     CONVERT_TO_ONE_SPACE(1, null),
-
-    /**
-     * Tab characters are replaced with two blank spaces, no matter where the tab was placed.
-     */
     CONVERT_TO_TWO_SPACES(2, null),
-
-    /**
-     * Tab characters are replaced with three blank spaces, no matter where the tab was placed.
-     */
     CONVERT_TO_THREE_SPACES(3, null),
-
-    /**
-     * Tab characters are replaced with four blank spaces, no matter where the tab was placed.
-     */
     CONVERT_TO_FOUR_SPACES(4, null),
-
-    /**
-     * Tab characters are replaced with eight blank spaces, no matter where the tab was placed.
-     */
     CONVERT_TO_EIGHT_SPACES(8, null),
-
-    /**
-     * Tab characters are replaced with enough space characters to reach the next column index that is evenly divisible
-     * by 4, simulating a normal tab character when placed inside a text document.
-     */
     ALIGN_TO_COLUMN_4(null, 4),
-
-    /**
-     * Tab characters are replaced with enough space characters to reach the next column index that is evenly divisible
-     * by 8, simulating a normal tab character when placed inside a text document.
-     */
     ALIGN_TO_COLUMN_8(null, 8),
     ;
 
-    /**
-     * Given a string, being placed on the screen at column X, returns the same string with all tab characters (\t)
-     * replaced according to this TabBehaviour.
-     * @param string String that is going to be put to the screen, potentially containing tab characters
-     * @param columnIndex Column on the screen where the first character of the string is going to end up
-     * @return The input string with all tab characters replaced with spaces, according to this TabBehaviour
-     */
     fun replaceTabs(
         string: String,
         columnIndex: Int,
@@ -91,11 +44,6 @@ enum class TabBehaviour(private val replaceFactor: Int?, private val alignFactor
         return result
     }
 
-    /**
-     * Returns the String that can replace a tab at the specified position, according to this TabBehaviour.
-     * @param columnIndex Column index of where the tab character is placed
-     * @return String consisting of 1 or more space character
-     */
     fun getTabReplacement(columnIndex: Int): String {
         val replaceCount =
             when {

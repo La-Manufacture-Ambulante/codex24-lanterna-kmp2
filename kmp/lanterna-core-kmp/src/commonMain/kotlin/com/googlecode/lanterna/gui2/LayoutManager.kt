@@ -45,7 +45,7 @@ interface LayoutManager {
      */
     fun getPreferredSize(components: List<Component?>?): TerminalSize?
 
-    /**
+/**
      * Given a size constraint, update the location and size of each component in the component list by laying them out
      * in the available area. This method will call `setPosition(..)` and `setSize(..)` on the Components.
      * @param area Size available to this layout manager to lay out the components on
@@ -56,7 +56,7 @@ interface LayoutManager {
         components: List<Component?>?,
     )
 
-    /**
+/**
      * Returns true if the internal state of this LayoutManager has changed since the last call to doLayout. This will
      * tell the container that it needs to call doLayout again.
      * @return `true` if this layout manager's internal state has changed since the last call to `doLayout`

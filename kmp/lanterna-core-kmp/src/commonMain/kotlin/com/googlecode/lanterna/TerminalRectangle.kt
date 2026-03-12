@@ -18,14 +18,19 @@
  */
 package com.googlecode.lanterna
 
-import java.util.Objects
-
 /**
  * This class is immutable and cannot change its internal state after creation.
  *
  * @author ginkoblongata
  */
-class TerminalRectangle(
+class TerminalRectangle/**
+ * Creates a new terminal rect representation at the supplied x y position with the supplied width and height.
+ *
+ * Both width and height must be at least zero (non negative) as checked in TerminalSize.
+ *
+ * @param width number of columns
+ * @param height number of rows
+ */(
     val x: Int,
     val y: Int,
     /**
@@ -37,15 +42,22 @@ class TerminalRectangle(
      */
     val rows: Int,
 ) {
-    // One of the benefits of immutable: ease of usage.
-    val position: TerminalPosition = TerminalPosition(x, y)
-    val size: TerminalSize = TerminalSize(columns, rows)
+    // one of the benefits of immutable: ease of usage
+    val position: TerminalPosition?
+    val size: TerminalSize?
 
-    val xAndWidth: Int = x + columns
-    val yAndHeight: Int = y + rows
+    val xAndWidth: Int
+    val yAndHeight: Int
 
-    /**
-     * Creates a new rect based on this rect, but with a different width.
+    init {
+        position = TerminalPosition(x, y)
+        size = TerminalSize(columns, rows)
+        this.xAndWidth = x + columns
+        this.yAndHeight = y + rows
+    }
+
+/**
+     * Creates a new rect based on this rect, but with a different width
      * @param columns Width of the new rect, in columns
      * @return New rect based on this one, but with a new width
      */
@@ -53,8 +65,8 @@ class TerminalRectangle(
         return TerminalRectangle(x, y, columns, rows)
     }
 
-    /**
-     * Creates a new rect based on this rect, but with a different height.
+/**
+     * Creates a new rect based on this rect, but with a different height
      * @param rows Height of the new rect, in rows
      * @return New rect based on this one, but with a new height
      */
@@ -74,25 +86,26 @@ class TerminalRectangle(
         y: Int,
         op: Runnable?,
     ): Boolean {
-        if (this.x <= x && x < xAndWidth && this.y <= y && y < yAndHeight) {
-            requireNotNull(op).run()
+        if (this.x <= x && x < this.xAndWidth && this.y <= y && y < this.yAndHeight) {
+            op!!.run()
             return true
         }
         return false
     }
 
     override fun toString(): String {
-        return "{x: $x, y: $y, width: $columns, height: $rows}"
+        return "{x: " + x + ", y: " + y + ", width: " + columns + ", height: " + rows + "}"
     }
 
     override fun equals(obj: Any?): Boolean {
-        return obj != null &&
-            obj::class == this::class &&
-            Objects.equals(position, (obj as TerminalRectangle).position) &&
-            Objects.equals(size, obj.size)
+        if (obj == null || this::class != obj::class) {
+            return false
+        }
+        obj as TerminalRectangle
+        return position == obj.position && size == obj.size
     }
 
     override fun hashCode(): Int {
-        return Objects.hash(position, size)
+        return arrayOf(position, size).contentHashCode()
     }
 }

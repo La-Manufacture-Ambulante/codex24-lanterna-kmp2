@@ -92,6 +92,7 @@ class InputUITest : TestBase() {
 
     companion object {
         @Throws(IOException::class, InterruptedException::class)
+        @JvmStatic
         fun main(args: Array<String?>?) {
             InputUITest().run(args)
         }

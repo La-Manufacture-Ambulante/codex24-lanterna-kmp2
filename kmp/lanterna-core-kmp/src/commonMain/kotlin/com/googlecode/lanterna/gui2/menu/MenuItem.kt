@@ -32,102 +32,101 @@ import com.googlecode.lanterna.input.KeyStroke
 /**
  * This class is a single item that appears in a [Menu] with an optional action attached to it.
  */
-open class MenuItem
-    @JvmOverloads
-    constructor(
-        label: String?,
-        private val action: Runnable = Runnable {},
-    ) : AbstractInteractableComponent<MenuItem?>() {
-        val label: String
+open class MenuItem constructor(
+    label: String?,
+    private val action: Runnable = Runnable {},
+) : AbstractInteractableComponent<MenuItem?>() {
+    val label: String
 
-        init {
-            require(!label.isNullOrBlank()) { "Menu label is not allowed to be null or empty" }
-            this.label = label.trim()
-        }
+    init {
+        require(!label.isNullOrBlank()) { "Menu label is not allowed to be null or empty" }
+        this.label = label.trim()
+    }
 
-        public override fun setAccelerator(keyStroke: KeyStroke?): MenuItem? {
-            return super.setAccelerator(keyStroke)
-        }
+    public override fun setAccelerator(keyStroke: KeyStroke?): MenuItem? {
+        return super.setAccelerator(keyStroke)
+    }
 
-        public override fun getAccelerator(): KeyStroke? {
-            return super.getAccelerator()
-        }
+    public override fun getAccelerator(): KeyStroke? {
+        return super.getAccelerator()
+    }
 
-        override fun createDefaultRenderer(): InteractableRenderer<MenuItem?> {
-            return DefaultMenuItemRenderer()
-        }
+    override fun createDefaultRenderer(): InteractableRenderer<MenuItem?> {
+        return DefaultMenuItemRenderer()
+    }
 
-        protected open fun onActivated(): Boolean {
-            action.run()
-            return true
-        }
+    protected open fun onActivated(): Boolean {
+        action.run()
+        return true
+    }
 
-        override fun handleKeyStroke(keyStroke: KeyStroke): com.googlecode.lanterna.gui2.Interactable.Result? {
-            if (isActivationStroke(keyStroke)) {
-                if (onActivated()) {
-                    val activeBasePane: BasePane? = basePane
-                    if (activeBasePane is Window && activeBasePane.hints.orEmpty().contains(Window.Hint.MENU_POPUP)) {
-                        activeBasePane.close()
-                    }
+    override fun handleKeyStroke(keyStroke: KeyStroke): com.googlecode.lanterna.gui2.Interactable.Result? {
+        if (isActivationStroke(keyStroke) || isKeyboardAcceleratorStroke(keyStroke)) {
+            takeFocus()
+            if (onActivated()) {
+                val activeBasePane: BasePane? = basePane
+                if (activeBasePane is Window && activeBasePane.hints.orEmpty().contains(Window.Hint.MENU_POPUP)) {
+                    activeBasePane.close()
                 }
-                return com.googlecode.lanterna.gui2.Interactable.Result.HANDLED
-            } else if (isMouseMove(keyStroke)) {
-                takeFocus()
-                return com.googlecode.lanterna.gui2.Interactable.Result.HANDLED
             }
-            return super.handleKeyStroke(keyStroke)
+            return com.googlecode.lanterna.gui2.Interactable.Result.HANDLED
+        } else if (isMouseMove(keyStroke)) {
+            takeFocus()
+            return com.googlecode.lanterna.gui2.Interactable.Result.HANDLED
+        }
+        return super.handleKeyStroke(keyStroke)
+    }
+
+    abstract class MenuItemRenderer : InteractableRenderer<MenuItem?>
+
+    class DefaultMenuItemRenderer : MenuItemRenderer() {
+        override fun getCursorLocation(component: MenuItem?): TerminalPosition? {
+            return null
         }
 
-        abstract class MenuItemRenderer : InteractableRenderer<MenuItem?>
+        override fun getPreferredSize(component: MenuItem?): TerminalSize {
+            val activeComponent = component ?: return TerminalSize.ONE
+            var preferredWidth = TerminalTextUtils.getColumnWidth(activeComponent.label) + 2
+            if (activeComponent is Menu && activeComponent.parent !is MenuBar) {
+                preferredWidth += 2
+            }
+            return TerminalSize(preferredWidth, 1)
+        }
 
-        class DefaultMenuItemRenderer : MenuItemRenderer() {
-            override fun getCursorLocation(component: MenuItem?): TerminalPosition? {
-                return null
+        override fun drawComponent(
+            graphics: TextGUIGraphics?,
+            menuItem: MenuItem?,
+        ) {
+            val activeGraphics = graphics ?: return
+            val activeMenuItem = menuItem ?: return
+            val themeDefinition = activeMenuItem.themeDefinition ?: return
+
+            if (activeMenuItem.isFocused) {
+                activeGraphics.applyThemeStyle(themeDefinition.selected)
+            } else {
+                activeGraphics.applyThemeStyle(themeDefinition.normal)
             }
 
-            override fun getPreferredSize(component: MenuItem?): TerminalSize {
-                val activeComponent = component ?: return TerminalSize.ONE
-                var preferredWidth = TerminalTextUtils.getColumnWidth(activeComponent.label) + 2
-                if (activeComponent is Menu && activeComponent.parent !is MenuBar) {
-                    preferredWidth += 2
-                }
-                return TerminalSize(preferredWidth, 1)
+            val activeLabel = activeMenuItem.label ?: return
+            val leadingCharacter = activeLabel.substring(0, 1)
+
+            activeGraphics.fill(' ')
+            activeGraphics.putString(1, 0, activeLabel)
+            if (activeMenuItem is Menu && activeMenuItem.parent !is MenuBar) {
+                activeGraphics.putString(
+                    (activeGraphics.size ?: TerminalSize.ZERO).columns - 2,
+                    0,
+                    Symbols.TRIANGLE_RIGHT_POINTING_BLACK.toString(),
+                )
             }
-
-            override fun drawComponent(
-                graphics: TextGUIGraphics?,
-                menuItem: MenuItem?,
-            ) {
-                val activeGraphics = graphics ?: return
-                val activeMenuItem = menuItem ?: return
-                val themeDefinition = activeMenuItem.themeDefinition ?: return
-
+            if (activeLabel.isNotEmpty()) {
                 if (activeMenuItem.isFocused) {
-                    activeGraphics.applyThemeStyle(themeDefinition.selected)
+                    activeGraphics.applyThemeStyle(themeDefinition.active)
                 } else {
-                    activeGraphics.applyThemeStyle(themeDefinition.normal)
+                    activeGraphics.applyThemeStyle(themeDefinition.preLight)
                 }
-
-                val activeLabel = activeMenuItem.label ?: return
-                val leadingCharacter = activeLabel.substring(0, 1)
-
-                activeGraphics.fill(' ')
-                activeGraphics.putString(1, 0, activeLabel)
-                if (activeMenuItem is Menu && activeMenuItem.parent !is MenuBar) {
-                    activeGraphics.putString(
-                        (activeGraphics.size ?: TerminalSize.ZERO).columns - 2,
-                        0,
-                        Symbols.TRIANGLE_RIGHT_POINTING_BLACK.toString(),
-                    )
-                }
-                if (activeLabel.isNotEmpty()) {
-                    if (activeMenuItem.isFocused) {
-                        activeGraphics.applyThemeStyle(themeDefinition.active)
-                    } else {
-                        activeGraphics.applyThemeStyle(themeDefinition.preLight)
-                    }
-                    activeGraphics.putString(1, 0, leadingCharacter)
-                }
+                activeGraphics.putString(1, 0, leadingCharacter)
             }
         }
     }
+}

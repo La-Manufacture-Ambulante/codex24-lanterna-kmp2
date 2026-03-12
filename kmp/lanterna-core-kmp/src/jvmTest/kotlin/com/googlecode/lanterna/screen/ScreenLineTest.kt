@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.screen
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextColor
@@ -30,7 +31,7 @@ import java.util.Random
  * @author martin
  */
 object ScreenLineTest {
-    private var circleLastPosition: TerminalPosition? = null
+    private var CIRCLE_LAST_POSITION: TerminalPosition? = null
 
     @Throws(IOException::class, InterruptedException::class)
     fun main(args: Array<String?>) {
@@ -72,28 +73,28 @@ object ScreenLineTest {
             val p2: TerminalPosition?
             if (circle) {
                 p1 = TerminalPosition(size!!.columns / 2, size!!.rows / 2)
-                if (circleLastPosition == null) {
-                    circleLastPosition = TerminalPosition(0, 0)
-                } else if (circleLastPosition!!.row == 0) {
-                    if (circleLastPosition!!.column < size!!.columns - 1) {
-                        circleLastPosition = circleLastPosition!!.withRelativeColumn(1)
+                if (CIRCLE_LAST_POSITION == null) {
+                    CIRCLE_LAST_POSITION = TerminalPosition(0, 0)
+                } else if (CIRCLE_LAST_POSITION!!.row == 0) {
+                    if (CIRCLE_LAST_POSITION!!.column < size!!.columns - 1) {
+                        CIRCLE_LAST_POSITION = CIRCLE_LAST_POSITION!!.withRelativeColumn(1)
                     } else {
-                        circleLastPosition = circleLastPosition!!.withRelativeRow(1)
+                        CIRCLE_LAST_POSITION = CIRCLE_LAST_POSITION!!.withRelativeRow(1)
                     }
-                } else if (circleLastPosition!!.row < size!!.rows - 1) {
-                    if (circleLastPosition!!.column == 0) {
-                        circleLastPosition = circleLastPosition!!.withRelativeRow(-1)
+                } else if (CIRCLE_LAST_POSITION!!.row < size!!.rows - 1) {
+                    if (CIRCLE_LAST_POSITION!!.column == 0) {
+                        CIRCLE_LAST_POSITION = CIRCLE_LAST_POSITION!!.withRelativeRow(-1)
                     } else {
-                        circleLastPosition = circleLastPosition!!.withRelativeRow(1)
+                        CIRCLE_LAST_POSITION = CIRCLE_LAST_POSITION!!.withRelativeRow(1)
                     }
                 } else {
-                    if (circleLastPosition!!.column > 0) {
-                        circleLastPosition = circleLastPosition!!.withRelativeColumn(-1)
+                    if (CIRCLE_LAST_POSITION!!.column > 0) {
+                        CIRCLE_LAST_POSITION = CIRCLE_LAST_POSITION!!.withRelativeColumn(-1)
                     } else {
-                        circleLastPosition = circleLastPosition!!.withRelativeRow(-1)
+                        CIRCLE_LAST_POSITION = CIRCLE_LAST_POSITION!!.withRelativeRow(-1)
                     }
                 }
-                p2 = circleLastPosition
+                p2 = CIRCLE_LAST_POSITION
             } else {
                 p1 = TerminalPosition(random.nextInt(size!!.columns), random.nextInt(size!!.rows))
                 p2 = TerminalPosition(random.nextInt(size!!.columns), random.nextInt(size!!.rows))

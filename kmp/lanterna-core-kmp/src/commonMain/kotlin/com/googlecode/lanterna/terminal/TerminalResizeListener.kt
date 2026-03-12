@@ -24,7 +24,7 @@ import com.googlecode.lanterna.TerminalSize
  * Listener interface that can be used to be alerted on terminal resizing
  */
 interface TerminalResizeListener {
-    /**
+/**
      * The terminal has changed its size, most likely because the user has resized the window. This callback is
      * invoked by something inside the lanterna library, it could be a signal handler thread, it could be the AWT
      * thread, it could be something else, so please be careful with what kind of operation you do in here. Also,
@@ -34,7 +34,7 @@ interface TerminalResizeListener {
      * @param terminal Terminal that was resized
      * @param newSize Size of the terminal after the resize
      */
-    @SuppressWarnings("UnusedParameters")
+    @Suppress("unused")
     fun onResized(
         terminal: Terminal?,
         newSize: TerminalSize?,

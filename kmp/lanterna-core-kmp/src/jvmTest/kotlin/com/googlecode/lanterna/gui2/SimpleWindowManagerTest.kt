@@ -18,8 +18,9 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TestUtils
-import java.io.IOException
+import java.io.*
 import java.util.Arrays
 import java.util.Collections
 
@@ -28,6 +29,7 @@ import java.util.Collections
  * @author Martin
  */
 class SimpleWindowManagerTest : TestBase() {
+    @Override
     fun init(textGUI: WindowBasedTextGUI) {
         val mainWindow = BasicWindow("Choose test")
         val contentArea = Panel()
@@ -39,8 +41,8 @@ class SimpleWindowManagerTest : TestBase() {
         contentArea.addComponent(Button("Undecorated + Full-screen window", { textGUI.addWindow(FullScreenWindow(false)) }))
         contentArea.addComponent(Button("Expanded window", { textGUI.addWindow(ExpandedWindow(true)) }))
         contentArea.addComponent(Button("Undecorated + Expanded window", { textGUI.addWindow(ExpandedWindow(false)) }))
-        contentArea.addComponent(Button("Close", Runnable { mainWindow.close() }))
-        mainWindow.component = contentArea
+        contentArea.addComponent(Button("Close", Runnable({ mainWindow.close() })))
+        mainWindow.setComponent(contentArea)
         textGUI.addWindow(mainWindow)
     }
 
@@ -108,7 +110,7 @@ class SimpleWindowManagerTest : TestBase() {
 
     private open class TestWindow internal constructor(title: String) : BasicWindow(title) {
         init {
-            component = Button("Close", Runnable { this.close() })
+            setComponent(Button("Close", Runnable({ this.close() })))
             setCloseWindowWithEscape(true)
         }
     }

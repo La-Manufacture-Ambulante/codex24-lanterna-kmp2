@@ -1,21 +1,3 @@
-/*
- * This file is part of lanterna (https://github.com/mabe02/lanterna).
- *
- * lanterna is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2010-2020 Martin Berglund
- */
 package com.googlecode.lanterna.graphics
 
 import com.googlecode.lanterna.SGR
@@ -23,42 +5,25 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.internal.compat.EnumSet
 import com.googlecode.lanterna.screen.ScreenTranslator
 import com.googlecode.lanterna.screen.TabBehaviour
 import com.googlecode.lanterna.screen.WrapBehaviour
-import java.util.Arrays
-import java.util.EnumSet
 
-/**
- * Helper writer that forwards text operations to a [TextGraphics] backend while tracking cursor position, wrapping,
- * and ANSI style state.
- * @param backend Text graphics backend to write to
- */
 class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraphicsWriter?>, ScreenTranslator {
-    /**
-     * Current cursor position in backend coordinates.
-     */
     var cursorPosition: TerminalPosition = TerminalPosition(0, 0)
 
     override var foregroundColor: TextColor? = null
     override var backgroundColor: TextColor? = null
 
-    private val style = EnumSet.noneOf(SGR::class.java)
+    private val style = EnumSet.noneOf(SGR::class)
 
     override val activeModifiers: EnumSet<SGR>
         get() = EnumSet.copyOf(style)
 
-    /**
-     * Wrap behavior used when writing text that does not fit on the current line.
-     */
     var wrapBehaviour: WrapBehaviour = WrapBehaviour.WORD
-
-    /**
-     * Whether ANSI style escape sequences embedded in strings should be parsed and applied.
-     */
     var isStyleable: Boolean = true
 
-    // A word kept together when word-wrapping may contain multiple style chunks.
     private data class WordPart(
         val word: String,
         val wordLen: Int,
@@ -71,9 +36,6 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
         setStyleFrom(backend)
     }
 
-    /**
-     * Writes a string at the current cursor position and advances the cursor according to wrapping and style rules.
-     */
     fun putString(string: String): TextGraphicsWriter {
         val wordPart = StringBuilder()
         val originalStyle = StyleSet.Set(backend)
@@ -122,14 +84,14 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
 
                 else -> {
                     when {
-                        Character.isISOControl(ch) -> {
+                        com.googlecode.lanterna.internal.compat.Character.isISOControl(ch) -> {
                             flush(wordPart, wordLen)
                             wordLen = 0
                             linefeed(1)
                             putControlChar(ch)
                         }
 
-                        Character.isWhitespace(ch) -> {
+                        com.googlecode.lanterna.internal.compat.Character.isWhitespace(ch) -> {
                             flush(wordPart, wordLen)
                             wordLen = 0
                             backend.setCharacter(cursorPosition, ch)
@@ -146,7 +108,6 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
 
                         else -> {
                             if (wrapBehaviour.keepWords()) {
-                                // If a word is longer than a full line starting at column 0, this still does not split it.
                                 wordPart.append(ch)
                                 wordLen++
                             } else {
@@ -174,18 +135,13 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
         if (wrapBehaviour.allowLineFeed()) {
             val wantWrap = curCol > 0 && lenToFit > spaceLeft
             if (lenToFit < 0 || (wantWrap && wrapBehaviour.autoWrap())) {
-                // TODO: Clear to end of current line?
                 cursorPosition = requireNotNull(cursorPosition.withColumn(0)?.withRelativeRow(1))
             }
         } else if (lenToFit < 0) {
-            // Encode explicit line feed.
             putControlChar('\n')
         }
     }
 
-    /**
-     * Writes an explicit control character representation at the cursor.
-     */
     fun putControlChar(ch: Char) {
         val subst =
             when (ch) {
@@ -227,7 +183,6 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
         if (word.isNotEmpty()) {
             val chunk = WordPart(word.toString(), wordLen, StyleSet.Set(this))
             chunkQueue.add(chunk)
-            // Reset builder for the next word part.
             word.setLength(0)
         }
     }
@@ -249,46 +204,30 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
             offset = chunk.wordLen
         }
         chunkQueue.clear()
-        // Place the cursor immediately behind the written word.
         cursorPosition = requireNotNull(cursorPosition.withColumn(col + offset))
         backend.setStyleFrom(this)
     }
 
-    /**
-     * Sets writer foreground color.
-     */
     override fun setForegroundColor(foregroundColor: TextColor?): TextGraphicsWriter {
         this.foregroundColor = foregroundColor
         return this
     }
 
-    /**
-     * Sets writer background color.
-     */
     override fun setBackgroundColor(backgroundColor: TextColor?): TextGraphicsWriter {
         this.backgroundColor = backgroundColor
         return this
     }
 
-    /**
-     * Enables one or more SGR modifiers.
-     */
     override fun enableModifiers(vararg modifiers: SGR?): TextGraphicsWriter {
-        style.addAll(Arrays.asList(*modifiers).filterNotNull())
+        style.addAll(listOf(*modifiers).filterNotNull())
         return this
     }
 
-    /**
-     * Disables one or more SGR modifiers.
-     */
     override fun disableModifiers(vararg modifiers: SGR?): TextGraphicsWriter {
-        style.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
+        style.removeAll(listOf(*modifiers).filterNotNull().toSet())
         return this
     }
 
-    /**
-     * Replaces active SGR modifier set.
-     */
     override fun setModifiers(modifiers: EnumSet<SGR>?): TextGraphicsWriter {
         style.clear()
         if (modifiers != null) {
@@ -311,9 +250,6 @@ class TextGraphicsWriter(private val backend: TextGraphics) : StyleSet<TextGraph
         return this
     }
 
-    /**
-     * Translates a position into screen coordinates. If [pos] is null, [cursorPosition] is translated.
-     */
     override fun toScreenPosition(pos: TerminalPosition?): TerminalPosition? {
         return backend.toScreenPosition(pos ?: cursorPosition)
     }

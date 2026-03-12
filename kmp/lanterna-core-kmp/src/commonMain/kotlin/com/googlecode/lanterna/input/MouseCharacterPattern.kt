@@ -19,7 +19,8 @@
 package com.googlecode.lanterna.input
 
 import com.googlecode.lanterna.TerminalPosition
-import java.util.regex.Pattern
+import com.googlecode.lanterna.internal.compat.Integer
+import com.googlecode.lanterna.internal.compat.Pattern
 
 /**
  * Pattern used to detect Xterm-protocol mouse events coming in on the standard input channel
@@ -63,91 +64,96 @@ class MouseCharacterPattern : CharacterPattern {
         }
 
         // converts the list of characters to a string
-        val seqAString = sequence.joinToString(separator = "")
+        val sequenceAsString = sequence.joinToString(separator = "")
 
         // Check if we match the regex
-        val matcher = pattern!!.matcher(seqAString)
-        if (matcher!!.matches()) {
-            var shiftDown = false
-            var altDown = false
-            var ctrlDown = false
-
-            // Get the button
-            val item = Integer.valueOf(matcher!!.group(1))
-            var button = 0
-
-            // if the 6th bit is set, then it's a wheel event then we check the 1st bit to know if it's up or down
-            if ((item and 0x40) != 0) {
-                if ((item and 0x1) == 0) {
-                    button = 4
-                } else {
-                    button = 5
-                }
-            } else if ((item and 0x2) != 0) {
-                button = 3
-            } else if ((item and 0x1) != 0) {
-                button = 1
-            } else if ((item and 0x1) == 0) {
-                button = 2
-            }
-
-            // Get the modifier keys (it seems that they do not are always reported correctly depending on the terminal)
-            if ((item and 0x4) != 0) {
-                shiftDown = true
-            }
-            if ((item and 0x8) != 0) {
-                altDown = true
-            }
-            if ((item and 0x10) != 0) {
-                ctrlDown = true
-            }
-
-            // Get the action
-            var actionType: MouseActionType? = null
-            if (matcher!!.group(4).equals("M")) {
-                actionType = MouseActionType.CLICK_DOWN
-            } else {
-                actionType = MouseActionType.CLICK_RELEASE
-            }
-
-            // Get the move and drag actions
-            if ((item and 0x20) != 0) {
-                if ((item and 0x3) != 0) {
-                    // In move mode, the bits 0, 1 are set in addition to the 6th bit
-                    actionType = MouseActionType.MOVE
-                    button = 0
-                } else {
-                    actionType = MouseActionType.DRAG
-                }
-            } else {
-                isMouseDown = (actionType === MouseActionType.CLICK_DOWN)
-            }
-
-            // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-            // coerce action types:
-            // when in between CLICK_DOWN and CLICK_RELEASE coerce MOVE to DRAG
-            // when not between CLICK_DOWN and CLICK_RELEASE coerce DRAG to MOVE
-            if (isMouseDown) {
-                if (actionType === MouseActionType.MOVE) {
-                    actionType = MouseActionType.DRAG
-                }
-            } else if (actionType === MouseActionType.DRAG) {
-                actionType = MouseActionType.MOVE
-            }
-            // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-            // Get the position
-            val pos = TerminalPosition(Integer.valueOf(matcher!!.group(2)) - 1, Integer.valueOf(matcher!!.group(3)) - 1)
-
-            val ma = MouseAction(actionType, button, pos, ctrlDown, altDown, shiftDown)
-            return CharacterPattern.Matching(ma) // yep
-        } else {
+        val matcher = PATTERN.matcher(sequenceAsString)
+        if (!matcher.matches()) {
             return CharacterPattern.Matching.NOT_YET // maybe later
         }
+
+        var shiftDown = false
+        var altDown = false
+        var ctrlDown = false
+
+        // Get the button
+        val item = Integer.valueOf(matcher.group(1))
+        var button = 0
+
+        // if the 6th bit is set, then it's a wheel event then we check the 1st bit to know if it's up or down
+        if ((item and 0x40) != 0) {
+            button =
+                if ((item and 0x1) == 0) {
+                    4
+                } else {
+                    5
+                }
+        } else if ((item and 0x2) != 0) {
+            button = 3
+        } else if ((item and 0x1) != 0) {
+            button = 1
+        } else if ((item and 0x1) == 0) {
+            button = 2
+        }
+
+        // Get the modifier keys (it seems that they do not are always reported correctly depending on the terminal)
+        if ((item and 0x4) != 0) {
+            shiftDown = true
+        }
+        if ((item and 0x8) != 0) {
+            altDown = true
+        }
+        if ((item and 0x10) != 0) {
+            ctrlDown = true
+        }
+
+        // Get the action
+        var actionType =
+            if (matcher.group(4) == "M") {
+                MouseActionType.CLICK_DOWN
+            } else {
+                MouseActionType.CLICK_RELEASE
+            }
+
+        // Get the move and drag actions
+        if ((item and 0x20) != 0) {
+            if ((item and 0x3) != 0) {
+                // In move mode, the bits 0, 1 are set in addition to the 6th bit
+                actionType = MouseActionType.MOVE
+                button = 0
+            } else {
+                actionType = MouseActionType.DRAG
+            }
+        } else {
+            isMouseDown = (actionType == MouseActionType.CLICK_DOWN)
+        }
+
+        // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        // coerce action types:
+        // when in between CLICK_DOWN and CLICK_RELEASE coerce MOVE to DRAG
+        // when not between CLICK_DOWN and CLICK_RELEASE coerce DRAG to MOVE
+        if (isMouseDown) {
+            if (actionType == MouseActionType.MOVE) {
+                actionType = MouseActionType.DRAG
+            }
+        } else if (actionType == MouseActionType.DRAG) {
+            actionType = MouseActionType.MOVE
+        }
+        // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+        // Get the position
+        val position =
+            TerminalPosition(
+                Integer.valueOf(matcher.group(2)) - 1,
+                Integer.valueOf(matcher.group(3)) - 1,
+            )
+
+        val mouseAction = MouseAction(actionType, button, position, ctrlDown, altDown, shiftDown)
+        return CharacterPattern.Matching(mouseAction) // yep
     }
 
     companion object {
         private val HEADER = charArrayOf(KeyDecodingProfile.ESC_CODE, '[', '<')
-        private val pattern = Pattern.compile(".*\\<([0-9]+);([0-9]+);([0-9]+)([mM])")
+        private val PATTERN = Pattern.compile(".*\\<([0-9]+);([0-9]+);([0-9]+)([mM])")
     }
 }

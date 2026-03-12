@@ -49,9 +49,7 @@ object TestACS {
             field!!.setAccessible(true)
             try {
                 System.out.printf(
-                    "%1\$s = %2\$s%n%3\$s",
-                    field!!.getName(),
-                    field!!.get(null),
+                    "%1\$s = %2\$s%n%3\$s", field!!.getName(), field!!.get(null),
                     if (NEW_LINE_AFTER.contains(field!!.getName())) System.lineSeparator() else "",
                 )
             } catch (e: IllegalAccessException) {

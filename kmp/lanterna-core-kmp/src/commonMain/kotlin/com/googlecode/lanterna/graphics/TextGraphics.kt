@@ -48,21 +48,21 @@ import com.googlecode.lanterna.screen.TabBehaviour
  * @author Martin
  */
 interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
-    /**
+/**
      * Returns the size of the area that this text graphic can write to. Any attempts of placing characters outside of
      * this area will be silently ignored.
      * @return Size of the writable area that this TextGraphics can write too
      */
     val size: TerminalSize?
 
-    /**
+/**
      * Retrieves the current tab behaviour, which is what the TextGraphics will use when expanding \t characters to
      * spaces.
      * @return Current behaviour in use for expanding tab to spaces
      */
     val tabBehaviour: TabBehaviour?
 
-    /**
+/**
      * Creates a new TextGraphics of the same type as this one, using the same underlying subsystem. Using this method,
      * you need to specify a section of the current TextGraphics valid area that this new TextGraphic shall be
      * restricted to. If you call `newTextGraphics(TerminalPosition.TOP_LEFT_CORNER, textGraphics.getSize())`
@@ -82,21 +82,21 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         size: TerminalSize?,
     ): TextGraphics?
 
-    /**
+/**
      * Sets the behaviour to use when expanding tab characters (\t) to spaces
      * @param tabBehaviour Behaviour to use when expanding tabs to spaces
      * @return Itself
      */
     fun setTabBehaviour(tabBehaviour: TabBehaviour?): TextGraphics?
 
-    /**
+/**
      * Fills the entire writable area with a single character, using current foreground color, background color and modifiers.
      * @param c Character to fill the writable area with
      * @return Itself
      */
     fun fill(c: Char): TextGraphics?
 
-    /**
+/**
      * Sets the character at the current position to the specified value
      * @param column column of the location to set the character
      * @param row row of the location to set the character
@@ -109,7 +109,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: Char,
     ): TextGraphics?
 
-    /**
+/**
      * Sets the character at the current position to the specified value, without using the current colors and modifiers
      * of this TextGraphics.
      * @param column column of the location to set the character
@@ -123,7 +123,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: TextCharacter?,
     ): TextGraphics?
 
-    /**
+/**
      * Sets the character at the current position to the specified value
      * @param position position of the location to set the character
      * @param character Character to set at the current position
@@ -134,7 +134,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: Char,
     ): TextGraphics?
 
-    /**
+/**
      * Sets the character at the current position to the specified value, without using the current colors and modifiers
      * of this TextGraphics.
      * @param position position of the location to set the character
@@ -146,7 +146,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: TextCharacter?,
     ): TextGraphics?
 
-    /**
+/**
      * Draws a line from a specified position to a specified position, using a supplied character. The current
      * foreground color, background color and modifiers will be applied.
      * @param fromPoint From where to draw the line
@@ -160,7 +160,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: Char,
     ): TextGraphics?
 
-    /**
+/**
      * Draws a line from a specified position to a specified position, using a supplied TextCharacter. The current
      * foreground color, background color and modifiers of this TextGraphics will not be used and will not be modified
      * by this call.
@@ -175,7 +175,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: TextCharacter?,
     ): TextGraphics?
 
-    /**
+/**
      * Draws a line from a specified position to a specified position, using a supplied character. The current
      * foreground color, background color and modifiers will be applied.
      * @param fromX Column of the starting position to draw the line from (inclusive)
@@ -193,7 +193,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: Char,
     ): TextGraphics?
 
-    /**
+/**
      * Draws a line from a specified position to a specified position, using a supplied character. The current
      * foreground color, background color and modifiers of this TextGraphics will not be used and will not be modified
      * by this call.
@@ -212,7 +212,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: TextCharacter?,
     ): TextGraphics?
 
-    /**
+/**
      * Draws the outline of a triangle on the screen, using a supplied character. The triangle will begin at p1, go
      * through p2 and then p3 and then back to p1. The current foreground color, background color and modifiers will be
      * applied.
@@ -229,7 +229,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: Char,
     ): TextGraphics?
 
-    /**
+/**
      * Draws the outline of a triangle on the screen, using a supplied character. The triangle will begin at p1, go
      * through p2 and then p3 and then back to p1. The current foreground color, background color and modifiers of this
      * TextGraphics will not be used and will not be modified by this call.
@@ -246,7 +246,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: TextCharacter?,
     ): TextGraphics?
 
-    /**
+/**
      * Draws a filled triangle, using a supplied character. The triangle will begin at p1, go
      * through p2 and then p3 and then back to p1. The current foreground color, background color and modifiers will be
      * applied.
@@ -263,7 +263,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: Char,
     ): TextGraphics?
 
-    /**
+/**
      * Draws a filled triangle, using a supplied character. The triangle will begin at p1, go
      * through p2 and then p3 and then back to p1. The current foreground color, background color and modifiers of this
      * TextGraphics will not be used and will not be modified by this call.
@@ -280,7 +280,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: TextCharacter?,
     ): TextGraphics?
 
-    /**
+/**
      * Draws the outline of a rectangle with a particular character (and the currently active colors and
      * modifiers). The topLeft coordinate is inclusive.
      *
@@ -301,7 +301,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: Char,
     ): TextGraphics?
 
-    /**
+/**
      * Draws the outline of a rectangle with a particular TextCharacter, ignoring the current colors and modifiers of
      * this TextGraphics.
      *
@@ -322,7 +322,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: TextCharacter?,
     ): TextGraphics?
 
-    /**
+/**
      * Takes a rectangle and fills it with a particular character (and the currently active colors and
      * modifiers). The topLeft coordinate is inclusive.
      *
@@ -343,7 +343,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: Char,
     ): TextGraphics?
 
-    /**
+/**
      * Takes a rectangle and fills it using a particular TextCharacter, ignoring the current colors and modifiers of
      * this TextGraphics. The topLeft coordinate is inclusive.
      *
@@ -364,7 +364,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         character: TextCharacter?,
     ): TextGraphics?
 
-    /**
+/**
      * Takes a TextImage and draws it on the surface this TextGraphics is targeting, given the coordinates on the target
      * that is specifying where the top-left corner of the image should be drawn. This is equivalent of calling
      * `drawImage(topLeft, image, TerminalPosition.TOP_LEFT_CORNER, image.getSize()`.
@@ -377,7 +377,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         image: TextImage?,
     ): TextGraphics?
 
-    /**
+/**
      * Takes a TextImage and draws it on the surface this TextGraphics is targeting, given the coordinates on the target
      * that is specifying where the top-left corner of the image should be drawn. This overload will only draw a portion
      * of the image to the target, as specified by the two last parameters.
@@ -396,7 +396,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         sourceImageSize: TerminalSize?,
     ): TextGraphics?
 
-    /**
+/**
      * Puts a string on the screen at the specified position with the current colors and modifiers. If the string
      * contains newlines (\r and/or \n), the method will stop at the character before that; you have to manage
      * multi-line strings yourself! The current foreground color, background color and modifiers will be applied.
@@ -411,7 +411,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         string: String?,
     ): TextGraphics?
 
-    /**
+/**
      * Shortcut to calling:
      * <pre>
      * putString(position.getColumn(), position.getRow(), string);
@@ -425,7 +425,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         string: String?,
     ): TextGraphics?
 
-    /**
+/**
      * Puts a string on the screen at the specified position with the current colors and modifiers. If the string
      * contains newlines (\r and/or \n), the method will stop at the character before that; you have to manage
      * multi-line strings yourself! If you supplied any extra modifiers, they will be applied when writing the string
@@ -445,7 +445,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         vararg optionalExtraModifiers: SGR?,
     ): TextGraphics?
 
-    /**
+/**
      * Shortcut to calling:
      * <pre>
      * putString(position.getColumn(), position.getRow(), string, modifiers, optionalExtraModifiers);
@@ -463,7 +463,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         vararg optionalExtraModifiers: SGR?,
     ): TextGraphics?
 
-    /**
+/**
      * Puts a string on the screen at the specified position with the current colors and modifiers. If the string
      * contains newlines (\r and/or \n), the method will stop at the character before that; you have to manage
      * multi-line strings yourself! If you supplied any extra modifiers, they will be applied when writing the string
@@ -481,7 +481,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         extraModifiers: Collection<SGR?>?,
     ): TextGraphics?
 
-    /**
+/**
      * Puts a string on the screen at the specified position with the current colors and modifiers. If the string
      * contains newlines (\r and/or \n), the method will stop at the character before that; you have to manage
      * multi-line strings yourself!
@@ -513,7 +513,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         string: String?,
     ): TextGraphics?
 
-    /**
+/**
      * Puts a string on the screen at the specified position with the current colors and modifiers. If the string
      * contains newlines (\r and/or \n), the method will stop at the character before that; you have to manage
      * multi-line strings yourself!
@@ -543,7 +543,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
         string: String?,
     ): TextGraphics?
 
-    /**
+/**
      * Returns the character at the specific position in the terminal. May return `null` if the TextGraphics
      * implementation doesn't support it or doesn't know what the character is.
      * @param position Position to return the character for
@@ -551,7 +551,7 @@ interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {
      */
     fun getCharacter(position: TerminalPosition?): TextCharacter?
 
-    /**
+/**
      * Returns the character at the specific position in the terminal. May return `null` if the TextGraphics
      * implementation doesn't support it or doesn't know what the character is.
      * @param column Column to return the character for

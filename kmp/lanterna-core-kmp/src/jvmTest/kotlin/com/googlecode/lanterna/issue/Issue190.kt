@@ -18,21 +18,12 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.gui2.ActionListBox
-import com.googlecode.lanterna.gui2.BasicWindow
-import com.googlecode.lanterna.gui2.BorderLayout
-import com.googlecode.lanterna.gui2.Borders
-import com.googlecode.lanterna.gui2.Button
-import com.googlecode.lanterna.gui2.DefaultWindowManager
-import com.googlecode.lanterna.gui2.EmptySpace
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI
-import com.googlecode.lanterna.gui2.Panel
-import com.googlecode.lanterna.gui2.TextBox
-import com.googlecode.lanterna.gui2.Window
-import com.googlecode.lanterna.screen.TerminalScreen
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.screen.*
+import com.googlecode.lanterna.terminal.*
 import java.io.IOException
 import java.util.Arrays
 

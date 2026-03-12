@@ -30,7 +30,7 @@ import com.googlecode.lanterna.TerminalSize
  * @author Martin
  */
 interface WindowDecorationRenderer {
-    /**
+/**
      * Draws the window decorations for a particular window and returns a new TextGraphics that is locked to the area
      * inside of the window decorations where the content of the window should be drawn
      * @param textGUI Which TextGUI is calling
@@ -44,7 +44,7 @@ interface WindowDecorationRenderer {
         window: Window?,
     ): TextGUIGraphics?
 
-    /**
+/**
      * Retrieves the full size of the window, including all window decorations, given all components inside the window.
      * @param window Window to calculate size for
      * @param contentAreaSize Size of the content area in the window
@@ -55,7 +55,7 @@ interface WindowDecorationRenderer {
         contentAreaSize: TerminalSize?,
     ): TerminalSize?
 
-    /**
+/**
      * Returns how much to step right and down from the top left position of the window decorations to the top left
      * position of the actual window
      * @param window Window to get the offset for

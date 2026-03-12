@@ -23,27 +23,22 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.internal.compat.EnumSet
 import com.googlecode.lanterna.screen.TabBehaviour
-import java.util.Arrays
-import java.util.EnumSet
 
 /**
  * TextGraphics implementation that does nothing, but has a pre-defined size.
- * @param size Size to report from [getSize]
  */
 internal class NullTextGraphics(override val size: TerminalSize?) : TextGraphics {
     override var foregroundColor: TextColor? = TextColor.ANSI.DEFAULT
     override var backgroundColor: TextColor? = TextColor.ANSI.DEFAULT
     override var tabBehaviour: TabBehaviour? = TabBehaviour.ALIGN_TO_COLUMN_4
 
-    private val styleSet: EnumSet<SGR> = EnumSet.noneOf(SGR::class.java)
+    private val styleSet: EnumSet<SGR> = EnumSet.noneOf(SGR::class)
 
     override val activeModifiers: EnumSet<SGR>
         get() = EnumSet.copyOf(styleSet)
 
-    /**
-     * Returns `null` because this graphics never writes to a real screen position.
-     */
     override fun toScreenPosition(pos: TerminalPosition?): TerminalPosition? {
         return null
     }
@@ -66,12 +61,12 @@ internal class NullTextGraphics(override val size: TerminalSize?) : TextGraphics
     }
 
     override fun enableModifiers(vararg modifiers: SGR?): TextGraphics {
-        styleSet.addAll(Arrays.asList(*modifiers).filterNotNull())
+        styleSet.addAll(listOf(*modifiers).filterNotNull())
         return this
     }
 
     override fun disableModifiers(vararg modifiers: SGR?): TextGraphics {
-        styleSet.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
+        styleSet.removeAll(listOf(*modifiers).filterNotNull().toSet())
         return this
     }
 

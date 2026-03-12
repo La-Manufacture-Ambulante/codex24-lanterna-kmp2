@@ -19,13 +19,10 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.bundle.LocalizedUIBundle
-import java.util.Locale
+import com.googlecode.lanterna.internal.compat.Locale
 
 /**
- * Set of predefined localized string.<br>
- * All this strings are localized by using [LocalizedUIBundle].<br>
- * Changing the locale by calling [Locale.setDefault].
- * @author silveryocha.
+ * Set of predefined localized string.
  */
 class LocalizedString private constructor(
     private val bundleKey: String,
@@ -36,59 +33,16 @@ class LocalizedString private constructor(
     }
 
     companion object {
-        /**
-         * "OK"
-         */
         val OK = LocalizedString("short.label.ok", "OK")
-
-        /**
-         * "Cancel"
-         */
         val Cancel = LocalizedString("short.label.cancel", "Cancel")
-
-        /**
-         * "Yes"
-         */
         val Yes = LocalizedString("short.label.yes", "Yes")
-
-        /**
-         * "No"
-         */
         val No = LocalizedString("short.label.no", "No")
-
-        /**
-         * "Close"
-         */
         val Close = LocalizedString("short.label.close", "Close")
-
-        /**
-         * "Abort"
-         */
         val Abort = LocalizedString("short.label.abort", "Abort")
-
-        /**
-         * "Ignore"
-         */
         val Ignore = LocalizedString("short.label.ignore", "Ignore")
-
-        /**
-         * "Retry"
-         */
         val Retry = LocalizedString("short.label.retry", "Retry")
-
-        /**
-         * "Continue"
-         */
         val Continue = LocalizedString("short.label.continue", "Continue")
-
-        /**
-         * "Open"
-         */
         val Open = LocalizedString("short.label.open", "Open")
-
-        /**
-         * "Save"
-         */
         val Save = LocalizedString("short.label.save", "Save")
     }
 }

@@ -19,9 +19,10 @@
 package com.googlecode.lanterna
 
 import com.googlecode.lanterna.graphics.StyleSet
+import com.googlecode.lanterna.internal.compat.Character
+import com.googlecode.lanterna.internal.compat.LinkedList
 import com.googlecode.lanterna.screen.TabBehaviour
-import java.util.ArrayList
-import java.util.LinkedList
+import kotlin.collections.ArrayList
 
 /**
  * This class contains a number of utility methods for analyzing characters and strings in a terminal context.
@@ -64,29 +65,32 @@ object TerminalTextUtils {
     }
 
     fun isCharCJK(c: Char): Boolean {
-        val unicodeBlock = Character.UnicodeBlock.of(c)
+        val unicodeBlock = com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.of(c)
         return (
-            (unicodeBlock === Character.UnicodeBlock.HIRAGANA) ||
-                (unicodeBlock === Character.UnicodeBlock.KATAKANA) ||
-                (unicodeBlock === Character.UnicodeBlock.KATAKANA_PHONETIC_EXTENSIONS) ||
-                (unicodeBlock === Character.UnicodeBlock.HANGUL_COMPATIBILITY_JAMO) ||
-                (unicodeBlock === Character.UnicodeBlock.HANGUL_JAMO) ||
-                (unicodeBlock === Character.UnicodeBlock.HANGUL_SYLLABLES) ||
-                (unicodeBlock === Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS) ||
-                (unicodeBlock === Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A) ||
-                (unicodeBlock === Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B) ||
-                (unicodeBlock === Character.UnicodeBlock.CJK_COMPATIBILITY_FORMS) ||
-                (unicodeBlock === Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS) ||
-                (unicodeBlock === Character.UnicodeBlock.CJK_RADICALS_SUPPLEMENT) ||
-                (unicodeBlock === Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION) ||
-                (unicodeBlock === Character.UnicodeBlock.ENCLOSED_CJK_LETTERS_AND_MONTHS) ||
-                (unicodeBlock === Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS && c.code < 0xFF61)
+            (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.HIRAGANA) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.KATAKANA) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.KATAKANA_PHONETIC_EXTENSIONS) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.HANGUL_COMPATIBILITY_JAMO) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.HANGUL_JAMO) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.HANGUL_SYLLABLES) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.CJK_COMPATIBILITY_FORMS) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.CJK_RADICALS_SUPPLEMENT) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION) ||
+                (unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.ENCLOSED_CJK_LETTERS_AND_MONTHS) ||
+                (
+                    unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS &&
+                        c.code < 0xFF61
+                )
         )
     }
 
     fun isCharThai(c: Char): Boolean {
-        val unicodeBlock = Character.UnicodeBlock.of(c)
-        return unicodeBlock === Character.UnicodeBlock.THAI
+        val unicodeBlock = com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.of(c)
+        return unicodeBlock === com.googlecode.lanterna.internal.compat.Character.UnicodeBlock.THAI
     }
 
     fun isCharDoubleWidth(c: Char): Boolean = isCharCJK(c)
@@ -97,8 +101,6 @@ object TerminalTextUtils {
 
     fun getColumnWidth(s: String?): Int = getColumnIndex(s, s!!.length)
 
-    @Throws(StringIndexOutOfBoundsException::class)
-    @JvmOverloads
     fun getColumnIndex(
         s: String?,
         stringCharacterIndex: Int,
@@ -199,7 +201,7 @@ object TerminalTextUtils {
                 val characterIndexMax = getStringCharacterIndex(text, maxWidth)
                 var characterIndex = characterIndexMax
                 while (characterIndex >= 0 &&
-                    !Character.isSpaceChar(text[characterIndex]) &&
+                    !com.googlecode.lanterna.internal.compat.Character.isSpaceChar(text[characterIndex]) &&
                     !isCharCJK(text[characterIndex])
                 ) {
                     characterIndex--
@@ -218,7 +220,10 @@ object TerminalTextUtils {
                 } else {
                     characterIndex = maxOf(characterIndex, 1)
                     result.add(text.substring(0, characterIndex))
-                    while (characterIndex < text.length && Character.isSpaceChar(text[characterIndex])) {
+                    while (
+                        characterIndex < text.length &&
+                        com.googlecode.lanterna.internal.compat.Character.isSpaceChar(text[characterIndex])
+                    ) {
                         characterIndex++
                     }
                     if (characterIndex < text.length) {

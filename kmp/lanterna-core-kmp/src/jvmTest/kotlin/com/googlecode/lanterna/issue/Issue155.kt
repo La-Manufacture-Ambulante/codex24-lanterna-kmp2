@@ -18,16 +18,9 @@
  */
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.gui2.BasicWindow
-import com.googlecode.lanterna.gui2.Button
-import com.googlecode.lanterna.gui2.CheckBoxList
-import com.googlecode.lanterna.gui2.DefaultWindowManager
-import com.googlecode.lanterna.gui2.EmptySpace
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI
-import com.googlecode.lanterna.gui2.Panel
-import com.googlecode.lanterna.gui2.Panels
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI
+import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
@@ -65,7 +58,7 @@ object Issue155 {
         return Panels.vertical(
             Button("Open Dialog (and crush stuff)", openDialog(gui, window, nextCounter)),
             checkBoxList,
-            Button("Quit", Runnable { window.close() }),
+            Button("Quit", com.googlecode.lanterna.Runnable({ window.close() })),
         )
     }
 
@@ -73,11 +66,9 @@ object Issue155 {
         gui: WindowBasedTextGUI,
         window: BasicWindow,
         counter: Int,
-    ): Runnable {
-        return Runnable {
-            ActionListDialogBuilder().setCanCancel(
-                true,
-            ).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui)
+    ): com.googlecode.lanterna.Runnable {
+        return com.googlecode.lanterna.Runnable {
+            ActionListDialogBuilder().setCanCancel(true).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui)
         }
     }
 
@@ -85,7 +76,7 @@ object Issue155 {
         gui: WindowBasedTextGUI,
         window: BasicWindow,
         counter: Int,
-    ): Runnable {
-        return Runnable { window.component = createUi(gui, window, counter) }
+    ): com.googlecode.lanterna.Runnable {
+        return com.googlecode.lanterna.Runnable { window.setComponent(createUi(gui, window, counter)) }
     }
 }

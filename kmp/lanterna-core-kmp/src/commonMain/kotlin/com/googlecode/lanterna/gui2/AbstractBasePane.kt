@@ -26,8 +26,8 @@ import com.googlecode.lanterna.gui2.menu.MenuBar
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.atomic.AtomicBoolean
+import com.googlecode.lanterna.internal.compat.AtomicBoolean
+import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
 
 /**
  * This abstract implementation of [BasePane] has the common code shared by all different concrete implementations.
@@ -79,14 +79,13 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
         }
 
     override var theme: Theme?
-        @Synchronized get() {
+        get() {
             if (themeOverride != null) {
                 return themeOverride
             }
             return textGUI?.theme
         }
-
-        @Synchronized set(value) {
+        set(value) {
             themeOverride = value
             invalidate()
         }
@@ -110,7 +109,7 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
             return
         }
 
-        graphics.applyThemeStyle(theme?.getDefinition(Window::class.java)?.normal)
+        graphics.applyThemeStyle(theme?.getDefinition(Window::class)?.normal)
         graphics.fill(' ')
 
         val graphicsSize = graphics.size ?: TerminalSize.ZERO
@@ -138,6 +137,10 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
 
         var handled = doHandleInput(event)
         if (!handled) {
+            handled = doHandleAccelerator(event)
+        }
+
+        if (!handled) {
             val hasBeenHandled = AtomicBoolean(false)
             for (listener in listeners) {
                 listener.onUnhandledInput(self(), event, hasBeenHandled)
@@ -148,6 +151,37 @@ abstract class AbstractBasePane<T : BasePane?> protected constructor() : BasePan
     }
 
     protected abstract fun self(): T
+
+    private fun doHandleAccelerator(key: KeyStroke): Boolean {
+        if (key.keyType == KeyType.MOUSE_EVENT) {
+            return false
+        }
+
+        val activeMenuBar = menuBar
+        if (activeMenuBar != null && activeMenuBar.handleInput(key)) {
+            return true
+        }
+
+        return handleAccelerator(contentHolder, key)
+    }
+
+    private fun handleAccelerator(
+        container: Container,
+        key: KeyStroke,
+    ): Boolean {
+        for (child in container.children.orEmpty()) {
+            if (child is Button && child.handleInput(key) == Result.HANDLED) {
+                return true
+            }
+
+            if (child is Container && child.childCount > 0) {
+                if (handleAccelerator(child, key)) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
 
     private fun doHandleInput(key: KeyStroke): Boolean {
         if (key.keyType == KeyType.MOUSE_EVENT) {

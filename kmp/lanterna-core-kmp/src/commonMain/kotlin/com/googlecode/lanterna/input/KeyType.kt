@@ -73,19 +73,19 @@ enum class KeyType {
     KEY_TYPE,
 
     // "Virtual" KeyStroke types
-
     /**
-     * This value is used internally by Lanterna to track cursor position and is not expected from public input reads.
+     * This value is only internally within Lanterna to understand where the cursor currently is, it's not expected to
+     * be returned by the API to an input read call.
      */
     CURSOR_LOCATION,
 
-    /**
+/**
      * This type is not really a key stroke but actually a 'catch-all' for mouse related events. Please note that mouse
      * event capturing must first be enabled and many terminals don't suppose this extension at all.
      */
     MOUSE_EVENT,
 
-    /**
+/**
      * This value is returned when you try to read input and the input stream has been closed.
      */
     EOF,

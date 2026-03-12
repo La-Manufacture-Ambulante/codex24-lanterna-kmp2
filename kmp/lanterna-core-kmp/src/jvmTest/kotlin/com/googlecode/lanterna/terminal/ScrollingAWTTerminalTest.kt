@@ -121,6 +121,7 @@ class ScrollingAWTTerminalTest : JFrame() {
     companion object {
         private const val serialVersionUID = 1L
 
+        @JvmStatic
         fun main(args: Array<String?>?) {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())

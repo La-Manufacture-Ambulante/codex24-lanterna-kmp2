@@ -77,13 +77,11 @@ abstract class AbstractInteractableComponent<T : AbstractInteractableComponent<T
             // By default no action
         }
 
-        @Synchronized
         protected open fun setAccelerator(keyStroke: KeyStroke?): T? {
             accelerator = keyStroke
             return self()
         }
 
-        @Synchronized
         protected open fun getAccelerator(): KeyStroke? {
             return accelerator
         }
@@ -106,7 +104,6 @@ abstract class AbstractInteractableComponent<T : AbstractInteractableComponent<T
 
         abstract override fun createDefaultRenderer(): InteractableRenderer<T?>?
 
-        @Synchronized
         override fun setEnabled(enabled: Boolean): T? {
             enabledBacking = enabled
             if (!enabled && isFocused) {
@@ -115,7 +112,6 @@ abstract class AbstractInteractableComponent<T : AbstractInteractableComponent<T
             return self()
         }
 
-        @Synchronized
         override fun handleInput(keyStroke: KeyStroke?): Interactable.Result? {
             if (keyStroke == null) {
                 return Interactable.Result.UNHANDLED
@@ -150,7 +146,6 @@ abstract class AbstractInteractableComponent<T : AbstractInteractableComponent<T
             return Interactable.Result.UNHANDLED
         }
 
-        @Synchronized
         override fun setInputFilter(inputFilter: InputFilter?): T? {
             inputFilterBacking = inputFilter
             return self()
@@ -174,7 +169,7 @@ abstract class AbstractInteractableComponent<T : AbstractInteractableComponent<T
                 } else {
                     false
                 }
-            return isMouseActivation
+            return isFocused && isMouseActivation
         }
 
         fun isActivationStroke(keyStroke: KeyStroke?): Boolean {

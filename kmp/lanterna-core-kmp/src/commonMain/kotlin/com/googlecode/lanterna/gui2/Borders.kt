@@ -37,32 +37,26 @@ object Borders {
         ReverseBevel,
     }
 
-    @JvmOverloads
     fun singleLine(title: String = ""): Border {
         return SingleLine(title, BorderStyle.Solid)
     }
 
-    @JvmOverloads
     fun singleLineBevel(title: String = ""): Border {
         return SingleLine(title, BorderStyle.Bevel)
     }
 
-    @JvmOverloads
     fun singleLineReverseBevel(title: String = ""): Border {
         return SingleLine(title, BorderStyle.ReverseBevel)
     }
 
-    @JvmOverloads
     fun doubleLine(title: String = ""): Border {
         return DoubleLine(title, BorderStyle.Solid)
     }
 
-    @JvmOverloads
     fun doubleLineBevel(title: String = ""): Border {
         return DoubleLine(title, BorderStyle.Bevel)
     }
 
-    @JvmOverloads
     fun doubleLineReverseBevel(title: String = ""): Border {
         return DoubleLine(title, BorderStyle.ReverseBevel)
     }
@@ -76,7 +70,7 @@ object Borders {
         }
 
         override fun toString(): String {
-            return javaClass.simpleName + "{" + title + "}"
+            return (this::class.simpleName ?: "Border") + "{" + title + "}"
         }
     }
 
@@ -128,7 +122,7 @@ object Borders {
             val titleLeft = getTitleLeft(theme)
             val titleRight = getTitleRight(theme)
 
-            val themeDefinition: ThemeDefinition = theme.getDefinition(AbstractBorder::class.java) ?: return
+            val themeDefinition: ThemeDefinition = theme.getDefinition(AbstractBorder::class) ?: return
             if (borderStyle == BorderStyle.Bevel) {
                 g.applyThemeStyle(themeDefinition.preLight)
             } else {
@@ -432,42 +426,42 @@ object Borders {
 
     private class SingleLineRenderer(borderStyle: BorderStyle) : AbstractBorderRenderer(borderStyle) {
         override fun getTopRightCorner(theme: Theme): Char {
-            return theme.getDefinition(SingleLine::class.java)?.getCharacter("TOP_RIGHT_CORNER", Symbols.SINGLE_LINE_TOP_RIGHT_CORNER)
+            return theme.getDefinition(SingleLine::class)?.getCharacter("TOP_RIGHT_CORNER", Symbols.SINGLE_LINE_TOP_RIGHT_CORNER)
                 ?: Symbols.SINGLE_LINE_TOP_RIGHT_CORNER
         }
 
         override fun getBottomRightCorner(theme: Theme): Char {
-            return theme.getDefinition(SingleLine::class.java)?.getCharacter("BOTTOM_RIGHT_CORNER", Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER)
+            return theme.getDefinition(SingleLine::class)?.getCharacter("BOTTOM_RIGHT_CORNER", Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER)
                 ?: Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER
         }
 
         override fun getTopLeftCorner(theme: Theme): Char {
-            return theme.getDefinition(SingleLine::class.java)?.getCharacter("TOP_LEFT_CORNER", Symbols.SINGLE_LINE_TOP_LEFT_CORNER)
+            return theme.getDefinition(SingleLine::class)?.getCharacter("TOP_LEFT_CORNER", Symbols.SINGLE_LINE_TOP_LEFT_CORNER)
                 ?: Symbols.SINGLE_LINE_TOP_LEFT_CORNER
         }
 
         override fun getBottomLeftCorner(theme: Theme): Char {
-            return theme.getDefinition(SingleLine::class.java)?.getCharacter("BOTTOM_LEFT_CORNER", Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER)
+            return theme.getDefinition(SingleLine::class)?.getCharacter("BOTTOM_LEFT_CORNER", Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER)
                 ?: Symbols.SINGLE_LINE_BOTTOM_LEFT_CORNER
         }
 
         override fun getVerticalLine(theme: Theme): Char {
-            return theme.getDefinition(SingleLine::class.java)?.getCharacter("VERTICAL_LINE", Symbols.SINGLE_LINE_VERTICAL)
+            return theme.getDefinition(SingleLine::class)?.getCharacter("VERTICAL_LINE", Symbols.SINGLE_LINE_VERTICAL)
                 ?: Symbols.SINGLE_LINE_VERTICAL
         }
 
         override fun getHorizontalLine(theme: Theme): Char {
-            return theme.getDefinition(SingleLine::class.java)?.getCharacter("HORIZONTAL_LINE", Symbols.SINGLE_LINE_HORIZONTAL)
+            return theme.getDefinition(SingleLine::class)?.getCharacter("HORIZONTAL_LINE", Symbols.SINGLE_LINE_HORIZONTAL)
                 ?: Symbols.SINGLE_LINE_HORIZONTAL
         }
 
         override fun getTitleLeft(theme: Theme): Char {
-            return theme.getDefinition(SingleLine::class.java)?.getCharacter("TITLE_LEFT", Symbols.SINGLE_LINE_HORIZONTAL)
+            return theme.getDefinition(SingleLine::class)?.getCharacter("TITLE_LEFT", Symbols.SINGLE_LINE_HORIZONTAL)
                 ?: Symbols.SINGLE_LINE_HORIZONTAL
         }
 
         override fun getTitleRight(theme: Theme): Char {
-            return theme.getDefinition(SingleLine::class.java)?.getCharacter("TITLE_RIGHT", Symbols.SINGLE_LINE_HORIZONTAL)
+            return theme.getDefinition(SingleLine::class)?.getCharacter("TITLE_RIGHT", Symbols.SINGLE_LINE_HORIZONTAL)
                 ?: Symbols.SINGLE_LINE_HORIZONTAL
         }
     }
@@ -480,42 +474,42 @@ object Borders {
 
     private class DoubleLineRenderer(borderStyle: BorderStyle) : AbstractBorderRenderer(borderStyle) {
         override fun getTopRightCorner(theme: Theme): Char {
-            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("TOP_RIGHT_CORNER", Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER)
+            return theme.getDefinition(DoubleLine::class)?.getCharacter("TOP_RIGHT_CORNER", Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER)
                 ?: Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER
         }
 
         override fun getBottomRightCorner(theme: Theme): Char {
-            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("BOTTOM_RIGHT_CORNER", Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER)
+            return theme.getDefinition(DoubleLine::class)?.getCharacter("BOTTOM_RIGHT_CORNER", Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER)
                 ?: Symbols.DOUBLE_LINE_BOTTOM_RIGHT_CORNER
         }
 
         override fun getTopLeftCorner(theme: Theme): Char {
-            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("TOP_LEFT_CORNER", Symbols.DOUBLE_LINE_TOP_LEFT_CORNER)
+            return theme.getDefinition(DoubleLine::class)?.getCharacter("TOP_LEFT_CORNER", Symbols.DOUBLE_LINE_TOP_LEFT_CORNER)
                 ?: Symbols.DOUBLE_LINE_TOP_LEFT_CORNER
         }
 
         override fun getBottomLeftCorner(theme: Theme): Char {
-            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("BOTTOM_LEFT_CORNER", Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER)
+            return theme.getDefinition(DoubleLine::class)?.getCharacter("BOTTOM_LEFT_CORNER", Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER)
                 ?: Symbols.DOUBLE_LINE_BOTTOM_LEFT_CORNER
         }
 
         override fun getVerticalLine(theme: Theme): Char {
-            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("VERTICAL_LINE", Symbols.DOUBLE_LINE_VERTICAL)
+            return theme.getDefinition(DoubleLine::class)?.getCharacter("VERTICAL_LINE", Symbols.DOUBLE_LINE_VERTICAL)
                 ?: Symbols.DOUBLE_LINE_VERTICAL
         }
 
         override fun getHorizontalLine(theme: Theme): Char {
-            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("HORIZONTAL_LINE", Symbols.DOUBLE_LINE_HORIZONTAL)
+            return theme.getDefinition(DoubleLine::class)?.getCharacter("HORIZONTAL_LINE", Symbols.DOUBLE_LINE_HORIZONTAL)
                 ?: Symbols.DOUBLE_LINE_HORIZONTAL
         }
 
         override fun getTitleLeft(theme: Theme): Char {
-            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("TITLE_LEFT", Symbols.DOUBLE_LINE_HORIZONTAL)
+            return theme.getDefinition(DoubleLine::class)?.getCharacter("TITLE_LEFT", Symbols.DOUBLE_LINE_HORIZONTAL)
                 ?: Symbols.DOUBLE_LINE_HORIZONTAL
         }
 
         override fun getTitleRight(theme: Theme): Char {
-            return theme.getDefinition(DoubleLine::class.java)?.getCharacter("TITLE_RIGHT", Symbols.DOUBLE_LINE_HORIZONTAL)
+            return theme.getDefinition(DoubleLine::class)?.getCharacter("TITLE_RIGHT", Symbols.DOUBLE_LINE_HORIZONTAL)
                 ?: Symbols.DOUBLE_LINE_HORIZONTAL
         }
     }

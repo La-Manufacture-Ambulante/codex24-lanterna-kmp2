@@ -1,121 +1,117 @@
-/*
- * This file is part of lanterna (https://github.com/mabe02/lanterna).
- *
- * lanterna is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2010-2020 Martin Berglund
- */
 package com.googlecode.lanterna.bundle
 
-import java.io.IOException
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.net.URL
-import java.net.URLConnection
-import java.nio.charset.StandardCharsets
-import java.text.MessageFormat
-import java.util.Locale
-import java.util.PropertyResourceBundle
-import java.util.ResourceBundle
+import com.googlecode.lanterna.internal.compat.Locale
+import com.googlecode.lanterna.internal.compat.Properties
+import com.googlecode.lanterna.internal.compat.StringReader
 
 /**
  * This class permits to deal easily with bundles.
  * @author silveryocha
  */
-abstract class BundleLocator protected constructor(private val bundleName: String?) {
-    /**
-     * Method that centralizes the way to get the value associated to a bundle key.
-     * @param locale the locale
-     * @param key the key searched for
-     * @param parameters the parameters to apply to the value associated to the key
-     * @return the formatted value associated to the given key; null if no value exists for the given key
-     */
+abstract class BundleLocator protected constructor(
+    private val bundleName: String?,
+) {
     protected fun getBundleKeyValue(
         locale: Locale?,
         key: String?,
         vararg parameters: Any?,
     ): String? {
-        var value: String? = null
-        try {
-            value = getBundle(locale).getString(key)
-        } catch (_: Exception) {
-        }
-        return if (value != null) MessageFormat.format(value, *parameters) else null
-    }
-
-    /**
-     * Gets the right bundle.
-     * A cache is handled as well as concurrent accesses.
-     * @param locale the locale
-     * @return the instance of the bundle
-     */
-    private fun getBundle(locale: Locale?): ResourceBundle {
-        return try {
-            ResourceBundle.getBundle(bundleName, locale, loader, UTF8Control())
-        } catch (_: UnsupportedOperationException) {
-            /*
-             * Custom Control implementations aren't supported with named modules. Since
-             * Java 9 property bundles use UTF-8 as default encoding, we can just load the
-             * bundle with the default Control.
-             */
-            ResourceBundle.getBundle(bundleName, locale, loader)
-        }
-    }
-
-    // Taken from:
-    // http://stackoverflow.com/questions/4659929/how-to-use-utf-8-in-resource-properties-with-resourcebundle
-    // I politely refuse to use ISO-8859-1 in these *multi-lingual* property files.
-    // All credits to poster BalusC (http://stackoverflow.com/users/157882/balusc)
-    private class UTF8Control : ResourceBundle.Control() {
-        @Throws(IOException::class)
-        override fun newBundle(
-            baseName: String?,
-            locale: Locale?,
-            format: String?,
-            loader: ClassLoader?,
-            reload: Boolean,
-        ): ResourceBundle? {
-            // The below is a copy of the default implementation.
-            val bundleName = toBundleName(baseName, locale)
-            val resourceName = toResourceName(bundleName, "properties")
-            var bundle: ResourceBundle? = null
-            var stream: InputStream? = null
-            if (reload) {
-                val url: URL? = loader?.getResource(resourceName)
-                if (url != null) {
-                    val connection: URLConnection? = url.openConnection()
-                    if (connection != null) {
-                        connection.useCaches = false
-                        stream = connection.getInputStream()
-                    }
+        val safeBundle = bundleName ?: return null
+        val safeKey = key ?: return null
+        val requestedLanguage = normalizeLanguage(locale?.language)
+        val localized =
+            getBundleValue(safeBundle, requestedLanguage, safeKey)
+                ?: if (requestedLanguage != DEFAULT_LANGUAGE) {
+                    getBundleValue(safeBundle, DEFAULT_LANGUAGE, safeKey)
+                } else {
+                    null
                 }
-            } else {
-                stream = loader?.getResourceAsStream(resourceName)
-            }
-            if (stream != null) {
-                try {
-                    // Only this line is changed to make it read properties files as UTF-8.
-                    bundle = PropertyResourceBundle(InputStreamReader(stream, StandardCharsets.UTF_8))
-                } finally {
-                    stream.close()
-                }
-            }
-            return bundle
+        if (localized == null) {
+            return null
         }
+        return applyParameters(localized, parameters)
     }
 
     companion object {
-        private val loader = BundleLocator::class.java.classLoader
+        private const val DEFAULT_LANGUAGE = "en"
+        private val registeredBundles: MutableMap<String, MutableMap<String, MutableMap<String, String>>> = linkedMapOf()
+        private val loadedBundles: MutableMap<String, MutableMap<String, Map<String, String>>> = linkedMapOf()
+
+        fun register(
+            bundleName: String,
+            language: String,
+            entries: Map<String, String>,
+        ) {
+            val languageMap = registeredBundles.getOrPut(bundleName) { linkedMapOf() }
+            val keyMap = languageMap.getOrPut(language) { linkedMapOf() }
+            keyMap.putAll(entries)
+        }
+
+        private fun normalizeLanguage(language: String?): String {
+            return language?.takeIf { it.isNotBlank() } ?: DEFAULT_LANGUAGE
+        }
+
+        private fun getBundleValue(
+            bundleName: String,
+            language: String,
+            key: String,
+        ): String? {
+            val normalizedLanguage = normalizeLanguage(language)
+            return registeredBundles[bundleName]?.get(normalizedLanguage)?.get(key)
+                ?: loadBundle(bundleName, normalizedLanguage)[key]
+        }
+
+        private fun loadBundle(
+            bundleName: String,
+            language: String,
+        ): Map<String, String> {
+            val bundleCache = loadedBundles.getOrPut(bundleName) { linkedMapOf() }
+            return bundleCache.getOrPut(language) {
+                loadBundleFromResource(bundleName, language) ?: emptyMap()
+            }
+        }
+
+        private fun loadBundleFromResource(
+            bundleName: String,
+            language: String,
+        ): Map<String, String>? {
+            val resourcePath = toResourcePath(bundleName, language)
+            val raw = BundleResourceLoader.loadTextResource(resourcePath) ?: return null
+            return parseProperties(raw)
+        }
+
+        private fun toResourcePath(
+            bundleName: String,
+            language: String,
+        ): String {
+            val basePath = bundleName.replace('.', '/')
+            return if (language == DEFAULT_LANGUAGE) {
+                "$basePath.properties"
+            } else {
+                "${basePath}_$language.properties"
+            }
+        }
+
+        private fun parseProperties(raw: String): Map<String, String> {
+            val properties = Properties()
+            properties.load(StringReader(raw))
+            val values = linkedMapOf<String, String>()
+            for (name in properties.stringPropertyNames()) {
+                val value = properties.getProperty(name) ?: continue
+                values[name] = value
+            }
+            return values
+        }
+
+        private fun applyParameters(
+            template: String,
+            parameters: Array<out Any?>,
+        ): String {
+            var resolved = template
+            parameters.forEachIndexed { index, value ->
+                resolved = resolved.replace("{$index}", value?.toString() ?: "")
+            }
+            return resolved
+        }
     }
 }

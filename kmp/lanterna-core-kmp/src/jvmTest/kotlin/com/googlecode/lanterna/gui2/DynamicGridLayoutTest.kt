@@ -18,15 +18,16 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow
 import com.googlecode.lanterna.gui2.dialogs.ListSelectDialog
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialog
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder
+import com.googlecode.lanterna.internal.compat.Pattern
 import java.io.IOException
 import java.util.Random
-import java.util.regex.Pattern
 
 class DynamicGridLayoutTest : TestBase() {
     private val randomColor: TextColor
@@ -64,7 +65,7 @@ class DynamicGridLayoutTest : TestBase() {
         )
         mainPanel.addComponent(controlPanel)
 
-        window.component = mainPanel
+        window.setComponent(mainPanel)
         textGUI.addWindow(window)
     }
 
@@ -146,9 +147,9 @@ class DynamicGridLayoutTest : TestBase() {
                 columns!!.toString(),
             )
         gridPanel?.removeAllComponents()
-        gridPanel?.setLayoutManager(newGridLayout(columns.toInt()))
+        gridPanel?.setLayoutManager(newGridLayout(columns.intValue()))
 
-        for (i in 0 until (prepopulate?.toInt() ?: 0)) {
+        for (i in 0 until (prepopulate?.intValue() ?: 0)) {
             gridPanel?.addComponent(EmptySpace(randomColor, TerminalSize(4, 1)))
         }
     }
@@ -222,12 +223,12 @@ class DynamicGridLayoutTest : TestBase() {
 
             val okButton =
                 Button("OK", {
-                    gridLayout.setHorizontalSpacing(Integer.parseInt(textBoxHorizontalSpacing.text))
-                    gridLayout.setVerticalSpacing(Integer.parseInt(textBoxVerticalSpacing.text))
-                    gridLayout.setLeftMarginSize(Integer.parseInt(textBoxLeftMargin.text))
-                    gridLayout.setRightMarginSize(Integer.parseInt(textBoxRightMargin.text))
-                    gridLayout.setTopMarginSize(Integer.parseInt(textBoxTopMargin.text))
-                    gridLayout.setBottomMarginSize(Integer.parseInt(textBoxBottomMargin.text))
+                    gridLayout.setHorizontalSpacing(Integer.parseInt(textBoxHorizontalSpacing.getTextOrDefault("0")))
+                    gridLayout.setVerticalSpacing(Integer.parseInt(textBoxVerticalSpacing.getTextOrDefault("0")))
+                    gridLayout.setLeftMarginSize(Integer.parseInt(textBoxLeftMargin.getTextOrDefault("0")))
+                    gridLayout.setRightMarginSize(Integer.parseInt(textBoxRightMargin.getTextOrDefault("0")))
+                    gridLayout.setTopMarginSize(Integer.parseInt(textBoxTopMargin.getTextOrDefault("0")))
+                    gridLayout.setBottomMarginSize(Integer.parseInt(textBoxBottomMargin.getTextOrDefault("0")))
                     close()
                 })
             val cancelButton = Button("Cancel", Runnable({ this.close() }))
@@ -236,20 +237,16 @@ class DynamicGridLayoutTest : TestBase() {
                 Panels.horizontal(okButton, cancelButton)
                     .setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)),
             )
-            this.component = contentPane
+            setComponent(contentPane)
         }
     }
 
     private class GridLayoutDataEditor(component: Component) : DialogWindow("GridLayoutData Editor") {
         init {
 
-            var gridLayoutData: GridLayout.GridLayoutData? = component.layoutData as? GridLayout.GridLayoutData
+            var gridLayoutData: GridLayout.GridLayoutData? = component.getLayoutData() as GridLayout.GridLayoutData
             if (gridLayoutData == null) {
-                gridLayoutData =
-                    GridLayout.createLayoutData(
-                        GridLayout.Alignment.BEGINNING,
-                        GridLayout.Alignment.BEGINNING,
-                    ) as GridLayout.GridLayoutData
+                gridLayoutData = GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING) as GridLayout.GridLayoutData
             }
 
             val contentPane = Panel()
@@ -260,7 +257,7 @@ class DynamicGridLayoutTest : TestBase() {
             radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.CENTER)
             radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.END)
             radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.FILL)
-            radioBoxesHorizontalAlignment.checkedItem = gridLayoutData!!.horizontalAlignment
+            radioBoxesHorizontalAlignment.setCheckedItem(gridLayoutData!!.horizontalAlignment)
             contentPane.addComponent(radioBoxesHorizontalAlignment)
 
             contentPane.addComponent(
@@ -273,7 +270,7 @@ class DynamicGridLayoutTest : TestBase() {
             radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.CENTER)
             radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.END)
             radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.FILL)
-            radioBoxesVerticalAlignment.checkedItem = gridLayoutData!!.verticalAlignment
+            radioBoxesVerticalAlignment.setCheckedItem(gridLayoutData!!.verticalAlignment)
             contentPane.addComponent(radioBoxesVerticalAlignment)
 
             contentPane.addComponent(
@@ -318,20 +315,16 @@ class DynamicGridLayoutTest : TestBase() {
 
             val okButton =
                 Button("OK", {
-                    val horizontalAlignment =
-                        radioBoxesHorizontalAlignment.checkedItem as? GridLayout.Alignment
-                            ?: GridLayout.Alignment.BEGINNING
-                    val verticalAlignment =
-                        radioBoxesVerticalAlignment.checkedItem as? GridLayout.Alignment
-                            ?: GridLayout.Alignment.BEGINNING
+                    val horizontalAlignment = radioBoxesHorizontalAlignment.getCheckedItem() as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
+                    val verticalAlignment = radioBoxesVerticalAlignment.getCheckedItem() as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
                     component.setLayoutData(
                         GridLayout.createLayoutData(
                             horizontalAlignment,
                             verticalAlignment,
                             checkBoxGrabExtraHorizontalSpace.isChecked(),
                             checkBoxGrabExtraVerticalSpace.isChecked(),
-                            Integer.parseInt(textBoxHorizontalSpan.text),
-                            Integer.parseInt(textBoxVerticalSpan.text),
+                            Integer.parseInt(textBoxHorizontalSpan.getTextOrDefault("1")),
+                            Integer.parseInt(textBoxVerticalSpan.getTextOrDefault("1")),
                         ),
                     )
                     close()
@@ -342,7 +335,7 @@ class DynamicGridLayoutTest : TestBase() {
                 Panels.horizontal(okButton, cancelButton)
                     .setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)),
             )
-            this.component = contentPane
+            setComponent(contentPane)
         }
     }
 
@@ -353,14 +346,7 @@ class DynamicGridLayoutTest : TestBase() {
         }
 
         private val GOOD_COLORS =
-            arrayOf(
-                TextColor.ANSI.RED,
-                TextColor.ANSI.BLUE,
-                TextColor.ANSI.CYAN,
-                TextColor.ANSI.GREEN,
-                TextColor.ANSI.MAGENTA,
-                TextColor.ANSI.YELLOW,
-            )
+            arrayOf(TextColor.ANSI.RED, TextColor.ANSI.BLUE, TextColor.ANSI.CYAN, TextColor.ANSI.GREEN, TextColor.ANSI.MAGENTA, TextColor.ANSI.YELLOW)
         private val RANDOM = Random()
     }
 }

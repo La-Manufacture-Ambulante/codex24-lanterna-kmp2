@@ -18,7 +18,7 @@
  */
 package com.googlecode.lanterna
 
-import org.junit.Assert.assertEquals
+import org.junit.Assert.*
 import org.junit.Test
 import java.util.Arrays
 import java.util.Collections
@@ -241,32 +241,13 @@ class TerminalTextUtilsTest {
 
         assertEquals(
             "Incorrect word wrapping",
-            Arrays.asList(
-                "This is a rather",
-                "long text that",
-                "will demonstrate",
-                "a more real-world",
-                "example of how",
-                "word-wrapping is",
-                "applied on a",
-                "single line",
-            ),
-            TerminalTextUtils.getWordWrappedText(
-                17,
-                "This is a rather long text that will demonstrate a more real-world example " +
-                    "of how word-wrapping is applied on a single line",
-            ),
+            Arrays.asList("This is a rather", "long text that", "will demonstrate", "a more real-world", "example of how", "word-wrapping is", "applied on a", "single line"),
+            TerminalTextUtils.getWordWrappedText(17, "This is a rather long text that will demonstrate a more real-world example of how word-wrapping is applied on a single line"),
         )
 
         assertEquals(
             "Incorrect word wrapping",
-            Arrays.asList(
-                "This is a rather long text that",
-                "will demonstrate how",
-                "word-wrapping is applied on",
-                "texts that are already",
-                "split over multiple lines",
-            ),
+            Arrays.asList("This is a rather long text that", "will demonstrate how", "word-wrapping is applied on", "texts that are already", "split over multiple lines"),
             TerminalTextUtils.getWordWrappedText(
                 32,
                 "This is a rather long text that will demonstrate how",
@@ -349,10 +330,7 @@ class TerminalTextUtilsTest {
                 "ﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝﾞﾟ"
         )
 
-        private val FULL_WIDTH_ROMANJI = (
-            "！＂＃＄％＆＇（）＊＋，－．／０１２３４５６７８９：；＜＝＞？＠ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ" +
-                "［＼］＾＿｀ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ｛｜｝～｟｠"
-        )
+        private val FULL_WIDTH_ROMANJI = ("！＂＃＄％＆＇（）＊＋，－．／０１２３４５６７８９：；＜＝＞？＠ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ" + "［＼］＾＿｀ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ｛｜｝～｟｠")
 
         private val JOUYOU_KANJI = (
             "亜哀挨愛曖悪握圧扱宛嵐安案暗以衣位囲医依委威為畏胃尉異移萎偉椅彙意違維慰遺緯" +

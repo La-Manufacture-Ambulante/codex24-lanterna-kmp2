@@ -25,8 +25,8 @@ import com.googlecode.lanterna.graphics.ThemeDefinition
 import com.googlecode.lanterna.gui2.Direction
 import com.googlecode.lanterna.gui2.ScrollBar
 import com.googlecode.lanterna.gui2.TextGUIGraphics
-import java.util.ArrayList
-import java.util.TreeSet
+import com.googlecode.lanterna.internal.compat.TreeSet
+import kotlin.collections.ArrayList
 
 /**
  * Default implementation of [TableRenderer].
@@ -59,27 +59,22 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
             headerHorizontalBorderStyle != TableCellBorderStyle.NONE ||
                 cellHorizontalBorderStyle != TableCellBorderStyle.NONE
 
-    @Synchronized
     fun setHeaderVerticalBorderStyle(headerVerticalBorderStyle: TableCellBorderStyle?) {
         this.headerVerticalBorderStyle = headerVerticalBorderStyle ?: TableCellBorderStyle.NONE
     }
 
-    @Synchronized
     fun setHeaderHorizontalBorderStyle(headerHorizontalBorderStyle: TableCellBorderStyle?) {
         this.headerHorizontalBorderStyle = headerHorizontalBorderStyle ?: TableCellBorderStyle.NONE
     }
 
-    @Synchronized
     fun setCellVerticalBorderStyle(cellVerticalBorderStyle: TableCellBorderStyle?) {
         this.cellVerticalBorderStyle = cellVerticalBorderStyle ?: TableCellBorderStyle.NONE
     }
 
-    @Synchronized
     fun setCellHorizontalBorderStyle(cellHorizontalBorderStyle: TableCellBorderStyle?) {
         this.cellHorizontalBorderStyle = cellHorizontalBorderStyle ?: TableCellBorderStyle.NONE
     }
 
-    @Synchronized
     fun setExpandableColumns(expandableColumns: Collection<Int>?) {
         this.expandableColumns.clear()
         if (expandableColumns != null) {
@@ -87,7 +82,6 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         }
     }
 
-    @Synchronized
     override fun getPreferredSize(component: Table<V?>?): TerminalSize {
         val table = component ?: return TerminalSize.ZERO
         if (!table.isInvalid && cachedSize != null) {
@@ -122,7 +116,7 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
 
         if (selectedColumn != -1 && localViewLeftColumn > selectedColumn) {
             localViewLeftColumn = selectedColumn
-        } else if (selectedColumn != -1 && localViewLeftColumn <= selectedColumn - visibleColumns) {
+        } else if (selectedColumn != 1 && localViewLeftColumn <= selectedColumn - visibleColumns) {
             localViewLeftColumn = kotlin.math.max(0, selectedColumn - visibleColumns + 1)
         }
         if (localViewTopRow > selectedRow) {
@@ -187,10 +181,8 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
                 preferredColumnSize += columnSize
             }
         } else {
-            for (
-            columnIndex in localViewLeftColumn until
-                kotlin.math.min(preferredColumnSizes.size, localViewLeftColumn + visibleColumns)
-            ) {
+            val lastVisibleColumn = kotlin.math.min(preferredColumnSizes.size, localViewLeftColumn + visibleColumns)
+            for (columnIndex in localViewLeftColumn until lastVisibleColumn) {
                 preferredColumnSize += preferredColumnSizes[columnIndex]
             }
         }
@@ -238,7 +230,6 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         return null
     }
 
-    @Synchronized
     override fun drawComponent(
         graphics: TextGUIGraphics?,
         component: Table<V?>?,
@@ -299,7 +290,7 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
             }
         }
 
-        while (selectedColumn != -1 && viewLeftColumn <= selectedColumn - visibleColumns) {
+        while (selectedColumn != 1 && viewLeftColumn <= selectedColumn - visibleColumns) {
             viewLeftColumn = kotlin.math.max(0, selectedColumn - visibleColumns + 1)
             visibleColumns = calculateVisibleColumns(areaWithoutScrollBars, viewLeftColumn, preferredVisibleColumns)
         }
@@ -436,7 +427,7 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
             tableHeaderRenderer.drawHeader(table, label, index, headerGraphics)
             leftPosition += size.columns
             if (headerHorizontalBorderStyle != TableCellBorderStyle.NONE && index < endColumnIndex - 1) {
-                graphics.applyThemeStyle(theme.getDefinition(Table::class.java)?.normal)
+                graphics.applyThemeStyle(theme.getDefinition(Table::class)?.normal)
                 graphics.setCharacter(leftPosition, 0, getVerticalCharacter(headerHorizontalBorderStyle))
                 leftPosition++
             }
@@ -445,7 +436,7 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         if (headerVerticalBorderStyle != TableCellBorderStyle.NONE) {
             leftPosition = 0
             val topPosition = headerSizeInRows
-            graphics.applyThemeStyle(theme.getDefinition(Table::class.java)?.normal)
+            graphics.applyThemeStyle(theme.getDefinition(Table::class)?.normal)
             for (i in localViewLeftColumn until endColumnIndex) {
                 if (i > localViewLeftColumn) {
                     graphics.setCharacter(
@@ -489,7 +480,7 @@ open class DefaultTableRenderer<V> : TableRenderer<V?> {
         needHorizontalScrollBar: Boolean,
     ) {
         val theme = table.theme ?: return
-        val themeDefinition = theme.getDefinition(Table::class.java) ?: return
+        val themeDefinition = theme.getDefinition(Table::class) ?: return
         val area = graphics.size ?: TerminalSize.ZERO
         val tableCellRenderer = table.getTableCellRenderer() ?: return
         val tableModel = table.getTableModel() ?: return

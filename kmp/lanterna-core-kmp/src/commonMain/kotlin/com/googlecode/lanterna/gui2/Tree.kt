@@ -8,8 +8,8 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.function.Consumer
+import com.googlecode.lanterna.internal.compat.Consumer
+import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
 
 /**
  * Interactive tree component for Lanterna GUI.
@@ -58,8 +58,7 @@ class Tree<V>(
         } else {
             var delta = scrollingNode.getDepthTo(selectedNode)
             while (delta-- >= scrollWindowHeight) {
-                scrollingNode = scrollingNode.nextNode()
-                    ?: throw IllegalStateException("Unexpected end of tree while updating scrolling node")
+                scrollingNode = scrollingNode.nextNode() ?: break
             }
         }
     }
@@ -171,7 +170,7 @@ class Tree<V>(
 
     fun selectFirstNode() {
         selectedNode.setFocused(false)
-        val firstNode = if (isDisplayRoot) root else root.children[0]
+        val firstNode = if (isDisplayRoot) root else root.children.firstOrNull() ?: root
         firstNode.setFocused(true)
         selectedNode = firstNode
         scrollingNode = firstNode
@@ -243,7 +242,6 @@ class Tree<V>(
         this.nodeSelectedConsumer = nodeSelectedConsumer
     }
 
-    @Synchronized
     fun addListener(listener: Listener<V>?): Tree<V> {
         if (listener != null && !listeners.contains(listener)) {
             listeners.add(listener)

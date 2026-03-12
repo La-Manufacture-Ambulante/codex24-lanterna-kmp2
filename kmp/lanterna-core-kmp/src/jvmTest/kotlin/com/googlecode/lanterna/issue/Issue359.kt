@@ -3,11 +3,10 @@
  */
 package com.googlecode.lanterna.issue
 
-import com.googlecode.lanterna.gui2.BasicWindow
-import com.googlecode.lanterna.gui2.Borders
-import com.googlecode.lanterna.gui2.Button
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import com.googlecode.lanterna.*
+import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.screen.*
+import com.googlecode.lanterna.terminal.*
 import java.io.IOException
 
 object Issue359 {

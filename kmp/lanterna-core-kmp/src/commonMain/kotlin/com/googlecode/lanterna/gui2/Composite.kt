@@ -24,11 +24,14 @@ package com.googlecode.lanterna.gui2
  * @author Martin
  */
 interface Composite {
+/**
+     * Returns the component that this Composite is wrapping
+     * @return Component the composite is wrapping
+     */
     /**
      * Sets the component which is inside this Composite. If you call this method with null, it removes the component
      * wrapped by this Composite.
-     *
-     * Returns the component that this Composite is wrapping.
+     * @param component Component to wrap
      */
     var component: Component?
 }

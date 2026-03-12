@@ -1,24 +1,7 @@
-/*
- * This file is part of lanterna (https://github.com/mabe02/lanterna).
- *
- * lanterna is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2010-2020 Martin Berglund
- */
 package com.googlecode.lanterna.gui2.dialogs
 
 import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.filesystem.LanternaFile
 import com.googlecode.lanterna.gui2.ActionListBox
 import com.googlecode.lanterna.gui2.BorderLayout
 import com.googlecode.lanterna.gui2.Borders
@@ -29,19 +12,10 @@ import com.googlecode.lanterna.gui2.LocalizedString
 import com.googlecode.lanterna.gui2.Panel
 import com.googlecode.lanterna.gui2.TextBox
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
-import java.io.File
-import java.util.Arrays
-import java.util.Comparator
+import com.googlecode.lanterna.input.KeyStroke
 
 /**
  * Dialog that allows the user to iterate the file system and pick directory.
- *
- * @param title Title of the dialog
- * @param description Description of the dialog, is displayed at the top of the content area
- * @param actionLabel Label to use on the "confirm" button, for example "open" or "save"
- * @param dialogSize Rough estimation of how big you want the dialog to be
- * @param showHiddenDirs If `true`, hidden directories will be visible
- * @param selectedObject Initially selected directory node
  */
 class DirectoryDialog(
     title: String?,
@@ -49,17 +23,17 @@ class DirectoryDialog(
     actionLabel: String?,
     dialogSize: TerminalSize,
     private val showHiddenDirs: Boolean,
-    selectedObject: File?,
+    selectedObject: LanternaFile?,
 ) : DialogWindow(title) {
     private val dirListBox: ActionListBox
     private val dirBox: TextBox
-    private var directory: File? = null
-    private var selectedDir: File? = null
+    private var directory: LanternaFile? = null
+    private var selectedDir: LanternaFile? = null
 
     init {
         var resolvedSelectedObject = selectedObject
         if (resolvedSelectedObject == null || !resolvedSelectedObject.exists()) {
-            resolvedSelectedObject = File("").absoluteFile
+            resolvedSelectedObject = LanternaFile("").absoluteFile
         }
         resolvedSelectedObject = resolvedSelectedObject.absoluteFile
 
@@ -93,10 +67,10 @@ class DirectoryDialog(
             ),
         )
         panelButtons.addComponent(
-            Button(requireNotNull(actionLabel), OkHandler()),
+            Button(actionLabel, OkHandler()).setAccelerator(KeyStroke.fromString("<a-s>")),
         )
         panelButtons.addComponent(
-            Button(LocalizedString.Cancel.toString(), CancelHandler()),
+            Button(LocalizedString.Cancel.toString(), CancelHandler()).setAccelerator(KeyStroke.fromString("<a-c>")),
         )
         contentPane.addComponent(panelButtons, BorderLayout.Location.BOTTOM)
 
@@ -105,14 +79,11 @@ class DirectoryDialog(
             resolvedSelectedObject.isDirectory -> directory = resolvedSelectedObject
         }
 
-        reloadViews(directory ?: File("").absoluteFile)
+        reloadViews(directory ?: LanternaFile("").absoluteFile)
         component = contentPane
     }
 
-    /**
-     * The directory which was selected in the dialog or `null` if the dialog was cancelled.
-     */
-    override fun showDialog(textGUI: WindowBasedTextGUI): File? {
+    override fun showDialog(textGUI: WindowBasedTextGUI): LanternaFile? {
         selectedDir = null
         super.showDialog(textGUI)
         return selectedDir
@@ -120,7 +91,7 @@ class DirectoryDialog(
 
     private inner class OkHandler : Runnable {
         override fun run() {
-            val dir = File(dirBox.text)
+            val dir = LanternaFile(dirBox.text)
             if (dir.exists() && dir.isDirectory) {
                 selectedDir = dir
                 close()
@@ -147,11 +118,11 @@ class DirectoryDialog(
         override fun run() {}
     }
 
-    private fun reloadViews(directory: File) {
+    private fun reloadViews(directory: LanternaFile) {
         dirBox.setText(directory.absolutePath)
         dirListBox.clearItems()
         val entries = directory.listFiles() ?: return
-        Arrays.sort(entries, Comparator.comparing { file -> file.name.lowercase() })
+        entries.sortBy { file -> file.name.lowercase() }
         val parent = directory.absoluteFile.parentFile
         if (parent != null) {
             dirListBox.addItem(
@@ -162,7 +133,7 @@ class DirectoryDialog(
                 },
             )
         } else {
-            val roots = File.listRoots()
+            val roots = LanternaFile.listRoots()
             for (entry in roots) {
                 if (entry.canRead()) {
                     dirListBox.addItem(

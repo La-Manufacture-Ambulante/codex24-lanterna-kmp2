@@ -26,8 +26,8 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
-import java.util.ArrayList
-import java.util.regex.Pattern
+import com.googlecode.lanterna.internal.compat.Pattern
+import kotlin.collections.ArrayList
 
 /**
  * Editable text component supporting single-line and multi-line modes.
@@ -96,8 +96,7 @@ open class TextBox constructor(
 
     var validationRegex: Pattern?
         get() = validationPattern
-
-        @Synchronized set(value) {
+        set(value) {
             if (value != null) {
                 for (line in lines) {
                     if (!validated(line)) {
@@ -108,19 +107,16 @@ open class TextBox constructor(
             validationPattern = value
         }
 
-    @Synchronized
     fun setValidationPattern(validationPattern: Pattern?): TextBox {
         validationRegex = validationPattern
         return this
     }
 
-    @Synchronized
     fun setTextChangeListener(textChangeListener: TextChangeListener?): TextBox {
         this.textChangeListener = textChangeListener
         return this
     }
 
-    @Synchronized
     fun setText(text: String): TextBox {
         var split = text.split("\n")
         if (split.isEmpty()) {
@@ -144,7 +140,6 @@ open class TextBox constructor(
     override val renderer: TextBoxRenderer?
         get() = super.renderer as TextBoxRenderer?
 
-    @Synchronized
     fun addLine(line: String): TextBox {
         val bob = StringBuilder()
         for (i in line.indices) {
@@ -158,7 +153,7 @@ open class TextBox constructor(
                 }
                 addLine(line.substring(i + 1))
                 return this
-            } else if (Character.isISOControl(c)) {
+            } else if (com.googlecode.lanterna.internal.compat.Character.isISOControl(c)) {
                 continue
             }
             bob.append(c)
@@ -178,18 +173,17 @@ open class TextBox constructor(
         return this
     }
 
-    @Synchronized
     fun removeLine(lineIndex: Int): TextBox {
         if (style == Style.SINGLE_LINE) {
             if (lineIndex == 0) {
                 setText("")
                 return this
             }
-            throw ArrayIndexOutOfBoundsException("Cannot remove line $lineIndex from a single-line TextBox")
+            throw IndexOutOfBoundsException("Cannot remove line $lineIndex from a single-line TextBox")
         }
 
         if (lineIndex < 0 || lineIndex >= lines.size) {
-            throw ArrayIndexOutOfBoundsException("Invalid line index for TextBox with ${lines.size} lines: $lineIndex")
+            throw IndexOutOfBoundsException("Invalid line index for TextBox with ${lines.size} lines: $lineIndex")
         }
         lines.removeAt(lineIndex)
         when {
@@ -209,12 +203,10 @@ open class TextBox constructor(
 
     fun getCaretPosition(): TerminalPosition = caretPosition
 
-    @Synchronized
     fun setCaretPosition(column: Int): TextBox {
         return setCaretPosition(caretPosition.row, column)
     }
 
-    @Synchronized
     fun setCaretPosition(
         line: Int,
         column: Int,
@@ -236,13 +228,18 @@ open class TextBox constructor(
     }
 
     val text: String
-        @Synchronized get() {
+        get() {
             val bob = StringBuilder(lines[0])
             for (i in 1 until lines.size) {
                 bob.append("\n").append(lines[i])
             }
             return bob.toString()
         }
+
+    fun getTextOrDefault(defaultValueIfEmpty: String): String {
+        val text = text
+        return if (text.isEmpty()) defaultValueIfEmpty else text
+    }
 
     fun getMask(): Char? = mask
 
@@ -277,17 +274,14 @@ open class TextBox constructor(
         return this
     }
 
-    @Synchronized
     fun getLine(index: Int): String = lines[index]
 
-    @Synchronized
     fun getLineCount(): Int = lines.size
 
     override fun createDefaultRenderer(): TextBoxRenderer {
         return DefaultTextBoxRenderer()
     }
 
-    @Synchronized
     override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
         if (readOnly) {
             return handleKeyStrokeReadOnly(keyStroke)

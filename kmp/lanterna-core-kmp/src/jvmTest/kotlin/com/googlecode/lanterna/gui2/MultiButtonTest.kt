@@ -18,6 +18,7 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestTerminalFactory
 import java.io.IOException
@@ -39,7 +40,7 @@ object MultiButtonTest {
             contentArea.addComponent(Button("Another button"))
             contentArea.addComponent(EmptySpace(TerminalSize(5, 1)))
             // contentArea.addComponent(new Button("Here is a\nmulti-line\ntext segment that is using \\n"));
-            contentArea.addComponent(Button("OK", Runnable { window.close() }))
+            contentArea.addComponent(Button("OK", Runnable({ window.close() })))
 
             window.component = contentArea
             textGUI.addWindowAndWait(window)

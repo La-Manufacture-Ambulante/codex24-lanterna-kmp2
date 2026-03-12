@@ -24,26 +24,15 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
-import java.util.ArrayList
-import java.util.concurrent.CopyOnWriteArrayList
+import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
+import kotlin.collections.ArrayList
 
 /**
- * This is a list box implementation where each item has its own checked state that can be toggled on and off.
- * @author Martin
+ * List box where each item has its own checked state.
  */
-class CheckBoxList<V>
-    @JvmOverloads
-    constructor(preferredSize: TerminalSize? = null) :
+class CheckBoxList<V> constructor(preferredSize: TerminalSize? = null) :
     AbstractListBox<V, CheckBoxList<V>>(preferredSize) {
-        /**
-         * Listener interface that can be attached to the `CheckBoxList` in order to be notified on user actions.
-         */
         interface Listener {
-            /**
-             * Called by the `CheckBoxList` when the user changes the toggle state of one item.
-             * @param itemIndex Index of the item that was toggled
-             * @param checked If the state of the item is now checked, this will be `true`, otherwise `false`
-             */
             fun onStatusChanged(
                 itemIndex: Int,
                 checked: Boolean,
@@ -61,7 +50,6 @@ class CheckBoxList<V>
             return CheckBoxListItemRenderer()
         }
 
-        @Synchronized
         override fun clearItems(): CheckBoxList<V>? {
             itemStatus.clear()
             return super.clearItems()
@@ -71,20 +59,12 @@ class CheckBoxList<V>
             return addItem(item, false)
         }
 
-        @Synchronized
         override fun removeItem(index: Int): V {
             val item = super.removeItem(index)
             itemStatus.removeAt(index)
             return item
         }
 
-        /**
-         * Adds an item to the checkbox list with an explicit checked status.
-         * @param item Object to add to the list
-         * @param checkedState If `true`, the new item will be initially checked
-         * @return Itself
-         */
-        @Synchronized
         fun addItem(
             item: V?,
             checkedState: Boolean,
@@ -93,7 +73,6 @@ class CheckBoxList<V>
             return super.addItem(item)
         }
 
-        @Synchronized
         fun isChecked(item: V?): Boolean? {
             val index = indexOf(item)
             if (index == -1) {
@@ -102,7 +81,6 @@ class CheckBoxList<V>
             return itemStatus[index]
         }
 
-        @Synchronized
         fun isChecked(index: Int): Boolean? {
             if (index < 0 || index >= itemStatus.size) {
                 return null
@@ -110,13 +88,11 @@ class CheckBoxList<V>
             return itemStatus[index]
         }
 
-        @Synchronized
         fun toggleChecked(index: Int): CheckBoxList<V>? {
             setChecked(index, !(isChecked(index) ?: false))
             return self()
         }
 
-        @Synchronized
         fun setChecked(
             item: V?,
             checked: Boolean,
@@ -145,7 +121,6 @@ class CheckBoxList<V>
             )
         }
 
-        @Synchronized
         fun getCheckedItems(): List<V> {
             val result: MutableList<V> = ArrayList()
             for (i in 0 until itemStatus.size) {
@@ -156,12 +131,6 @@ class CheckBoxList<V>
             return result
         }
 
-        /**
-         * Adds a new listener to the `CheckBoxList` that will be called on certain user actions.
-         * @param listener Listener to attach to this `CheckBoxList`
-         * @return Itself
-         */
-        @Synchronized
         fun addListener(listener: Listener?): CheckBoxList<V> {
             if (listener != null && !listeners.contains(listener)) {
                 listeners.add(listener)
@@ -169,18 +138,11 @@ class CheckBoxList<V>
             return this
         }
 
-        /**
-         * Removes a listener from this `CheckBoxList` so that if it had been added earlier, it will no longer be called
-         * on user actions.
-         * @param listener Listener to remove from this `CheckBoxList`
-         * @return Itself
-         */
         fun removeListener(listener: Listener?): CheckBoxList<V> {
             listeners.remove(listener)
             return this
         }
 
-        @Synchronized
         override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
             if (isKeyboardActivationStroke(keyStroke)) {
                 toggleChecked(getSelectedIndex())
@@ -220,11 +182,6 @@ class CheckBoxList<V>
             return super.handleKeyStroke(keyStroke)
         }
 
-        /**
-         * Default renderer for this component which is used unless overridden. The checked state is drawn on the left side
-         * of the item label using a "[ ]" block filled with an X if the item has checked state on.
-         * @param <V> Type of items in the [CheckBoxList]
-         */
         class CheckBoxListItemRenderer<V> : ListItemRenderer<V, CheckBoxList<V>>() {
             override fun getHotSpotPositionOnLine(selectedIndex: Int): Int {
                 return 1
@@ -251,7 +208,7 @@ class CheckBoxList<V>
             ) {
                 val g = graphics ?: return
                 val lb = listBox ?: return
-                val themeDefinition = lb.theme?.getDefinition(CheckBoxList::class.java) ?: return
+                val themeDefinition = lb.theme?.getDefinition(CheckBoxList::class) ?: return
                 val itemStyle: ThemeStyle =
                     if (selected && !focused) {
                         themeDefinition.selected ?: themeDefinition.normal ?: return

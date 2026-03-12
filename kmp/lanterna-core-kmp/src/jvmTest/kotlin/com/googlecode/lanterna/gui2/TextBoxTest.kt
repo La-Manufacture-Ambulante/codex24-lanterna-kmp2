@@ -18,10 +18,12 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import java.io.IOException
 
 class TextBoxTest : TestBase() {
+    @Override
     fun init(textGUI: WindowBasedTextGUI) {
         val window = BasicWindow("TextBoxTest")
         val mainPanel = Panel()
@@ -31,12 +33,7 @@ class TextBoxTest : TestBase() {
 
         leftPanel.addComponent(TextBox().withBorder(Borders.singleLine("Default")))
         leftPanel.addComponent(TextBox("Some text").withBorder(Borders.singleLine("With init")))
-        leftPanel.addComponent(
-            TextBox(
-                TerminalSize(10, 1),
-                "Here is some text that is too long to fit in the text box",
-            ).withBorder(Borders.singleLine("Long text")),
-        )
+        leftPanel.addComponent(TextBox(TerminalSize(10, 1), "Here is some text that is too long to fit in the text box").withBorder(Borders.singleLine("Long text")))
         leftPanel.addComponent(TextBox("password").setMask('*').withBorder(Borders.singleLine("Password")))
 
         rightPanel.addComponent(
@@ -59,11 +56,12 @@ class TextBoxTest : TestBase() {
         mainPanel.addComponent(leftPanel.withBorder(Borders.singleLine("Single line")))
         mainPanel.addComponent(rightPanel.withBorder(Borders.singleLine("Multiline")))
 
-        window.component =
+        window.setComponent(
             Panels.vertical(
                 mainPanel.withBorder(Borders.singleLine("Main")),
-                Button("OK", Runnable { window.close() }),
-            )
+                Button("OK", Runnable({ window.close() })),
+            ),
+        )
         textGUI.addWindow(window)
     }
 

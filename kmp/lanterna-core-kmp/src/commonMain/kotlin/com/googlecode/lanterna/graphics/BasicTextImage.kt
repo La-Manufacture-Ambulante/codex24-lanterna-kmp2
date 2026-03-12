@@ -22,11 +22,10 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
-import java.util.Arrays
 
 /**
  * Simple implementation of TextImage that keeps the content as a two-dimensional TextCharacter array. Copy operations
- * between two BasicTextImage classes are semi-optimized by using System.arraycopy instead of iterating over each
+ * between two BasicTextImage classes are semi-optimized by using com.googlecode.lanterna.internal.compat.System.arraycopy instead of iterating over each
  * character and copying them over one by one.
  * @author martin
  */
@@ -37,25 +36,13 @@ class BasicTextImage private constructor(
 ) : TextImage {
     private val buffer: Array<Array<TextCharacter>>
 
-    /**
-     * Creates a new [BasicTextImage] with the specified dimensions.
-     */
     constructor(columns: Int, rows: Int) : this(TerminalSize(columns, rows))
 
-    /**
-     * Creates a new [BasicTextImage] and initializes content to default blank characters.
-     * @param size Size to make the image
-     */
     constructor(size: TerminalSize?) : this(
         requireNotNull(size) { "Cannot create BasicTextImage with null size" },
         TextCharacter(' ', TextColor.ANSI.DEFAULT, TextColor.ANSI.DEFAULT),
     )
 
-    /**
-     * Creates a new [BasicTextImage] with [initialContent] as filler character.
-     * @param size Size of the image
-     * @param initialContent Character used as initial content
-     */
     constructor(size: TerminalSize?, initialContent: TextCharacter?) : this(
         requireNotNull(size) { "Cannot create BasicTextImage with null size" },
         emptyArray(),
@@ -83,13 +70,10 @@ class BasicTextImage private constructor(
                 "Cannot call BasicTextImage.setAll(..) with null character"
             }
         for (line in buffer) {
-            Arrays.fill(line, fillCharacter)
+            line.fill(fillCharacter)
         }
     }
 
-    /**
-     * Resizes this image, copying all overlapping content into the new image and filling uncovered cells with [filler].
-     */
     override fun resize(
         newSize: TerminalSize?,
         filler: TextCharacter?,
@@ -229,7 +213,7 @@ class BasicTextImage private constructor(
             var targetRow = dstRowOffset
             var y = srcStartRow
             while (y < srcStartRow + srcRows && targetRow < targetSize.rows) {
-                System.arraycopy(
+                com.googlecode.lanterna.internal.compat.System.arraycopy(
                     buffer[y],
                     srcStartColumn,
                     target.buffer[targetRow++],
@@ -279,9 +263,6 @@ class BasicTextImage private constructor(
         }
     }
 
-    /**
-     * Creates a [TextGraphics] facade that writes directly into this image.
-     */
     override fun newTextGraphics(): TextGraphics {
         return object : AbstractTextGraphics() {
             override fun setCharacter(
@@ -307,7 +288,7 @@ class BasicTextImage private constructor(
 
     private fun newBlankLine(): Array<TextCharacter> {
         val line = Array(size.columns) { TextCharacter.DEFAULT_CHARACTER }
-        Arrays.fill(line, TextCharacter.DEFAULT_CHARACTER)
+        line.fill(TextCharacter.DEFAULT_CHARACTER)
         return line
     }
 

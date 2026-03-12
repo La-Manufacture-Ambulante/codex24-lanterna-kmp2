@@ -1,5 +1,6 @@
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.*
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.Button
 import com.googlecode.lanterna.gui2.Direction
@@ -35,7 +36,7 @@ object Issue446 {
 
         val mainPanel = Panel(LinearLayout(Direction.VERTICAL))
         mainPanel.addComponent(textBox)
-        mainPanel.addComponent(Button("Quit", Runnable { basicWindow.close() }))
+        mainPanel.addComponent(Button("Quit", Runnable({ basicWindow.close() })))
 
         basicWindow.component = mainPanel
         basicWindow.menuBar = menuBar

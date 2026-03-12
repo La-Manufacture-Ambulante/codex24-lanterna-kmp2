@@ -29,7 +29,7 @@ interface WindowBasedTextGUI : TextGUI {
      * the windows on the surface and also deciding how they behave and move around.
      * @return Window manager that is currently controlling the windows in the terminal
      */
-    val windowManager: WindowManager
+    val windowManager: WindowManager?
 
 /**
      * Returns a list of all windows currently in the TextGUI. The list is unmodifiable and just a snapshot of what the
@@ -37,7 +37,7 @@ interface WindowBasedTextGUI : TextGUI {
      * reflect this.
      * @return Unmodifiable list of all windows in the TextGUI at the time of the call
      */
-    val windows: Collection<Window?>
+    val windows: Collection<Window?>?
 
 /**
      * Returns the window which the TextGUI considers the active one at the time of the method call. The active window
@@ -51,7 +51,7 @@ interface WindowBasedTextGUI : TextGUI {
      * terminal area and is always behind all windows.
      * @return The `BasePane` used by this `WindowBasedTextGUI`
      */
-    val backgroundPane: BasePane
+    val backgroundPane: BasePane?
 
 /**
      * Returns the [WindowPostRenderer] for this [WindowBasedTextGUI]
@@ -72,7 +72,7 @@ interface WindowBasedTextGUI : TextGUI {
      * @param window Window to add to the GUI
      * @return The WindowBasedTextGUI Itself
      */
-    fun addWindow(window: Window): WindowBasedTextGUI
+    fun addWindow(window: Window?): WindowBasedTextGUI?
 
 /**
      * Adds a window to the TextGUI system, depending on the window manager this window may or may not be immediately
@@ -88,7 +88,7 @@ interface WindowBasedTextGUI : TextGUI {
      * @param window Window to add to the GUI
      * @return The WindowBasedTextGUI Itself
      */
-    fun addWindowAndWait(window: Window): WindowBasedTextGUI
+    fun addWindowAndWait(window: Window?): WindowBasedTextGUI?
 
 /**
      * Removes a window from the TextGUI. This is effectively the same as closing the window. The window will be
@@ -98,14 +98,14 @@ interface WindowBasedTextGUI : TextGUI {
      * @param window Window to close
      * @return The WindowBasedTextGUI itself
      */
-    fun removeWindow(window: Window): WindowBasedTextGUI
+    fun removeWindow(window: Window?): WindowBasedTextGUI?
 
 /**
      * Selects a particular window to be considered 'active' and receive all input events
      * @param activeWindow Window to become active and receive input events
      * @return The WindowBasedTextGUI itself
      */
-    fun setActiveWindow(activeWindow: Window): WindowBasedTextGUI
+    fun setActiveWindow(activeWindow: Window?): WindowBasedTextGUI?
 
 /**
      * Windows are internally stored as a stack and newer windows are added at the top of the stack. The GUI system will
@@ -115,7 +115,7 @@ interface WindowBasedTextGUI : TextGUI {
      * @param window Window in the stack to move to the top position
      * @return The WindowBasedTextGUI Itself
      */
-    fun moveToTop(window: Window): WindowBasedTextGUI
+    fun moveToTop(window: Window?): WindowBasedTextGUI?
 
 /**
      * Takes the previously active window and makes it active, or if in reverse mode, takes the window at the bottom of
@@ -123,11 +123,11 @@ interface WindowBasedTextGUI : TextGUI {
      * @param reverse Direction to cycle through the windows
      * @return The WindowBasedTextGUI Itself
      */
-    fun cycleActiveWindow(reverse: Boolean): WindowBasedTextGUI
+    fun cycleActiveWindow(reverse: Boolean): WindowBasedTextGUI?
 
 /**
      * Waits for the specified window to be closed
      * @param abstractWindow Window to wait for
      */
-    fun waitForWindowToClose(abstractWindow: Window)
+    fun waitForWindowToClose(abstractWindow: Window?)
 }

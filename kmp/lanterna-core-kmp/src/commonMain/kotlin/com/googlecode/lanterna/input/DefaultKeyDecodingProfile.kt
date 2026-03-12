@@ -18,14 +18,10 @@
  */
 package com.googlecode.lanterna.input
 
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 
 /**
- * This profile attempts to collect as many code combinations as possible without causing any collisions between
- * patterns. The patterns in here are tested with Linux terminal, XTerm, Gnome terminal, XFCE terminal, Cygwin and
- * Mac OS X terminal.
- *
- * @author Martin
+ * Default collection of character patterns used to decode keystrokes.
  */
 class DefaultKeyDecodingProfile : KeyDecodingProfile {
     override val patterns: Collection<CharacterPattern>
@@ -37,19 +33,13 @@ class DefaultKeyDecodingProfile : KeyDecodingProfile {
                 BasicCharacterPattern(KeyStroke(KeyType.ESCAPE), KeyDecodingProfile.ESC_CODE),
                 BasicCharacterPattern(KeyStroke(KeyType.TAB), '\t'),
                 BasicCharacterPattern(KeyStroke(KeyType.ENTER), '\n'),
-                // OS X
                 BasicCharacterPattern(KeyStroke(KeyType.ENTER), '\r', '\u0000'),
                 BasicCharacterPattern(KeyStroke(KeyType.BACKSPACE), 0x7f.toChar()),
                 BasicCharacterPattern(KeyStroke(KeyType.BACKSPACE), 0x08.toChar()),
-                // Linux
                 BasicCharacterPattern(KeyStroke(KeyType.F1), KeyDecodingProfile.ESC_CODE, '[', '[', 'A'),
-                // Linux
                 BasicCharacterPattern(KeyStroke(KeyType.F2), KeyDecodingProfile.ESC_CODE, '[', '[', 'B'),
-                // Linux
                 BasicCharacterPattern(KeyStroke(KeyType.F3), KeyDecodingProfile.ESC_CODE, '[', '[', 'C'),
-                // Linux
                 BasicCharacterPattern(KeyStroke(KeyType.F4), KeyDecodingProfile.ESC_CODE, '[', '[', 'D'),
-                // Linux
                 BasicCharacterPattern(KeyStroke(KeyType.F5), KeyDecodingProfile.ESC_CODE, '[', '[', 'E'),
                 EscapeSequenceCharacterPattern(),
                 NormalCharacterPattern(),

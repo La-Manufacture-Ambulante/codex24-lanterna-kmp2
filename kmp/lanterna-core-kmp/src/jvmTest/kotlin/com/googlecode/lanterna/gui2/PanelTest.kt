@@ -18,9 +18,11 @@
  */
 package com.googlecode.lanterna.gui2
 
+import com.googlecode.lanterna.*
 import java.io.IOException
 
 class PanelTest : TestBase() {
+    @Override
     fun init(textGUI: WindowBasedTextGUI) {
         val window = BasicWindow("Grid layout test")
 
@@ -61,11 +63,12 @@ class PanelTest : TestBase() {
         panel!!.addComponent(Button("Panel 4 Button"))
         rightPanel.addComponent(panel!!.withBorder(Borders.doubleLine("Title")))
 
-        window.component =
+        window.setComponent(
             Panels.vertical(
                 mainPanel.withBorder(Borders.singleLine("Main")),
-                Button("OK", Runnable { window.close() }),
-            )
+                Button("OK", Runnable({ window.close() })),
+            ),
+        )
         textGUI.addWindow(window)
     }
 

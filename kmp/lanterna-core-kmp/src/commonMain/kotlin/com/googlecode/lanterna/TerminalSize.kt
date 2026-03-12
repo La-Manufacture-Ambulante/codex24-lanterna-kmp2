@@ -18,13 +18,20 @@
  */
 package com.googlecode.lanterna
 
+import kotlin.math.max
+import kotlin.math.min
+
 /**
  * Terminal dimensions in 2-d space, measured in number of rows and columns. This class is immutable and cannot change
  * its internal state after creation.
  *
  * @author Martin
  */
-class TerminalSize(
+class TerminalSize/**
+ * Creates a new terminal size representation with a given width (columns) and height (rows)
+ * @param columns Width, in number of columns
+ * @param rows Height, in number of columns
+ */(
     /**
      * @return Returns the width of this size representation, in number of columns
      */
@@ -36,18 +43,16 @@ class TerminalSize(
 ) {
     init {
         if (columns < 0 || rows < 0) {
-            throw IllegalArgumentException(
-                "TerminalSize dimensions cannot be less than 0: [columns: $columns, rows: $rows]",
-            )
+            throw IllegalArgumentException("TerminalSize dimensions cannot be less than 0: [columns: " + columns + ", rows: " + rows + "]")
         }
     }
 
-    /**
-     * Creates a new size based on this size, but with a different width.
+/**
+     * Creates a new size based on this size, but with a different width
      * @param columns Width of the new size, in columns
      * @return New size based on this one, but with a new width
      */
-    fun withColumns(columns: Int): TerminalSize {
+    fun withColumns(columns: Int): TerminalSize? {
         if (this.columns == columns) {
             return this
         }
@@ -57,12 +62,12 @@ class TerminalSize(
         return TerminalSize(columns, this.rows)
     }
 
-    /**
-     * Creates a new size based on this size, but with a different height.
+/**
+     * Creates a new size based on this size, but with a different height
      * @param rows Height of the new size, in rows
      * @return New size based on this one, but with a new height
      */
-    fun withRows(rows: Int): TerminalSize {
+    fun withRows(rows: Int): TerminalSize? {
         if (this.rows == rows) {
             return this
         }
@@ -72,51 +77,51 @@ class TerminalSize(
         return TerminalSize(this.columns, rows)
     }
 
-    /**
-     * Creates a new TerminalSize object representing a size with the same number of rows, but with a column size
-     * offset by a supplied value. Calling this method with delta 0 will return this; calling it with a positive delta
-     * will return a terminal size *delta* number of columns wider and for negative numbers shorter.
+/**
+     * Creates a new TerminalSize object representing a size with the same number of rows, but with a column size offset by a
+     * supplied value. Calling this method with delta 0 will return this, calling it with a positive delta will return
+     * a terminal size *delta* number of columns wider and for negative numbers shorter.
      * @param delta Column offset
      * @return New terminal size based off this one but with an applied transformation
      */
-    fun withRelativeColumns(delta: Int): TerminalSize {
+    fun withRelativeColumns(delta: Int): TerminalSize? {
         if (delta == 0) {
             return this
         }
-        // Prevent going below 0 (which would throw an exception).
-        return withColumns(kotlin.math.max(0, columns + delta))
+        // Prevent going below 0 (which would throw an exception)
+        return withColumns(max(0, columns + delta))
     }
 
-    /**
-     * Creates a new TerminalSize object representing a size with the same number of columns, but with a row size
-     * offset by a supplied value. Calling this method with delta 0 will return this; calling it with a positive delta
-     * will return a terminal size *delta* number of rows longer and for negative numbers shorter.
+/**
+     * Creates a new TerminalSize object representing a size with the same number of columns, but with a row size offset by a
+     * supplied value. Calling this method with delta 0 will return this, calling it with a positive delta will return
+     * a terminal size *delta* number of rows longer and for negative numbers shorter.
      * @param delta Row offset
      * @return New terminal size based off this one but with an applied transformation
      */
-    fun withRelativeRows(delta: Int): TerminalSize {
+    fun withRelativeRows(delta: Int): TerminalSize? {
         if (delta == 0) {
             return this
         }
-        // Prevent going below 0 (which would throw an exception).
-        return withRows(kotlin.math.max(0, rows + delta))
+        // Prevent going below 0 (which would throw an exception)
+        return withRows(max(0, rows + delta))
     }
 
-    /**
+/**
      * Creates a new TerminalSize object representing a size based on this object's size but with a delta applied.
      * This is the same as calling
-     * `withRelativeColumns(delta.columns).withRelativeRows(delta.rows)`.
+     * `withRelativeColumns(delta.getColumns()).withRelativeRows(delta.getRows())`
      * @param delta Column and row offset
      * @return New terminal size based off this one but with an applied resize
      */
-    fun withRelative(delta: TerminalSize): TerminalSize {
+    fun withRelative(delta: TerminalSize): TerminalSize? {
         return withRelative(delta.columns, delta.rows)
     }
 
-    /**
+/**
      * Creates a new TerminalSize object representing a size based on this object's size but with a delta applied.
      * This is the same as calling
-     * `withRelativeColumns(deltaColumns).withRelativeRows(deltaRows)`.
+     * `withRelativeColumns(deltaColumns).withRelativeRows(deltaRows)`
      * @param deltaColumns How many extra columns the new TerminalSize will have (negative values are allowed)
      * @param deltaRows How many extra rows the new TerminalSize will have (negative values are allowed)
      * @return New terminal size based off this one but with an applied resize
@@ -124,33 +129,33 @@ class TerminalSize(
     fun withRelative(
         deltaColumns: Int,
         deltaRows: Int,
-    ): TerminalSize {
-        return withRelativeRows(deltaRows).withRelativeColumns(deltaColumns)
+    ): TerminalSize? {
+        return withRelativeRows(deltaRows)!!.withRelativeColumns(deltaColumns)
     }
 
-    /**
+/**
      * Takes a different TerminalSize and returns a new TerminalSize that has the largest dimensions of the two,
      * measured separately. So calling 3x5 on a 5x3 will return 5x5.
      * @param other Other TerminalSize to compare with
      * @return TerminalSize that combines the maximum width between the two and the maximum height
      */
-    fun max(other: TerminalSize): TerminalSize {
-        return withColumns(kotlin.math.max(columns, other.columns))
-            .withRows(kotlin.math.max(rows, other.rows))
+    fun max(other: TerminalSize): TerminalSize? {
+        return withColumns(max(columns, other.columns))!!
+            .withRows(max(rows, other.rows))
     }
 
-    /**
+/**
      * Takes a different TerminalSize and returns a new TerminalSize that has the smallest dimensions of the two,
      * measured separately. So calling 3x5 on a 5x3 will return 3x3.
      * @param other Other TerminalSize to compare with
      * @return TerminalSize that combines the minimum width between the two and the minimum height
      */
-    fun min(other: TerminalSize): TerminalSize {
-        return withColumns(kotlin.math.min(columns, other.columns))
-            .withRows(kotlin.math.min(rows, other.rows))
+    fun min(other: TerminalSize): TerminalSize? {
+        return withColumns(min(columns, other.columns))!!
+            .withRows(min(rows, other.rows))
     }
 
-    /**
+/**
      * Returns itself if it is equal to the supplied size, otherwise the supplied size. You can use this if you have a
      * size field which is frequently recalculated but often resolves to the same size; it will keep the same object
      * in memory instead of swapping it out every cycle.
@@ -172,16 +177,18 @@ class TerminalSize(
         if (this === obj) {
             return true
         }
-        if (obj !is TerminalSize) {
+        if (!(obj is TerminalSize)) {
             return false
         }
-        return columns == obj.columns && rows == obj.rows
+
+        val other = obj as TerminalSize
+        return (columns == other.columns && rows == other.rows)
     }
 
     override fun hashCode(): Int {
         var hash = 5
-        hash = 53 * hash + columns
-        hash = 53 * hash + rows
+        hash = 53 * hash + this.columns
+        hash = 53 * hash + this.rows
         return hash
     }
 

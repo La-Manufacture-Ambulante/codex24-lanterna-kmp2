@@ -35,7 +35,7 @@ class GUIBackdrop : EmptySpace() {
                 graphics: TextGUIGraphics?,
                 component: EmptySpace?,
             ) {
-                val themeDefinition = component!!.theme!!.getDefinition(GUIBackdrop::class.java)!!
+                val themeDefinition = component!!.theme!!.getDefinition(GUIBackdrop::class)!!
                 graphics!!.applyThemeStyle(themeDefinition.normal)
                 graphics.fill(themeDefinition.getCharacter("BACKGROUND", ' '))
             }
