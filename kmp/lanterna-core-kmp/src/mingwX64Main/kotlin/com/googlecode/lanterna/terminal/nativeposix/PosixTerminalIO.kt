@@ -2,8 +2,8 @@ package com.googlecode.lanterna.terminal.nativeposix
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UIntVarOf
-import kotlinx.cinterop.alloc
 import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.usePinned
@@ -14,9 +14,9 @@ import platform.posix.fgetc
 import platform.posix.fputs
 import platform.posix.stdin
 import platform.posix.stdout
-import platform.windows.FlushFileBuffers
 import platform.windows.FROM_LEFT_1ST_BUTTON_PRESSED
 import platform.windows.FROM_LEFT_2ND_BUTTON_PRESSED
+import platform.windows.FlushFileBuffers
 import platform.windows.GetNumberOfConsoleInputEvents
 import platform.windows.GetStdHandle
 import platform.windows.INPUT_RECORD
@@ -26,18 +26,18 @@ import platform.windows.LEFT_CTRL_PRESSED
 import platform.windows.MOUSE_EVENT
 import platform.windows.MOUSE_MOVED
 import platform.windows.MOUSE_WHEELED
-import platform.windows.ReadFile
-import platform.windows.ReadConsoleInputW
 import platform.windows.RIGHTMOST_BUTTON_PRESSED
 import platform.windows.RIGHT_ALT_PRESSED
 import platform.windows.RIGHT_CTRL_PRESSED
+import platform.windows.ReadConsoleInputW
+import platform.windows.ReadFile
+import platform.windows.SHIFT_PRESSED
 import platform.windows.STD_INPUT_HANDLE
 import platform.windows.STD_OUTPUT_HANDLE
-import platform.windows.SHIFT_PRESSED
 import platform.windows.WAIT_OBJECT_0
 import platform.windows.WAIT_TIMEOUT
-import platform.windows.WaitForSingleObject
 import platform.windows.WINDOW_BUFFER_SIZE_EVENT
+import platform.windows.WaitForSingleObject
 import platform.windows.WriteFile
 
 @OptIn(ExperimentalForeignApi::class)
@@ -232,7 +232,7 @@ actual object PosixTerminalIO {
         return if (modifier == 1) {
             "\u001B[$suffix".encodeToByteArray()
         } else {
-            "\u001B[1;${modifier}$suffix".encodeToByteArray()
+            "\u001B[1;$modifier$suffix".encodeToByteArray()
         }
     }
 
@@ -242,9 +242,9 @@ actual object PosixTerminalIO {
     ): ByteArray {
         val modifier = csiModifier(controlKeyState)
         return if (modifier == 1) {
-            "\u001B[${code}~".encodeToByteArray()
+            "\u001B[$code~".encodeToByteArray()
         } else {
-            "\u001B[${code};${modifier}~".encodeToByteArray()
+            "\u001B[$code;$modifier~".encodeToByteArray()
         }
     }
 
@@ -313,6 +313,6 @@ actual object PosixTerminalIO {
         pressed: Boolean,
     ): ByteArray {
         val suffix = if (pressed) 'M' else 'm'
-        return "\u001B[<${code};${x};${y}${suffix}".encodeToByteArray()
+        return "\u001B[<$code;$x;$y$suffix".encodeToByteArray()
     }
 }
