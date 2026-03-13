@@ -11,9 +11,11 @@ import platform.posix.getenv
 import platform.windows.CONSOLE_SCREEN_BUFFER_INFO
 import platform.windows.DISABLE_NEWLINE_AUTO_RETURN
 import platform.windows.ENABLE_ECHO_INPUT
+import platform.windows.ENABLE_EXTENDED_FLAGS
 import platform.windows.ENABLE_LINE_INPUT
 import platform.windows.ENABLE_MOUSE_INPUT
 import platform.windows.ENABLE_PROCESSED_INPUT
+import platform.windows.ENABLE_QUICK_EDIT_MODE
 import platform.windows.ENABLE_VIRTUAL_TERMINAL_INPUT
 import platform.windows.ENABLE_VIRTUAL_TERMINAL_PROCESSING
 import platform.windows.ENABLE_WINDOW_INPUT
@@ -65,10 +67,12 @@ actual object PosixTerminalRuntime {
                     ENABLE_LINE_INPUT.toUInt().inv() and
                     ENABLE_PROCESSED_INPUT.toUInt().inv()
             val vtInputMode =
-                rawInputMode or
+                (rawInputMode or
+                    ENABLE_EXTENDED_FLAGS.toUInt() or
                     ENABLE_MOUSE_INPUT.toUInt() or
                     ENABLE_WINDOW_INPUT.toUInt() or
-                    ENABLE_VIRTUAL_TERMINAL_INPUT.toUInt()
+                    ENABLE_VIRTUAL_TERMINAL_INPUT.toUInt()) and
+                    ENABLE_QUICK_EDIT_MODE.toUInt().inv()
             if (SetConsoleMode(inputHandle, vtInputMode) == 0) {
                 savedInputMode = null
                 savedOutputMode = null
