@@ -14,6 +14,7 @@ import platform.posix.fgetc
 import platform.posix.fputs
 import platform.posix.stdin
 import platform.posix.stdout
+import platform.windows.FlushFileBuffers
 import platform.windows.GetStdHandle
 import platform.windows.ReadFile
 import platform.windows.STD_INPUT_HANDLE
@@ -69,20 +70,36 @@ actual object PosixTerminalIO {
 
         val outputHandle = GetStdHandle(STD_OUTPUT_HANDLE.toUInt())
         if (outputHandle != null) {
-            memScoped {
-                val bytesWritten = alloc<UIntVarOf<UInt>>()
-                val writeOk = bytes.usePinned { pinned ->
-                    WriteFile(
-                        outputHandle,
-                        pinned.addressOf(0),
-                        bytes.size.toUInt(),
-                        bytesWritten.ptr,
-                        null,
-                    ) != 0
+            val fullyWritten =
+                bytes.usePinned { pinned ->
+                    var offset = 0
+                    while (offset < bytes.size) {
+                        val chunkWritten =
+                            memScoped {
+                                val bytesWritten = alloc<UIntVarOf<UInt>>()
+                                val remaining = (bytes.size - offset).toUInt()
+                                val writeOk =
+                                    WriteFile(
+                                        outputHandle,
+                                        pinned.addressOf(offset),
+                                        remaining,
+                                        bytesWritten.ptr,
+                                        null,
+                                    ) != 0
+                                if (!writeOk) {
+                                    return@memScoped -1
+                                }
+                                bytesWritten.value.toInt()
+                            }
+                        if (chunkWritten <= 0) {
+                            return@usePinned false
+                        }
+                        offset += chunkWritten
+                    }
+                    true
                 }
-                if (writeOk && bytesWritten.value == bytes.size.toUInt()) {
-                    return
-                }
+            if (fullyWritten) {
+                return
             }
         }
 
@@ -90,6 +107,10 @@ actual object PosixTerminalIO {
     }
 
     actual fun flush() {
+        val outputHandle = GetStdHandle(STD_OUTPUT_HANDLE.toUInt())
+        if (outputHandle != null && FlushFileBuffers(outputHandle) != 0) {
+            return
+        }
         fflush(stdout)
     }
 }
