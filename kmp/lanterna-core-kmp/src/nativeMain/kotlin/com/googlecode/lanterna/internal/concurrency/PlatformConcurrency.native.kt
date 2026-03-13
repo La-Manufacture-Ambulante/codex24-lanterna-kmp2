@@ -98,8 +98,6 @@ actual class PlatformThread actual constructor(
     name: String,
     block: () -> Unit,
 ) {
-    @Suppress("UNUSED_PARAMETER")
-    private val threadName: String = name
     private val runBlock: () -> Unit = block
     private var started: Boolean = false
 

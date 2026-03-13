@@ -23,7 +23,7 @@ import platform.posix.stat
 
 actual class LanternaFile private constructor(
     private val rawPath: String,
-    @Suppress("UNUSED_PARAMETER") normalized: Boolean,
+    normalized: Boolean,
 ) {
     actual constructor(path: String) : this(normalizePath(path), true)
 
