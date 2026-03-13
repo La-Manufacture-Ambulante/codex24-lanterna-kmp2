@@ -24,7 +24,10 @@ Branch: `codex/pr6-coroutines-impl`
 - [x] Slice B completed: first callsite adoption wired (`SeparateTextGUIThread` launches through `PlatformTaskRuntime`).
 - [x] Slice C completed: added GUI-thread coroutine-mode regression test for `SeparateTextGUIThread` lifecycle.
 - [x] Slice D completed (local gate): `ktlintCheck`, `compileKotlinJvm`, `compileKotlinLinuxX64`, `compileKotlinMingwX64`, and `jvmTest` all passing.
-- [ ] Slice E next: prepare follow-up migration plan for additional callsites and optional runtime selection policy.
+- [x] Slice E (part 1) completed: env-policy/runtime hardening in `PlatformTaskRuntime` with deterministic tests for
+  - env-based mode reconfiguration via injectable environment lookup,
+  - await-timeout semantics for running tasks.
+- [ ] Slice E (part 2) next: prepare follow-up migration plan for additional callsites and optional runtime selection policy.
 
 ## Guardrails
 - Default behavior remains thread-based.

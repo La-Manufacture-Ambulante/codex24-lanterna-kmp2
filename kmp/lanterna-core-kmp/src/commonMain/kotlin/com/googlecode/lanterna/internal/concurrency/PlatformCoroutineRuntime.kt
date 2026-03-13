@@ -35,6 +35,8 @@ object PlatformTaskRuntime {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private const val EXECUTION_MODE_ENVIRONMENT_VARIABLE = "LANTERNA_EXECUTION_MODE"
+    private val defaultEnvironmentLookup: (String) -> String? = ::platformEnvironmentVariable
+    private var environmentLookup: (String) -> String? = defaultEnvironmentLookup
 
     private var currentMode: PlatformExecutionMode = resolvedModeFromEnvironment() ?: PlatformExecutionMode.THREAD
 
@@ -60,6 +62,7 @@ object PlatformTaskRuntime {
 
     internal fun resetForTests() {
         currentMode = PlatformExecutionMode.THREAD
+        environmentLookup = defaultEnvironmentLookup
     }
 
     internal fun shutdownForTests() {
@@ -119,8 +122,12 @@ object PlatformTaskRuntime {
         return parseExecutionMode(raw)
     }
 
+    internal fun setEnvironmentLookupForTests(lookup: (String) -> String?) {
+        environmentLookup = lookup
+    }
+
     private fun resolvedModeFromEnvironment(): PlatformExecutionMode? {
-        return parseExecutionMode(platformEnvironmentVariable(EXECUTION_MODE_ENVIRONMENT_VARIABLE))
+        return parseExecutionMode(environmentLookup(EXECUTION_MODE_ENVIRONMENT_VARIABLE))
     }
 
     private fun parseExecutionMode(raw: String?): PlatformExecutionMode? {
