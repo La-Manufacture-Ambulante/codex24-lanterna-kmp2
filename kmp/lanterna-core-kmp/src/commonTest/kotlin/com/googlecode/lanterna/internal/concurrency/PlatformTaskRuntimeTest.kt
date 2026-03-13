@@ -1,0 +1,44 @@
+package com.googlecode.lanterna.internal.concurrency
+
+import kotlin.test.AfterTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+class PlatformTaskRuntimeTest {
+    @AfterTest
+    fun resetExecutionMode() {
+        PlatformTaskRuntime.resetForTests()
+    }
+
+    @Test
+    fun defaultExecutionModeIsThread() {
+        assertEquals(PlatformExecutionMode.THREAD, PlatformTaskRuntime.executionMode())
+    }
+
+    @Test
+    fun launchUsesThreadModeByDefault() {
+        val latch = PlatformCountdownLatch(1)
+        val handle =
+            PlatformTaskRuntime.launch("thread-default") {
+                latch.countDown()
+            }
+
+        assertTrue(latch.await(2_000))
+        assertTrue(handle.awaitCompletion(2_000))
+    }
+
+    @Test
+    fun launchUsesCoroutineModeWhenEnabled() {
+        PlatformTaskRuntime.setExecutionMode(PlatformExecutionMode.COROUTINE)
+
+        val latch = PlatformCountdownLatch(1)
+        val handle =
+            PlatformTaskRuntime.launch("coroutine-enabled") {
+                latch.countDown()
+            }
+
+        assertTrue(latch.await(2_000))
+        assertTrue(handle.awaitCompletion(2_000))
+    }
+}
