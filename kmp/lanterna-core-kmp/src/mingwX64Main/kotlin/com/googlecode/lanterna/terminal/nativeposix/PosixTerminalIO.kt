@@ -19,10 +19,15 @@ import platform.windows.GetNumberOfConsoleInputEvents
 import platform.windows.GetStdHandle
 import platform.windows.INPUT_RECORD
 import platform.windows.KEY_EVENT
+import platform.windows.LEFT_ALT_PRESSED
+import platform.windows.LEFT_CTRL_PRESSED
 import platform.windows.ReadFile
 import platform.windows.ReadConsoleInputW
+import platform.windows.RIGHT_ALT_PRESSED
+import platform.windows.RIGHT_CTRL_PRESSED
 import platform.windows.STD_INPUT_HANDLE
 import platform.windows.STD_OUTPUT_HANDLE
+import platform.windows.SHIFT_PRESSED
 import platform.windows.WAIT_OBJECT_0
 import platform.windows.WAIT_TIMEOUT
 import platform.windows.WaitForSingleObject
@@ -162,11 +167,16 @@ actual object PosixTerminalIO {
                 if (keyEvent.bKeyDown.toInt() == 0) {
                     return@repeat
                 }
+                val controlKeyState = keyEvent.dwControlKeyState.toInt()
                 val codePoint = keyEvent.uChar.UnicodeChar.toInt()
                 if (codePoint != 0) {
-                    return codePoint.toChar().toString().encodeToByteArray()
+                    val text = codePoint.toChar().toString()
+                    if ((controlKeyState and (LEFT_ALT_PRESSED or RIGHT_ALT_PRESSED)) != 0) {
+                        return "\u001B$text".encodeToByteArray()
+                    }
+                    return text.encodeToByteArray()
                 }
-                val specialBytes = mapVirtualKeyToAnsi(keyEvent.wVirtualKeyCode.toInt())
+                val specialBytes = mapVirtualKeyToAnsi(keyEvent.wVirtualKeyCode.toInt(), controlKeyState)
                 if (specialBytes != null) {
                     return specialBytes
                 }
@@ -174,22 +184,63 @@ actual object PosixTerminalIO {
             return null
         }
 
-    private fun mapVirtualKeyToAnsi(virtualKeyCode: Int): ByteArray? =
+    private fun mapVirtualKeyToAnsi(
+        virtualKeyCode: Int,
+        controlKeyState: Int,
+    ): ByteArray? =
         when (virtualKeyCode) {
             0x08 -> byteArrayOf(0x7F) // Backspace
             0x09 -> byteArrayOf('\t'.code.toByte()) // Tab
             0x0D -> byteArrayOf('\r'.code.toByte()) // Enter
             0x1B -> byteArrayOf(0x1B) // Escape
-            0x21 -> "\u001B[5~".encodeToByteArray() // PageUp
-            0x22 -> "\u001B[6~".encodeToByteArray() // PageDown
-            0x23 -> "\u001B[F".encodeToByteArray() // End
-            0x24 -> "\u001B[H".encodeToByteArray() // Home
-            0x25 -> "\u001B[D".encodeToByteArray() // Left
-            0x26 -> "\u001B[A".encodeToByteArray() // Up
-            0x27 -> "\u001B[C".encodeToByteArray() // Right
-            0x28 -> "\u001B[B".encodeToByteArray() // Down
-            0x2D -> "\u001B[2~".encodeToByteArray() // Insert
-            0x2E -> "\u001B[3~".encodeToByteArray() // Delete
+            0x21 -> modifiedTilde(5, controlKeyState) // PageUp
+            0x22 -> modifiedTilde(6, controlKeyState) // PageDown
+            0x23 -> modifiedCursor("F", controlKeyState) // End
+            0x24 -> modifiedCursor("H", controlKeyState) // Home
+            0x25 -> modifiedCursor("D", controlKeyState) // Left
+            0x26 -> modifiedCursor("A", controlKeyState) // Up
+            0x27 -> modifiedCursor("C", controlKeyState) // Right
+            0x28 -> modifiedCursor("B", controlKeyState) // Down
+            0x2D -> modifiedTilde(2, controlKeyState) // Insert
+            0x2E -> modifiedTilde(3, controlKeyState) // Delete
             else -> null
         }
+
+    private fun modifiedCursor(
+        suffix: String,
+        controlKeyState: Int,
+    ): ByteArray {
+        val modifier = csiModifier(controlKeyState)
+        return if (modifier == 1) {
+            "\u001B[$suffix".encodeToByteArray()
+        } else {
+            "\u001B[1;${modifier}$suffix".encodeToByteArray()
+        }
+    }
+
+    private fun modifiedTilde(
+        code: Int,
+        controlKeyState: Int,
+    ): ByteArray {
+        val modifier = csiModifier(controlKeyState)
+        return if (modifier == 1) {
+            "\u001B[${code}~".encodeToByteArray()
+        } else {
+            "\u001B[${code};${modifier}~".encodeToByteArray()
+        }
+    }
+
+    private fun csiModifier(controlKeyState: Int): Int {
+        var value = 1
+        if ((controlKeyState and SHIFT_PRESSED) != 0) {
+            value += 1
+        }
+        if ((controlKeyState and (LEFT_ALT_PRESSED or RIGHT_ALT_PRESSED)) != 0) {
+            value += 2
+        }
+        if ((controlKeyState and (LEFT_CTRL_PRESSED or RIGHT_CTRL_PRESSED)) != 0) {
+            value += 4
+        }
+        return value
+    }
 }
