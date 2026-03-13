@@ -53,8 +53,10 @@ actual object PosixTerminalRuntime {
             if (GetConsoleMode(outputHandle, outputMode.ptr) == 0) {
                 return false
             }
-            savedInputMode = inputMode.value
-            savedOutputMode = outputMode.value
+            val previousInputMode = inputMode.value
+            val previousOutputMode = outputMode.value
+            savedInputMode = previousInputMode
+            savedOutputMode = previousOutputMode
 
             val rawInputMode =
                 inputMode.value and
@@ -67,11 +69,16 @@ actual object PosixTerminalRuntime {
                     ENABLE_WINDOW_INPUT.toUInt() or
                     ENABLE_VIRTUAL_TERMINAL_INPUT.toUInt()
             if (SetConsoleMode(inputHandle, vtInputMode) == 0) {
+                savedInputMode = null
+                savedOutputMode = null
                 return false
             }
 
             val vtOutputMode = outputMode.value or ENABLE_VIRTUAL_TERMINAL_PROCESSING.toUInt()
             if (SetConsoleMode(outputHandle, vtOutputMode) == 0) {
+                SetConsoleMode(inputHandle, previousInputMode)
+                savedInputMode = null
+                savedOutputMode = null
                 return false
             }
         }
