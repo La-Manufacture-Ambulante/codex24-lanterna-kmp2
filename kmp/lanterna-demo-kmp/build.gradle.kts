@@ -16,6 +16,9 @@ kotlin {
             executable {
                 entryPoint = "com.googlecode.lanterna.examples.nativeSnapshotMain"
             }
+            executable("keyInputRepro") {
+                entryPoint = "com.alaeri.keyInputReproMain"
+            }
         }
     }
 
@@ -50,4 +53,17 @@ tasks.register<JavaExec>("jvmRenderSnapshot") {
     }
     systemProperty("demo.outputDir", outputDir.get().asFile.absolutePath)
     systemProperty("demo.target", "jvm-${System.getProperty("os.name")}")
+}
+
+tasks.register<JavaExec>("runKeyInputReproJvm") {
+    group = "application"
+    description = "Runs the key-input repro app on JVM."
+    dependsOn(tasks.named("jvmMainClasses"))
+
+    classpath(
+        jvmMainCompilation.output.allOutputs,
+        jvmMainCompilation.runtimeDependencyFiles,
+    )
+    mainClass.set("com.alaeri.KeyInputReproJvmMainKt")
+    standardInput = System.`in`
 }
