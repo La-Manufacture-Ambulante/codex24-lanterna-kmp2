@@ -1,2 +1,6 @@
 jdk:
-  - openjdk9
+  - openjdk17
+install:
+  - mvn -q -DskipTests install
+  - cd kmp
+  - ./gradlew :lanterna-core-kmp:publishJvmPublicationToMavenLocal
