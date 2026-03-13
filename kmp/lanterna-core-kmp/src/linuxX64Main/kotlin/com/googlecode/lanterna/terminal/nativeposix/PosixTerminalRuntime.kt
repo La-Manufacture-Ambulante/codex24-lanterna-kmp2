@@ -92,17 +92,9 @@ internal fun resolveTerminalFdForTest(
 }
 
 internal fun rawModeCommandForTest(stdinIsTty: Boolean): String {
-    return if (stdinIsTty) {
-        "stty raw -echo >/dev/null 2>&1"
-    } else {
-        "stty raw -echo </dev/tty >/dev/null 2>&1"
-    }
+    return "stty raw -echo >/dev/null 2>&1"
 }
 
 internal fun cookedModeCommandForTest(stdinIsTty: Boolean): String {
-    return if (stdinIsTty) {
-        "stty sane >/dev/null 2>&1"
-    } else {
-        "stty sane </dev/tty >/dev/null 2>&1"
-    }
+    return "stty sane >/dev/null 2>&1"
 }

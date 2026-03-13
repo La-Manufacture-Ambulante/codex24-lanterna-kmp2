@@ -3,6 +3,7 @@ package com.googlecode.lanterna.terminal.nativeposix
 import platform.posix.STDIN_FILENO
 import platform.posix.STDOUT_FILENO
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 class PosixTerminalNativeFdFallbackMacosX64Test {
@@ -12,8 +13,35 @@ class PosixTerminalNativeFdFallbackMacosX64Test {
     }
 
     @Test
-    fun inputFdFallsBackToControllingTtyWhenStdinIsDetached() {
-        assertEquals(42, resolveInputFdForTest(stdinIsTty = false, ttyFd = 42))
+    fun inputFdUsesStdinWhenStdinIsDetached() {
+        assertEquals(STDIN_FILENO, resolveInputFdForTest(stdinIsTty = false, ttyFd = 42))
+    }
+
+    @Test
+    fun inputCandidatesUseStdinOnly() {
+        assertContentEquals(
+            intArrayOf(STDIN_FILENO),
+            resolveInputCandidatesForTest(stdinIsTty = true, ttyFd = 42),
+        )
+        assertContentEquals(
+            intArrayOf(STDIN_FILENO),
+            resolveInputCandidatesForTest(stdinIsTty = true, ttyFd = STDIN_FILENO),
+        )
+        assertContentEquals(
+            intArrayOf(STDIN_FILENO),
+            resolveInputCandidatesForTest(stdinIsTty = false, ttyFd = 42),
+        )
+        assertContentEquals(
+            intArrayOf(STDIN_FILENO),
+            resolveInputCandidatesForTest(stdinIsTty = false, ttyFd = -1),
+        )
+    }
+
+    @Test
+    fun blockingInputFdUsesStdinOnly() {
+        assertEquals(STDIN_FILENO, resolveBlockingInputFdForTest(stdinIsTty = true, ttyFd = 42))
+        assertEquals(STDIN_FILENO, resolveBlockingInputFdForTest(stdinIsTty = false, ttyFd = 42))
+        assertEquals(STDIN_FILENO, resolveBlockingInputFdForTest(stdinIsTty = false, ttyFd = -1))
     }
 
     @Test
@@ -33,13 +61,13 @@ class PosixTerminalNativeFdFallbackMacosX64Test {
     }
 
     @Test
-    fun rawAndCookedModeCommandsUseDevTtyWhenStdinIsDetached() {
+    fun rawAndCookedModeCommandsUseStdinOnly() {
         assertEquals(
-            "stty raw -echo </dev/tty >/dev/null 2>&1",
+            "stty raw -echo >/dev/null 2>&1",
             rawModeCommandForTest(stdinIsTty = false),
         )
         assertEquals(
-            "stty sane </dev/tty >/dev/null 2>&1",
+            "stty sane >/dev/null 2>&1",
             cookedModeCommandForTest(stdinIsTty = false),
         )
     }

@@ -46,12 +46,7 @@ actual object PosixTerminalRuntime {
         if (activeTerminalFd() < 0) {
             return false
         }
-        val command =
-            if (isatty(STDIN_FILENO) == 1) {
-                "stty raw -echo >/dev/null 2>&1"
-            } else {
-                "stty raw -echo </dev/tty >/dev/null 2>&1"
-            }
+        val command = "stty raw -echo >/dev/null 2>&1"
         return system(command) == 0
     }
 
@@ -59,12 +54,7 @@ actual object PosixTerminalRuntime {
         if (activeTerminalFd() < 0) {
             return false
         }
-        val command =
-            if (isatty(STDIN_FILENO) == 1) {
-                "stty sane >/dev/null 2>&1"
-            } else {
-                "stty sane </dev/tty >/dev/null 2>&1"
-            }
+        val command = "stty sane >/dev/null 2>&1"
         return system(command) == 0
     }
 
