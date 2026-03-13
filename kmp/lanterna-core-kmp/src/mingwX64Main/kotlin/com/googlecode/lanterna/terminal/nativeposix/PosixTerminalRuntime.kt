@@ -67,11 +67,13 @@ actual object PosixTerminalRuntime {
                     ENABLE_LINE_INPUT.toUInt().inv() and
                     ENABLE_PROCESSED_INPUT.toUInt().inv()
             val vtInputMode =
-                (rawInputMode or
-                    ENABLE_EXTENDED_FLAGS.toUInt() or
-                    ENABLE_MOUSE_INPUT.toUInt() or
-                    ENABLE_WINDOW_INPUT.toUInt() or
-                    ENABLE_VIRTUAL_TERMINAL_INPUT.toUInt()) and
+                (
+                    rawInputMode or
+                        ENABLE_EXTENDED_FLAGS.toUInt() or
+                        ENABLE_MOUSE_INPUT.toUInt() or
+                        ENABLE_WINDOW_INPUT.toUInt() or
+                        ENABLE_VIRTUAL_TERMINAL_INPUT.toUInt()
+                ) and
                     ENABLE_QUICK_EDIT_MODE.toUInt().inv()
             if (SetConsoleMode(inputHandle, vtInputMode) == 0) {
                 savedInputMode = null
