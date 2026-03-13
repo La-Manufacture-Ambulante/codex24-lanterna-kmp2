@@ -41,4 +41,18 @@ class PlatformTaskRuntimeTest {
         assertTrue(latch.await(2_000))
         assertTrue(handle.awaitCompletion(2_000))
     }
+
+    @Test
+    fun parseExecutionModeAcceptsKnownValues() {
+        assertEquals(PlatformExecutionMode.THREAD, PlatformTaskRuntime.parseExecutionModeForTest("thread"))
+        assertEquals(PlatformExecutionMode.COROUTINE, PlatformTaskRuntime.parseExecutionModeForTest("coroutine"))
+        assertEquals(PlatformExecutionMode.COROUTINE, PlatformTaskRuntime.parseExecutionModeForTest("  CoRoUtInE  "))
+    }
+
+    @Test
+    fun parseExecutionModeRejectsUnknownValues() {
+        assertEquals(null, PlatformTaskRuntime.parseExecutionModeForTest(null))
+        assertEquals(null, PlatformTaskRuntime.parseExecutionModeForTest(""))
+        assertEquals(null, PlatformTaskRuntime.parseExecutionModeForTest("pthread"))
+    }
 }
