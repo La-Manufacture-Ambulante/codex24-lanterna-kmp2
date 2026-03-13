@@ -23,6 +23,21 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
+        val nativeMain by creating {
+            dependsOn(commonMain)
+        }
+        val macosMain by creating {
+            dependsOn(nativeMain)
+        }
+        val linuxX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val macosX64Main by getting {
+            dependsOn(macosMain)
+        }
+        val macosArm64Main by getting {
+            dependsOn(macosMain)
+        }
 
         val jvmMain by getting {
             dependencies {

@@ -3,4 +3,4 @@ jdk:
 install:
   - mvn -q -DskipTests install
   - cd kmp
-  - ./gradlew :lanterna-core-kmp:publishJvmPublicationToMavenLocal
+  - ./gradlew :lanterna-core-kmp:publishToMavenLocal

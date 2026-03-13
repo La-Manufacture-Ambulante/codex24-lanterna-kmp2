@@ -4,6 +4,7 @@ import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.allocArray
+import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
@@ -76,10 +77,10 @@ actual class LanternaFile private constructor(
         }
 
     actual val isFile: Boolean
-        get() = modeMatches(pathMode(rawPath), S_IFREG.toULong())
+        get() = modeMatches(pathMode(rawPath), S_IFREG.toLong())
 
     actual val isDirectory: Boolean
-        get() = modeMatches(pathMode(rawPath), S_IFDIR.toULong())
+        get() = modeMatches(pathMode(rawPath), S_IFDIR.toLong())
 
     actual val isHidden: Boolean
         get() {
@@ -124,7 +125,7 @@ private fun currentWorkingDirectory(): String? =
     memScoped {
         val bufferSize = 4096
         val buffer = allocArray<ByteVar>(bufferSize)
-        getcwd(buffer, bufferSize.toULong())?.toKString()
+        getcwd(buffer, bufferSize.convert())?.toKString()
     }
 
 private fun normalizePath(path: String): String {
@@ -138,24 +139,24 @@ private fun normalizePath(path: String): String {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun pathMode(path: String): ULong? =
+private fun pathMode(path: String): Long? =
     memScoped {
         val metadata = alloc<stat>()
         if (stat(path, metadata.ptr) != 0) {
             null
         } else {
-            metadata.st_mode.toULong()
+            metadata.st_mode.toLong()
         }
     }
 
 private fun modeMatches(
-    mode: ULong?,
-    expectedType: ULong,
+    mode: Long?,
+    expectedType: Long,
 ): Boolean {
     if (mode == null) {
         return false
     }
-    return (mode and S_IFMT.toULong()) == expectedType
+    return (mode and S_IFMT.toLong()) == expectedType
 }
 
 @OptIn(ExperimentalForeignApi::class)
