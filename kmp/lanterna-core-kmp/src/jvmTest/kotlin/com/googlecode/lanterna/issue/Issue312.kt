@@ -1,7 +1,5 @@
 package com.googlecode.lanterna.issue
-import com.googlecode.lanterna.flush
 import com.googlecode.lanterna.input.KeyType
-import com.googlecode.lanterna.setCursorPosition
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.IOException
 

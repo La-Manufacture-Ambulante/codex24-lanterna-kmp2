@@ -18,8 +18,6 @@
  */
 package com.googlecode.lanterna.terminal
 
-import com.googlecode.lanterna.flush
-import com.googlecode.lanterna.setCursorPosition
 import com.googlecode.lanterna.terminal.swing.ScrollingAWTTerminal
 import com.googlecode.lanterna.terminal.swing.SwingTerminalFontConfiguration
 import com.googlecode.lanterna.terminal.swing.TerminalEmulatorColorConfiguration

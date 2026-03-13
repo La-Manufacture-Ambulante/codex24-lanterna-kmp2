@@ -19,7 +19,6 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TestUtils
-import com.googlecode.lanterna.setComponent
 import java.io.IOException
 import java.util.Arrays
 import java.util.Collections
@@ -42,7 +41,7 @@ class SimpleWindowManagerTest : TestBase() {
         contentArea.addComponent(Button("Expanded window", { textGUI.addWindow(ExpandedWindow(true)) }))
         contentArea.addComponent(Button("Undecorated + Expanded window", { textGUI.addWindow(ExpandedWindow(false)) }))
         contentArea.addComponent(Button("Close", Runnable({ mainWindow.close() })))
-        mainWindow.setComponent(contentArea)
+        mainWindow.component = contentArea
         textGUI.addWindow(mainWindow)
     }
 
@@ -110,7 +109,7 @@ class SimpleWindowManagerTest : TestBase() {
 
     private open class TestWindow internal constructor(title: String) : BasicWindow(title) {
         init {
-            setComponent(Button("Close", Runnable({ this.close() })))
+            component = Button("Close", Runnable({ this.close() }))
             setCloseWindowWithEscape(true)
         }
     }

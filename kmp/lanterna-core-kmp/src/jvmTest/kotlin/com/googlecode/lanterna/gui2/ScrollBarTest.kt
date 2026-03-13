@@ -19,8 +19,6 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.getRenderer
-import com.googlecode.lanterna.getText
 import com.googlecode.lanterna.internal.compat.Pattern
 import java.io.IOException
 
@@ -44,18 +42,18 @@ class ScrollBarTest : TestBase() {
         val horizontalScroll = ScrollBar(Direction.HORIZONTAL)
         val buttonRefresh =
             Button("Refresh", {
-                (verticalScroll.getRenderer() as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(
+                (verticalScroll.renderer as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(
                     checkVerticalTrackerGrow!!.isChecked(),
                 )
-                verticalScroll.setScrollMaximum(getInteger(textBoxVerticalMax!!.getText(), 100))
-                verticalScroll.setScrollPosition(getInteger(textBoxVerticalPosition!!.getText(), 100))
-                verticalScroll.setViewSize(getInteger(textBoxVerticalSize!!.getText(), 1))
-                (horizontalScroll.getRenderer() as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(
+                verticalScroll.setScrollMaximum(getInteger(textBoxVerticalMax!!.text, 100))
+                verticalScroll.setScrollPosition(getInteger(textBoxVerticalPosition!!.text, 100))
+                verticalScroll.setViewSize(getInteger(textBoxVerticalSize!!.text, 1))
+                (horizontalScroll.renderer as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(
                     checkHorizontalTrackerGrow!!.isChecked(),
                 )
-                horizontalScroll.setScrollMaximum(getInteger(textBoxHorizontalMax!!.getText(), 0))
-                horizontalScroll.setScrollPosition(getInteger(textBoxHorizontalPosition!!.getText(), 0))
-                horizontalScroll.setViewSize(getInteger(textBoxHorizontalSize!!.getText(), 1))
+                horizontalScroll.setScrollMaximum(getInteger(textBoxHorizontalMax!!.text, 0))
+                horizontalScroll.setScrollPosition(getInteger(textBoxHorizontalPosition!!.text, 0))
+                horizontalScroll.setViewSize(getInteger(textBoxHorizontalSize!!.text, 1))
             })
         val closeButton = Button("Close", Runnable({ basicWindow.close() }))
 

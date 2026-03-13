@@ -26,7 +26,6 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialog
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder
 import com.googlecode.lanterna.internal.compat.Pattern
-import com.googlecode.lanterna.setComponent
 import java.io.IOException
 
 /**
@@ -127,7 +126,7 @@ object DialogsTextGUIBasicTest {
             mainPanel.addComponent(dialogsListBox)
             mainPanel.addComponent(EmptySpace(TerminalSize.ONE))
             mainPanel.addComponent(Button("Exit", Runnable({ window.close() })))
-            window.setComponent(mainPanel)
+            window.component = mainPanel
 
             textGUI.addWindowAndWait(window)
         } finally

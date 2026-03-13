@@ -4,7 +4,6 @@ import com.googlecode.lanterna.gui2.Button
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI
 import com.googlecode.lanterna.gui2.TextGUIThread
 import com.googlecode.lanterna.screen.TerminalScreen
-import com.googlecode.lanterna.setExceptionHandler
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.IOException
 

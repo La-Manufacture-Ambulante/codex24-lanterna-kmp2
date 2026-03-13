@@ -18,8 +18,6 @@
  */
 package com.googlecode.lanterna.issue
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.addComponent
-import com.googlecode.lanterna.addRow
 import com.googlecode.lanterna.gui2.ActionListBox
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.Button
@@ -34,7 +32,6 @@ import com.googlecode.lanterna.gui2.menu.Menu
 import com.googlecode.lanterna.gui2.menu.MenuBar
 import com.googlecode.lanterna.gui2.menu.MenuItem
 import com.googlecode.lanterna.gui2.table.Table
-import com.googlecode.lanterna.setText
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import com.googlecode.lanterna.terminal.MouseCaptureMode
 import java.io.IOException

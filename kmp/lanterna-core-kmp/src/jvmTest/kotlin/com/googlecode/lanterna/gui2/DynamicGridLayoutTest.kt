@@ -20,16 +20,11 @@ package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.getCheckedItem
-import com.googlecode.lanterna.getLayoutData
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow
 import com.googlecode.lanterna.gui2.dialogs.ListSelectDialog
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialog
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder
-import com.googlecode.lanterna.intValue
 import com.googlecode.lanterna.internal.compat.Pattern
-import com.googlecode.lanterna.setCheckedItem
-import com.googlecode.lanterna.setComponent
 import java.io.IOException
 import java.util.Random
 
@@ -69,7 +64,7 @@ class DynamicGridLayoutTest : TestBase() {
         )
         mainPanel.addComponent(controlPanel)
 
-        window.setComponent(mainPanel)
+        window.component = mainPanel
         textGUI.addWindow(window)
     }
 
@@ -241,14 +236,14 @@ class DynamicGridLayoutTest : TestBase() {
                 Panels.horizontal(okButton, cancelButton)
                     .setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)),
             )
-            setComponent(contentPane)
+            component = contentPane
         }
     }
 
-    private class GridLayoutDataEditor(component: Component) : DialogWindow("GridLayoutData Editor") {
+    private class GridLayoutDataEditor(componentToEdit: Component) : DialogWindow("GridLayoutData Editor") {
         init {
 
-            var gridLayoutData: GridLayout.GridLayoutData? = component.getLayoutData() as GridLayout.GridLayoutData
+            var gridLayoutData: GridLayout.GridLayoutData? = componentToEdit.layoutData as GridLayout.GridLayoutData
             if (gridLayoutData == null) {
                 gridLayoutData =
                     GridLayout.createLayoutData(
@@ -265,7 +260,7 @@ class DynamicGridLayoutTest : TestBase() {
             radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.CENTER)
             radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.END)
             radioBoxesHorizontalAlignment.addItem(GridLayout.Alignment.FILL)
-            radioBoxesHorizontalAlignment.setCheckedItem(gridLayoutData!!.horizontalAlignment)
+            radioBoxesHorizontalAlignment.checkedItem = gridLayoutData!!.horizontalAlignment
             contentPane.addComponent(radioBoxesHorizontalAlignment)
 
             contentPane.addComponent(
@@ -278,7 +273,7 @@ class DynamicGridLayoutTest : TestBase() {
             radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.CENTER)
             radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.END)
             radioBoxesVerticalAlignment.addItem(GridLayout.Alignment.FILL)
-            radioBoxesVerticalAlignment.setCheckedItem(gridLayoutData!!.verticalAlignment)
+            radioBoxesVerticalAlignment.checkedItem = gridLayoutData!!.verticalAlignment
             contentPane.addComponent(radioBoxesVerticalAlignment)
 
             contentPane.addComponent(
@@ -324,12 +319,12 @@ class DynamicGridLayoutTest : TestBase() {
             val okButton =
                 Button("OK", {
                     val horizontalAlignment =
-                        radioBoxesHorizontalAlignment.getCheckedItem() as? GridLayout.Alignment
+                        radioBoxesHorizontalAlignment.checkedItem as? GridLayout.Alignment
                             ?: GridLayout.Alignment.BEGINNING
                     val verticalAlignment =
-                        radioBoxesVerticalAlignment.getCheckedItem() as? GridLayout.Alignment
+                        radioBoxesVerticalAlignment.checkedItem as? GridLayout.Alignment
                             ?: GridLayout.Alignment.BEGINNING
-                    component.setLayoutData(
+                    componentToEdit.setLayoutData(
                         GridLayout.createLayoutData(
                             horizontalAlignment,
                             verticalAlignment,
@@ -347,7 +342,7 @@ class DynamicGridLayoutTest : TestBase() {
                 Panels.horizontal(okButton, cancelButton)
                     .setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)),
             )
-            setComponent(contentPane)
+            this.component = contentPane
         }
     }
 

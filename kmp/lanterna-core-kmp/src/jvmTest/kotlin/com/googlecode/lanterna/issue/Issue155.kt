@@ -29,7 +29,6 @@ import com.googlecode.lanterna.gui2.Panels
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder
 import com.googlecode.lanterna.screen.TerminalScreen
-import com.googlecode.lanterna.setComponent
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.IOException
 
@@ -90,6 +89,6 @@ object Issue155 {
         window: BasicWindow,
         counter: Int,
     ): com.googlecode.lanterna.Runnable {
-        return com.googlecode.lanterna.Runnable { window.setComponent(createUi(gui, window, counter)) }
+        return com.googlecode.lanterna.Runnable { window.component = createUi(gui, window, counter) }
     }
 }

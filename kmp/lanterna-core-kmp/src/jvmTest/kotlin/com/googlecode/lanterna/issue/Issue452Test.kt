@@ -24,8 +24,6 @@ import com.googlecode.lanterna.Runnable
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.addComponent
-import com.googlecode.lanterna.addRow
 import com.googlecode.lanterna.graphics.SimpleTheme
 import com.googlecode.lanterna.gui2.ActionListBox
 import com.googlecode.lanterna.gui2.BasicWindow

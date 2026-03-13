@@ -21,7 +21,6 @@ package com.googlecode.lanterna.issue
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.bundle.LanternaThemes
-import com.googlecode.lanterna.getDefinition
 import com.googlecode.lanterna.graphics.DefaultMutableThemeStyle
 import com.googlecode.lanterna.graphics.DelegatingTheme
 import com.googlecode.lanterna.graphics.DelegatingThemeDefinition
@@ -33,8 +32,6 @@ import com.googlecode.lanterna.gui2.EmptySpace
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI
 import com.googlecode.lanterna.gui2.Panel
 import com.googlecode.lanterna.gui2.TextBox
-import com.googlecode.lanterna.setText
-import com.googlecode.lanterna.setTheme
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.IOException
 import java.util.ArrayList

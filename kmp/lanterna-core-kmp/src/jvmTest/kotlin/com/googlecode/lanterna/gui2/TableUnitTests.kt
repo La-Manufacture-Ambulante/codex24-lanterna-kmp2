@@ -1,16 +1,9 @@
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.Hint
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.addRow
-import com.googlecode.lanterna.getRenderer
 import com.googlecode.lanterna.gui2.table.Table
 import com.googlecode.lanterna.gui2.table.TableModel
-import com.googlecode.lanterna.removeRow
 import com.googlecode.lanterna.screen.TerminalScreen
-import com.googlecode.lanterna.setAllowPartialColumn
-import com.googlecode.lanterna.setComponent
-import com.googlecode.lanterna.setViewLeftColumn
 import com.googlecode.lanterna.terminal.virtual.DefaultVirtualTerminal
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -37,15 +30,21 @@ class TableUnitTests {
         val windowManager = DefaultWindowManager(EmptyWindowDecorationRenderer(), size)
         gui = MultiWindowTextGUI(SeparateTextGUIThread.Factory(), screen, windowManager, null, EmptySpace())
         window = BasicWindow()
-        window!!.setHints(Arrays.asList(Hint.NO_DECORATIONS, Hint.FIT_TERMINAL_WINDOW, Hint.FULL_SCREEN))
+        window!!.setHints(
+            Arrays.asList(
+                Window.Hint.NO_DECORATIONS,
+                Window.Hint.FIT_TERMINAL_WINDOW,
+                Window.Hint.FULL_SCREEN,
+            ),
+        )
         table = Table("a", "b")
-        window!!.setComponent(
+        window!!.component =
             Panel(LinearLayout().setSpacing(0))
                 .addComponent(
                     table,
                     LinearLayout.createLayoutData(LinearLayout.Alignment.FILL),
-                ),
-        )
+                )
+
         gui!!.addWindow(window)
         model = table!!.getTableModel()
     }
@@ -101,8 +100,8 @@ class TableUnitTests {
     fun testRendersVisibleRowsAndColumnsPartiallyWhenHorizontallyScrolled() {
         model = TableModel("x", "a", "b")
         table!!.setTableModel(this.model)
-        table!!.getRenderer().setAllowPartialColumn(true)
-        table!!.getRenderer().setViewLeftColumn(1)
+        table!!.renderer!!.allowPartialColumn = true
+        table!!.renderer!!.viewLeftColumn = 1
         addRowsWithLongThirdColumn(4)
         assertScreenEquals(
             (

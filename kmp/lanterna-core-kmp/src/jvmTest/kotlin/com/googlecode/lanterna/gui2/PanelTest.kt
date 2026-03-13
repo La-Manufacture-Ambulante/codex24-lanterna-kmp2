@@ -17,7 +17,6 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
-import com.googlecode.lanterna.setComponent
 import java.io.IOException
 
 class PanelTest : TestBase() {
@@ -62,12 +61,12 @@ class PanelTest : TestBase() {
         panel!!.addComponent(Button("Panel 4 Button"))
         rightPanel.addComponent(panel!!.withBorder(Borders.doubleLine("Title")))
 
-        window.setComponent(
+        window.component =
             Panels.vertical(
                 mainPanel.withBorder(Borders.singleLine("Main")),
                 Button("OK", Runnable({ window.close() })),
-            ),
-        )
+            )
+
         textGUI.addWindow(window)
     }
 

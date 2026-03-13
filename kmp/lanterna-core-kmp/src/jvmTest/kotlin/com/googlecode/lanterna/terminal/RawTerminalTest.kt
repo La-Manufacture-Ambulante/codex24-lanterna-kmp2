@@ -18,8 +18,6 @@
  */
 package com.googlecode.lanterna.terminal
 import com.googlecode.lanterna.TestTerminalFactory
-import com.googlecode.lanterna.flush
-import com.googlecode.lanterna.setCursorPosition
 import java.io.IOException
 
 /**

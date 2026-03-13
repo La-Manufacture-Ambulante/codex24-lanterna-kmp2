@@ -24,8 +24,6 @@ import com.googlecode.lanterna.bundle.LanternaThemes
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.internal.compat.AtomicBoolean
-import com.googlecode.lanterna.isAltDown
-import com.googlecode.lanterna.isCtrlDown
 import java.io.IOException
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicInteger

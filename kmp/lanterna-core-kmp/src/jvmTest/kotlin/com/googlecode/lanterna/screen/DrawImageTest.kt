@@ -23,7 +23,6 @@ import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.BasicTextImage
-import com.googlecode.lanterna.setCharacter
 import java.io.IOException
 
 /**

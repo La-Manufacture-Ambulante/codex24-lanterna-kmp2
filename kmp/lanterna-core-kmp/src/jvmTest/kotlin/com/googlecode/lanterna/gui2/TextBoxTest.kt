@@ -18,7 +18,6 @@
  */
 package com.googlecode.lanterna.gui2
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.setComponent
 import java.io.IOException
 
 class TextBoxTest : TestBase() {
@@ -60,12 +59,12 @@ class TextBoxTest : TestBase() {
         mainPanel.addComponent(leftPanel.withBorder(Borders.singleLine("Single line")))
         mainPanel.addComponent(rightPanel.withBorder(Borders.singleLine("Multiline")))
 
-        window.setComponent(
+        window.component =
             Panels.vertical(
                 mainPanel.withBorder(Borders.singleLine("Main")),
                 Button("OK", Runnable({ window.close() })),
-            ),
-        )
+            )
+
         textGUI.addWindow(window)
     }
 

@@ -22,12 +22,10 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.bundle.LanternaThemes
-import com.googlecode.lanterna.getSelectedItem
 import com.googlecode.lanterna.graphics.SimpleTheme
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder
 import com.googlecode.lanterna.gui2.table.Table
 import com.googlecode.lanterna.gui2.table.TableModel
-import com.googlecode.lanterna.withBorder
 import java.io.IOException
 import java.util.ArrayList
 import java.util.Collections
