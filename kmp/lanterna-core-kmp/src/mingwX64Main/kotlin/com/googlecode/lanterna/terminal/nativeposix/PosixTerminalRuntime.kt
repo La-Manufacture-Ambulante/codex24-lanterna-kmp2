@@ -9,6 +9,7 @@ import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
 import platform.posix.getenv
 import platform.windows.CONSOLE_SCREEN_BUFFER_INFO
+import platform.windows.DISABLE_NEWLINE_AUTO_RETURN
 import platform.windows.ENABLE_ECHO_INPUT
 import platform.windows.ENABLE_LINE_INPUT
 import platform.windows.ENABLE_MOUSE_INPUT
@@ -74,7 +75,10 @@ actual object PosixTerminalRuntime {
                 return false
             }
 
-            val vtOutputMode = outputMode.value or ENABLE_VIRTUAL_TERMINAL_PROCESSING.toUInt()
+            val vtOutputMode =
+                outputMode.value or
+                    ENABLE_VIRTUAL_TERMINAL_PROCESSING.toUInt() or
+                    DISABLE_NEWLINE_AUTO_RETURN.toUInt()
             if (SetConsoleMode(outputHandle, vtOutputMode) == 0) {
                 SetConsoleMode(inputHandle, previousInputMode)
                 savedInputMode = null
