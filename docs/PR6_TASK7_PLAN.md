@@ -18,6 +18,12 @@ Branch: `codex/pr6-coroutines-impl`
 4. Slice D: validate compile/test gates on JVM + native compiles.
 5. Slice E: prepare follow-up migration plan for selective callsite adoption.
 
+## Progress
+- [x] Slice A completed: coroutine dependency + `PlatformTaskRuntime` abstraction + baseline tests.
+- [x] Lint propagation from PR5 applied on PR6 (`PosixTerminalIO` / `PosixTerminalRuntime` style fixes).
+- [x] Slice B started via first callsite adoption: `SeparateTextGUIThread` now launches through `PlatformTaskRuntime`.
+- [ ] Slice C next: extend tests for coroutine mode behavior at GUI-thread callsite level.
+
 ## Guardrails
 - Default behavior remains thread-based.
 - No functional switch at callsites in this PR slice.
