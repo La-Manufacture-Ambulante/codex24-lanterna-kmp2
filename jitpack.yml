@@ -3,4 +3,4 @@ jdk:
 install:
   - chmod +x ./kmp/gradlew
   - cd kmp
-  - ./gradlew :lanterna-core-kmp:publishToMavenLocal
+  - ./gradlew --no-daemon :lanterna-core-kmp:publishToMavenLocal
