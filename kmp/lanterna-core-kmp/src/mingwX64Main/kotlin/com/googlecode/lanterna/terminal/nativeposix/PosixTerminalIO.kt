@@ -15,14 +15,20 @@ import platform.posix.fputs
 import platform.posix.stdin
 import platform.posix.stdout
 import platform.windows.FlushFileBuffers
+import platform.windows.FROM_LEFT_1ST_BUTTON_PRESSED
+import platform.windows.FROM_LEFT_2ND_BUTTON_PRESSED
 import platform.windows.GetNumberOfConsoleInputEvents
 import platform.windows.GetStdHandle
 import platform.windows.INPUT_RECORD
 import platform.windows.KEY_EVENT
 import platform.windows.LEFT_ALT_PRESSED
 import platform.windows.LEFT_CTRL_PRESSED
+import platform.windows.MOUSE_EVENT
+import platform.windows.MOUSE_MOVED
+import platform.windows.MOUSE_WHEELED
 import platform.windows.ReadFile
 import platform.windows.ReadConsoleInputW
+import platform.windows.RIGHTMOST_BUTTON_PRESSED
 import platform.windows.RIGHT_ALT_PRESSED
 import platform.windows.RIGHT_CTRL_PRESSED
 import platform.windows.STD_INPUT_HANDLE
@@ -31,6 +37,7 @@ import platform.windows.SHIFT_PRESSED
 import platform.windows.WAIT_OBJECT_0
 import platform.windows.WAIT_TIMEOUT
 import platform.windows.WaitForSingleObject
+import platform.windows.WINDOW_BUFFER_SIZE_EVENT
 import platform.windows.WriteFile
 
 @OptIn(ExperimentalForeignApi::class)
@@ -160,25 +167,36 @@ actual object PosixTerminalIO {
                 if (ReadConsoleInputW(inputHandle, inputRecord.ptr, 1u, eventsRead.ptr) == 0 || eventsRead.value == 0u) {
                     return null
                 }
-                if (inputRecord.EventType != KEY_EVENT.toUShort()) {
-                    return@repeat
-                }
-                val keyEvent = inputRecord.Event.KeyEvent
-                if (keyEvent.bKeyDown.toInt() == 0) {
-                    return@repeat
-                }
-                val controlKeyState = keyEvent.dwControlKeyState.toInt()
-                val codePoint = keyEvent.uChar.UnicodeChar.toInt()
-                if (codePoint != 0) {
-                    val text = codePoint.toChar().toString()
-                    if ((controlKeyState and (LEFT_ALT_PRESSED or RIGHT_ALT_PRESSED)) != 0) {
-                        return "\u001B$text".encodeToByteArray()
+                when (inputRecord.EventType) {
+                    KEY_EVENT.toUShort() -> {
+                        val keyEvent = inputRecord.Event.KeyEvent
+                        if (keyEvent.bKeyDown.toInt() == 0) {
+                            return@repeat
+                        }
+                        val controlKeyState = keyEvent.dwControlKeyState.toInt()
+                        val codePoint = keyEvent.uChar.UnicodeChar.toInt()
+                        if (codePoint != 0) {
+                            val text = codePoint.toChar().toString()
+                            if ((controlKeyState and (LEFT_ALT_PRESSED or RIGHT_ALT_PRESSED)) != 0) {
+                                return "\u001B$text".encodeToByteArray()
+                            }
+                            return text.encodeToByteArray()
+                        }
+                        val specialBytes = mapVirtualKeyToAnsi(keyEvent.wVirtualKeyCode.toInt(), controlKeyState)
+                        if (specialBytes != null) {
+                            return specialBytes
+                        }
                     }
-                    return text.encodeToByteArray()
-                }
-                val specialBytes = mapVirtualKeyToAnsi(keyEvent.wVirtualKeyCode.toInt(), controlKeyState)
-                if (specialBytes != null) {
-                    return specialBytes
+                    MOUSE_EVENT.toUShort() -> {
+                        val mouseEvent = inputRecord.Event.MouseEvent
+                        val mouseBytes = mapMouseEventToAnsi(mouseEvent)
+                        if (mouseBytes != null) {
+                            return mouseBytes
+                        }
+                    }
+                    WINDOW_BUFFER_SIZE_EVENT.toUShort() -> {
+                        // Resize notifications are handled by runtime size polling.
+                    }
                 }
             }
             return null
@@ -242,5 +260,59 @@ actual object PosixTerminalIO {
             value += 4
         }
         return value
+    }
+
+    private fun mapMouseEventToAnsi(mouseEvent: platform.windows.MOUSE_EVENT_RECORD): ByteArray? {
+        val x = mouseEvent.dwMousePosition.X.toInt() + 1
+        val y = mouseEvent.dwMousePosition.Y.toInt() + 1
+        if (x <= 0 || y <= 0) {
+            return null
+        }
+
+        val controlKeyState = mouseEvent.dwControlKeyState.toInt()
+        val modifierBits =
+            (if ((controlKeyState and SHIFT_PRESSED) != 0) 4 else 0) +
+                (if ((controlKeyState and (LEFT_ALT_PRESSED or RIGHT_ALT_PRESSED)) != 0) 8 else 0) +
+                (if ((controlKeyState and (LEFT_CTRL_PRESSED or RIGHT_CTRL_PRESSED)) != 0) 16 else 0)
+
+        val buttonState = mouseEvent.dwButtonState.toInt()
+        val eventFlags = mouseEvent.dwEventFlags.toInt()
+
+        if ((eventFlags and MOUSE_WHEELED) != 0) {
+            val wheelDelta = (buttonState shr 16).toShort().toInt()
+            val wheelCode = if (wheelDelta > 0) 64 else 65
+            return sgrMouseSequence(wheelCode + modifierBits, x, y, pressed = true)
+        }
+
+        if ((eventFlags and MOUSE_MOVED) != 0) {
+            val base = buttonCodeFromState(buttonState) ?: 3
+            val moveCode = (if (base == 3) 35 else 32 + base) + modifierBits
+            return sgrMouseSequence(moveCode, x, y, pressed = true)
+        }
+
+        return if (buttonState == 0) {
+            sgrMouseSequence(3 + modifierBits, x, y, pressed = false)
+        } else {
+            val base = buttonCodeFromState(buttonState) ?: 0
+            sgrMouseSequence(base + modifierBits, x, y, pressed = true)
+        }
+    }
+
+    private fun buttonCodeFromState(buttonState: Int): Int? =
+        when {
+            (buttonState and FROM_LEFT_1ST_BUTTON_PRESSED) != 0u.toInt() -> 0
+            (buttonState and FROM_LEFT_2ND_BUTTON_PRESSED) != 0u.toInt() -> 1
+            (buttonState and RIGHTMOST_BUTTON_PRESSED) != 0u.toInt() -> 2
+            else -> null
+        }
+
+    private fun sgrMouseSequence(
+        code: Int,
+        x: Int,
+        y: Int,
+        pressed: Boolean,
+    ): ByteArray {
+        val suffix = if (pressed) 'M' else 'm'
+        return "\u001B[<${code};${x};${y}${suffix}".encodeToByteArray()
     }
 }
