@@ -34,7 +34,7 @@ class PlatformTaskHandle internal constructor(
 object PlatformTaskRuntime {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    private const val executionModeEnvironmentVariable = "LANTERNA_EXECUTION_MODE"
+    private const val EXECUTION_MODE_ENVIRONMENT_VARIABLE = "LANTERNA_EXECUTION_MODE"
 
     private var currentMode: PlatformExecutionMode = resolvedModeFromEnvironment() ?: PlatformExecutionMode.THREAD
 
@@ -120,7 +120,7 @@ object PlatformTaskRuntime {
     }
 
     private fun resolvedModeFromEnvironment(): PlatformExecutionMode? {
-        return parseExecutionMode(platformEnvironmentVariable(executionModeEnvironmentVariable))
+        return parseExecutionMode(platformEnvironmentVariable(EXECUTION_MODE_ENVIRONMENT_VARIABLE))
     }
 
     private fun parseExecutionMode(raw: String?): PlatformExecutionMode? {
