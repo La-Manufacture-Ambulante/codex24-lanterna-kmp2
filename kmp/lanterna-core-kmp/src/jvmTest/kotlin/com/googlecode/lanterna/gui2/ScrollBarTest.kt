@@ -18,10 +18,11 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.getRenderer
+import com.googlecode.lanterna.getText
+import com.googlecode.lanterna.internal.compat.Pattern
 import java.io.IOException
-import java.util.regex.Pattern
 
 class ScrollBarTest : TestBase() {
     @Override
@@ -43,11 +44,15 @@ class ScrollBarTest : TestBase() {
         val horizontalScroll = ScrollBar(Direction.HORIZONTAL)
         val buttonRefresh =
             Button("Refresh", {
-                (verticalScroll.getRenderer() as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(checkVerticalTrackerGrow!!.isChecked())
+                (verticalScroll.getRenderer() as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(
+                    checkVerticalTrackerGrow!!.isChecked(),
+                )
                 verticalScroll.setScrollMaximum(getInteger(textBoxVerticalMax!!.getText(), 100))
                 verticalScroll.setScrollPosition(getInteger(textBoxVerticalPosition!!.getText(), 100))
                 verticalScroll.setViewSize(getInteger(textBoxVerticalSize!!.getText(), 1))
-                (horizontalScroll.getRenderer() as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(checkHorizontalTrackerGrow!!.isChecked())
+                (horizontalScroll.getRenderer() as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(
+                    checkHorizontalTrackerGrow!!.isChecked(),
+                )
                 horizontalScroll.setScrollMaximum(getInteger(textBoxHorizontalMax!!.getText(), 0))
                 horizontalScroll.setScrollPosition(getInteger(textBoxHorizontalPosition!!.getText(), 0))
                 horizontalScroll.setViewSize(getInteger(textBoxHorizontalSize!!.getText(), 1))
@@ -56,7 +61,16 @@ class ScrollBarTest : TestBase() {
 
         verticalScroll.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.FILL, false, true))
         horizontalScroll.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))
-        buttonRefresh.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.BEGINNING, true, true, 2, 1))
+        buttonRefresh.setLayoutData(
+            GridLayout.createLayoutData(
+                GridLayout.Alignment.CENTER,
+                GridLayout.Alignment.BEGINNING,
+                true,
+                true,
+                2,
+                1,
+            ),
+        )
 
         contentPanel.addComponent(controlPanel.withBorder(Borders.singleLine("Control")))
         contentPanel.addComponent(verticalScroll)

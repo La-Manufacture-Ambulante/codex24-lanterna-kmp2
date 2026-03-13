@@ -18,12 +18,14 @@
  * Author celyo (github)
  */
 package com.googlecode.lanterna.issue
-
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.gui2.*
-import com.googlecode.lanterna.screen.*
-import com.googlecode.lanterna.terminal.*
+import com.googlecode.lanterna.gui2.BasicWindow
+import com.googlecode.lanterna.gui2.DefaultWindowManager
+import com.googlecode.lanterna.gui2.EmptySpace
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.IOException
 
 object Issue249 {

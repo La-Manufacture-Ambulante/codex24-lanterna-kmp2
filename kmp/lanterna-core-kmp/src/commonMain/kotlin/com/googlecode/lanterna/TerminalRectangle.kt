@@ -21,25 +21,21 @@ package com.googlecode.lanterna
 /**
  * This class is immutable and cannot change its internal state after creation.
  *
+ * Creates a new terminal rectangle representation at the supplied `x`,`y` position
+ * with the supplied width and height.
+ *
+ * @param x Left coordinate
+ * @param y Top coordinate
+ * @param columns Number of columns
+ * @param rows Number of rows
  * @author ginkoblongata
  */
-class TerminalRectangle/**
- * Creates a new terminal rect representation at the supplied x y position with the supplied width and height.
- *
- * Both width and height must be at least zero (non negative) as checked in TerminalSize.
- *
- * @param width number of columns
- * @param height number of rows
- */(
+class TerminalRectangle(
     val x: Int,
     val y: Int,
-    /**
-     * @return Returns the width of this rect, in number of columns
-     */
+    /** Returns the width of this rectangle, in number of columns. */
     val columns: Int,
-    /**
-     * @return Returns the height of this rect representation, in number of rows
-     */
+    /** Returns the height of this rectangle, in number of rows. */
     val rows: Int,
 ) {
     // one of the benefits of immutable: ease of usage
@@ -56,8 +52,9 @@ class TerminalRectangle/**
         this.yAndHeight = y + rows
     }
 
-/**
+    /**
      * Creates a new rect based on this rect, but with a different width
+     *
      * @param columns Width of the new rect, in columns
      * @return New rect based on this one, but with a new width
      */
@@ -65,8 +62,9 @@ class TerminalRectangle/**
         return TerminalRectangle(x, y, columns, rows)
     }
 
-/**
+    /**
      * Creates a new rect based on this rect, but with a different height
+     *
      * @param rows Height of the new rect, in rows
      * @return New rect based on this one, but with a new height
      */

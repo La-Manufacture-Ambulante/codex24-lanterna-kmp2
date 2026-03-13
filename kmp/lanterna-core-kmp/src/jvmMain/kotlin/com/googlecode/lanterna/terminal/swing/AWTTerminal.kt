@@ -36,14 +36,12 @@ import java.awt.event.InputMethodListener
 import java.awt.im.InputMethodRequests
 import java.text.AttributedCharacterIterator
 
-@Suppress("serial")
 class AWTTerminal : Panel, IOSafeTerminal {
     private val terminalImplementation: AWTTerminalImplementation
     private val inputMethodRequests: TerminalInputMethodRequests
 
     constructor() : this(TerminalScrollController.Null())
 
-    @Suppress("WeakerAccess")
     constructor(scrollController: TerminalScrollController) : this(
         TerminalEmulatorDeviceConfiguration.default,
         AWTTerminalFontConfiguration.default,

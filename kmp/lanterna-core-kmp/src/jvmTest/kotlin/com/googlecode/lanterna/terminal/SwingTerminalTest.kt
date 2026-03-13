@@ -17,12 +17,13 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.terminal
-
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.Symbols
 import com.googlecode.lanterna.TestTerminalFactory
-import javax.swing.*
+import com.googlecode.lanterna.flush
+import com.googlecode.lanterna.setCursorPosition
+import com.googlecode.lanterna.setVisible
+import javax.swing.JFrame
 
 /**
  *

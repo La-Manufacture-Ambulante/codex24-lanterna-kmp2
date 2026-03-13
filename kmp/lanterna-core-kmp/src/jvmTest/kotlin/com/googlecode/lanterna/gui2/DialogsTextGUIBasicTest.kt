@@ -17,12 +17,16 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
-
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestTerminalFactory
-import com.googlecode.lanterna.gui2.dialogs.*
+import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder
+import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder
+import com.googlecode.lanterna.gui2.dialogs.MessageDialog
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
+import com.googlecode.lanterna.gui2.dialogs.TextInputDialog
+import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder
 import com.googlecode.lanterna.internal.compat.Pattern
+import com.googlecode.lanterna.setComponent
 import java.io.IOException
 
 /**
@@ -91,11 +95,31 @@ object DialogsTextGUIBasicTest {
                 ActionListDialogBuilder()
                     .setTitle("Action List Dialog")
                     .setDescription("Choose an item")
-                    .addAction("First Item", { MessageDialog.showMessageDialog(textGUI, "Action List Dialog", "You chose First Item", MessageDialogButton.OK) })
+                    .addAction(
+                        "First Item",
+                        {
+                            MessageDialog.showMessageDialog(
+                                textGUI,
+                                "Action List Dialog",
+                                "You chose First Item",
+                                MessageDialogButton.OK,
+                            )
+                        },
+                    )
                     .addAction("Second Item", {
                         MessageDialog.showMessageDialog(textGUI, "Action List Dialog", "You chose Second Item", MessageDialogButton.OK)
                     })
-                    .addAction("Third Item", { MessageDialog.showMessageDialog(textGUI, "Action List Dialog", "You chose Third Item", MessageDialogButton.OK) })
+                    .addAction(
+                        "Third Item",
+                        {
+                            MessageDialog.showMessageDialog(
+                                textGUI,
+                                "Action List Dialog",
+                                "You chose Third Item",
+                                MessageDialogButton.OK,
+                            )
+                        },
+                    )
                     .build()
                     .showDialog(textGUI)
             })

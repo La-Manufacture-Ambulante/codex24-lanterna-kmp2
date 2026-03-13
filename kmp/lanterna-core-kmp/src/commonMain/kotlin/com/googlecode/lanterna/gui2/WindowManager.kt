@@ -39,14 +39,14 @@ interface WindowManager {
      */
     val isInvalid: Boolean
 
-/**
+    /**
      * Returns the `WindowDecorationRenderer` for a particular window
      * @param window Window to get the decoration renderer for
      * @return `WindowDecorationRenderer` for the window
      */
     fun getWindowDecorationRenderer(window: Window?): WindowDecorationRenderer?
 
-/**
+    /**
      * Called whenever a window is added to the `WindowBasedTextGUI`. This gives the window manager an opportunity
      * to setup internal state, if required, or decide on an initial position of the window
      * @param textGUI GUI that the window was added too
@@ -59,21 +59,20 @@ interface WindowManager {
         allWindows: List<Window?>?,
     )
 
-/**
+    /**
      * Called whenever a window is removed from a `WindowBasedTextGUI`. This gives the window manager an
      * opportunity to clear internal state if needed.
      * @param textGUI GUI that the window was removed from
      * @param window Window that was removed
      * @param allWindows All windows, excluding the removed window, in the GUI
      */
-    @Suppress("unused")
     fun onRemoved(
         textGUI: WindowBasedTextGUI?,
         window: Window?,
         allWindows: List<Window?>?,
     )
 
-/**
+    /**
      * Called by the GUI system before iterating through all windows during the drawing process. The window manager
      * should ensure the position and decorated size of all windows at this point by using
      * `Window.setPosition(..)` and `Window.setDecoratedSize(..)`. Be sure to inspect the window hints

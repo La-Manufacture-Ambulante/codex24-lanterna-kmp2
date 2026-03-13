@@ -17,9 +17,8 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
-
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.setComponent
 import java.io.IOException
 
 class TextBoxTest : TestBase() {
@@ -33,7 +32,12 @@ class TextBoxTest : TestBase() {
 
         leftPanel.addComponent(TextBox().withBorder(Borders.singleLine("Default")))
         leftPanel.addComponent(TextBox("Some text").withBorder(Borders.singleLine("With init")))
-        leftPanel.addComponent(TextBox(TerminalSize(10, 1), "Here is some text that is too long to fit in the text box").withBorder(Borders.singleLine("Long text")))
+        leftPanel.addComponent(
+            TextBox(
+                TerminalSize(10, 1),
+                "Here is some text that is too long to fit in the text box",
+            ).withBorder(Borders.singleLine("Long text")),
+        )
         leftPanel.addComponent(TextBox("password").setMask('*').withBorder(Borders.singleLine("Password")))
 
         rightPanel.addComponent(

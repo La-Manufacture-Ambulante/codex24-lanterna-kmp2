@@ -37,7 +37,6 @@ import kotlin.collections.ArrayList
 /**
  * A menu bar offering drop-down menus.
  */
-@Suppress("SuspiciousMethodCalls")
 open class MenuBar : AbstractComponent<MenuBar?>(), Container {
     companion object {
         private const val EXTRA_PADDING = 0

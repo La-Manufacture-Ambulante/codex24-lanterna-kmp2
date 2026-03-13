@@ -34,7 +34,6 @@ import java.awt.HeadlessException
 import java.util.EnumSet
 import javax.swing.JFrame
 
-@Suppress("serial")
 class SwingTerminalFrame : JFrame, IOSafeTerminal {
     val swingTerminal: SwingTerminal
     private val autoCloseTriggers: EnumSet<TerminalEmulatorAutoCloseTrigger>

@@ -19,7 +19,9 @@
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.flush
 import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.read
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader

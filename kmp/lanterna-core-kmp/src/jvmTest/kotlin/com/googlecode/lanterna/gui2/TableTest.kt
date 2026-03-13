@@ -18,10 +18,11 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.gui2.dialogs.*
+import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder
+import com.googlecode.lanterna.gui2.dialogs.ListSelectDialogBuilder
+import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder
 import com.googlecode.lanterna.gui2.table.DefaultTableCellRenderer
 import com.googlecode.lanterna.gui2.table.DefaultTableRenderer
 import com.googlecode.lanterna.gui2.table.Table
@@ -178,7 +179,13 @@ class TableTest : TestBase() {
         table: Table<String>,
     ) {
         val dialogChoices =
-            arrayOf("Header border style (vertical)", "Header border style (horizontal)", "Cell border style (vertical)", "Cell border style (horizontal)", "Toggle cell selection")
+            arrayOf(
+                "Header border style (vertical)",
+                "Header border style (horizontal)",
+                "Cell border style (vertical)",
+                "Cell border style (horizontal)",
+                "Toggle cell selection",
+            )
         val choice = chooseAString(textGUI, "Which style do you want to change?", *dialogChoices)
         val renderer = table.renderer as DefaultTableRenderer<String?>
         if (choice == null) {

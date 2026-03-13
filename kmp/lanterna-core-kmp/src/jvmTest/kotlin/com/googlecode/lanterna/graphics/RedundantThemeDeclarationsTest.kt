@@ -18,7 +18,6 @@
  */
 package com.googlecode.lanterna.graphics
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.bundle.LanternaThemes
 import org.junit.Assert
 import org.junit.Ignore

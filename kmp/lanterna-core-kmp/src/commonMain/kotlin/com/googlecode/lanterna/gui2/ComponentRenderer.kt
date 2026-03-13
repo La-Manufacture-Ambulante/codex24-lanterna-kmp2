@@ -25,11 +25,12 @@ import com.googlecode.lanterna.TerminalSize
  * components will have a default renderer defined, which can usually be overridden manually and swapped out for a
  * different renderer, but also themes can contain renderer definitions which are automatically assigned to their
  * associated components.
- * @param <T> Type of the component which this renderer is designed for
+ *
+ * @param T Type of the component which this renderer is designed for
  * @author Martin
-</T> */
+ */
 interface ComponentRenderer<T : Component?> {
-/**
+    /**
      * Given the supplied component, how large does this renderer want the component to be? Notice that this is the
      * responsibility of the renderer and not the component itself, since the component has no idea what its visual
      * representation looks like.
@@ -38,7 +39,7 @@ interface ComponentRenderer<T : Component?> {
      */
     fun getPreferredSize(component: T?): TerminalSize?
 
-/**
+    /**
      * Using the supplied graphics object, draws the component passed in.
      * @param graphics Graphics object to use for drawing
      * @param component Component to draw

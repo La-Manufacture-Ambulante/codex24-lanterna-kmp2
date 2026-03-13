@@ -34,7 +34,6 @@ import java.util.Collections
  * choose which fonts are going to be used by an [AWTTerminal] component and some other related settings.
  */
 open class AWTTerminalFontConfiguration
-    @Suppress("WeakerAccess")
     protected constructor(
         private val useAntiAliasing: Boolean,
         private val boldMode: BoldMode,
@@ -159,7 +158,6 @@ open class AWTTerminalFontConfiguration
                 return newInstance(*filterMonospaced(*selectDefaultFont(fontSize)))
             }
 
-            @Suppress("WeakerAccess")
             fun newInstance(vararg fontsInOrderOfPriority: Font): AWTTerminalFontConfiguration {
                 return AWTTerminalFontConfiguration(true, BoldMode.EVERYTHING_BUT_SYMBOLS, *fontsInOrderOfPriority)
             }

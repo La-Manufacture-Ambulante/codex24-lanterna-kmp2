@@ -24,7 +24,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset
 
-@Suppress("WeakerAccess")
 class UnixTerminal
     @Throws(IOException::class)
     private constructor(
@@ -44,7 +43,6 @@ class UnixTerminal
             terminalCharset: Charset,
         ) : this(terminalInput, terminalOutput, terminalCharset, CtrlCBehaviour.CTRL_C_KILLS_APPLICATION)
 
-        @Suppress("SameParameterValue", "WeakerAccess")
         @Throws(IOException::class)
         constructor(
             terminalInput: InputStream,

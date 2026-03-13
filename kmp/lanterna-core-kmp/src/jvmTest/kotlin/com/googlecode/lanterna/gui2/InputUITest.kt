@@ -17,12 +17,13 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
-
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.isAltDown
+import com.googlecode.lanterna.isCtrlDown
 import java.io.IOException
 
 @SuppressWarnings("rawtypes")

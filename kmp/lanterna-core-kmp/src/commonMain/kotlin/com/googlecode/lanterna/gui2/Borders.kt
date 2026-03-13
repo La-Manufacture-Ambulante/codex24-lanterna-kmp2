@@ -333,13 +333,13 @@ object Borders {
             var neighbourCharacter = graphics.getCharacter(column, upperRow + 1)
             if (neighbourCharacter != null) {
                 val neighbour = neighbourCharacter.characterString[0]
-                if (borderCharacter.`is`(Symbols.SINGLE_LINE_HORIZONTAL)) {
+                if (borderCharacter.isCharacter(Symbols.SINGLE_LINE_HORIZONTAL)) {
                     if (junctionFromBelowSingle.contains(neighbour)) {
                         graphics.setCharacter(column, upperRow, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_DOWN))
                     } else if (junctionFromBelowDouble.contains(neighbour)) {
                         graphics.setCharacter(column, upperRow, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_DOUBLE_DOWN))
                     }
-                } else if (borderCharacter.`is`(Symbols.DOUBLE_LINE_HORIZONTAL)) {
+                } else if (borderCharacter.isCharacter(Symbols.DOUBLE_LINE_HORIZONTAL)) {
                     if (junctionFromBelowSingle.contains(neighbour)) {
                         graphics.setCharacter(column, upperRow, borderCharacter.withCharacter(Symbols.DOUBLE_LINE_T_SINGLE_DOWN))
                     } else if (junctionFromBelowDouble.contains(neighbour)) {
@@ -355,13 +355,13 @@ object Borders {
             neighbourCharacter = graphics.getCharacter(column, lowerRow - 1)
             if (neighbourCharacter != null) {
                 val neighbour = neighbourCharacter.characterString[0]
-                if (borderCharacter.`is`(Symbols.SINGLE_LINE_HORIZONTAL)) {
+                if (borderCharacter.isCharacter(Symbols.SINGLE_LINE_HORIZONTAL)) {
                     if (junctionFromAboveSingle.contains(neighbour)) {
                         graphics.setCharacter(column, lowerRow, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_UP))
                     } else if (junctionFromAboveDouble.contains(neighbour)) {
                         graphics.setCharacter(column, lowerRow, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_DOUBLE_UP))
                     }
-                } else if (borderCharacter.`is`(Symbols.DOUBLE_LINE_HORIZONTAL)) {
+                } else if (borderCharacter.isCharacter(Symbols.DOUBLE_LINE_HORIZONTAL)) {
                     if (junctionFromAboveSingle.contains(neighbour)) {
                         graphics.setCharacter(column, lowerRow, borderCharacter.withCharacter(Symbols.DOUBLE_LINE_T_SINGLE_UP))
                     } else if (junctionFromAboveDouble.contains(neighbour)) {
@@ -379,13 +379,13 @@ object Borders {
             var neighbourCharacter = graphics.getCharacter(leftRow + 1, row)
             if (neighbourCharacter != null) {
                 val neighbour = neighbourCharacter.characterString[0]
-                if (borderCharacter.`is`(Symbols.SINGLE_LINE_VERTICAL)) {
+                if (borderCharacter.isCharacter(Symbols.SINGLE_LINE_VERTICAL)) {
                     if (junctionFromRightSingle.contains(neighbour)) {
                         graphics.setCharacter(leftRow, row, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_RIGHT))
                     } else if (junctionFromRightDouble.contains(neighbour)) {
                         graphics.setCharacter(leftRow, row, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_DOUBLE_RIGHT))
                     }
-                } else if (borderCharacter.`is`(Symbols.DOUBLE_LINE_VERTICAL)) {
+                } else if (borderCharacter.isCharacter(Symbols.DOUBLE_LINE_VERTICAL)) {
                     if (junctionFromRightSingle.contains(neighbour)) {
                         graphics.setCharacter(leftRow, row, borderCharacter.withCharacter(Symbols.DOUBLE_LINE_T_SINGLE_RIGHT))
                     } else if (junctionFromRightDouble.contains(neighbour)) {
@@ -401,13 +401,13 @@ object Borders {
             neighbourCharacter = graphics.getCharacter(rightRow - 1, row)
             if (neighbourCharacter != null) {
                 val neighbour = neighbourCharacter.characterString[0]
-                if (borderCharacter.`is`(Symbols.SINGLE_LINE_VERTICAL)) {
+                if (borderCharacter.isCharacter(Symbols.SINGLE_LINE_VERTICAL)) {
                     if (junctionFromLeftSingle.contains(neighbour)) {
                         graphics.setCharacter(rightRow, row, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_LEFT))
                     } else if (junctionFromLeftDouble.contains(neighbour)) {
                         graphics.setCharacter(rightRow, row, borderCharacter.withCharacter(Symbols.SINGLE_LINE_T_DOUBLE_LEFT))
                     }
-                } else if (borderCharacter.`is`(Symbols.DOUBLE_LINE_VERTICAL)) {
+                } else if (borderCharacter.isCharacter(Symbols.DOUBLE_LINE_VERTICAL)) {
                     if (junctionFromLeftSingle.contains(neighbour)) {
                         graphics.setCharacter(rightRow, row, borderCharacter.withCharacter(Symbols.DOUBLE_LINE_T_SINGLE_LEFT))
                     } else if (junctionFromLeftDouble.contains(neighbour)) {

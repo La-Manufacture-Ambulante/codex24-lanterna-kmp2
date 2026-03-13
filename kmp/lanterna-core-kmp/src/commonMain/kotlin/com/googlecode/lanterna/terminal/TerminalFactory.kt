@@ -28,7 +28,6 @@ import com.googlecode.lanterna.internal.io.IOException
  *
  * @author martin
  */
-@Suppress("unused")
 interface TerminalFactory {
 /**
      * Instantiates a Terminal according to the factory implementation.

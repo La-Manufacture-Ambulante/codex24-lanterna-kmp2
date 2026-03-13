@@ -17,8 +17,6 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.screen
-
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.TextColor

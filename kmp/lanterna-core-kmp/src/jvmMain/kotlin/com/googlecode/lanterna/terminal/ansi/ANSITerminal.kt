@@ -36,7 +36,6 @@ import java.io.OutputStream
 import java.nio.charset.Charset
 
 abstract class ANSITerminal
-    @Suppress("WeakerAccess")
     protected constructor(
         terminalInput: InputStream?,
         terminalOutput: OutputStream?,

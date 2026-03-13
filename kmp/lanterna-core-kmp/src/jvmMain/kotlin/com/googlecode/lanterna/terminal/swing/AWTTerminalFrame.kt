@@ -34,7 +34,6 @@ import java.awt.Frame
 import java.awt.HeadlessException
 import java.util.EnumSet
 
-@Suppress("serial")
 open class AWTTerminalFrame : Frame, IOSafeTerminal {
     val awtTerminal: AWTTerminal
     private val autoCloseTriggers: EnumSet<TerminalEmulatorAutoCloseTrigger>

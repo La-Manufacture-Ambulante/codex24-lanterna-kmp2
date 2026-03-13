@@ -17,9 +17,13 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.screen
-
-import com.googlecode.lanterna.*
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TestTerminalFactory
+import com.googlecode.lanterna.TextCharacter
+import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.BasicTextImage
+import com.googlecode.lanterna.setCharacter
 import java.io.IOException
 
 /**
@@ -48,7 +52,8 @@ object DrawImageTest {
             imageCharacter.withBackgroundColor(TextColor.ANSI.MAGENTA),
         )
         textGraphics!!.setCharacter(
-            2, 2,
+            2,
+            2,
             imageCharacter.withBackgroundColor(TextColor.ANSI.CYAN),
         )
 

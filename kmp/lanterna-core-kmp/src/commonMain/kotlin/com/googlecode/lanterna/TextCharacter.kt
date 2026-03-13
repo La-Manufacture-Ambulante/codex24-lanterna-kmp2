@@ -21,6 +21,7 @@ package com.googlecode.lanterna
 import com.googlecode.lanterna.internal.compat.Character
 import com.googlecode.lanterna.internal.compat.EnumSet
 import kotlin.collections.ArrayList
+import kotlin.jvm.JvmName
 
 /**
  * Represents a single character with additional metadata such as colors and modifiers.
@@ -117,9 +118,14 @@ class TextCharacter private constructor(
         }
     }
 
-    @Suppress("ktlint:standard:function-naming")
-    fun `is`(otherCharacter: Char): Boolean {
+    fun isCharacter(otherCharacter: Char): Boolean {
         return characterString.length == 1 && characterString[0] == otherCharacter
+    }
+
+    @Deprecated("Use isCharacter")
+    @JvmName("is")
+    fun isJavaCompat(otherCharacter: Char): Boolean {
+        return isCharacter(otherCharacter)
     }
 
     fun getModifiers(): EnumSet<SGR> = EnumSet.copyOf(modifiers)

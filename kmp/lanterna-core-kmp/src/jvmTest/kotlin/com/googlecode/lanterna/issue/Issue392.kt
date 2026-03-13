@@ -1,10 +1,10 @@
 package com.googlecode.lanterna.issue
-
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.Button
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI
 import com.googlecode.lanterna.gui2.TextGUIThread
 import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.setExceptionHandler
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.IOException
 
@@ -24,7 +24,7 @@ object Issue392 {
         val button = Button("test")
         button.addListener(
             object : Button.Listener {
-                override fun onTriggered(button: Button) {
+                override fun onTriggered(button: Button?) {
                     setExceptionHandler()
                     throw RuntimeException("This should be caught in the uncaght exception handler!")
                 }
@@ -39,18 +39,14 @@ object Issue392 {
     private fun setExceptionHandler() {
         textGUI!!.guiThread!!.setExceptionHandler(
             object : TextGUIThread.ExceptionHandler {
-                private fun handleException(e: Exception): Boolean {
+                private fun handleException(e: Throwable): Boolean {
                     System.err.println("### Caught!")
                     e.printStackTrace()
                     return false
                 }
 
-                public override fun onIOException(e: IOException?): Boolean {
-                    return handleException(e!!)
-                }
-
-                public override fun onRuntimeException(e: RuntimeException?): Boolean {
-                    return handleException(e!!)
+                override fun onException(error: Throwable): Boolean {
+                    return handleException(error)
                 }
             },
         )

@@ -19,6 +19,7 @@
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.start
 import com.googlecode.lanterna.terminal.swing.SwingTerminal
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener

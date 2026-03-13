@@ -69,7 +69,6 @@ abstract class AbstractInteractableComponent<T : AbstractInteractableComponent<T
             afterEnterFocus(direction, previouslyInFocus)
         }
 
-        @Suppress("EmptyMethod")
         protected open fun afterEnterFocus(
             direction: Interactable.FocusChangeDirection?,
             previouslyInFocus: Interactable?,
@@ -94,7 +93,6 @@ abstract class AbstractInteractableComponent<T : AbstractInteractableComponent<T
             afterLeaveFocus(direction, nextInFocus)
         }
 
-        @Suppress("EmptyMethod")
         protected open fun afterLeaveFocus(
             direction: Interactable.FocusChangeDirection?,
             nextInFocus: Interactable?,

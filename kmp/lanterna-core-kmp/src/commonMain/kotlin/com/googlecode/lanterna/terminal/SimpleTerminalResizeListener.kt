@@ -20,7 +20,6 @@ package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.TerminalSize
 
-@Suppress("WeakerAccess")
 class SimpleTerminalResizeListener(initialSize: TerminalSize?) : TerminalResizeListener {
     internal var wasResized = false
     var lastKnownSize: TerminalSize? = initialSize

@@ -38,7 +38,7 @@ object Panels {
         return panel
     }
 
-/**
+    /**
      * Creates a new `Panel` with a `LinearLayout` layout manager in vertical mode and adds all the
      * components passed in
      * @param components Components to be added to the new `Panel`, in order
@@ -53,7 +53,7 @@ object Panels {
         return panel
     }
 
-/**
+    /**
      * Creates a new `Panel` with a `GridLayout` layout manager and adds all the components passed in
      * @param columns Number of columns in the grid
      * @param components Components to be added to the new `Panel`, in order

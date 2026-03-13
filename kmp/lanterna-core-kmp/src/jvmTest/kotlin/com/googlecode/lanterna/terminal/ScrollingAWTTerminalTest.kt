@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.terminal
 
+import com.googlecode.lanterna.flush
+import com.googlecode.lanterna.setCursorPosition
 import com.googlecode.lanterna.terminal.swing.ScrollingAWTTerminal
 import com.googlecode.lanterna.terminal.swing.SwingTerminalFontConfiguration
 import com.googlecode.lanterna.terminal.swing.TerminalEmulatorColorConfiguration
@@ -37,7 +39,6 @@ import javax.swing.UnsupportedLookAndFeelException
 /**
  * Interactive manual test for [ScrollingAWTTerminal].
  */
-@Suppress("FieldCanBeLocal")
 class ScrollingAWTTerminalTest : JFrame() {
     private val scrollingAwtTerminal: ScrollingAWTTerminal
 

@@ -232,13 +232,16 @@ abstract class AbstractTheme protected constructor(
             return fallback
         }
 
-        @Suppress("UNCHECKED_CAST")
         override fun <T : Component> getRenderer(type: KClass<T>?): ComponentRenderer<T?>? {
             var current: ThemeTreeNode? = node
             while (current != null) {
                 val rendererClass = current.renderer
                 if (rendererClass != null) {
-                    return instanceByClassName(rendererClass) as? ComponentRenderer<T?>
+                    val rendererInstance = instanceByClassName(rendererClass)
+                    if (rendererInstance is ComponentRenderer<*>) {
+                        return rendererInstance as? ComponentRenderer<T?>
+                    }
+                    return null
                 }
                 current = current.parent
             }

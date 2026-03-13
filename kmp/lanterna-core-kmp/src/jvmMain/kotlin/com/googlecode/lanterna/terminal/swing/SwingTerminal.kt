@@ -36,14 +36,12 @@ import java.awt.im.InputMethodRequests
 import java.text.AttributedCharacterIterator
 import javax.swing.JComponent
 
-@Suppress("serial")
 class SwingTerminal : JComponent, IOSafeTerminal {
     private val terminalImplementation: SwingTerminalImplementation
     private val inputMethodRequests: TerminalInputMethodRequests
 
     constructor() : this(TerminalScrollController.Null())
 
-    @Suppress("WeakerAccess")
     constructor(scrollController: TerminalScrollController) : this(
         TerminalEmulatorDeviceConfiguration.default,
         SwingTerminalFontConfiguration.default,

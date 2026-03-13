@@ -18,14 +18,18 @@
  */
 package com.googlecode.lanterna.gui2
 
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.getCheckedItem
+import com.googlecode.lanterna.getLayoutData
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow
 import com.googlecode.lanterna.gui2.dialogs.ListSelectDialog
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialog
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder
+import com.googlecode.lanterna.intValue
 import com.googlecode.lanterna.internal.compat.Pattern
+import com.googlecode.lanterna.setCheckedItem
+import com.googlecode.lanterna.setComponent
 import java.io.IOException
 import java.util.Random
 
@@ -246,7 +250,11 @@ class DynamicGridLayoutTest : TestBase() {
 
             var gridLayoutData: GridLayout.GridLayoutData? = component.getLayoutData() as GridLayout.GridLayoutData
             if (gridLayoutData == null) {
-                gridLayoutData = GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING) as GridLayout.GridLayoutData
+                gridLayoutData =
+                    GridLayout.createLayoutData(
+                        GridLayout.Alignment.BEGINNING,
+                        GridLayout.Alignment.BEGINNING,
+                    ) as GridLayout.GridLayoutData
             }
 
             val contentPane = Panel()
@@ -315,8 +323,12 @@ class DynamicGridLayoutTest : TestBase() {
 
             val okButton =
                 Button("OK", {
-                    val horizontalAlignment = radioBoxesHorizontalAlignment.getCheckedItem() as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
-                    val verticalAlignment = radioBoxesVerticalAlignment.getCheckedItem() as? GridLayout.Alignment ?: GridLayout.Alignment.BEGINNING
+                    val horizontalAlignment =
+                        radioBoxesHorizontalAlignment.getCheckedItem() as? GridLayout.Alignment
+                            ?: GridLayout.Alignment.BEGINNING
+                    val verticalAlignment =
+                        radioBoxesVerticalAlignment.getCheckedItem() as? GridLayout.Alignment
+                            ?: GridLayout.Alignment.BEGINNING
                     component.setLayoutData(
                         GridLayout.createLayoutData(
                             horizontalAlignment,
@@ -346,7 +358,14 @@ class DynamicGridLayoutTest : TestBase() {
         }
 
         private val GOOD_COLORS =
-            arrayOf(TextColor.ANSI.RED, TextColor.ANSI.BLUE, TextColor.ANSI.CYAN, TextColor.ANSI.GREEN, TextColor.ANSI.MAGENTA, TextColor.ANSI.YELLOW)
+            arrayOf(
+                TextColor.ANSI.RED,
+                TextColor.ANSI.BLUE,
+                TextColor.ANSI.CYAN,
+                TextColor.ANSI.GREEN,
+                TextColor.ANSI.MAGENTA,
+                TextColor.ANSI.YELLOW,
+            )
         private val RANDOM = Random()
     }
 }

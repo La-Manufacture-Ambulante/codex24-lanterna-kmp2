@@ -28,20 +28,20 @@ import com.googlecode.lanterna.TextCharacter
  * @author martin
  */
 interface TextImage : Scrollable {
-/**
+    /**
      * Returns the dimensions of this TextImage, in columns and rows
      * @return Size of this TextImage
      */
     val size: TerminalSize?
 
-/**
+    /**
      * Returns the character stored at a particular position in this image
      * @param position Coordinates of the character
      * @return TextCharacter stored at the specified position
      */
     fun getCharacterAt(position: TerminalPosition?): TextCharacter?
 
-/**
+    /**
      * Returns the character stored at a particular position in this image
      * @param column Column coordinate of the character
      * @param row Row coordinate of the character
@@ -52,7 +52,7 @@ interface TextImage : Scrollable {
         row: Int,
     ): TextCharacter?
 
-/**
+    /**
      * Sets the character at a specific position in the image to a particular TextCharacter. If the position is outside
      * of the image's size, this method does nothing.
      * @param position Coordinates of the character
@@ -63,7 +63,7 @@ interface TextImage : Scrollable {
         character: TextCharacter?,
     )
 
-/**
+    /**
      * Sets the character at a specific position in the image to a particular TextCharacter. If the position is outside
      * of the image's size, this method does nothing.
      * @param column Column coordinate of the character
@@ -76,19 +76,19 @@ interface TextImage : Scrollable {
         character: TextCharacter?,
     )
 
-/**
+    /**
      * Sets the text image content to one specified character (including color and style)
      * @param character The character to fill the image with
      */
     fun setAll(character: TextCharacter?)
 
-/**
+    /**
      * Creates a TextGraphics object that targets this TextImage for all its drawing operations.
      * @return TextGraphics object for this TextImage
      */
     fun newTextGraphics(): TextGraphics?
 
-/**
+    /**
      * Returns a copy of this image resized to a new size and using a specified filler character if the new size is
      * larger than the old and we need to fill in empty areas. The copy will be independent from the one this method is
      * invoked on, so modifying one will not affect the other.
@@ -101,14 +101,14 @@ interface TextImage : Scrollable {
         filler: TextCharacter?,
     ): TextImage?
 
-/**
+    /**
      * Copies this TextImage's content to another TextImage. If the destination TextImage is larger than this
      * ScreenBuffer, the areas outside of the area that is written to will be untouched.
      * @param destination TextImage to copy to
      */
     fun copyTo(destination: TextImage?)
 
-/**
+    /**
      * Copies this TextImage's content to another TextImage. If the destination TextImage is larger than this
      * TextImage, the areas outside of the area that is written to will be untouched.
      * @param destination TextImage to copy to
@@ -129,7 +129,7 @@ interface TextImage : Scrollable {
         destinationColumnOffset: Int,
     )
 
-/**
+    /**
      * Scroll a range of lines of this TextImage according to given distance.
      *
      * TextImage implementations of this method do **not** throw IOException.

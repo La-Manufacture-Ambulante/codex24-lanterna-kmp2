@@ -40,7 +40,6 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
 abstract class StreamBasedTerminal
-    @Suppress("WeakerAccess")
     constructor(
         private val terminalInput: InputStream?,
         private val terminalOutput: OutputStream?,
@@ -86,7 +85,6 @@ abstract class StreamBasedTerminal
             }
         }
 
-        @Suppress("WeakerAccess")
         @Throws(IOException::class)
         protected fun writeToTerminal(vararg bytes: Byte) {
             synchronized(terminalOutput as Any) {
@@ -213,7 +211,6 @@ abstract class StreamBasedTerminal
             return terminalCharset
         }
 
-        @Suppress("WeakerAccess")
         protected fun translateCharacter(input: Char): ByteArray {
             if (UTF8_REFERENCE == terminalCharset) {
                 return convertToCharset(input)

@@ -2,11 +2,11 @@
  * Author Valentin(linouxis9), modified by Andreas(avl42)
  */
 package com.googlecode.lanterna.issue
-
-import com.googlecode.lanterna.*
-import com.googlecode.lanterna.gui2.*
-import com.googlecode.lanterna.screen.*
-import com.googlecode.lanterna.terminal.*
+import com.googlecode.lanterna.gui2.BasicWindow
+import com.googlecode.lanterna.gui2.Borders
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.IOException
 
 object Issue359 {

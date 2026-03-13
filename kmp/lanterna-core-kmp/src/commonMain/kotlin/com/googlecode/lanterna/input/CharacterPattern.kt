@@ -22,7 +22,6 @@ package com.googlecode.lanterna.input
  * Used to compare a list of characters against a particular pattern and, on a full match, return the represented
  * [KeyStroke].
  */
-@Suppress("WeakerAccess")
 interface CharacterPattern {
     fun match(seq: List<Char>?): Matching?
 

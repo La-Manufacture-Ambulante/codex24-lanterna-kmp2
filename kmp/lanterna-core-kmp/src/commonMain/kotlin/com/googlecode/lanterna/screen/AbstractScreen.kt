@@ -112,7 +112,7 @@ abstract class AbstractScreen(
         screenCharacter: TextCharacter?,
     ) {
         var character = screenCharacter ?: return
-        if (character.`is`('\t')) {
+        if (character.isCharacter('\t')) {
             character = character.withCharacter(' ')
             val replacementLength = tabBehaviour?.replaceTabs("\t", column)?.length ?: 1
             for (i in 0 until replacementLength) {

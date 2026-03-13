@@ -312,7 +312,7 @@ class DefaultVirtualTerminal
 
         internal fun putCharacter(terminalCharacter: TextCharacter) {
             val terminalSize = requireNotNull(internalTerminalSize)
-            if (terminalCharacter.`is`('\t')) {
+            if (terminalCharacter.isCharacter('\t')) {
                 val nrOfSpaces = TabBehaviour.ALIGN_TO_COLUMN_4.getTabReplacement(requireNotNull(cursorBufferPosition).column).length
                 var i = 0
                 while (i < nrOfSpaces && requireNotNull(cursorBufferPosition).column < terminalSize.columns - 1) {

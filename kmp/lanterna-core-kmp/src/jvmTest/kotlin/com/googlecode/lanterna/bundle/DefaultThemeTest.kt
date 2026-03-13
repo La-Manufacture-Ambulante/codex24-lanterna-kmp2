@@ -1,6 +1,5 @@
 package com.googlecode.lanterna.bundle
 
-import com.googlecode.lanterna.*
 import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test

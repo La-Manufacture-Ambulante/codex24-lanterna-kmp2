@@ -24,8 +24,7 @@ import com.googlecode.lanterna.internal.compat.Properties
 
 /**
  * [Theme] implementation that stores the theme definition in a regular java Properties object. The format is:
- * <pre>
- * foreground = black
+ * <pre>foreground = black
  * background = white
  * sgr =
  * com.mypackage.mycomponent.MyClass.foreground = yellow
@@ -34,58 +33,46 @@ import com.googlecode.lanterna.internal.compat.Properties
  * com.mypackage.mycomponent.MyClass.foreground[ACTIVE] = red
  * com.mypackage.mycomponent.MyClass.background[ACTIVE] = black
  * com.mypackage.mycomponent.MyClass.sgr[ACTIVE] = bold
- * ...
-</pre> *
+ * ...</pre>
  *
  * See the documentation on [Theme] for further information about different style categories that can be assigned.
  * The foreground, background and sgr entries without a class specifier will be tied to the global fallback and is used
  * if the libraries tries to apply a theme style that isn't specified in the Properties object and there is no other
  * superclass specified either.
- *
  */
-open class PropertyTheme/**
- * Creates a new `PropertyTheme` that is initialized by the properties value and optionally prevents it from
- * throwing an exception if there are invalid definitions in the properties object.
- * @param properties Properties to initialize this theme with
- * @param ignoreUnknownClasses If `true`, will not throw an exception if there is an invalid entry in the
- * properties object
- */
-    constructor(
-        properties: Properties,
-        ignoreUnknownClasses: Boolean = false,
-    ) : AbstractTheme(
-            instanceByClassName(properties.getProperty("postrenderer", "")) as WindowPostRenderer,
-            instanceByClassName(properties.getProperty("windowdecoration", "")) as WindowDecorationRenderer,
-        ) {
-        init {
-
-            for (key in properties.stringPropertyNames()) {
-                val definition = getDefinition(key!!)
-                if (!addStyle(definition, getStyle(key!!), properties.getProperty(key))) {
-                    if (!ignoreUnknownClasses) {
-                        throw IllegalArgumentException("Unknown class encountered when parsing theme: '" + definition + "'")
-                    }
+open class PropertyTheme(
+    properties: Properties,
+    ignoreUnknownClasses: Boolean = false,
+) : AbstractTheme(
+        instanceByClassName(properties.getProperty("postrenderer", "")) as? WindowPostRenderer,
+        instanceByClassName(properties.getProperty("windowdecoration", "")) as? WindowDecorationRenderer,
+    ) {
+    init {
+        for (key in properties.stringPropertyNames()) {
+            val definition = getDefinition(key!!)
+            if (!addStyle(definition, getStyle(key!!), properties.getProperty(key))) {
+                if (!ignoreUnknownClasses) {
+                    throw IllegalArgumentException("Unknown class encountered when parsing theme: '$definition'")
                 }
             }
         }
+    }
 
-        private fun getDefinition(propertyName: String): String? {
-            if (!propertyName.contains(".")) {
-                return ""
-            } else {
-                return propertyName.substring(0, propertyName.lastIndexOf("."))
-            }
-        }
+    constructor(properties: Properties) : this(properties, false)
 
-        private fun getStyle(propertyName: String): String? {
-            if (!propertyName.contains(".")) {
-                return propertyName
-            } else {
-                return propertyName.substring(propertyName.lastIndexOf(".") + 1)
-            }
+    private fun getDefinition(propertyName: String): String {
+        return if (!propertyName.contains(".")) {
+            ""
+        } else {
+            propertyName.substring(0, propertyName.lastIndexOf("."))
         }
-    } /**
- * Creates a new `PropertyTheme` that is initialized by the properties passed in. If the properties refer to
- * a class that cannot be resolved, it will throw `IllegalArgumentException`.
- * @param properties Properties to initialize this theme with
- */
+    }
+
+    private fun getStyle(propertyName: String): String {
+        return if (!propertyName.contains(".")) {
+            propertyName
+        } else {
+            propertyName.substring(propertyName.lastIndexOf(".") + 1)
+        }
+    }
+}

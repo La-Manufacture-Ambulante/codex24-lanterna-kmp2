@@ -34,7 +34,6 @@ import javax.swing.JComponent
 import javax.swing.JScrollBar
 import javax.swing.SwingUtilities
 
-@Suppress("serial")
 class ScrollingSwingTerminal(
     deviceConfiguration: TerminalEmulatorDeviceConfiguration?,
     fontConfiguration: SwingTerminalFontConfiguration?,

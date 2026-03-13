@@ -3,10 +3,20 @@ package com.googlecode.lanterna.internal.compat
 class EnumSet<E : Enum<E>> private constructor(
     private val delegate: LinkedHashSet<E>,
 ) : MutableSet<E> by delegate {
+    override fun equals(other: Any?): Boolean {
+        return when (other) {
+            is EnumSet<*> -> delegate == other.delegate
+            is Set<*> -> delegate == other
+            else -> false
+        }
+    }
+
+    override fun hashCode(): Int = delegate.hashCode()
+
+    override fun toString(): String = delegate.toString()
+
     companion object {
-        fun <E : Enum<E>> noneOf(
-            @Suppress("UNUSED_PARAMETER") enumClass: kotlin.reflect.KClass<E>,
-        ): EnumSet<E> {
+        fun <E : Enum<E>> noneOf(enumClass: kotlin.reflect.KClass<E>): EnumSet<E> {
             return EnumSet(linkedSetOf())
         }
 
@@ -227,7 +237,7 @@ class TreeSet<E> private constructor(
 }
 
 class TreeMap<K, V>(
-    @Suppress("UNUSED_PARAMETER") comparator: Any? = null,
+    comparator: Any? = null,
 ) : MutableMap<K, V> by linkedMapOf()
 
 class Properties {
@@ -470,7 +480,7 @@ open class TimerTask {
 class Timer {
     constructor()
     constructor(
-        @Suppress("UNUSED_PARAMETER") name: String,
+        name: String,
     )
 
     fun scheduleAtFixedRate(
@@ -559,7 +569,7 @@ class BigInteger constructor(
 
 class File private constructor(
     private val rawPath: String,
-    @Suppress("UNUSED_PARAMETER") normalized: Boolean,
+    normalized: Boolean,
 ) {
     constructor(path: String) : this(if (path.isEmpty()) "." else path, true)
 

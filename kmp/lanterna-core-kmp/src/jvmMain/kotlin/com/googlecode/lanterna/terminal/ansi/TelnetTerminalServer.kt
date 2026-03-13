@@ -23,7 +23,6 @@ import java.net.ServerSocket
 import java.nio.charset.Charset
 import javax.net.ServerSocketFactory
 
-@Suppress("WeakerAccess")
 class TelnetTerminalServer
     @Throws(IOException::class)
     constructor(

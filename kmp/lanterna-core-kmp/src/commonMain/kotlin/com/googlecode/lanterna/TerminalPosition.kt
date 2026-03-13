@@ -27,16 +27,13 @@ import kotlin.math.min
  * corner of the terminal. This object is immutable so you cannot change it after it has been created. Instead, you
  * can easily create modified 'clones' by using the 'with' methods.
  *
+ * Creates a new terminal position object that represents a location on the screen.
+ *
+ * @param column Column of the location, or the `x` coordinate, zero indexed
+ * @param row Row of the location, or the `y` coordinate, zero indexed
  * @author Martin
  */
-class TerminalPosition/**
- * Creates a new TerminalPosition object, which represents a location on the screen. There is no check to verify
- * that the position you specified is within the size of the current terminal and you can specify negative positions
- * as well.
- *
- * @param column Column of the location, or the "x" coordinate, zero indexed (the first column is 0)
- * @param row Row of the location, or the "y" coordinate, zero indexed (the first row is 0)
- */(
+class TerminalPosition(
     /**
      * Returns the index of the column this position is representing, zero indexed (the first column has index 0).
      * @return Index of the column this position has
@@ -61,7 +58,7 @@ class TerminalPosition/**
         return TerminalPosition(this.column, row)
     }
 
-/**
+    /**
      * Creates a new TerminalPosition object representing a position with the same row index as this but with a
      * supplied column index.
      * @param column Index of the column for the new position
@@ -74,7 +71,7 @@ class TerminalPosition/**
         return TerminalPosition(column, this.row)
     }
 
-/**
+    /**
      * Creates a new TerminalPosition object representing a position on the same row, but with a column offset by a
      * supplied value. Calling this method with delta 0 will return this, calling it with a positive delta will return
      * a terminal position *delta* number of columns to the right and for negative numbers the same to the left.
@@ -88,7 +85,7 @@ class TerminalPosition/**
         return withColumn(column + delta)
     }
 
-/**
+    /**
      * Creates a new TerminalPosition object representing a position on the same column, but with a row offset by a
      * supplied value. Calling this method with delta 0 will return this, calling it with a positive delta will return
      * a terminal position *delta* number of rows to the down and for negative numbers the same up.
@@ -102,7 +99,7 @@ class TerminalPosition/**
         return withRow(row + delta)
     }
 
-/**
+    /**
      * Creates a new TerminalPosition object that is 'translated' by an amount of rows and columns specified by another
      * TerminalPosition. Same as calling
      * `withRelativeRow(translate.getRow()).withRelativeColumn(translate.getColumn())`
@@ -113,7 +110,7 @@ class TerminalPosition/**
         return withRelative(translate.column, translate.row)
     }
 
-/**
+    /**
      * Creates a new TerminalPosition object that is 'translated' by an amount of rows and columns specified by the two
      * parameters. Same as calling
      * `withRelativeRow(deltaRow).withRelativeColumn(deltaColumn)`
@@ -128,7 +125,7 @@ class TerminalPosition/**
         return withRelativeRow(deltaRow)!!.withRelativeColumn(deltaColumn)
     }
 
-/**
+    /**
      * Returns itself if it is equal to the supplied position, otherwise the supplied position. You can use this if you
      * have a position field which is frequently recalculated but often resolves to the same; it will keep the same
      * object in memory instead of swapping it out every cycle.
@@ -224,7 +221,7 @@ class TerminalPosition/**
          */
         val TOP_LEFT_CORNER = TerminalPosition(0, 0)
 
-/**
+        /**
          * Constant for the 1x1 position (one offset in both directions from top-left)
          */
         val OFFSET_1x1 = TerminalPosition(1, 1)

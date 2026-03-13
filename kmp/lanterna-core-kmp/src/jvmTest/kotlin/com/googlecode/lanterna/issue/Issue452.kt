@@ -17,25 +17,24 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.issue
-
 import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.addComponent
+import com.googlecode.lanterna.addRow
 import com.googlecode.lanterna.gui2.ActionListBox
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.Button
-import com.googlecode.lanterna.gui2.Button.Listener
 import com.googlecode.lanterna.gui2.CheckBox
 import com.googlecode.lanterna.gui2.GridLayout
-import com.googlecode.lanterna.gui2.Interactable
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI
 import com.googlecode.lanterna.gui2.Panel
 import com.googlecode.lanterna.gui2.RadioBoxList
 import com.googlecode.lanterna.gui2.TextBox
-import com.googlecode.lanterna.gui2.TextBox.Style
 import com.googlecode.lanterna.gui2.Window
 import com.googlecode.lanterna.gui2.menu.Menu
 import com.googlecode.lanterna.gui2.menu.MenuBar
 import com.googlecode.lanterna.gui2.menu.MenuItem
 import com.googlecode.lanterna.gui2.table.Table
+import com.googlecode.lanterna.setText
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import com.googlecode.lanterna.terminal.MouseCaptureMode
 import java.io.IOException
@@ -63,20 +62,26 @@ object Issue452 {
 
     @Throws(IOException::class)
     fun main(args: Array<String?>?) {
-        DefaultTerminalFactory().setTelnetPort(23000)
-            .setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE_DRAG_MOVE).setInitialTerminalSize(TerminalSize(100, 100))
-            .createScreen().use({ screen ->
-                screen.startScreen()
-                val gui = MultiWindowTextGUI(screen)
-                val window = BasicWindow("Issue452")
-                val content = Panel(GridLayout(GRID_WIDTH))
-                val gridLayout = content.getLayoutManager() as GridLayout?
-                gridLayout!!.setVerticalSpacing(1)
-                addInteractableComponentsToContent(content)
-                addMenuBar(window)
-                window.component = content
-                gui.addWindowAndWait(window)
-            })
+        val screen =
+            DefaultTerminalFactory()
+                .setTelnetPort(23000)
+                .setMouseCaptureMode(MouseCaptureMode.CLICK_RELEASE_DRAG_MOVE)
+                .setInitialTerminalSize(TerminalSize(100, 100))
+                .createScreen()
+        try {
+            screen.startScreen()
+            val gui = MultiWindowTextGUI(screen)
+            val window = BasicWindow("Issue452")
+            val content = Panel(GridLayout(GRID_WIDTH))
+            val gridLayout = content.getLayoutManager() as GridLayout?
+            gridLayout!!.setVerticalSpacing(1)
+            addInteractableComponentsToContent(content)
+            addMenuBar(window)
+            window.component = content
+            gui.addWindowAndWait(window)
+        } finally {
+            screen.stopScreen()
+        }
     }
 
     private fun addInteractableComponentsToContent(content: Panel) {
@@ -91,7 +96,7 @@ object Issue452 {
         content.addComponent(
             TextBox(
                 "First line of multi line TextBox" + System.lineSeparator() + "Second line of multi line TextBox",
-                Style.MULTI_LINE,
+                TextBox.Style.MULTI_LINE,
             ),
             LAYOUT_NEW_ROW,
         )
@@ -103,8 +108,8 @@ object Issue452 {
         val textBoxButton = TextBox("Click the button!")
         val button = Button("Button")
         button.addListener(
-            object : Listener {
-                public override fun onTriggered(button: Button) {
+            object : Button.Listener {
+                public override fun onTriggered(button: Button?) {
                     textBoxButton.setText("Button triggered " + Issue452.buttonTriggeredCounter++ + " times")
                 }
             },
@@ -117,19 +122,19 @@ object Issue452 {
         val actionMenu = ActionListBox()
         actionMenu.addItem(
             "First menu",
-            Runnable {
+            {
                 actionListTextBox!!.setText("First menu clicked")
             },
         )
         actionMenu.addItem(
             "Second menu",
-            Runnable {
+            {
                 actionListTextBox!!.setText("Second menu clicked")
             },
         )
         actionMenu.addItem(
             "Third menu",
-            Runnable {
+            {
                 actionListTextBox!!.setText("Third menu clicked")
             },
         )
@@ -164,7 +169,7 @@ object Issue452 {
         menu.add(
             MenuItem(
                 "Menu1",
-                Runnable {
+                {
                     menuTextBox!!.setText("Menu1 clicked")
                     menuTextBox!!.invalidate()
                 },
@@ -173,7 +178,7 @@ object Issue452 {
         menu.add(
             MenuItem(
                 "Menu2",
-                Runnable {
+                {
                     menuTextBox!!.setText("Menu2 clicked")
                     menuTextBox!!.invalidate()
                 },
@@ -182,7 +187,7 @@ object Issue452 {
         menu.add(
             MenuItem(
                 "Menu3",
-                Runnable {
+                {
                     menuTextBox!!.setText("Menu3 clicked")
                     menuTextBox!!.invalidate()
                 },

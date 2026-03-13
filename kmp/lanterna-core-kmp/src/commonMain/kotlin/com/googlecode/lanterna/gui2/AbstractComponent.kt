@@ -57,9 +57,8 @@ abstract class AbstractComponent<T : Component?> : Component {
             if ((themeRenderer == null && basePane != null) ||
                 (themeRenderer != null && currentTheme !== themeRenderersTheme)
             ) {
-                @Suppress("UNCHECKED_CAST")
                 val rendererFromTheme = currentTheme?.getDefinition(this::class)?.getRenderer(selfClass())
-                themeRenderer = rendererFromTheme as ComponentRenderer<T?>?
+                themeRenderer = rendererFromTheme as? ComponentRenderer<T?>
                 if (themeRenderer != null) {
                     themeRenderersTheme = currentTheme
                 }
@@ -184,7 +183,6 @@ abstract class AbstractComponent<T : Component?> : Component {
         // No operation by default
     }
 
-    @Suppress("EmptyMethod")
     protected open fun onAfterDrawing(graphics: TextGUIGraphics?) {
         // No operation by default
     }
@@ -267,13 +265,11 @@ abstract class AbstractComponent<T : Component?> : Component {
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     protected fun self(): T {
-        return this as T
+        return this as? T ?: throw IllegalStateException("Component self-cast failed for ${this::class}")
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun selfClass(): kotlin.reflect.KClass<out Component> {
-        return this::class as kotlin.reflect.KClass<out Component>
+        return this::class
     }
 }

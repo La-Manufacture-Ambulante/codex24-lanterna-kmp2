@@ -17,12 +17,19 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.issue
-
-import com.googlecode.lanterna.*
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.gui2.BasicWindow
+import com.googlecode.lanterna.gui2.Button
+import com.googlecode.lanterna.gui2.CheckBoxList
+import com.googlecode.lanterna.gui2.DefaultWindowManager
+import com.googlecode.lanterna.gui2.EmptySpace
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.gui2.Panels
+import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder
 import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.setComponent
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.IOException
 
@@ -68,7 +75,13 @@ object Issue155 {
         counter: Int,
     ): com.googlecode.lanterna.Runnable {
         return com.googlecode.lanterna.Runnable {
-            ActionListDialogBuilder().setCanCancel(true).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui)
+            ActionListDialogBuilder()
+                .setCanCancel(true)
+                .addAction(
+                    "Reinstall UI (this crashes everything)",
+                    setupUI(gui, window, counter),
+                ).build()
+                .showDialog(gui)
         }
     }
 

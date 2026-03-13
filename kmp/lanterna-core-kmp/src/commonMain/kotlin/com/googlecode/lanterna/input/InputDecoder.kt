@@ -28,13 +28,12 @@ import com.googlecode.lanterna.internal.io.IOException
 /**
  * Used to read the input stream character by character and generate `Key` objects to be put in the input queue.
  *
+ * Creates a new input decoder that reads characters from the supplied source.
+ *
+ * @param source Reader to read characters from
  * @author Martin, Andreas
  */
-class InputDecoder/**
- * Creates a new input decoder using a specified Reader as the source to read characters from
- * @param source Reader to read characters from, will be wrapped by a BufferedReader
- */
-(source: Reader?) {
+class InputDecoder(source: Reader?) {
     private val source: Reader?
     private val bytePatterns: MutableList<CharacterPattern>
     private val currentMatching: MutableList<Char>

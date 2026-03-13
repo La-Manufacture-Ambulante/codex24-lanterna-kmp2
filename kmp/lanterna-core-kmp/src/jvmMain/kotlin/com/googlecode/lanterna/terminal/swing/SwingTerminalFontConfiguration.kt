@@ -33,7 +33,6 @@ class SwingTerminalFontConfiguration(
             return newInstance(*filterMonospaced(*selectDefaultFont(fontSize)))
         }
 
-        @Suppress("WeakerAccess")
         fun newInstance(vararg fontsInOrderOfPriority: Font): SwingTerminalFontConfiguration {
             return SwingTerminalFontConfiguration(true, BoldMode.EVERYTHING_BUT_SYMBOLS, *fontsInOrderOfPriority)
         }

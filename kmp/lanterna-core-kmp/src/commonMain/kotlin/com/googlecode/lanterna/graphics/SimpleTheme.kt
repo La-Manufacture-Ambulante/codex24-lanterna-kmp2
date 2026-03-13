@@ -221,13 +221,13 @@ class SimpleTheme(foreground: TextColor?, background: TextColor?, vararg styles:
             return this
         }
 
-        @Suppress("UNCHECKED_CAST")
         override fun <T : Component> getRenderer(type: KClass<T>?): ComponentRenderer<T?>? {
             if (type == null) {
                 return null
             }
-            val rendererProvider = componentRendererMap[type] as RendererProvider<T>?
-            return rendererProvider?.getRenderer(type)
+            val rendererProvider = componentRendererMap[type] ?: return null
+            val typedProvider = rendererProvider as? RendererProvider<T> ?: return null
+            return typedProvider.getRenderer(type)
         }
 
         fun <T : Component> setRenderer(

@@ -28,7 +28,7 @@ import com.googlecode.lanterna.internal.compat.AtomicBoolean
  * [Window.addWindowListener]
  */
 interface BasePaneListener<T : BasePane?> {
-/**
+    /**
      * Called when a user input is about to be delivered to the focused [Interactable] inside the
      * [BasePane], but before it is actually delivered. You can catch it and prevent it from being passed into
      * the component by using the `deliverEvent` parameter and setting it to `false`.
@@ -44,7 +44,7 @@ interface BasePaneListener<T : BasePane?> {
         deliverEvent: AtomicBoolean?,
     )
 
-/**
+    /**
      * Called when a user entered some input which wasn't handled by the focused component. This allows you to catch it
      * at a [BasePane] (or [Window]) level and prevent it from being reported to the [TextGUI] as an
      * unhandled input event.

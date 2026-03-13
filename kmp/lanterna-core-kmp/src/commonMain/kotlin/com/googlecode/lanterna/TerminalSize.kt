@@ -25,13 +25,13 @@ import kotlin.math.min
  * Terminal dimensions in 2-d space, measured in number of rows and columns. This class is immutable and cannot change
  * its internal state after creation.
  *
+ * Creates a new terminal size representation with a given width (`columns`) and height (`rows`).
+ *
+ * @param columns Width, in number of columns
+ * @param rows Height, in number of rows
  * @author Martin
  */
-class TerminalSize/**
- * Creates a new terminal size representation with a given width (columns) and height (rows)
- * @param columns Width, in number of columns
- * @param rows Height, in number of columns
- */(
+class TerminalSize(
     /**
      * @return Returns the width of this size representation, in number of columns
      */
@@ -47,7 +47,7 @@ class TerminalSize/**
         }
     }
 
-/**
+    /**
      * Creates a new size based on this size, but with a different width
      * @param columns Width of the new size, in columns
      * @return New size based on this one, but with a new width
@@ -62,7 +62,7 @@ class TerminalSize/**
         return TerminalSize(columns, this.rows)
     }
 
-/**
+    /**
      * Creates a new size based on this size, but with a different height
      * @param rows Height of the new size, in rows
      * @return New size based on this one, but with a new height
@@ -77,7 +77,7 @@ class TerminalSize/**
         return TerminalSize(this.columns, rows)
     }
 
-/**
+    /**
      * Creates a new TerminalSize object representing a size with the same number of rows, but with a column size offset by a
      * supplied value. Calling this method with delta 0 will return this, calling it with a positive delta will return
      * a terminal size *delta* number of columns wider and for negative numbers shorter.
@@ -92,7 +92,7 @@ class TerminalSize/**
         return withColumns(max(0, columns + delta))
     }
 
-/**
+    /**
      * Creates a new TerminalSize object representing a size with the same number of columns, but with a row size offset by a
      * supplied value. Calling this method with delta 0 will return this, calling it with a positive delta will return
      * a terminal size *delta* number of rows longer and for negative numbers shorter.
@@ -107,7 +107,7 @@ class TerminalSize/**
         return withRows(max(0, rows + delta))
     }
 
-/**
+    /**
      * Creates a new TerminalSize object representing a size based on this object's size but with a delta applied.
      * This is the same as calling
      * `withRelativeColumns(delta.getColumns()).withRelativeRows(delta.getRows())`
@@ -118,7 +118,7 @@ class TerminalSize/**
         return withRelative(delta.columns, delta.rows)
     }
 
-/**
+    /**
      * Creates a new TerminalSize object representing a size based on this object's size but with a delta applied.
      * This is the same as calling
      * `withRelativeColumns(deltaColumns).withRelativeRows(deltaRows)`
@@ -133,7 +133,7 @@ class TerminalSize/**
         return withRelativeRows(deltaRows)!!.withRelativeColumns(deltaColumns)
     }
 
-/**
+    /**
      * Takes a different TerminalSize and returns a new TerminalSize that has the largest dimensions of the two,
      * measured separately. So calling 3x5 on a 5x3 will return 5x5.
      * @param other Other TerminalSize to compare with
@@ -144,7 +144,7 @@ class TerminalSize/**
             .withRows(max(rows, other.rows))
     }
 
-/**
+    /**
      * Takes a different TerminalSize and returns a new TerminalSize that has the smallest dimensions of the two,
      * measured separately. So calling 3x5 on a 5x3 will return 3x3.
      * @param other Other TerminalSize to compare with
@@ -155,7 +155,7 @@ class TerminalSize/**
             .withRows(min(rows, other.rows))
     }
 
-/**
+    /**
      * Returns itself if it is equal to the supplied size, otherwise the supplied size. You can use this if you have a
      * size field which is frequently recalculated but often resolves to the same size; it will keep the same object
      * in memory instead of swapping it out every cycle.

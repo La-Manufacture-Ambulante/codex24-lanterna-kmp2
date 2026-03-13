@@ -22,7 +22,6 @@ import com.googlecode.lanterna.TextColor
 import java.awt.Color
 import java.util.Objects
 
-@Suppress("WeakerAccess")
 class TerminalEmulatorPalette(
     private val defaultColor: Color,
     private val defaultBrightColor: Color,

@@ -583,8 +583,7 @@ class GridLayout(private val numberOfColumns: Int) : LayoutManager {
             }
             newTable[insertedRowCounter++] = newColumn
         }
-        @Suppress("UNCHECKED_CAST")
-        return newTable as Array<Array<Component?>>
+        return newTable.filterNotNull().map { it.copyOf() }.toTypedArray()
     }
 
     private fun getLayoutData(component: Component?): GridLayoutData {

@@ -42,7 +42,6 @@ import java.nio.charset.Charset
 import java.util.EnumSet
 
 class DefaultTerminalFactory
-    @Suppress("SameParameterValue", "WeakerAccess")
     constructor(
         private val outputStream: OutputStream,
         private val inputStream: InputStream,

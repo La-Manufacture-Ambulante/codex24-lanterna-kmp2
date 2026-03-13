@@ -22,6 +22,7 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.ansi.TelnetTerminal
 import com.googlecode.lanterna.terminal.ansi.TelnetTerminalServer
+import com.googlecode.lanterna.withBorder
 import java.io.IOException
 import java.net.SocketException
 
