@@ -1,19 +1,38 @@
 package com.googlecode.lanterna.terminal.nativeposix
 
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.UIntVarOf
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
 import kotlinx.cinterop.toKString
+import kotlinx.cinterop.value
 import platform.posix.getenv
+import platform.windows.CONSOLE_SCREEN_BUFFER_INFO
+import platform.windows.ENABLE_ECHO_INPUT
+import platform.windows.ENABLE_LINE_INPUT
+import platform.windows.ENABLE_PROCESSED_INPUT
+import platform.windows.ENABLE_VIRTUAL_TERMINAL_PROCESSING
+import platform.windows.GetConsoleMode
+import platform.windows.GetConsoleScreenBufferInfo
 import platform.windows.GetStdHandle
 import platform.windows.STD_INPUT_HANDLE
+import platform.windows.STD_OUTPUT_HANDLE
+import platform.windows.SetConsoleMode
 
 @OptIn(ExperimentalForeignApi::class)
 actual object PosixTerminalRuntime {
-    private var rawModeEnabled: Boolean = false
+    private var savedInputMode: UInt? = null
+    private var savedOutputMode: UInt? = null
 
     actual fun queryTerminalSize(
         fallbackColumns: Int,
         fallbackRows: Int,
     ): PosixTerminalDimensions {
+        val win32Size = readConsoleWindowSize()
+        if (win32Size != null) {
+            return PosixTerminalDimensions(columns = win32Size.first, rows = win32Size.second)
+        }
         val columns = systemEnvInt("COLUMNS") ?: fallbackColumns
         val rows = systemEnvInt("LINES") ?: fallbackRows
         return PosixTerminalDimensions(columns = columns, rows = rows)
@@ -21,15 +40,68 @@ actual object PosixTerminalRuntime {
 
     actual fun configureRawModeNoEcho(): Boolean {
         val inputHandle = GetStdHandle(STD_INPUT_HANDLE.toUInt()) ?: return false
-        rawModeEnabled = inputHandle != null
-        return rawModeEnabled
+        val outputHandle = GetStdHandle(STD_OUTPUT_HANDLE.toUInt()) ?: return false
+        memScoped {
+            val inputMode = alloc<UIntVarOf<UInt>>()
+            val outputMode = alloc<UIntVarOf<UInt>>()
+            if (GetConsoleMode(inputHandle, inputMode.ptr) == 0) {
+                return false
+            }
+            if (GetConsoleMode(outputHandle, outputMode.ptr) == 0) {
+                return false
+            }
+            savedInputMode = inputMode.value
+            savedOutputMode = outputMode.value
+
+            val rawInputMode =
+                inputMode.value and
+                    ENABLE_ECHO_INPUT.toUInt().inv() and
+                    ENABLE_LINE_INPUT.toUInt().inv() and
+                    ENABLE_PROCESSED_INPUT.toUInt().inv()
+            if (SetConsoleMode(inputHandle, rawInputMode) == 0) {
+                return false
+            }
+
+            val vtOutputMode = outputMode.value or ENABLE_VIRTUAL_TERMINAL_PROCESSING.toUInt()
+            if (SetConsoleMode(outputHandle, vtOutputMode) == 0) {
+                return false
+            }
+        }
+        return true
     }
 
     actual fun restoreCookedMode(): Boolean {
-        val wasEnabled = rawModeEnabled
-        rawModeEnabled = false
-        return wasEnabled
+        val inputMode = savedInputMode
+        val outputMode = savedOutputMode
+        if (inputMode == null || outputMode == null) {
+            return false
+        }
+        val inputHandle = GetStdHandle(STD_INPUT_HANDLE.toUInt()) ?: return false
+        val outputHandle = GetStdHandle(STD_OUTPUT_HANDLE.toUInt()) ?: return false
+        val inputRestored = SetConsoleMode(inputHandle, inputMode) != 0
+        val outputRestored = SetConsoleMode(outputHandle, outputMode) != 0
+        if (inputRestored && outputRestored) {
+            savedInputMode = null
+            savedOutputMode = null
+        }
+        return inputRestored && outputRestored
     }
+
+    private fun readConsoleWindowSize(): Pair<Int, Int>? =
+        memScoped {
+            val outputHandle = GetStdHandle(STD_OUTPUT_HANDLE.toUInt()) ?: return null
+            val info = alloc<CONSOLE_SCREEN_BUFFER_INFO>()
+            if (GetConsoleScreenBufferInfo(outputHandle, info.ptr) == 0) {
+                return null
+            }
+            val columns = (info.srWindow.Right - info.srWindow.Left + 1).toInt()
+            val rows = (info.srWindow.Bottom - info.srWindow.Top + 1).toInt()
+            if (columns <= 0 || rows <= 0) {
+                null
+            } else {
+                Pair(columns, rows)
+            }
+        }
 }
 
 @OptIn(ExperimentalForeignApi::class)
