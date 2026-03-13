@@ -130,3 +130,9 @@ Identify native-progress work from the archived `lanterna` repo that can be reus
 - `lanterna-core-kmp` no longer has a broad JVM API surface in `commonMain` because the remaining converted sources were moved under `jvmMain`.
 - native targets compile for Linux host, while macOS targets are declared and skipped on Linux (to be validated in macOS CI).
 - next step is adding a minimal shared/native-facing API layer that can be consumed by linux/macos implementations without depending on JVM-only classes.
+
+## Deferred Follow-Up Task (2026-03-13)
+- PR4 comment restoration sweep:
+  - Problem: several Kotlin files in PR4 lost Java/KDoc/in-code explanatory comments during conversion/merge slices.
+  - Task: run a targeted parity pass to restore missing comments (ordering and content aligned with Java source where applicable) without changing runtime behavior.
+  - Scope note: schedule after native parity validation and CI stabilization slices are complete.
