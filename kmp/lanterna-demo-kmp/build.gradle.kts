@@ -15,6 +15,11 @@ kotlin {
         binaries {
             executable {
                 entryPoint = "com.googlecode.lanterna.examples.nativeSnapshotMain"
+                baseName = "lanterna-snapshot-demo"
+            }
+            executable("interactiveWidgetDemo") {
+                entryPoint = "com.googlecode.lanterna.examples.interactiveWidgetDemoMain"
+                baseName = "lanterna-interactive-widget-demo"
             }
         }
     }
@@ -25,9 +30,37 @@ kotlin {
                 implementation(project(":lanterna-core-kmp"))
             }
         }
-        val commonTest by getting
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
         val jvmMain by getting
         val jvmTest by getting
+        val nativeMain by creating {
+            dependsOn(commonMain)
+        }
+        val nativeTest by creating {
+            dependsOn(commonTest)
+        }
+        val linuxX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val linuxX64Test by getting {
+            dependsOn(nativeTest)
+        }
+        val macosX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val macosX64Test by getting {
+            dependsOn(nativeTest)
+        }
+        val macosArm64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val macosArm64Test by getting {
+            dependsOn(nativeTest)
+        }
     }
 }
 
@@ -50,4 +83,16 @@ tasks.register<JavaExec>("jvmRenderSnapshot") {
     }
     systemProperty("demo.outputDir", outputDir.get().asFile.absolutePath)
     systemProperty("demo.target", "jvm-${System.getProperty("os.name")}")
+}
+
+tasks.register<JavaExec>("jvmInteractiveWidgetDemo") {
+    group = "application"
+    description = "Runs the interactive widget demo on the JVM target."
+    dependsOn(tasks.named("jvmMainClasses"))
+
+    classpath(
+        jvmMainCompilation.output.allOutputs,
+        jvmMainCompilation.runtimeDependencyFiles,
+    )
+    mainClass.set("com.googlecode.lanterna.examples.InteractiveWidgetDemoJvmKt")
 }
