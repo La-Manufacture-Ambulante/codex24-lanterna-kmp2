@@ -21,8 +21,10 @@ Branch: `codex/pr6-coroutines-impl`
 ## Progress
 - [x] Slice A completed: coroutine dependency + `PlatformTaskRuntime` abstraction + baseline tests.
 - [x] Lint propagation from PR5 applied on PR6 (`PosixTerminalIO` / `PosixTerminalRuntime` style fixes).
-- [x] Slice B started via first callsite adoption: `SeparateTextGUIThread` now launches through `PlatformTaskRuntime`.
-- [ ] Slice C next: extend tests for coroutine mode behavior at GUI-thread callsite level.
+- [x] Slice B completed: first callsite adoption wired (`SeparateTextGUIThread` launches through `PlatformTaskRuntime`).
+- [x] Slice C completed: added GUI-thread coroutine-mode regression test for `SeparateTextGUIThread` lifecycle.
+- [x] Slice D completed (local gate): `ktlintCheck`, `compileKotlinJvm`, `compileKotlinLinuxX64`, `compileKotlinMingwX64`, and `jvmTest` all passing.
+- [ ] Slice E next: prepare follow-up migration plan for additional callsites and optional runtime selection policy.
 
 ## Guardrails
 - Default behavior remains thread-based.
