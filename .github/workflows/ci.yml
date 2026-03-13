@@ -75,12 +75,15 @@ jobs:
         include:
           - target: linuxX64
             runner: ubuntu-latest
+            test_task: :lanterna-core-kmp:linuxX64Test
             link_task: :lanterna-demo-kmp:linkDebugExecutableLinuxX64
           - target: macosX64
             runner: macos-latest
+            test_task: :lanterna-core-kmp:macosX64Test
             link_task: :lanterna-demo-kmp:linkDebugExecutableMacosX64
           - target: macosArm64
             runner: macos-14
+            test_task: :lanterna-core-kmp:macosArm64Test
             link_task: :lanterna-demo-kmp:linkDebugExecutableMacosArm64
     steps:
       - name: Checkout
@@ -96,6 +99,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.7"
+
+      - name: Run ${{ matrix.target }} native tests
+        run: gradle -p kmp ${{ matrix.test_task }} --no-daemon
 
       - name: Build ${{ matrix.target }} native demo executable
         run: gradle -p kmp ${{ matrix.link_task }} --no-daemon
