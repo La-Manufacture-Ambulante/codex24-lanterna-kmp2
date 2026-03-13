@@ -149,23 +149,47 @@ actual object PosixTerminalIO {
                 return null
             }
 
-            val inputRecord = alloc<INPUT_RECORD>()
-            val eventsRead = alloc<UIntVarOf<UInt>>()
-            if (ReadConsoleInputW(inputHandle, inputRecord.ptr, 1u, eventsRead.ptr) == 0 || eventsRead.value == 0u) {
-                return null
+            repeat(pendingEvents.value.toInt()) {
+                val inputRecord = alloc<INPUT_RECORD>()
+                val eventsRead = alloc<UIntVarOf<UInt>>()
+                if (ReadConsoleInputW(inputHandle, inputRecord.ptr, 1u, eventsRead.ptr) == 0 || eventsRead.value == 0u) {
+                    return null
+                }
+                if (inputRecord.EventType != KEY_EVENT.toUShort()) {
+                    return@repeat
+                }
+                val keyEvent = inputRecord.Event.KeyEvent
+                if (keyEvent.bKeyDown.toInt() == 0) {
+                    return@repeat
+                }
+                val codePoint = keyEvent.uChar.UnicodeChar.toInt()
+                if (codePoint != 0) {
+                    return codePoint.toChar().toString().encodeToByteArray()
+                }
+                val specialBytes = mapVirtualKeyToAnsi(keyEvent.wVirtualKeyCode.toInt())
+                if (specialBytes != null) {
+                    return specialBytes
+                }
             }
+            return null
+        }
 
-            if (inputRecord.EventType != KEY_EVENT.toUShort()) {
-                return null
-            }
-            val keyEvent = inputRecord.Event.KeyEvent
-            if (keyEvent.bKeyDown.toInt() == 0) {
-                return null
-            }
-            val codePoint = keyEvent.uChar.UnicodeChar.toInt()
-            if (codePoint == 0) {
-                return null
-            }
-            return codePoint.toChar().toString().encodeToByteArray()
+    private fun mapVirtualKeyToAnsi(virtualKeyCode: Int): ByteArray? =
+        when (virtualKeyCode) {
+            0x08 -> byteArrayOf(0x7F) // Backspace
+            0x09 -> byteArrayOf('\t'.code.toByte()) // Tab
+            0x0D -> byteArrayOf('\r'.code.toByte()) // Enter
+            0x1B -> byteArrayOf(0x1B) // Escape
+            0x21 -> "\u001B[5~".encodeToByteArray() // PageUp
+            0x22 -> "\u001B[6~".encodeToByteArray() // PageDown
+            0x23 -> "\u001B[F".encodeToByteArray() // End
+            0x24 -> "\u001B[H".encodeToByteArray() // Home
+            0x25 -> "\u001B[D".encodeToByteArray() // Left
+            0x26 -> "\u001B[A".encodeToByteArray() // Up
+            0x27 -> "\u001B[C".encodeToByteArray() // Right
+            0x28 -> "\u001B[B".encodeToByteArray() // Down
+            0x2D -> "\u001B[2~".encodeToByteArray() // Insert
+            0x2E -> "\u001B[3~".encodeToByteArray() // Delete
+            else -> null
         }
 }
