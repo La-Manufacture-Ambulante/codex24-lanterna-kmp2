@@ -33,6 +33,7 @@ class PlatformTaskHandle internal constructor(
 
 object PlatformTaskRuntime {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val runtimeStateMutex = PlatformMutex()
 
     private const val EXECUTION_MODE_ENVIRONMENT_VARIABLE = "LANTERNA_EXECUTION_MODE"
     private val defaultEnvironmentLookup: (String) -> String? = ::platformEnvironmentVariable
@@ -40,29 +41,39 @@ object PlatformTaskRuntime {
 
     private var currentMode: PlatformExecutionMode = resolvedModeFromEnvironment() ?: PlatformExecutionMode.THREAD
 
-    fun executionMode(): PlatformExecutionMode = currentMode
+    fun executionMode(): PlatformExecutionMode = runtimeStateMutex.withLock { currentMode }
 
     fun setExecutionMode(mode: PlatformExecutionMode) {
-        currentMode = mode
+        runtimeStateMutex.withLock {
+            currentMode = mode
+        }
     }
 
     fun configureExecutionModeFromEnvironment() {
-        currentMode = resolvedModeFromEnvironment() ?: PlatformExecutionMode.THREAD
+        runtimeStateMutex.withLock {
+            currentMode = resolvedModeFromEnvironment() ?: PlatformExecutionMode.THREAD
+        }
     }
 
     fun launch(
         name: String,
         block: () -> Unit,
     ): PlatformTaskHandle {
-        return when (currentMode) {
+        val mode =
+            runtimeStateMutex.withLock {
+                currentMode
+            }
+        return when (mode) {
             PlatformExecutionMode.THREAD -> launchThread(name, block)
             PlatformExecutionMode.COROUTINE -> launchCoroutine(name, block)
         }
     }
 
     internal fun resetForTests() {
-        currentMode = PlatformExecutionMode.THREAD
-        environmentLookup = defaultEnvironmentLookup
+        runtimeStateMutex.withLock {
+            currentMode = PlatformExecutionMode.THREAD
+            environmentLookup = defaultEnvironmentLookup
+        }
     }
 
     internal fun shutdownForTests() {
@@ -123,7 +134,9 @@ object PlatformTaskRuntime {
     }
 
     internal fun setEnvironmentLookupForTests(lookup: (String) -> String?) {
-        environmentLookup = lookup
+        runtimeStateMutex.withLock {
+            environmentLookup = lookup
+        }
     }
 
     private fun resolvedModeFromEnvironment(): PlatformExecutionMode? {
