@@ -263,11 +263,11 @@ open class ANSITerminal : AbstractTerminal(), ExtendedTerminal {
     }
 
     override fun pushTitle() {
-        throw UnsupportedOperationException("Not implemented yet")
+        writeCSI("22;0t")
     }
 
     override fun popTitle() {
-        throw UnsupportedOperationException("Not implemented yet")
+        writeCSI("23;0t")
     }
 
     @Throws(IOException::class)

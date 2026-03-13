@@ -294,11 +294,11 @@ abstract class ANSITerminal
         }
 
         override fun pushTitle() {
-            throw UnsupportedOperationException("Not implemented yet")
+            writeCSISequenceToTerminal(*("22;0t").toByteArray())
         }
 
         override fun popTitle() {
-            throw UnsupportedOperationException("Not implemented yet")
+            writeCSISequenceToTerminal(*("23;0t").toByteArray())
         }
 
         @Throws(IOException::class)
