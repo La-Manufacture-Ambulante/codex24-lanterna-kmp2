@@ -26,6 +26,21 @@ kotlin {
                 implementation(project(":lanterna-core-kmp"))
             }
         }
+        val nativeMain by creating {
+            dependsOn(commonMain)
+        }
+        val linuxX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val macosX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val macosArm64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val mingwX64Main by getting {
+            dependsOn(nativeMain)
+        }
         val commonTest by getting
         val jvmMain by getting
         val jvmTest by getting
