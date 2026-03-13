@@ -1,50 +1,89 @@
-/*
- * This file is part of lanterna (https://github.com/mabe02/lanterna).
- *
- * lanterna is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2010-2024 Martin Berglund
- */
 package com.googlecode.lanterna.gui2
+
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
-import java.io.IOException
+import com.googlecode.lanterna.screen.Screen
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.virtual.DefaultVirtualTerminal
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import java.util.Arrays
 
-@SuppressWarnings("rawtypes")
-class InputUITest : TestBase() {
-    fun init(textGUI: WindowBasedTextGUI) {
-        val window = BasicWindow("Input test")
-        val interactable = InputCaptureComponent()
-        interactable.withBorder(Borders.doubleLineBevel("Press any key to test capturing the KeyStroke"))
+class InputUITest {
+    @Test
+    fun capturesCharacterAndClosesWithEscape() {
+        val terminal = DefaultVirtualTerminal(TerminalSize(80, 24))
+        val screen = TerminalScreen(terminal)
+        screen.startScreen()
 
-        window.component =
-            Panels.vertical(
-                interactable,
-                Label("Use the TAB key to shift focus"),
-                Button("Close", Runnable { window.close() }),
+        try {
+            val windowManager = DefaultWindowManager(EmptyWindowDecorationRenderer(), screen.terminalSize)
+            val textGUI = MultiWindowTextGUI(SameTextGUIThread.Factory(), screen, windowManager, null, EmptySpace())
+            val window = BasicWindow("Input test")
+            window.setHints(
+                Arrays.asList(
+                    Window.Hint.NO_DECORATIONS,
+                    Window.Hint.FIT_TERMINAL_WINDOW,
+                    Window.Hint.FULL_SCREEN,
+                ),
             )
-        textGUI.addWindow(window)
+            window.setCloseWindowWithEscape(true)
+
+            val interactable = InputCaptureComponent()
+            interactable.withBorder(Borders.doubleLineBevel("Press any key to test capturing the KeyStroke"))
+            window.component =
+                Panels.vertical(
+                    interactable,
+                    Label("Use the TAB key to shift focus"),
+                    Button("Close", Runnable { window.close() }),
+                )
+            textGUI.addWindow(window)
+
+            pump(textGUI, 8)
+
+            terminal.addInput(KeyStroke('x', false, false))
+            pump(textGUI, 20)
+            val renderedAfterX = dumpScreen(screen)
+            assertTrue("expected captured character in rendered screen", renderedAfterX.contains("x"))
+
+            terminal.addInput(KeyStroke(KeyType.ESCAPE))
+            pump(textGUI, 20)
+            assertTrue("window should close on escape", textGUI.windows.isEmpty())
+        } finally {
+            screen.stopScreen()
+        }
+    }
+
+    private fun pump(
+        textGUI: MultiWindowTextGUI,
+        iterations: Int,
+    ) {
+        val guiThread = requireNotNull(textGUI.guiThread)
+        repeat(iterations) {
+            guiThread.processEventsAndUpdate()
+        }
+    }
+
+    private fun dumpScreen(screen: Screen): String {
+        val size = screen.terminalSize ?: return ""
+        val out = StringBuilder(size.rows * (size.columns + 1))
+        for (row in 0 until size.rows) {
+            for (col in 0 until size.columns) {
+                out.append(screen.getBackCharacter(col, row)?.character ?: ' ')
+            }
+            out.append('\n')
+        }
+        return out.toString()
     }
 
     private class InputCaptureComponent : AbstractInteractableComponent<InputCaptureComponent>() {
         private var lastKey: String? = null
 
         override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
-            if (keyStroke.keyType == KeyType.TAB) {
+            if (keyStroke.keyType == KeyType.TAB || keyStroke.keyType == KeyType.ESCAPE) {
                 return super.handleKeyStroke(keyStroke)
             }
             lastKey =
@@ -86,14 +125,6 @@ class InputUITest : TestBase() {
                     }
                 }
             }
-        }
-    }
-
-    companion object {
-        @Throws(IOException::class, InterruptedException::class)
-        @JvmStatic
-        fun main(args: Array<String?>?) {
-            InputUITest().run(args)
         }
     }
 }
