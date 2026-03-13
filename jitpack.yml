@@ -1,6 +1,6 @@
 jdk:
   - openjdk17
 install:
-  - mvn -q -DskipTests install
+  - chmod +x ./kmp/gradlew
   - cd kmp
   - ./gradlew :lanterna-core-kmp:publishToMavenLocal
