@@ -38,6 +38,7 @@ actual object PosixTerminalIO {
                 if (readOk && bytesRead.value > 0u) {
                     return readBuffer[0].toInt() and 0xFF
                 }
+                return null
             }
         }
 
