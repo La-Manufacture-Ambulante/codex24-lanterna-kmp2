@@ -78,13 +78,14 @@ private fun readUtf8File(path: String): String? {
                 chunk.usePinned { pinned ->
                     read(descriptor, pinned.addressOf(0), chunk.size.convert())
                 }
-            if (readCount < 0) {
+            val readCountLong = readCount.toLong()
+            if (readCountLong < 0L) {
                 return null
             }
-            if (readCount == 0L) {
+            if (readCountLong == 0L) {
                 break
             }
-            val length = readCount.toInt()
+            val length = readCountLong.toInt()
             for (index in 0 until length) {
                 bytes += chunk[index]
             }

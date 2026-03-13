@@ -11,6 +11,7 @@ kotlin {
     linuxX64()
     macosX64()
     macosArm64()
+    mingwX64()
 
     sourceSets {
         val commonMain by getting
@@ -18,6 +19,24 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
             }
+        }
+        val nativeMain by creating {
+            dependsOn(commonMain)
+        }
+        val nativeUnixMain by creating {
+            dependsOn(nativeMain)
+        }
+        val linuxX64Main by getting {
+            dependsOn(nativeUnixMain)
+        }
+        val macosX64Main by getting {
+            dependsOn(nativeUnixMain)
+        }
+        val macosArm64Main by getting {
+            dependsOn(nativeUnixMain)
+        }
+        val mingwX64Main by getting {
+            dependsOn(nativeMain)
         }
 
         val jvmMain by getting {

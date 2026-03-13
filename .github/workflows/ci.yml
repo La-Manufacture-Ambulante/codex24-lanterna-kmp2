@@ -85,6 +85,10 @@ jobs:
             runner: macos-14
             test_task: :lanterna-core-kmp:macosArm64Test
             link_task: :lanterna-demo-kmp:linkDebugExecutableMacosArm64
+          - target: mingwX64
+            runner: windows-latest
+            test_task: :lanterna-core-kmp:mingwX64Test
+            link_task: :lanterna-demo-kmp:linkDebugExecutableMingwX64
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -169,6 +173,7 @@ jobs:
           linux_files=0
           macos_x64_files=0
           macos_arm64_files=0
+          mingw_x64_files=0
 
           if [ -d "$root/native-render-linuxX64" ]; then
             linux_files=$(find "$root/native-render-linuxX64" -type f | wc -l | tr -d ' ')
@@ -179,10 +184,14 @@ jobs:
           if [ -d "$root/native-render-macosArm64" ]; then
             macos_arm64_files=$(find "$root/native-render-macosArm64" -type f | wc -l | tr -d ' ')
           fi
+          if [ -d "$root/native-render-mingwX64" ]; then
+            mingw_x64_files=$(find "$root/native-render-mingwX64" -type f | wc -l | tr -d ' ')
+          fi
 
           echo "linux_files=$linux_files" >> "$GITHUB_OUTPUT"
           echo "macos_x64_files=$macos_x64_files" >> "$GITHUB_OUTPUT"
           echo "macos_arm64_files=$macos_arm64_files" >> "$GITHUB_OUTPUT"
+          echo "mingw_x64_files=$mingw_x64_files" >> "$GITHUB_OUTPUT"
           echo "matrix_result=${{ needs.kmp-native-parity.result }}" >> "$GITHUB_OUTPUT"
           echo "run_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> "$GITHUB_OUTPUT"
 
@@ -192,7 +201,8 @@ jobs:
             echo "- linuxX64 artifact files: $linux_files"
             echo "- macosX64 artifact files: $macos_x64_files"
             echo "- macosArm64 artifact files: $macos_arm64_files"
-            echo "- artifacts: native-render-linuxX64, native-render-macosX64, native-render-macosArm64"
+            echo "- mingwX64 artifact files: $mingw_x64_files"
+            echo "- artifacts: native-render-linuxX64, native-render-macosX64, native-render-macosArm64, native-render-mingwX64"
             echo "- run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -204,6 +214,7 @@ jobs:
           LINUX_FILES: ${{ steps.native-parity-summary.outputs.linux_files }}
           MACOS_X64_FILES: ${{ steps.native-parity-summary.outputs.macos_x64_files }}
           MACOS_ARM64_FILES: ${{ steps.native-parity-summary.outputs.macos_arm64_files }}
+          MINGW_X64_FILES: ${{ steps.native-parity-summary.outputs.mingw_x64_files }}
           RUN_URL: ${{ steps.native-parity-summary.outputs.run_url }}
         with:
           script: |
@@ -214,7 +225,8 @@ jobs:
             - linuxX64 artifact files: ${process.env.LINUX_FILES}
             - macosX64 artifact files: ${process.env.MACOS_X64_FILES}
             - macosArm64 artifact files: ${process.env.MACOS_ARM64_FILES}
-            - artifacts: \`native-render-linuxX64\`, \`native-render-macosX64\`, \`native-render-macosArm64\`
+            - mingwX64 artifact files: ${process.env.MINGW_X64_FILES}
+            - artifacts: \`native-render-linuxX64\`, \`native-render-macosX64\`, \`native-render-macosArm64\`, \`native-render-mingwX64\`
             - run: ${process.env.RUN_URL}`;
 
             const { owner, repo } = context.repo;
