@@ -1,6 +1,9 @@
 package com.googlecode.lanterna.examples
 
 import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.graphics.SimpleTheme
+import com.googlecode.lanterna.graphics.Theme
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.Borders
 import com.googlecode.lanterna.gui2.Button
@@ -54,6 +57,43 @@ private fun nextTheme(currentTheme: String): String =
         else -> "Ocean"
     }
 
+internal fun createInteractiveWidgetTheme(themeName: String): Theme =
+    when (themeName) {
+        "Amber" ->
+            SimpleTheme.makeTheme(
+                activeIsBold = true,
+                baseForeground = TextColor.ANSI.BLACK,
+                baseBackground = TextColor.ANSI.YELLOW,
+                editableForeground = TextColor.ANSI.BLACK,
+                editableBackground = TextColor.ANSI.YELLOW_BRIGHT,
+                selectedForeground = TextColor.ANSI.YELLOW_BRIGHT,
+                selectedBackground = TextColor.ANSI.RED,
+                guiBackground = TextColor.ANSI.YELLOW_BRIGHT,
+            )
+        "Graphite" ->
+            SimpleTheme.makeTheme(
+                activeIsBold = true,
+                baseForeground = TextColor.ANSI.WHITE,
+                baseBackground = TextColor.ANSI.BLACK_BRIGHT,
+                editableForeground = TextColor.ANSI.WHITE_BRIGHT,
+                editableBackground = TextColor.ANSI.BLACK,
+                selectedForeground = TextColor.ANSI.WHITE_BRIGHT,
+                selectedBackground = TextColor.ANSI.BLUE_BRIGHT,
+                guiBackground = TextColor.ANSI.BLACK,
+            )
+        else ->
+            SimpleTheme.makeTheme(
+                activeIsBold = true,
+                baseForeground = TextColor.ANSI.WHITE_BRIGHT,
+                baseBackground = TextColor.ANSI.BLUE,
+                editableForeground = TextColor.ANSI.WHITE_BRIGHT,
+                editableBackground = TextColor.ANSI.CYAN,
+                selectedForeground = TextColor.ANSI.WHITE_BRIGHT,
+                selectedBackground = TextColor.ANSI.BLUE_BRIGHT,
+                guiBackground = TextColor.ANSI.BLUE_BRIGHT,
+            )
+    }
+
 fun createInteractiveWidgetDemoWindow(
     textGUI: WindowBasedTextGUI,
     onExit: () -> Unit = {},
@@ -74,6 +114,7 @@ fun createInteractiveWidgetDemoWindow(
     themeList.addItem("Amber")
     themeList.addItem("Graphite")
     themeList.checkedItem = state.theme
+    textGUI.theme = createInteractiveWidgetTheme(state.theme)
 
     fun syncState(message: String? = null) {
         if (message != null) {
@@ -88,6 +129,7 @@ fun createInteractiveWidgetDemoWindow(
         syncingView = true
         try {
             state = InteractiveWidgetDemoState(lastAction = message)
+            textGUI.theme = createInteractiveWidgetTheme(state.theme)
             inputBox.setText(state.title)
             notesBox.setText(state.notes)
             notificationsBox.setChecked(state.notificationsEnabled)
@@ -131,6 +173,7 @@ fun createInteractiveWidgetDemoWindow(
 
     fun cycleTheme() {
         val nextTheme = nextTheme(state.theme)
+        textGUI.theme = createInteractiveWidgetTheme(nextTheme)
         themeList.checkedItem = nextTheme
         state = state.copy(theme = nextTheme)
         syncState("Theme switched to $nextTheme")
@@ -195,6 +238,7 @@ fun createInteractiveWidgetDemoWindow(
             ) {
                 val checkedTheme = themeList.checkedItem ?: return
                 state = state.copy(theme = checkedTheme)
+                textGUI.theme = createInteractiveWidgetTheme(checkedTheme)
                 if (!syncingView) {
                     syncState("Theme switched to $checkedTheme")
                 }

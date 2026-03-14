@@ -1,7 +1,9 @@
 package com.googlecode.lanterna.examples
 
+import com.googlecode.lanterna.TextColor
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class InteractiveWidgetDemoTest {
@@ -40,5 +42,18 @@ class InteractiveWidgetDemoTest {
             )
 
         assertEquals("Theme Graphite | Dialog on | Clicks 0 | Notes 1", metrics)
+    }
+
+    @Test
+    fun themesMapToDistinctPaletteDefinitions() {
+        val ocean = createInteractiveWidgetTheme("Ocean").defaultDefinition
+        val amber = createInteractiveWidgetTheme("Amber").defaultDefinition
+        val graphite = createInteractiveWidgetTheme("Graphite").defaultDefinition
+
+        assertEquals(TextColor.ANSI.BLUE, ocean?.normal?.background)
+        assertEquals(TextColor.ANSI.YELLOW, amber?.normal?.background)
+        assertEquals(TextColor.ANSI.BLACK_BRIGHT, graphite?.normal?.background)
+        assertNotEquals(ocean?.normal?.background, amber?.normal?.background)
+        assertNotEquals(amber?.normal?.background, graphite?.normal?.background)
     }
 }
