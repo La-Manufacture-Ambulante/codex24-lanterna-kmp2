@@ -33,6 +33,7 @@ class DefaultKeyDecodingProfile : KeyDecodingProfile {
                 BasicCharacterPattern(KeyStroke(KeyType.ESCAPE), KeyDecodingProfile.ESC_CODE),
                 BasicCharacterPattern(KeyStroke(KeyType.TAB), '\t'),
                 BasicCharacterPattern(KeyStroke(KeyType.ENTER), '\n'),
+                BasicCharacterPattern(KeyStroke(KeyType.ENTER), '\r'),
                 BasicCharacterPattern(KeyStroke(KeyType.ENTER), '\r', '\u0000'),
                 BasicCharacterPattern(KeyStroke(KeyType.BACKSPACE), 0x7f.toChar()),
                 BasicCharacterPattern(KeyStroke(KeyType.BACKSPACE), 0x08.toChar()),
