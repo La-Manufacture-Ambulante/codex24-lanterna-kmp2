@@ -1,7 +1,6 @@
 package com.googlecode.lanterna.examples
 
 import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.gui2.ActionListBox
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.Borders
 import com.googlecode.lanterna.gui2.Button
@@ -20,14 +19,11 @@ import com.googlecode.lanterna.gui2.Window
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
-import com.googlecode.lanterna.gui2.menu.Menu
-import com.googlecode.lanterna.gui2.menu.MenuBar
-import com.googlecode.lanterna.gui2.menu.MenuItem
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 
 private const val DEFAULT_TITLE = "Lanterna KMP"
-private const val DEFAULT_NOTES = "Tab through widgets.\nEnter activates buttons.\nEsc closes the demo."
+private const val DEFAULT_NOTES = "Tab to actions.\nEnter activates buttons.\nTheme, Demo, Help visible."
 private const val DEFAULT_THEME = "Ocean"
 
 internal data class InteractiveWidgetDemoState(
@@ -51,6 +47,13 @@ internal fun renderInteractiveWidgetSummary(state: InteractiveWidgetDemoState): 
 internal fun renderInteractiveWidgetMetrics(state: InteractiveWidgetDemoState): String =
     "Theme ${state.theme} | Dialog ${if (state.notificationsEnabled) "on" else "off"} | Clicks ${state.clicks} | Notes ${countLines(state.notes)}"
 
+private fun nextTheme(currentTheme: String): String =
+    when (currentTheme) {
+        "Ocean" -> "Amber"
+        "Amber" -> "Graphite"
+        else -> "Ocean"
+    }
+
 fun createInteractiveWidgetDemoWindow(
     textGUI: WindowBasedTextGUI,
     onExit: () -> Unit = {},
@@ -65,7 +68,6 @@ fun createInteractiveWidgetDemoWindow(
     val notesBox = TextBox(TerminalSize(24, 3), state.notes, TextBox.Style.MULTI_LINE).setCaretWarp(true)
     val notificationsBox = CheckBox("Show dialog on run").setChecked(state.notificationsEnabled)
     val themeList = RadioBoxList<String>(TerminalSize(18, 3))
-    val actionList = ActionListBox(TerminalSize(22, 3))
     val window = BasicWindow("Lanterna KMP Interactive Widget Demo")
 
     themeList.addItem("Ocean")
@@ -116,6 +118,22 @@ fun createInteractiveWidgetDemoWindow(
             "Ported into the new KMP repo using gui2 widgets already available on this branch.",
             MessageDialogButton.OK,
         )
+    }
+
+    fun showDemoDialog() {
+        MessageDialog.showMessageDialog(
+            textGUI,
+            "Demo actions",
+            "Use Tab to move between inputs and actions.\nRun, Reset, Theme, Demo, Help, and Quit are all visible on the main screen.\nEnter activates the focused button.",
+            MessageDialogButton.OK,
+        )
+    }
+
+    fun cycleTheme() {
+        val nextTheme = nextTheme(state.theme)
+        themeList.checkedItem = nextTheme
+        state = state.copy(theme = nextTheme)
+        syncState("Theme switched to $nextTheme")
     }
 
     inputBox.setTextChangeListener(
@@ -184,10 +202,6 @@ fun createInteractiveWidgetDemoWindow(
         },
     )
 
-    actionList.addItem("Run primary action", Runnable { showPrimaryActionResult() })
-    actionList.addItem("Reset demo", Runnable { applyReset("Reset demo") })
-    actionList.addItem("About this port", Runnable { showAboutDialog() })
-
     val leftPanelContent = Panel(GridLayout(1).setVerticalSpacing(0))
     leftPanelContent.addComponent(Label("Title"))
     leftPanelContent.addComponent(inputBox, GridLayout.createHorizontallyFilledLayoutData())
@@ -200,6 +214,9 @@ fun createInteractiveWidgetDemoWindow(
 
     val primaryButton = Button("Run", Runnable { showPrimaryActionResult() })
     val resetButton = Button("Reset", Runnable { applyReset("Reset demo") })
+    val themeButton = Button("Theme", Runnable { cycleTheme() })
+    val demoButton = Button("Demo", Runnable { showDemoDialog() })
+    val helpButton = Button("Help", Runnable { showAboutDialog() })
     val quitButton =
         Button(
             "Quit",
@@ -209,14 +226,17 @@ fun createInteractiveWidgetDemoWindow(
             },
         )
 
-    val buttonRow = Panel(LinearLayout(Direction.HORIZONTAL))
-    buttonRow.addComponent(primaryButton)
-    buttonRow.addComponent(resetButton)
-    buttonRow.addComponent(quitButton)
+    val buttonGrid = Panel(GridLayout(2).setHorizontalSpacing(1).setVerticalSpacing(0))
+    buttonGrid.addComponent(primaryButton)
+    buttonGrid.addComponent(resetButton)
+    buttonGrid.addComponent(themeButton)
+    buttonGrid.addComponent(demoButton)
+    buttonGrid.addComponent(helpButton)
+    buttonGrid.addComponent(quitButton)
 
     val rightPanelContent = Panel(LinearLayout(Direction.VERTICAL))
-    rightPanelContent.addComponent(buttonRow)
-    rightPanelContent.addComponent(actionList)
+    rightPanelContent.addComponent(Label("Actions"))
+    rightPanelContent.addComponent(buttonGrid)
     rightPanelContent.addComponent(
         summaryLabel.withBorder(Borders.singleLine("Live summary")),
     )
@@ -229,32 +249,17 @@ fun createInteractiveWidgetDemoWindow(
 
     val contentPanel = Panel(GridLayout(2).setHorizontalSpacing(1).setVerticalSpacing(1))
     contentPanel.addComponent(
-        Label("Old interactive widget demo, rebuilt on the new KMP repo and sized for a normal terminal."),
+        Label("Old interactive widget demo, rebuilt on the new KMP repo with direct buttons for theme, demo, and help."),
         GridLayout.createHorizontallyFilledLayoutData(2),
     )
     contentPanel.addComponent(leftPanel, GridLayout.createHorizontallyFilledLayoutData())
     contentPanel.addComponent(rightPanel, GridLayout.createHorizontallyFilledLayoutData())
     contentPanel.addComponent(footerPanel, GridLayout.createHorizontallyFilledLayoutData(2))
 
-    val menuBar = MenuBar()
-    menuBar.add(
-        Menu("Demo")
-            .add(MenuItem("Run primary action", Runnable { showPrimaryActionResult() }))
-            .add(MenuItem("Reset", Runnable { applyReset("Reset demo") }))
-            .add(MenuItem("Exit", Runnable {
-                onExit()
-                window.close()
-            })),
-    )
-    menuBar.add(
-        Menu("Help")
-            .add(MenuItem("About", Runnable { showAboutDialog() })),
-    )
-
     window.component = contentPanel
-    window.menuBar = menuBar
     window.setHints(listOf(Window.Hint.EXPANDED))
     window.setCloseWindowWithEscape(true)
+    window.focusedInteractable = inputBox
 
     textGUI.addListener(
         object : TextGUI.Listener {
@@ -262,10 +267,24 @@ fun createInteractiveWidgetDemoWindow(
                 textGUI: TextGUI?,
                 keyStroke: KeyStroke?,
             ): Boolean {
-                if (keyStroke?.keyType == KeyType.EOF) {
-                    onExit()
-                    window.close()
-                    return true
+                when {
+                    keyStroke?.keyType == KeyType.EOF -> {
+                        onExit()
+                        window.close()
+                        return true
+                    }
+                    keyStroke == KeyStroke.fromString("<a-d>") -> {
+                        showDemoDialog()
+                        return true
+                    }
+                    keyStroke == KeyStroke.fromString("<a-h>") -> {
+                        showAboutDialog()
+                        return true
+                    }
+                    keyStroke == KeyStroke.fromString("<a-t>") -> {
+                        cycleTheme()
+                        return true
+                    }
                 }
                 return false
             }
