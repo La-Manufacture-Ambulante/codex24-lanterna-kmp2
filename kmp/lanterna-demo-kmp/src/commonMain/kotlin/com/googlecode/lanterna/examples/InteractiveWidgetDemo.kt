@@ -6,6 +6,7 @@ import com.googlecode.lanterna.graphics.SimpleTheme
 import com.googlecode.lanterna.graphics.Theme
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.Borders
+import com.googlecode.lanterna.gui2.ComboBox
 import com.googlecode.lanterna.gui2.Button
 import com.googlecode.lanterna.gui2.CheckBox
 import com.googlecode.lanterna.gui2.Direction
@@ -14,7 +15,9 @@ import com.googlecode.lanterna.gui2.Label
 import com.googlecode.lanterna.gui2.LinearLayout
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI
 import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.gui2.ProgressBar
 import com.googlecode.lanterna.gui2.RadioBoxList
+import com.googlecode.lanterna.gui2.ActionListBox
 import com.googlecode.lanterna.gui2.Runnable
 import com.googlecode.lanterna.gui2.TextBox
 import com.googlecode.lanterna.gui2.TextGUI
@@ -26,14 +29,47 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 
 private const val DEFAULT_TITLE = "Lanterna KMP"
-private const val DEFAULT_NOTES = "Tab to actions.\nEnter activates buttons.\nTheme, Demo, Help visible."
+private const val DEFAULT_NOTES = "Tab to widgets.\nEnter activates focus."
 private const val DEFAULT_THEME = "Ocean"
+private const val DEFAULT_PRESET = "Review"
+private const val DEFAULT_PROGRESS = 25
+
+internal data class InteractiveWidgetPreset(
+    val label: String,
+    val title: String,
+    val notes: String,
+    val progress: Int,
+)
+
+private val INTERACTIVE_WIDGET_PRESETS =
+    listOf(
+        InteractiveWidgetPreset(
+            label = "Review",
+            title = "Lanterna KMP",
+            notes = "Tab to widgets.\nEnter activates focus.",
+            progress = 25,
+        ),
+        InteractiveWidgetPreset(
+            label = "Preview",
+            title = "Theme Preview",
+            notes = "Switch palettes.\nOpen dialogs for details.",
+            progress = 50,
+        ),
+        InteractiveWidgetPreset(
+            label = "Release",
+            title = "Release Checklist",
+            notes = "Verify native build.\nConfirm help and demo flows.",
+            progress = 75,
+        ),
+    )
 
 internal data class InteractiveWidgetDemoState(
     val title: String = DEFAULT_TITLE,
     val notes: String = DEFAULT_NOTES,
     val notificationsEnabled: Boolean = true,
     val theme: String = DEFAULT_THEME,
+    val preset: String = DEFAULT_PRESET,
+    val progress: Int = DEFAULT_PROGRESS,
     val clicks: Int = 0,
     val lastAction: String = "Ready",
 )
@@ -41,14 +77,18 @@ internal data class InteractiveWidgetDemoState(
 internal fun renderInteractiveWidgetSummary(state: InteractiveWidgetDemoState): String =
     buildString {
         appendLine("Input: ${state.title.ifBlank { "<empty>" }}")
+        appendLine("Preset: ${state.preset}")
         appendLine("Theme: ${state.theme}")
-        appendLine("Notifications: ${if (state.notificationsEnabled) "enabled" else "muted"}")
+        appendLine("Progress: ${state.progress}%")
         appendLine("Primary clicks: ${state.clicks}")
         append("Notes lines: ${countLines(state.notes)}")
     }
 
 internal fun renderInteractiveWidgetMetrics(state: InteractiveWidgetDemoState): String =
-    "Theme ${state.theme} | Dialog ${if (state.notificationsEnabled) "on" else "off"} | Clicks ${state.clicks} | Notes ${countLines(state.notes)}"
+    "Preset ${state.preset} | Theme ${state.theme} | Dialog ${if (state.notificationsEnabled) "on" else "off"} | ${state.progress}% | Clicks ${state.clicks}"
+
+internal fun resolveInteractiveWidgetPreset(label: String): InteractiveWidgetPreset =
+    INTERACTIVE_WIDGET_PRESETS.firstOrNull { it.label == label } ?: INTERACTIVE_WIDGET_PRESETS.first()
 
 private fun nextTheme(currentTheme: String): String =
     when (currentTheme) {
@@ -103,17 +143,21 @@ fun createInteractiveWidgetDemoWindow(
 
     val statusLabel = Label("Status: ${state.lastAction}")
     val metricsLabel = Label(renderInteractiveWidgetMetrics(state)).setLabelWidth(64)
-    val summaryLabel = Label(renderInteractiveWidgetSummary(state)).setLabelWidth(22)
     val inputBox = TextBox(TerminalSize(24, 1), state.title)
-    val notesBox = TextBox(TerminalSize(24, 3), state.notes, TextBox.Style.MULTI_LINE).setCaretWarp(true)
+    val notesBox = TextBox(TerminalSize(24, 2), state.notes, TextBox.Style.MULTI_LINE).setCaretWarp(true)
     val notificationsBox = CheckBox("Show dialog on run").setChecked(state.notificationsEnabled)
     val themeList = RadioBoxList<String>(TerminalSize(18, 3))
+    val presetBox = ComboBox(INTERACTIVE_WIDGET_PRESETS.map { it.label })
+    val progressBar = ProgressBar(0, 100, 24).setLabelFormat("%3.0f%%").setValue(state.progress)
+    val quickActions = ActionListBox(TerminalSize(24, 3))
     val window = BasicWindow("Lanterna KMP Interactive Widget Demo")
 
     themeList.addItem("Ocean")
     themeList.addItem("Amber")
     themeList.addItem("Graphite")
     themeList.checkedItem = state.theme
+    presetBox.setReadOnly(true)
+    presetBox.setSelectedItem(state.preset)
     textGUI.theme = createInteractiveWidgetTheme(state.theme)
 
     fun syncState(message: String? = null) {
@@ -122,7 +166,7 @@ fun createInteractiveWidgetDemoWindow(
         }
         statusLabel.setText("Status: ${state.lastAction}")
         metricsLabel.setText(renderInteractiveWidgetMetrics(state))
-        summaryLabel.setText(renderInteractiveWidgetSummary(state))
+        progressBar.setValue(state.progress)
     }
 
     fun applyReset(message: String) {
@@ -134,20 +178,65 @@ fun createInteractiveWidgetDemoWindow(
             notesBox.setText(state.notes)
             notificationsBox.setChecked(state.notificationsEnabled)
             themeList.checkedItem = state.theme
+            presetBox.setSelectedItem(state.preset)
+            progressBar.setValue(state.progress)
         } finally {
             syncingView = false
         }
         syncState()
     }
 
+    fun applyPreset(presetLabel: String, message: String) {
+        val preset = resolveInteractiveWidgetPreset(presetLabel)
+        syncingView = true
+        try {
+            state =
+                state.copy(
+                    preset = preset.label,
+                    title = preset.title,
+                    notes = preset.notes,
+                    progress = preset.progress,
+                    lastAction = message,
+                )
+            inputBox.setText(state.title)
+            notesBox.setText(state.notes)
+            presetBox.setSelectedItem(state.preset)
+            progressBar.setValue(state.progress)
+        } finally {
+            syncingView = false
+        }
+        syncState()
+    }
+
+    fun advanceProgress(step: Int, message: String) {
+        state = state.copy(progress = (state.progress + step).coerceAtMost(100))
+        syncState(message)
+    }
+
+    fun showStatusDialog() {
+        MessageDialog.showMessageDialog(
+            textGUI,
+            "Widget status",
+            buildString {
+                appendLine(renderInteractiveWidgetSummary(state))
+                append("Notifications: ${if (state.notificationsEnabled) "enabled" else "muted"}")
+            },
+            MessageDialogButton.OK,
+        )
+    }
+
     fun showPrimaryActionResult() {
-        state = state.copy(clicks = state.clicks + 1)
+        state =
+            state.copy(
+                clicks = state.clicks + 1,
+                progress = (state.progress + 10).coerceAtMost(100),
+            )
         syncState("Primary action ran (${state.clicks})")
         if (state.notificationsEnabled) {
             MessageDialog.showMessageDialog(
                 textGUI,
                 "Primary action",
-                "Input: ${state.title.ifBlank { "<empty>" }}\nTheme: ${state.theme}\nClicks: ${state.clicks}",
+                "Input: ${state.title.ifBlank { "<empty>" }}\nPreset: ${state.preset}\nTheme: ${state.theme}\nProgress: ${state.progress}%\nClicks: ${state.clicks}",
                 MessageDialogButton.OK,
             )
         }
@@ -166,7 +255,7 @@ fun createInteractiveWidgetDemoWindow(
         MessageDialog.showMessageDialog(
             textGUI,
             "Demo actions",
-            "Use Tab to move between inputs and actions.\nRun, Reset, Theme, Demo, Help, and Quit are all visible on the main screen.\nEnter activates the focused button.",
+            "Use Tab to move between inputs and actions.\nWidgets on-screen: Theme radios, Preset combo, Progress bar, Quick actions.\nEnter activates the focused control.",
             MessageDialogButton.OK,
         )
     }
@@ -246,11 +335,31 @@ fun createInteractiveWidgetDemoWindow(
         },
     )
 
+    presetBox.addListener(
+        object : ComboBox.Listener {
+            override fun onSelectionChanged(
+                selectedIndex: Int,
+                previousSelection: Int,
+                changedByUserInteraction: Boolean,
+            ) {
+                val selectedPreset = presetBox.getSelectedItem() ?: return
+                if (!syncingView && selectedPreset != state.preset) {
+                    applyPreset(
+                        selectedPreset,
+                        if (changedByUserInteraction) "Loaded $selectedPreset preset" else "Preset updated",
+                    )
+                }
+            }
+        },
+    )
+
     val leftPanelContent = Panel(GridLayout(1).setVerticalSpacing(0))
     leftPanelContent.addComponent(Label("Title"))
     leftPanelContent.addComponent(inputBox, GridLayout.createHorizontallyFilledLayoutData())
     leftPanelContent.addComponent(Label("Theme"))
     leftPanelContent.addComponent(themeList, GridLayout.createHorizontallyFilledLayoutData())
+    leftPanelContent.addComponent(Label("Preset"))
+    leftPanelContent.addComponent(presetBox, GridLayout.createHorizontallyFilledLayoutData())
     leftPanelContent.addComponent(notificationsBox, GridLayout.createHorizontallyFilledLayoutData())
     leftPanelContent.addComponent(Label("Notes"))
     leftPanelContent.addComponent(notesBox, GridLayout.createHorizontallyFilledLayoutData())
@@ -278,12 +387,15 @@ fun createInteractiveWidgetDemoWindow(
     buttonGrid.addComponent(helpButton)
     buttonGrid.addComponent(quitButton)
 
+    quickActions.addItem("Run primary action", Runnable { showPrimaryActionResult() })
+    quickActions.addItem("Advance progress", Runnable { advanceProgress(15, "Advanced progress") })
+    quickActions.addItem("Open status dialog", Runnable { showStatusDialog() })
+
     val rightPanelContent = Panel(LinearLayout(Direction.VERTICAL))
     rightPanelContent.addComponent(Label("Actions"))
     rightPanelContent.addComponent(buttonGrid)
-    rightPanelContent.addComponent(
-        summaryLabel.withBorder(Borders.singleLine("Live summary")),
-    )
+    rightPanelContent.addComponent(progressBar.withBorder(Borders.singleLine("Progress")))
+    rightPanelContent.addComponent(quickActions.withBorder(Borders.singleLine("Quick actions")))
     val rightPanel = rightPanelContent.withBorder(Borders.singleLine("Actions"))
 
     val footerPanelContent = Panel(LinearLayout(Direction.VERTICAL))
@@ -292,10 +404,6 @@ fun createInteractiveWidgetDemoWindow(
     val footerPanel = footerPanelContent.withBorder(Borders.singleLine("Status"))
 
     val contentPanel = Panel(GridLayout(2).setHorizontalSpacing(1).setVerticalSpacing(1))
-    contentPanel.addComponent(
-        Label("Old interactive widget demo, rebuilt on the new KMP repo with direct buttons for theme, demo, and help."),
-        GridLayout.createHorizontallyFilledLayoutData(2),
-    )
     contentPanel.addComponent(leftPanel, GridLayout.createHorizontallyFilledLayoutData())
     contentPanel.addComponent(rightPanel, GridLayout.createHorizontallyFilledLayoutData())
     contentPanel.addComponent(footerPanel, GridLayout.createHorizontallyFilledLayoutData(2))
