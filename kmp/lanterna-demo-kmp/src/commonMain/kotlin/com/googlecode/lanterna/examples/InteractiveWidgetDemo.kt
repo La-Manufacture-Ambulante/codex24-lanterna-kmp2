@@ -23,7 +23,6 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
 import com.googlecode.lanterna.gui2.menu.Menu
 import com.googlecode.lanterna.gui2.menu.MenuBar
 import com.googlecode.lanterna.gui2.menu.MenuItem
-import com.googlecode.lanterna.gui2.table.Table
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 
@@ -49,14 +48,8 @@ internal fun renderInteractiveWidgetSummary(state: InteractiveWidgetDemoState): 
         append("Notes lines: ${countLines(state.notes)}")
     }
 
-internal fun interactiveWidgetTableRows(state: InteractiveWidgetDemoState): List<Pair<String, String>> =
-    listOf(
-        "Input" to state.title.ifBlank { "<empty>" },
-        "Theme" to state.theme,
-        "Notifications" to if (state.notificationsEnabled) "enabled" else "muted",
-        "Primary clicks" to state.clicks.toString(),
-        "Notes lines" to countLines(state.notes).toString(),
-    )
+internal fun renderInteractiveWidgetMetrics(state: InteractiveWidgetDemoState): String =
+    "Theme ${state.theme} | Dialog ${if (state.notificationsEnabled) "on" else "off"} | Clicks ${state.clicks} | Notes ${countLines(state.notes)}"
 
 fun createInteractiveWidgetDemoWindow(
     textGUI: WindowBasedTextGUI,
@@ -66,13 +59,13 @@ fun createInteractiveWidgetDemoWindow(
     var syncingView = false
 
     val statusLabel = Label("Status: ${state.lastAction}")
-    val summaryLabel = Label(renderInteractiveWidgetSummary(state)).setLabelWidth(28)
-    val inputBox = TextBox(TerminalSize(28, 1), state.title)
-    val notesBox = TextBox(TerminalSize(28, 4), state.notes, TextBox.Style.MULTI_LINE).setCaretWarp(true)
-    val notificationsBox = CheckBox("Show confirmation dialog").setChecked(state.notificationsEnabled)
+    val metricsLabel = Label(renderInteractiveWidgetMetrics(state)).setLabelWidth(64)
+    val summaryLabel = Label(renderInteractiveWidgetSummary(state)).setLabelWidth(22)
+    val inputBox = TextBox(TerminalSize(24, 1), state.title)
+    val notesBox = TextBox(TerminalSize(24, 3), state.notes, TextBox.Style.MULTI_LINE).setCaretWarp(true)
+    val notificationsBox = CheckBox("Show dialog on run").setChecked(state.notificationsEnabled)
     val themeList = RadioBoxList<String>(TerminalSize(18, 3))
-    val actionList = ActionListBox(TerminalSize(24, 4))
-    val metricsTable = Table<String>("Field", "Value")
+    val actionList = ActionListBox(TerminalSize(22, 3))
     val window = BasicWindow("Lanterna KMP Interactive Widget Demo")
 
     themeList.addItem("Ocean")
@@ -80,24 +73,13 @@ fun createInteractiveWidgetDemoWindow(
     themeList.addItem("Graphite")
     themeList.checkedItem = state.theme
 
-    metricsTable.getTableModel().addRow("Input", "")
-    metricsTable.getTableModel().addRow("Theme", "")
-    metricsTable.getTableModel().addRow("Notifications", "")
-    metricsTable.getTableModel().addRow("Primary clicks", "")
-    metricsTable.getTableModel().addRow("Notes lines", "")
-    metricsTable.setVisibleRows(5)
-    metricsTable.setCellSelection(true)
-
     fun syncState(message: String? = null) {
         if (message != null) {
             state = state.copy(lastAction = message)
         }
         statusLabel.setText("Status: ${state.lastAction}")
+        metricsLabel.setText(renderInteractiveWidgetMetrics(state))
         summaryLabel.setText(renderInteractiveWidgetSummary(state))
-        interactiveWidgetTableRows(state).forEachIndexed { index, row ->
-            metricsTable.getTableModel().setCell(0, index, row.first)
-            metricsTable.getTableModel().setCell(1, index, row.second)
-        }
     }
 
     fun applyReset(message: String) {
@@ -202,33 +184,21 @@ fun createInteractiveWidgetDemoWindow(
         },
     )
 
-    metricsTable.setSelectAction(
-        Runnable {
-            val rowIndex = metricsTable.getSelectedRow()
-            val tableModel = metricsTable.getTableModel()
-            syncState("Selected ${tableModel.getCell(0, rowIndex)}")
-        },
-    )
-
     actionList.addItem("Run primary action", Runnable { showPrimaryActionResult() })
     actionList.addItem("Reset demo", Runnable { applyReset("Reset demo") })
     actionList.addItem("About this port", Runnable { showAboutDialog() })
 
-    val leftPanelContent = Panel(GridLayout(2).setHorizontalSpacing(1).setVerticalSpacing(1))
+    val leftPanelContent = Panel(GridLayout(1).setVerticalSpacing(0))
     leftPanelContent.addComponent(Label("Title"))
     leftPanelContent.addComponent(inputBox, GridLayout.createHorizontallyFilledLayoutData())
     leftPanelContent.addComponent(Label("Theme"))
-    leftPanelContent.addComponent(themeList)
-    leftPanelContent.addComponent(Label("Options"))
-    leftPanelContent.addComponent(notificationsBox)
-    leftPanelContent.addComponent(
-        Label("Notes"),
-        GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING),
-    )
+    leftPanelContent.addComponent(themeList, GridLayout.createHorizontallyFilledLayoutData())
+    leftPanelContent.addComponent(notificationsBox, GridLayout.createHorizontallyFilledLayoutData())
+    leftPanelContent.addComponent(Label("Notes"))
     leftPanelContent.addComponent(notesBox, GridLayout.createHorizontallyFilledLayoutData())
     val leftPanel = leftPanelContent.withBorder(Borders.singleLine("Inputs"))
 
-    val primaryButton = Button("Primary", Runnable { showPrimaryActionResult() })
+    val primaryButton = Button("Run", Runnable { showPrimaryActionResult() })
     val resetButton = Button("Reset", Runnable { applyReset("Reset demo") })
     val quitButton =
         Button(
@@ -244,24 +214,22 @@ fun createInteractiveWidgetDemoWindow(
     buttonRow.addComponent(resetButton)
     buttonRow.addComponent(quitButton)
 
-    val rightPanelContent = Panel(GridLayout(1).setVerticalSpacing(1))
-    rightPanelContent.addComponent(Label("Use the menu, buttons, action list, or mouse-enabled widgets."))
-    rightPanelContent.addComponent(buttonRow, GridLayout.createHorizontallyFilledLayoutData())
-    rightPanelContent.addComponent(actionList, GridLayout.createHorizontallyFilledLayoutData())
+    val rightPanelContent = Panel(LinearLayout(Direction.VERTICAL))
+    rightPanelContent.addComponent(buttonRow)
+    rightPanelContent.addComponent(actionList)
     rightPanelContent.addComponent(
         summaryLabel.withBorder(Borders.singleLine("Live summary")),
-        GridLayout.createHorizontallyFilledLayoutData(),
     )
     val rightPanel = rightPanelContent.withBorder(Borders.singleLine("Actions"))
 
-    val footerPanelContent = Panel(GridLayout(1).setVerticalSpacing(1))
-    footerPanelContent.addComponent(statusLabel, GridLayout.createHorizontallyFilledLayoutData())
-    footerPanelContent.addComponent(metricsTable, GridLayout.createHorizontallyFilledLayoutData())
+    val footerPanelContent = Panel(LinearLayout(Direction.VERTICAL))
+    footerPanelContent.addComponent(statusLabel)
+    footerPanelContent.addComponent(metricsLabel)
     val footerPanel = footerPanelContent.withBorder(Borders.singleLine("Status"))
 
     val contentPanel = Panel(GridLayout(2).setHorizontalSpacing(1).setVerticalSpacing(1))
     contentPanel.addComponent(
-        Label("Old interactive widget demo, rebuilt on the new KMP repo using current gui2 primitives."),
+        Label("Old interactive widget demo, rebuilt on the new KMP repo and sized for a normal terminal."),
         GridLayout.createHorizontallyFilledLayoutData(2),
     )
     contentPanel.addComponent(leftPanel, GridLayout.createHorizontallyFilledLayoutData())

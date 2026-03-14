@@ -27,9 +27,9 @@ class InteractiveWidgetDemoTest {
     }
 
     @Test
-    fun tableRowsStayStable() {
-        val rows =
-            interactiveWidgetTableRows(
+    fun metricsStayCompactAndReadable() {
+        val metrics =
+            renderInteractiveWidgetMetrics(
                 InteractiveWidgetDemoState(
                     title = "",
                     notes = "",
@@ -39,16 +39,6 @@ class InteractiveWidgetDemoTest {
                 ),
             )
 
-        assertEquals(5, rows.size)
-        assertEquals("Input", rows[0].first)
-        assertEquals("<empty>", rows[0].second)
-        assertEquals("Theme", rows[1].first)
-        assertEquals("Graphite", rows[1].second)
-        assertEquals("Notifications", rows[2].first)
-        assertEquals("enabled", rows[2].second)
-        assertEquals("Primary clicks", rows[3].first)
-        assertEquals("0", rows[3].second)
-        assertEquals("Notes lines", rows[4].first)
-        assertEquals("1", rows[4].second)
+        assertEquals("Theme Graphite | Dialog on | Clicks 0 | Notes 1", metrics)
     }
 }
