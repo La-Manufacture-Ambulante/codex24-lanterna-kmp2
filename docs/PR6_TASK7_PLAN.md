@@ -30,7 +30,10 @@ Branch: `codex/pr6-coroutines-impl`
 - [x] Slice E (part 2) completed: runtime selection policy now checks JVM system property override first
   (`lanterna.execution.mode`) and falls back to environment variable (`LANTERNA_EXECUTION_MODE`) for cross-platform
   use; deterministic precedence tests added in `PlatformTaskRuntimeTest`.
-- [ ] Slice E (part 3) next: prepare follow-up migration plan for additional callsites once PR6 merges.
+- [x] Slice E (part 3) completed: GUI-thread launch path now refreshes runtime mode from policy at `start()` and
+  regression tests cover environment-driven coroutine selection plus property-over-environment precedence in
+  `SeparateTextGUIThreadCoroutineModeTest`.
+- [ ] Slice E (part 4) next: migrate one additional non-GUI polling/backoff callsite behind runtime policy hooks.
 
 ## Guardrails
 - Default behavior remains thread-based.

@@ -33,6 +33,42 @@ class SeparateTextGUIThreadCoroutineModeTest {
         assertTrue(textGui.processInputCount > 0)
     }
 
+    @Test
+    fun separateTextGuiThreadUsesCoroutineModeFromEnvironmentConfiguration() {
+        PlatformTaskRuntime.setPropertyLookupForTests { null }
+        PlatformTaskRuntime.setEnvironmentLookupForTests { "coroutine" }
+
+        val textGui = FakeTextGUI()
+        val thread = SeparateTextGUIThread.Factory().createTextGUIThread(textGui) as AsynchronousTextGUIThread
+
+        thread.start()
+        thread.invokeAndWait { thread.stop() }
+
+        assertTrue(thread.waitForStop(2_000))
+        assertEquals(AsynchronousTextGUIThread.State.STOPPED, thread.state)
+        assertNotNull(thread.ownerThreadToken)
+        assertTrue(textGui.processInputCount > 0)
+        assertEquals(PlatformExecutionMode.COROUTINE, PlatformTaskRuntime.executionMode())
+    }
+
+    @Test
+    fun separateTextGuiThreadPrefersPropertyConfigurationOverEnvironment() {
+        PlatformTaskRuntime.setPropertyLookupForTests { "thread" }
+        PlatformTaskRuntime.setEnvironmentLookupForTests { "coroutine" }
+
+        val textGui = FakeTextGUI()
+        val thread = SeparateTextGUIThread.Factory().createTextGUIThread(textGui) as AsynchronousTextGUIThread
+
+        thread.start()
+        thread.invokeAndWait { thread.stop() }
+
+        assertTrue(thread.waitForStop(2_000))
+        assertEquals(AsynchronousTextGUIThread.State.STOPPED, thread.state)
+        assertNotNull(thread.ownerThreadToken)
+        assertTrue(textGui.processInputCount > 0)
+        assertEquals(PlatformExecutionMode.THREAD, PlatformTaskRuntime.executionMode())
+    }
+
     private class FakeTextGUI : TextGUI {
         override var theme: Theme? = null
 

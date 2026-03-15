@@ -46,6 +46,7 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
             if (_state != AsynchronousTextGUIThread.State.CREATED) {
                 return
             }
+            PlatformTaskRuntime.configureExecutionModeFromEnvironment()
             _state = AsynchronousTextGUIThread.State.STARTED
             runtimeTaskHandle = PlatformTaskRuntime.launch("LanternaGUI") { mainGUILoop() }
         }
