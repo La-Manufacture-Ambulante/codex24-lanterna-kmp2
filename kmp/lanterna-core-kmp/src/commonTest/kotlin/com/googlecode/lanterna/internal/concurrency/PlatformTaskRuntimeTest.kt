@@ -100,4 +100,40 @@ class PlatformTaskRuntimeTest {
         releaseLatch.countDown()
         assertTrue(handle.awaitCompletion(2_000))
     }
+
+    @Test
+    fun backoffWaitUsesThreadWaitActionInThreadMode() {
+        var threadWaitCount = 0
+        var coroutineWaitCount = 0
+        PlatformTaskRuntime.setThreadWaitActionForTests {
+            threadWaitCount += 1
+        }
+        PlatformTaskRuntime.setCoroutineWaitActionForTests {
+            coroutineWaitCount += 1
+        }
+
+        PlatformTaskRuntime.setExecutionMode(PlatformExecutionMode.THREAD)
+        PlatformTaskRuntime.backoffWait(5)
+
+        assertEquals(1, threadWaitCount)
+        assertEquals(0, coroutineWaitCount)
+    }
+
+    @Test
+    fun backoffWaitUsesCoroutineWaitActionInCoroutineMode() {
+        var threadWaitCount = 0
+        var coroutineWaitCount = 0
+        PlatformTaskRuntime.setThreadWaitActionForTests {
+            threadWaitCount += 1
+        }
+        PlatformTaskRuntime.setCoroutineWaitActionForTests {
+            coroutineWaitCount += 1
+        }
+
+        PlatformTaskRuntime.setExecutionMode(PlatformExecutionMode.COROUTINE)
+        PlatformTaskRuntime.backoffWait(5)
+
+        assertEquals(0, threadWaitCount)
+        assertEquals(1, coroutineWaitCount)
+    }
 }

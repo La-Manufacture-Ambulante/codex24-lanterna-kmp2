@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
@@ -38,8 +39,12 @@ object PlatformTaskRuntime {
     private const val EXECUTION_MODE_SYSTEM_PROPERTY = "lanterna.execution.mode"
     private const val EXECUTION_MODE_ENVIRONMENT_VARIABLE = "LANTERNA_EXECUTION_MODE"
 
+    private val defaultThreadWaitAction: (Long) -> Unit = ::sleepCurrentThread
+    private val defaultCoroutineWaitAction: suspend (Long) -> Unit = { delay(it) }
     private val defaultPropertyLookup: (String) -> String? = ::platformSystemProperty
     private val defaultEnvironmentLookup: (String) -> String? = ::platformEnvironmentVariable
+    private var threadWaitAction: (Long) -> Unit = defaultThreadWaitAction
+    private var coroutineWaitAction: suspend (Long) -> Unit = defaultCoroutineWaitAction
     private var propertyLookup: (String) -> String? = defaultPropertyLookup
     private var environmentLookup: (String) -> String? = defaultEnvironmentLookup
 
@@ -73,9 +78,40 @@ object PlatformTaskRuntime {
         }
     }
 
+    fun backoffWait(millis: Long) {
+        if (millis <= 0) {
+            return
+        }
+        val mode =
+            runtimeStateMutex.withLock {
+                currentMode
+            }
+        when (mode) {
+            PlatformExecutionMode.THREAD -> {
+                try {
+                    threadWaitAction(millis)
+                } catch (_: Throwable) {
+                    // Keep legacy InputDecoder behavior: ignore interrupted/backoff exceptions.
+                }
+            }
+
+            PlatformExecutionMode.COROUTINE -> {
+                try {
+                    runBlocking {
+                        coroutineWaitAction(millis)
+                    }
+                } catch (_: Throwable) {
+                    // Keep legacy InputDecoder behavior: ignore interrupted/backoff exceptions.
+                }
+            }
+        }
+    }
+
     internal fun resetForTests() {
         runtimeStateMutex.withLock {
             currentMode = PlatformExecutionMode.THREAD
+            threadWaitAction = defaultThreadWaitAction
+            coroutineWaitAction = defaultCoroutineWaitAction
             propertyLookup = defaultPropertyLookup
             environmentLookup = defaultEnvironmentLookup
         }
@@ -147,6 +183,18 @@ object PlatformTaskRuntime {
     internal fun setPropertyLookupForTests(lookup: (String) -> String?) {
         runtimeStateMutex.withLock {
             propertyLookup = lookup
+        }
+    }
+
+    internal fun setThreadWaitActionForTests(action: (Long) -> Unit) {
+        runtimeStateMutex.withLock {
+            threadWaitAction = action
+        }
+    }
+
+    internal fun setCoroutineWaitActionForTests(action: suspend (Long) -> Unit) {
+        runtimeStateMutex.withLock {
+            coroutineWaitAction = action
         }
     }
 

@@ -33,7 +33,11 @@ Branch: `codex/pr6-coroutines-impl`
 - [x] Slice E (part 3) completed: GUI-thread launch path now refreshes runtime mode from policy at `start()` and
   regression tests cover environment-driven coroutine selection plus property-over-environment precedence in
   `SeparateTextGUIThreadCoroutineModeTest`.
-- [ ] Slice E (part 4) next: migrate one additional non-GUI polling/backoff callsite behind runtime policy hooks.
+- [x] Slice E (part 4) completed: migrated non-GUI backoff in `InputDecoder` from direct `sleepCurrentThread(...)` to
+  runtime-managed `PlatformTaskRuntime.backoffWait(...)`, with deterministic thread-vs-coroutine dispatch tests in
+  `PlatformTaskRuntimeTest`.
+- [ ] Slice E (part 5) next: evaluate optional coroutine-aware delay integration for additional polling loops while
+  preserving default thread semantics and timeout behavior.
 
 ## Guardrails
 - Default behavior remains thread-based.
