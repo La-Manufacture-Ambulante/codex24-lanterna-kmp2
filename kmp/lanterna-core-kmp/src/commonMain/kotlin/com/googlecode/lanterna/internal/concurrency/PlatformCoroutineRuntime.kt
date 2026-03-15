@@ -35,11 +35,15 @@ object PlatformTaskRuntime {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val runtimeStateMutex = PlatformMutex()
 
+    private const val EXECUTION_MODE_SYSTEM_PROPERTY = "lanterna.execution.mode"
     private const val EXECUTION_MODE_ENVIRONMENT_VARIABLE = "LANTERNA_EXECUTION_MODE"
+
+    private val defaultPropertyLookup: (String) -> String? = ::platformSystemProperty
     private val defaultEnvironmentLookup: (String) -> String? = ::platformEnvironmentVariable
+    private var propertyLookup: (String) -> String? = defaultPropertyLookup
     private var environmentLookup: (String) -> String? = defaultEnvironmentLookup
 
-    private var currentMode: PlatformExecutionMode = resolvedModeFromEnvironment() ?: PlatformExecutionMode.THREAD
+    private var currentMode: PlatformExecutionMode = resolvedModeFromRuntimeConfig() ?: PlatformExecutionMode.THREAD
 
     fun executionMode(): PlatformExecutionMode = runtimeStateMutex.withLock { currentMode }
 
@@ -51,7 +55,7 @@ object PlatformTaskRuntime {
 
     fun configureExecutionModeFromEnvironment() {
         runtimeStateMutex.withLock {
-            currentMode = resolvedModeFromEnvironment() ?: PlatformExecutionMode.THREAD
+            currentMode = resolvedModeFromRuntimeConfig() ?: PlatformExecutionMode.THREAD
         }
     }
 
@@ -72,6 +76,7 @@ object PlatformTaskRuntime {
     internal fun resetForTests() {
         runtimeStateMutex.withLock {
             currentMode = PlatformExecutionMode.THREAD
+            propertyLookup = defaultPropertyLookup
             environmentLookup = defaultEnvironmentLookup
         }
     }
@@ -139,8 +144,15 @@ object PlatformTaskRuntime {
         }
     }
 
-    private fun resolvedModeFromEnvironment(): PlatformExecutionMode? {
-        return parseExecutionMode(environmentLookup(EXECUTION_MODE_ENVIRONMENT_VARIABLE))
+    internal fun setPropertyLookupForTests(lookup: (String) -> String?) {
+        runtimeStateMutex.withLock {
+            propertyLookup = lookup
+        }
+    }
+
+    private fun resolvedModeFromRuntimeConfig(): PlatformExecutionMode? {
+        return parseExecutionMode(propertyLookup(EXECUTION_MODE_SYSTEM_PROPERTY))
+            ?: parseExecutionMode(environmentLookup(EXECUTION_MODE_ENVIRONMENT_VARIABLE))
     }
 
     private fun parseExecutionMode(raw: String?): PlatformExecutionMode? {

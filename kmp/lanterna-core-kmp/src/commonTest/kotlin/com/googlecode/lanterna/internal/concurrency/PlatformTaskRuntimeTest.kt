@@ -66,8 +66,18 @@ class PlatformTaskRuntimeTest {
     }
 
     @Test
+    fun configureExecutionModeFromRuntimeConfigUsesPropertyOverride() {
+        PlatformTaskRuntime.setPropertyLookupForTests { "thread" }
+        PlatformTaskRuntime.setEnvironmentLookupForTests { "coroutine" }
+        PlatformTaskRuntime.configureExecutionModeFromEnvironment()
+
+        assertEquals(PlatformExecutionMode.THREAD, PlatformTaskRuntime.executionMode())
+    }
+
+    @Test
     fun configureExecutionModeFromEnvironmentFallsBackToThreadForUnknownValue() {
         PlatformTaskRuntime.setExecutionMode(PlatformExecutionMode.COROUTINE)
+        PlatformTaskRuntime.setPropertyLookupForTests { null }
         PlatformTaskRuntime.setEnvironmentLookupForTests { "unexpected" }
         PlatformTaskRuntime.configureExecutionModeFromEnvironment()
 

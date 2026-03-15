@@ -27,9 +27,20 @@ Branch: `codex/pr6-coroutines-impl`
 - [x] Slice E (part 1) completed: env-policy/runtime hardening in `PlatformTaskRuntime` with deterministic tests for
   - env-based mode reconfiguration via injectable environment lookup,
   - await-timeout semantics for running tasks.
-- [ ] Slice E (part 2) next: prepare follow-up migration plan for additional callsites and optional runtime selection policy.
+- [x] Slice E (part 2) completed: runtime selection policy now checks JVM system property override first
+  (`lanterna.execution.mode`) and falls back to environment variable (`LANTERNA_EXECUTION_MODE`) for cross-platform
+  use; deterministic precedence tests added in `PlatformTaskRuntimeTest`.
+- [ ] Slice E (part 3) next: prepare follow-up migration plan for additional callsites once PR6 merges.
 
 ## Guardrails
 - Default behavior remains thread-based.
 - No functional switch at callsites in this PR slice.
 - Keep PR6 scoped to plan save + Task 7 foundation.
+
+## Follow-up Callsite Plan (post-PR6)
+1. Evaluate `InputDecoder` backoff waits (`sleepCurrentThread`) for optional coroutine delay path behind
+   `PlatformTaskRuntime` policy hooks.
+2. Audit GUI polling loops in `MultiWindowTextGUI` for cooperative coroutine scheduling opportunities while preserving
+   existing semantics.
+3. Add parity tests for each migrated callsite ensuring default thread behavior remains unchanged when no runtime mode
+   override is set.

@@ -8,3 +8,7 @@ import platform.posix.getenv
 internal actual fun platformEnvironmentVariable(name: String): String? {
     return getenv(name)?.toKString()
 }
+
+internal actual fun platformSystemProperty(name: String): String? {
+    return null
+}
