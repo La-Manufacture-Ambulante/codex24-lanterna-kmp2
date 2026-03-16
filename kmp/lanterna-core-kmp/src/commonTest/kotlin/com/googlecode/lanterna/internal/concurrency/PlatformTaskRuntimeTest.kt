@@ -136,4 +136,37 @@ class PlatformTaskRuntimeTest {
         assertEquals(0, threadWaitCount)
         assertEquals(1, coroutineWaitCount)
     }
+
+    @Test
+    fun cancelIsBestEffortInThreadModeAndDoesNotForceCompletion() {
+        val startedLatch = PlatformCountdownLatch(1)
+        val releaseLatch = PlatformCountdownLatch(1)
+        val handle =
+            PlatformTaskRuntime.launch("thread-cancel") {
+                startedLatch.countDown()
+                releaseLatch.await()
+            }
+
+        assertTrue(startedLatch.await(2_000))
+        handle.cancel()
+        assertFalse(handle.awaitCompletion(20))
+
+        releaseLatch.countDown()
+        assertTrue(handle.awaitCompletion(2_000))
+    }
+
+    @Test
+    fun cancelAfterCompletionIsSafeInCoroutineMode() {
+        PlatformTaskRuntime.setExecutionMode(PlatformExecutionMode.COROUTINE)
+        val completedLatch = PlatformCountdownLatch(1)
+        val handle =
+            PlatformTaskRuntime.launch("coroutine-cancel-after-complete") {
+                completedLatch.countDown()
+            }
+
+        assertTrue(completedLatch.await(2_000))
+        assertTrue(handle.awaitCompletion(2_000))
+        handle.cancel()
+        assertTrue(handle.awaitCompletion(20))
+    }
 }

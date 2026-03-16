@@ -38,8 +38,11 @@ Branch: `codex/pr6-coroutines-impl`
   `PlatformTaskRuntimeTest`.
 - [x] Slice E (part 5) completed: migrated additional GUI polling/backoff loops to runtime-managed waits in
   `SeparateTextGUIThread` and `MultiWindowTextGUI` (replacing direct `sleepCurrentThread(...)` calls).
-- [ ] Slice E (part 6) next: assess cancellation/cooperative shutdown behavior under coroutine mode and add focused
-  regression checks around `PlatformTaskHandle.cancel()` + wait semantics.
+- [x] Slice E (part 6) completed: added focused cancellation/wait semantics checks in `PlatformTaskRuntimeTest`:
+  - thread mode cancel is best-effort and does not force completion of running work,
+  - coroutine mode cancel after completion is safe and preserves await semantics.
+- [ ] Slice E (part 7) next: decide whether to introduce explicit cooperative-cancel checkpoints for long-running
+  non-suspending tasks in coroutine mode.
 
 ## Guardrails
 - Default behavior remains thread-based.
