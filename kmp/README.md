@@ -1,19 +1,27 @@
 # Lanterna KMP
 
-Kotlin Multiplatform migration workspace for Lanterna, maintained in this codex24 fork.
+Kotlin Multiplatform migration workspace for Lanterna in the codex24 fork.
 
-## Relationship To Original Repository
-- Original upstream reference: `mabe02/lanterna`
-- This repository: `La-Manufacture-Ambulante/codex24-lanterna-kmp2`
-- Goal in this folder: deliver a publishable KMP implementation while preserving Lanterna behavior parity.
+## Repository relationship
+- Upstream reference: `mabe02/lanterna`
+- KMP migration/publishing fork: `La-Manufacture-Ambulante/codex24-lanterna-kmp2`
+- This directory owns KMP targets, publication config, and KMP-specific CI/docs.
 
 ## Modules
 - `lanterna-core-kmp`: publishable KMP library module.
-- `lanterna-demo-kmp`: demo/verification module.
+- `lanterna-demo-kmp`: demo and behavior verification module.
 
-## Local Checks
+## Platform status
+- `jvm`: primary supported target
+- `linuxX64`: native parity + publication target
+- `macosX64`: native parity + publication target
+- `macosArm64`: native parity + publication target
+- `mingwX64`: parity track in progress (branch dependent)
+
+## Local verification
 ```bash
 ./gradlew -p kmp :lanterna-core-kmp:check :lanterna-demo-kmp:check --no-daemon
+./gradlew -p kmp :lanterna-core-kmp:publishToMavenLocal --no-daemon
 ```
 
 ## Documentation (Dokka)
@@ -22,34 +30,36 @@ Generate API docs locally:
 ./gradlew -p kmp :lanterna-core-kmp:dokkaHtml --no-daemon
 ```
 
-Publish docs via GitHub Actions workflow:
+Publish docs via GitHub Pages workflow:
 - `.github/workflows/dokka-pages.yml`
 
-## Publication Baseline
-`lanterna-core-kmp` includes:
+## Publication baseline
+`lanterna-core-kmp` is configured with:
 - `maven-publish`
-- `signing` (release-only when keys are present)
-- POM metadata (name, license, SCM, developer)
+- `signing` (release signing required when keys are provided)
+- POM metadata (license, SCM, developer)
 
-Version/group are centralized in `kmp/build.gradle.kts` using:
-- `RELEASE_VERSION` (highest priority)
-- `JITPACK_VERSION`
-- `VERSION_NAME` from `kmp/gradle.properties`
+Version/group resolution in `kmp/build.gradle.kts`:
+1. `RELEASE_VERSION`
+2. `JITPACK_VERSION`
+3. `VERSION_NAME` (from `kmp/gradle.properties`)
 
-## Publish To OSSRH
-Required environment variables:
+## Publish to OSSRH
+Required variables:
 - `OSSRH_URL`
 - `OSSRH_USERNAME`
 - `OSSRH_PASSWORD`
 
-Optional signing variables (required for release signing):
+Signing variables (for release signing):
 - `SIGNING_KEY`
 - `SIGNING_PASSWORD`
 
-Publish command:
+Command:
 ```bash
 ./gradlew -p kmp :lanterna-core-kmp:publish --no-daemon
 ```
 
-Runbook:
-- `kmp/docs/RELEASING.md`
+## Prepublication docs
+- Runbook: `kmp/docs/RELEASING.md`
+- API policy: `kmp/docs/API_COMPATIBILITY.md`
+- Operational checklist: `kmp/docs/PREPUBLICATION_CHECKLIST.md`

@@ -1,75 +1,43 @@
-Lanterna
----
+# Lanterna (codex24 KMP fork)
 
-## Repository Positioning (codex24 fork)
+This repository (`La-Manufacture-Ambulante/codex24-lanterna-kmp2`) is a Kotlin Multiplatform migration and publication track based on the original [`mabe02/lanterna`](https://github.com/mabe02/lanterna).
 
-This repository (`La-Manufacture-Ambulante/codex24-lanterna-kmp2`) is a codex24 working fork of the original
-[`mabe02/lanterna`](https://github.com/mabe02/lanterna) project.
+## What this repo is
+- Upstream baseline: the original Java Lanterna project (`mabe02/lanterna`).
+- This fork: migration and parity work for KMP in `kmp/`.
+- Goal: publishable KMP artifacts while preserving Lanterna behavior and API intent.
 
-- The original Java Lanterna codebase remains the reference baseline for behavior and API parity.
-- The `kmp/` directory in this fork is where Kotlin Multiplatform (KMP) migration and publication work is executed.
-- Upstream fixes can be compared against `mabe02/lanterna`, while codex24-specific KMP evolution happens here.
+## Where to start
+- KMP workspace and commands: [`kmp/README.md`](kmp/README.md)
+- Release process: [`kmp/docs/RELEASING.md`](kmp/docs/RELEASING.md)
+- API compatibility policy: [`kmp/docs/API_COMPATIBILITY.md`](kmp/docs/API_COMPATIBILITY.md)
+- Prepublication execution checklist: [`kmp/docs/PREPUBLICATION_CHECKLIST.md`](kmp/docs/PREPUBLICATION_CHECKLIST.md)
+
+## Artifacts and coordinates
+- Stable upstream Java artifact remains:
+  - `com.googlecode.lanterna:lanterna:3.1.2`
+- KMP branch/PR artifacts are currently validated through JitPack branch versions.
+- Maven Central publication for KMP modules is prepared through the Gradle publishing/signing baseline in `kmp/`.
+
+## Current support focus
+- JVM (primary)
+- Native parity targets in active CI and publishing flow:
+  - `linuxX64`
+  - `macosX64`
+  - `macosArm64`
+  - `mingwX64` (work in progress on some branches)
+
+## Original Lanterna context
 
 ![Lanterna screenshot](http://mabe02.github.io/lanterna/resources/lanterna.png)
 
-Lanterna is a Java library allowing you to write easy semi-graphical user interfaces in a text-only environment,
-very similar to the C library [curses](http://en.wikipedia.org/wiki/Curses_(programming_library)) but with more functionality.
-Lanterna is supporting xterm compatible terminals and terminal emulators such as konsole, gnome-terminal, putty, xterm and many more.
-One of the main benefits of lanterna is that it's not dependent on any native library but runs 100% in pure Java.
+Lanterna is a Java library allowing you to write easy semi-graphical user interfaces in text terminals.
+It offers three layers:
+1. Low-level terminal API (`com.googlecode.lanterna.terminal`)
+2. Screen buffer API (`com.googlecode.lanterna.screen`)
+3. GUI toolkit (`com.googlecode.lanterna.gui2`)
 
-Also, when running Lanterna on computers with a graphical environment (such as Windows or Xorg), a bundled terminal emulator
-written in Swing will be used rather than standard output. This way, you can develop as usual from your IDE
-(most of them doesn't support ANSI control characters in their output window) and then deploy to your headless server without changing any code.
-
-Lanterna is structured into three layers, each built on top of the other and you can easily choose which one fits your needs best.
-
-1. The first is a low level terminal interface which gives you the most basic control of the terminal text area.
-   You can move around the cursor and enable special modifiers for characters put to the screen. You will find these classes in package com.googlecode.lanterna.terminal.
-
-2. The second level is a full screen buffer, the whole text screen in memory and allowing you to write to this before flushing the changes to the actual terminal.
-   This makes writing to the terminal screen similar to modifying a bitmap. You will find these classes in package com.googlecode.lanterna.screen.
-
-3. The third level is a full GUI toolkit with windows, buttons, labels and some other components.
-   It's using a very simple window management system (basically all windows are modal) that is quick and easy to use.
-   You will find these classes in package com.googlecode.lanterna.gui2.
-
-
-Maven
----
-
-Lanterna is available on [Maven Central](http://search.maven.org/), through [Sonatype OSS hosting](http://oss.sonatype.org/). Here's what you want to use:
-
-```xml
-    <dependency>
-        <groupId>com.googlecode.lanterna</groupId>
-        <artifactId>lanterna</artifactId>
-        <version>3.1.2</version>
-    </dependency>
-```
-
-Discussions
----
-There is a [google group](https://groups.google.com/forum/#!forum/lanterna-discuss) for discussions and announcements related to Lanterna.
-You are recommended to raise issues directly on Github though.
-
-
-Projects using Lanterna
----
-Incomplete list of projects using Lanterna, feel free to let us know something we can add to this list:
- * https://github.com/MultiMUD/clojure-lanterna
- * https://github.com/datacron/project-lanterminal
- * https://github.com/gabrieljones/ScaLaMatrixRain
-
-
-Development Guide
----
-See [docs](docs/contents.md) for examples and guides.
-
-JavaDoc is available here:
- * http://mabe02.github.io/lanterna/apidocs/3.1/
-
-The JavaDocs for the previous versions (2.1 and 3.0) are also available here:
-* http://mabe02.github.io/lanterna/apidocs/2.1/
-* http://mabe02.github.io/lanterna/apidocs/3.0/
-
-There is also a development guide and some tutorials available [right here on Github](https://github.com/mabe02/lanterna/blob/master/docs/contents.md).
+## Discussions and docs
+- Issues/PRs in this repository are the active channel for codex24 KMP work.
+- Historical Lanterna discussion group: <https://groups.google.com/forum/#!forum/lanterna-discuss>
+- Original development guide: <https://github.com/mabe02/lanterna/blob/master/docs/contents.md>
