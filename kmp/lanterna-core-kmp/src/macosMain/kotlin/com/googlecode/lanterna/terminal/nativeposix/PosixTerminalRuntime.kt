@@ -21,13 +21,11 @@ actual object PosixTerminalRuntime {
     }
 
     private fun activeTerminalFd(): Int {
-        if (isatty(STDIN_FILENO) == 1) {
-            return STDIN_FILENO
-        }
-        if (isatty(STDOUT_FILENO) == 1) {
-            return STDOUT_FILENO
-        }
-        return ttyFd
+        return resolveTerminalFdForTest(
+            stdinIsTty = isatty(STDIN_FILENO) == 1,
+            stdoutIsTty = isatty(STDOUT_FILENO) == 1,
+            ttyFd = ttyFd,
+        )
     }
 
     actual fun queryTerminalSize(
@@ -46,7 +44,7 @@ actual object PosixTerminalRuntime {
         if (activeTerminalFd() < 0) {
             return false
         }
-        val command = "stty raw -echo >/dev/null 2>&1"
+        val command = rawModeCommandForTest(stdinIsTty = isatty(STDIN_FILENO) == 1)
         return system(command) == 0
     }
 
@@ -54,7 +52,7 @@ actual object PosixTerminalRuntime {
         if (activeTerminalFd() < 0) {
             return false
         }
-        val command = "stty sane >/dev/null 2>&1"
+        val command = cookedModeCommandForTest(stdinIsTty = isatty(STDIN_FILENO) == 1)
         return system(command) == 0
     }
 
@@ -77,4 +75,26 @@ actual object PosixTerminalRuntime {
                 null
             }
         }
+}
+
+internal fun resolveTerminalFdForTest(
+    stdinIsTty: Boolean,
+    stdoutIsTty: Boolean,
+    ttyFd: Int,
+): Int {
+    if (stdinIsTty) {
+        return STDIN_FILENO
+    }
+    if (stdoutIsTty) {
+        return STDOUT_FILENO
+    }
+    return ttyFd
+}
+
+internal fun rawModeCommandForTest(stdinIsTty: Boolean): String {
+    return "stty raw -echo >/dev/null 2>&1"
+}
+
+internal fun cookedModeCommandForTest(stdinIsTty: Boolean): String {
+    return "stty sane >/dev/null 2>&1"
 }
