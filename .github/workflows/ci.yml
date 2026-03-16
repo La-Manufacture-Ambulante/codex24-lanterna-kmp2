@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - codex/**
 
 permissions:
   contents: read
@@ -50,14 +49,15 @@ jobs:
 
       - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.7"
+
+      - name: Ensure wrapper is executable
+        run: chmod +x kmp/gradlew
 
       - name: KMP JVM checks
-        run: gradle -p kmp :lanterna-core-kmp:check :lanterna-demo-kmp:check --no-daemon
+        run: ./kmp/gradlew -p kmp :lanterna-core-kmp:check :lanterna-demo-kmp:check --no-daemon
 
       - name: Render JVM demo snapshot
-        run: gradle -p kmp :lanterna-demo-kmp:jvmRenderSnapshot --no-daemon
+        run: ./kmp/gradlew -p kmp :lanterna-demo-kmp:jvmRenderSnapshot --no-daemon
 
       - name: Upload JVM render artifacts
         uses: actions/upload-artifact@v4
@@ -101,14 +101,15 @@ jobs:
 
       - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.7"
+
+      - name: Ensure wrapper is executable
+        run: chmod +x kmp/gradlew
 
       - name: Run ${{ matrix.target }} native tests
-        run: gradle -p kmp ${{ matrix.test_task }} --no-daemon
+        run: ./kmp/gradlew -p kmp ${{ matrix.test_task }} --no-daemon
 
       - name: Build ${{ matrix.target }} native demo executable
-        run: gradle -p kmp ${{ matrix.link_task }} --no-daemon
+        run: ./kmp/gradlew -p kmp ${{ matrix.link_task }} --no-daemon
 
       - name: Run ${{ matrix.target }} native demo smoke snapshot
         shell: bash

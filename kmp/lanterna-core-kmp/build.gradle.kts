@@ -2,11 +2,12 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
 plugins {
-    kotlin("multiplatform") version "2.1.21"
+    kotlin("multiplatform")
+    id("org.jetbrains.dokka")
     `maven-publish`
     signing
     jacoco
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 kotlin {
@@ -81,8 +82,14 @@ publishing {
             }
             scm {
                 url.set((findProperty("POM_SCM_URL") as String?) ?: "https://github.com/La-Manufacture-Ambulante/codex24-lanterna-kmp2")
-                connection.set((findProperty("POM_SCM_CONNECTION") as String?) ?: "scm:git:https://github.com/La-Manufacture-Ambulante/codex24-lanterna-kmp2.git")
-                developerConnection.set((findProperty("POM_SCM_DEV_CONNECTION") as String?) ?: "scm:git:ssh://git@github.com/La-Manufacture-Ambulante/codex24-lanterna-kmp2.git")
+                connection.set(
+                    (findProperty("POM_SCM_CONNECTION") as String?)
+                        ?: "scm:git:https://github.com/La-Manufacture-Ambulante/codex24-lanterna-kmp2.git",
+                )
+                developerConnection.set(
+                    (findProperty("POM_SCM_DEV_CONNECTION") as String?)
+                        ?: "scm:git:ssh://git@github.com/La-Manufacture-Ambulante/codex24-lanterna-kmp2.git",
+                )
             }
         }
     }
