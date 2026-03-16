@@ -4,11 +4,12 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.SimpleTheme
 import com.googlecode.lanterna.graphics.Theme
+import com.googlecode.lanterna.gui2.ActionListBox
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.Borders
-import com.googlecode.lanterna.gui2.ComboBox
 import com.googlecode.lanterna.gui2.Button
 import com.googlecode.lanterna.gui2.CheckBox
+import com.googlecode.lanterna.gui2.ComboBox
 import com.googlecode.lanterna.gui2.Direction
 import com.googlecode.lanterna.gui2.GridLayout
 import com.googlecode.lanterna.gui2.Label
@@ -17,7 +18,6 @@ import com.googlecode.lanterna.gui2.MultiWindowTextGUI
 import com.googlecode.lanterna.gui2.Panel
 import com.googlecode.lanterna.gui2.ProgressBar
 import com.googlecode.lanterna.gui2.RadioBoxList
-import com.googlecode.lanterna.gui2.ActionListBox
 import com.googlecode.lanterna.gui2.Runnable
 import com.googlecode.lanterna.gui2.TextBox
 import com.googlecode.lanterna.gui2.TextGUI
@@ -85,7 +85,11 @@ internal fun renderInteractiveWidgetSummary(state: InteractiveWidgetDemoState): 
     }
 
 internal fun renderInteractiveWidgetMetrics(state: InteractiveWidgetDemoState): String =
-    "Preset ${state.preset} | Theme ${state.theme} | Dialog ${if (state.notificationsEnabled) "on" else "off"} | ${state.progress}% | Clicks ${state.clicks}"
+    buildString {
+        append("Preset ${state.preset} | Theme ${state.theme} | Dialog ")
+        append(if (state.notificationsEnabled) "on" else "off")
+        append(" | ${state.progress}% | Clicks ${state.clicks}")
+    }
 
 internal fun resolveInteractiveWidgetPreset(label: String): InteractiveWidgetPreset =
     INTERACTIVE_WIDGET_PRESETS.firstOrNull { it.label == label } ?: INTERACTIVE_WIDGET_PRESETS.first()
@@ -186,7 +190,10 @@ fun createInteractiveWidgetDemoWindow(
         syncState()
     }
 
-    fun applyPreset(presetLabel: String, message: String) {
+    fun applyPreset(
+        presetLabel: String,
+        message: String,
+    ) {
         val preset = resolveInteractiveWidgetPreset(presetLabel)
         syncingView = true
         try {
@@ -208,7 +215,10 @@ fun createInteractiveWidgetDemoWindow(
         syncState()
     }
 
-    fun advanceProgress(step: Int, message: String) {
+    fun advanceProgress(
+        step: Int,
+        message: String,
+    ) {
         state = state.copy(progress = (state.progress + step).coerceAtMost(100))
         syncState(message)
     }
@@ -236,7 +246,13 @@ fun createInteractiveWidgetDemoWindow(
             MessageDialog.showMessageDialog(
                 textGUI,
                 "Primary action",
-                "Input: ${state.title.ifBlank { "<empty>" }}\nPreset: ${state.preset}\nTheme: ${state.theme}\nProgress: ${state.progress}%\nClicks: ${state.clicks}",
+                buildString {
+                    appendLine("Input: ${state.title.ifBlank { "<empty>" }}")
+                    appendLine("Preset: ${state.preset}")
+                    appendLine("Theme: ${state.theme}")
+                    appendLine("Progress: ${state.progress}%")
+                    append("Clicks: ${state.clicks}")
+                },
                 MessageDialogButton.OK,
             )
         }
@@ -255,7 +271,11 @@ fun createInteractiveWidgetDemoWindow(
         MessageDialog.showMessageDialog(
             textGUI,
             "Demo actions",
-            "Use Tab to move between inputs and actions.\nWidgets on-screen: Theme radios, Preset combo, Progress bar, Quick actions.\nEnter activates the focused control.",
+            buildString {
+                appendLine("Use Tab to move between inputs and actions.")
+                appendLine("Widgets on-screen: Theme radios, Preset combo, Progress bar, Quick actions.")
+                append("Enter activates the focused control.")
+            },
             MessageDialogButton.OK,
         )
     }
