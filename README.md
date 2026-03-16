@@ -1,6 +1,15 @@
 Lanterna
 ---
 
+## Repository Positioning (codex24 fork)
+
+This repository (`La-Manufacture-Ambulante/codex24-lanterna-kmp2`) is a codex24 working fork of the original
+[`mabe02/lanterna`](https://github.com/mabe02/lanterna) project.
+
+- The original Java Lanterna codebase remains the reference baseline for behavior and API parity.
+- The `kmp/` directory in this fork is where Kotlin Multiplatform (KMP) migration and publication work is executed.
+- Upstream fixes can be compared against `mabe02/lanterna`, while codex24-specific KMP evolution happens here.
+
 ![Lanterna screenshot](http://mabe02.github.io/lanterna/resources/lanterna.png)
 
 Lanterna is a Java library allowing you to write easy semi-graphical user interfaces in a text-only environment,
