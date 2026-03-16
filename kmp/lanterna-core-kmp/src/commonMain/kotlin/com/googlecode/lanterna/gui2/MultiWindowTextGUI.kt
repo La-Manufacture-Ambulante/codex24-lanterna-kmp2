@@ -376,6 +376,9 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
     override fun waitForWindowToClose(abstractWindow: Window?) {
         val window = abstractWindow ?: return
         while (window.textGUI != null) {
+            if (!PlatformTaskRuntime.cooperativeCancelCheckpoint()) {
+                break
+            }
             var sleep = true
             val guiThread = guiThread
             if (guiThread?.isCallingThread() == true) {

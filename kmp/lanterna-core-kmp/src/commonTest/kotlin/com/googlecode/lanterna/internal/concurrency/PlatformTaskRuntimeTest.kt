@@ -169,4 +169,44 @@ class PlatformTaskRuntimeTest {
         handle.cancel()
         assertTrue(handle.awaitCompletion(20))
     }
+
+    @Test
+    fun cooperativeCancelCheckpointStopsLoopInThreadMode() {
+        PlatformTaskRuntime.setExecutionMode(PlatformExecutionMode.THREAD)
+        val startedLatch = PlatformCountdownLatch(1)
+        val stoppedLatch = PlatformCountdownLatch(1)
+        val handle =
+            PlatformTaskRuntime.launch("thread-cooperative-cancel") {
+                startedLatch.countDown()
+                while (PlatformTaskRuntime.cooperativeCancelCheckpoint()) {
+                    PlatformTaskRuntime.backoffWait(1)
+                }
+                stoppedLatch.countDown()
+            }
+
+        assertTrue(startedLatch.await(2_000))
+        handle.cancel()
+        assertTrue(stoppedLatch.await(2_000))
+        assertTrue(handle.awaitCompletion(2_000))
+    }
+
+    @Test
+    fun cooperativeCancelCheckpointStopsLoopInCoroutineMode() {
+        PlatformTaskRuntime.setExecutionMode(PlatformExecutionMode.COROUTINE)
+        val startedLatch = PlatformCountdownLatch(1)
+        val stoppedLatch = PlatformCountdownLatch(1)
+        val handle =
+            PlatformTaskRuntime.launch("coroutine-cooperative-cancel") {
+                startedLatch.countDown()
+                while (PlatformTaskRuntime.cooperativeCancelCheckpoint()) {
+                    PlatformTaskRuntime.backoffWait(1)
+                }
+                stoppedLatch.countDown()
+            }
+
+        assertTrue(startedLatch.await(2_000))
+        handle.cancel()
+        assertTrue(stoppedLatch.await(2_000))
+        assertTrue(handle.awaitCompletion(2_000))
+    }
 }

@@ -41,8 +41,14 @@ Branch: `codex/pr6-coroutines-impl`
 - [x] Slice E (part 6) completed: added focused cancellation/wait semantics checks in `PlatformTaskRuntimeTest`:
   - thread mode cancel is best-effort and does not force completion of running work,
   - coroutine mode cancel after completion is safe and preserves await semantics.
-- [ ] Slice E (part 7) next: decide whether to introduce explicit cooperative-cancel checkpoints for long-running
-  non-suspending tasks in coroutine mode.
+- [x] Slice E (part 7) completed: added runtime cooperative-cancel checkpoints (`cooperativeCancelCheckpoint`) and
+  wired them into long-running loops (`SeparateTextGUIThread`, `MultiWindowTextGUI`) with explicit regression tests
+  for both thread and coroutine modes in `PlatformTaskRuntimeTest`.
+- [x] Slice E (part 8) completed: evaluated remaining queue/process loops and kept checkpoints limited to runtime-owned
+  long-running GUI loops (`SeparateTextGUIThread`, `waitForWindowToClose`) to avoid changing drain/dispatch semantics
+  in short-lived local loops.
+- [x] Task 7 completion criteria finalized for PR6: coroutine runtime abstraction, mode policy selection, targeted
+  callsite adoption, cooperative cancellation checkpoints, and regression coverage are complete for this PR scope.
 
 ## Guardrails
 - Default behavior remains thread-based.

@@ -91,6 +91,10 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
                 }
 
                 while (_state == AsynchronousTextGUIThread.State.STARTED) {
+                    if (!PlatformTaskRuntime.cooperativeCancelCheckpoint()) {
+                        stop()
+                        break
+                    }
                     val didWork = processEventsAndUpdate()
                     if (!didWork) {
                         PlatformTaskRuntime.backoffWait(1)
