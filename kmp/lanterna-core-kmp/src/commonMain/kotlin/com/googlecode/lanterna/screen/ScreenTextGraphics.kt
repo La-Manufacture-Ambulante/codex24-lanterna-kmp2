@@ -23,16 +23,7 @@ import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.graphics.AbstractTextGraphics
 import com.googlecode.lanterna.graphics.TextGraphics
 
-/**
- * This is an implementation of TextGraphics that targets the output to a Screen. The ScreenTextGraphics object is valid
- * after screen resizing.
- * @author Martin
- */
 internal open class ScreenTextGraphics(private val screen: Screen) : AbstractTextGraphics() {
-    /**
-     * Creates a new `ScreenTextGraphics` targeting the specified screen
-     * @param screen Screen we are targeting
-     */
     override val size: TerminalSize?
         get() = screen.terminalSize
 

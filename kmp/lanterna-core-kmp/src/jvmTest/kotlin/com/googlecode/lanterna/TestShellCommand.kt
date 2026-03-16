@@ -18,7 +18,6 @@
  */
 
 package com.googlecode.lanterna
-
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream

@@ -34,7 +34,6 @@ interface TerminalResizeListener {
      * @param terminal Terminal that was resized
      * @param newSize Size of the terminal after the resize
      */
-    @SuppressWarnings("UnusedParameters")
     fun onResized(
         terminal: Terminal?,
         newSize: TerminalSize?,

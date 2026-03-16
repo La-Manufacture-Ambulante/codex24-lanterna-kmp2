@@ -28,9 +28,9 @@ import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.graphics.TextImage
 import com.googlecode.lanterna.graphics.ThemeStyle
 import com.googlecode.lanterna.graphics.ThemedTextGraphics
+import com.googlecode.lanterna.internal.compat.EnumSet
 import com.googlecode.lanterna.screen.TabBehaviour
-import java.util.Collection
-import java.util.EnumSet
+import kotlin.collections.Collection
 
 /**
  * TextGraphics implementation used by TextGUI when doing drawing operations.

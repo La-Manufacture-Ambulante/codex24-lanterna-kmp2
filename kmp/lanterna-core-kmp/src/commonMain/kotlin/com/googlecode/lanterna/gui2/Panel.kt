@@ -21,50 +21,33 @@ package com.googlecode.lanterna.gui2
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyStroke
-import java.util.ArrayList
-import java.util.Collections
+import com.googlecode.lanterna.internal.compat.synchronizedCompat
+import kotlin.collections.ArrayList
 
 /**
- * This class is the basic building block for creating user interfaces, being the standard implementation of
- * `Container` that supports multiple children. A `Panel` is a component that can contain one or more
- * other components, including nested panels. The panel itself doesn't have any particular appearance and isn't
- * interactable by itself, although you can set a border for the panel and interactable components inside the panel will
- * receive input focus as expected.
- *
- * @author Martin
+ * Standard multi-child [Container] implementation.
  */
-open class Panel
-    @JvmOverloads
-    constructor(layoutManager: LayoutManager? = LinearLayout()) :
+open class Panel constructor(layoutManager: LayoutManager? = LinearLayout()) :
     AbstractComponent<Panel?>(),
-        Container {
+    Container {
         private val components: MutableList<Component> = ArrayList()
         private var layoutManager: LayoutManager = layoutManager ?: AbsoluteLayout()
         private var cachedPreferredSize: TerminalSize? = null
 
-        /**
-         * Returns the color used to override the default background color from the theme, if set. Otherwise `null` is
-         * returned and whatever theme is assigned will be used to derive the fill color.
-         *
-         * Sets an override color to be used instead of the theme's color for Panels when drawing unused space. If called
-         * with `null`, it will reset back to the theme's color.
-         *
-         * @return The color, if any, used to fill the panel's unused space instead of the theme's color
-         */
         var fillColorOverride: TextColor? = null
 
         override val childCount: Int
-            get() = synchronized(components) { components.size }
+            get() = synchronizedCompat(components) { components.size }
 
         override val children: Collection<Component?>
             get() = childrenList
 
         override val childrenList: List<Component?>
-            get() = synchronized(components) { ArrayList(components) }
+            get() = synchronizedCompat(components) { ArrayList(components) }
 
         override val isInvalid: Boolean
             get() {
-                synchronized(components) {
+                synchronizedCompat(components) {
                     for (component in components) {
                         if (component.isVisible && component.isInvalid) {
                             return true
@@ -74,25 +57,10 @@ open class Panel
                 return super.isInvalid || layoutManager.hasChanged()
             }
 
-        /**
-         * Adds a new child component to the panel. Where within the panel the child will be displayed is up to the layout
-         * manager assigned to this panel. If the component has already been added to another panel, it will first be
-         * removed from that panel before added to this one.
-         * @param component Child component to add to this panel
-         * @return Itself
-         */
         fun addComponent(component: Component?): Panel {
             return addComponent(Int.MAX_VALUE, component)
         }
 
-        /**
-         * Adds a new child component to the panel. Where within the panel the child will be displayed is up to the layout
-         * manager assigned to this panel. If the component has already been added to another panel, it will first be
-         * removed from that panel before added to this one.
-         * @param component Child component to add to this panel
-         * @param index At what index to add the component among the existing components
-         * @return Itself
-         */
         fun addComponent(
             index: Int,
             component: Component?,
@@ -100,7 +68,7 @@ open class Panel
             requireNotNull(component) { "Cannot add null component" }
 
             var insertionIndex = index
-            synchronized(components) {
+            synchronizedCompat(components) {
                 if (components.contains(component)) {
                     return this
                 }
@@ -117,13 +85,6 @@ open class Panel
             return this
         }
 
-        /**
-         * This method is a shortcut for calling:
-         * `component.setLayoutData(layoutData); panel.addComponent(component);`
-         * @param component Component to add to the panel
-         * @param layoutData Layout data to assign to the component
-         * @return Itself
-         */
         fun addComponent(
             component: Component?,
             layoutData: LayoutData?,
@@ -142,7 +103,7 @@ open class Panel
         override fun removeComponent(component: Component?): Boolean {
             requireNotNull(component) { "Cannot remove null component" }
 
-            synchronized(components) {
+            synchronizedCompat(components) {
                 val index = components.indexOf(component)
                 if (index == -1) {
                     return false
@@ -157,12 +118,8 @@ open class Panel
             return true
         }
 
-        /**
-         * Removes all child components from this panel.
-         * @return Itself
-         */
         fun removeAllComponents(): Panel {
-            synchronized(components) {
+            synchronizedCompat(components) {
                 for (component in ArrayList(components)) {
                     removeComponent(component)
                 }
@@ -170,24 +127,12 @@ open class Panel
             return this
         }
 
-        /**
-         * Assigns a new layout manager to this panel, replacing the previous layout manager assigned. Please note that if
-         * the panel is not empty at the time you assign a new layout manager, the existing components might not show up
-         * where you expect them and their layout data property might need to be re-assigned.
-         * @param layoutManager New layout manager this panel should be using
-         * @return Itself
-         */
-        @Synchronized
         fun setLayoutManager(layoutManager: LayoutManager?): Panel {
             this.layoutManager = layoutManager ?: AbsoluteLayout()
             invalidate()
             return this
         }
 
-        /**
-         * Returns the layout manager assigned to this panel.
-         * @return Layout manager assigned to this panel
-         */
         fun getLayoutManager(): LayoutManager {
             return layoutManager
         }
@@ -206,7 +151,7 @@ open class Panel
         override fun nextFocus(fromThis: Interactable?): Interactable? {
             var chooseNextAvailable = fromThis == null
 
-            synchronized(components) {
+            synchronizedCompat(components) {
                 for (component in components) {
                     if (!component.isVisible) {
                         continue
@@ -243,8 +188,8 @@ open class Panel
 
         override fun previousFocus(fromThis: Interactable?): Interactable? {
             var chooseNextAvailable = fromThis == null
-            val reversedComponents = synchronized(components) { ArrayList(components) }
-            Collections.reverse(reversedComponents)
+            val reversedComponents = synchronizedCompat(components) { ArrayList(components) }
+            reversedComponents.reverse()
 
             for (component in reversedComponents) {
                 if (!component.isVisible) {
@@ -283,7 +228,7 @@ open class Panel
         override fun handleInput(key: KeyStroke?): Boolean = false
 
         override fun updateLookupMap(interactableLookupMap: InteractableLookupMap?) {
-            synchronized(components) {
+            synchronizedCompat(components) {
                 for (component in components) {
                     if (!component.isVisible) {
                         continue
@@ -299,7 +244,7 @@ open class Panel
 
         override fun invalidate() {
             super.invalidate()
-            synchronized(components) {
+            synchronizedCompat(components) {
                 for (component in components) {
                     component.invalidate()
                 }
@@ -307,7 +252,7 @@ open class Panel
         }
 
         private fun layout(size: TerminalSize?) {
-            synchronized(components) {
+            synchronizedCompat(components) {
                 layoutManager.doLayout(size, ArrayList(components))
             }
         }
@@ -315,17 +260,12 @@ open class Panel
         inner class DefaultPanelRenderer : ComponentRenderer<Panel?> {
             private var fillAreaBeforeDrawingComponents: Boolean = true
 
-            /**
-             * If setting this to `false` (default is `true`), the [Panel] will not reset its drawable
-             * area with the space character `' '` before drawing all the components.
-             * @param fillAreaBeforeDrawingComponents Should the panel area be cleared before drawing components?
-             */
             fun setFillAreaBeforeDrawingComponents(fillAreaBeforeDrawingComponents: Boolean) {
                 this.fillAreaBeforeDrawingComponents = fillAreaBeforeDrawingComponents
             }
 
             override fun getPreferredSize(component: Panel?): TerminalSize? {
-                synchronized(components) {
+                synchronizedCompat(components) {
                     cachedPreferredSize = layoutManager.getPreferredSize(ArrayList(components))
                 }
                 return cachedPreferredSize
@@ -346,7 +286,7 @@ open class Panel
                     targetGraphics.fill(' ')
                 }
 
-                synchronized(components) {
+                synchronizedCompat(components) {
                     for (child in components) {
                         if (!child.isVisible) {
                             continue

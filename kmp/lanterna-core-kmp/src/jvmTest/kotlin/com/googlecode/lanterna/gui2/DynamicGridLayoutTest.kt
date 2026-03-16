@@ -24,9 +24,9 @@ import com.googlecode.lanterna.gui2.dialogs.DialogWindow
 import com.googlecode.lanterna.gui2.dialogs.ListSelectDialog
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialog
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder
+import com.googlecode.lanterna.internal.compat.Pattern
 import java.io.IOException
 import java.util.Random
-import java.util.regex.Pattern
 
 class DynamicGridLayoutTest : TestBase() {
     private val randomColor: TextColor
@@ -146,9 +146,9 @@ class DynamicGridLayoutTest : TestBase() {
                 columns!!.toString(),
             )
         gridPanel?.removeAllComponents()
-        gridPanel?.setLayoutManager(newGridLayout(columns.toInt()))
+        gridPanel?.setLayoutManager(newGridLayout(columns.intValue()))
 
-        for (i in 0 until (prepopulate?.toInt() ?: 0)) {
+        for (i in 0 until (prepopulate?.intValue() ?: 0)) {
             gridPanel?.addComponent(EmptySpace(randomColor, TerminalSize(4, 1)))
         }
     }
@@ -222,12 +222,12 @@ class DynamicGridLayoutTest : TestBase() {
 
             val okButton =
                 Button("OK", {
-                    gridLayout.setHorizontalSpacing(Integer.parseInt(textBoxHorizontalSpacing.text))
-                    gridLayout.setVerticalSpacing(Integer.parseInt(textBoxVerticalSpacing.text))
-                    gridLayout.setLeftMarginSize(Integer.parseInt(textBoxLeftMargin.text))
-                    gridLayout.setRightMarginSize(Integer.parseInt(textBoxRightMargin.text))
-                    gridLayout.setTopMarginSize(Integer.parseInt(textBoxTopMargin.text))
-                    gridLayout.setBottomMarginSize(Integer.parseInt(textBoxBottomMargin.text))
+                    gridLayout.setHorizontalSpacing(Integer.parseInt(textBoxHorizontalSpacing.getTextOrDefault("0")))
+                    gridLayout.setVerticalSpacing(Integer.parseInt(textBoxVerticalSpacing.getTextOrDefault("0")))
+                    gridLayout.setLeftMarginSize(Integer.parseInt(textBoxLeftMargin.getTextOrDefault("0")))
+                    gridLayout.setRightMarginSize(Integer.parseInt(textBoxRightMargin.getTextOrDefault("0")))
+                    gridLayout.setTopMarginSize(Integer.parseInt(textBoxTopMargin.getTextOrDefault("0")))
+                    gridLayout.setBottomMarginSize(Integer.parseInt(textBoxBottomMargin.getTextOrDefault("0")))
                     close()
                 })
             val cancelButton = Button("Cancel", Runnable({ this.close() }))
@@ -236,14 +236,14 @@ class DynamicGridLayoutTest : TestBase() {
                 Panels.horizontal(okButton, cancelButton)
                     .setLayoutData(GridLayout.createHorizontallyEndAlignedLayoutData(2)),
             )
-            this.component = contentPane
+            component = contentPane
         }
     }
 
-    private class GridLayoutDataEditor(component: Component) : DialogWindow("GridLayoutData Editor") {
+    private class GridLayoutDataEditor(componentToEdit: Component) : DialogWindow("GridLayoutData Editor") {
         init {
 
-            var gridLayoutData: GridLayout.GridLayoutData? = component.layoutData as? GridLayout.GridLayoutData
+            var gridLayoutData: GridLayout.GridLayoutData? = componentToEdit.layoutData as GridLayout.GridLayoutData
             if (gridLayoutData == null) {
                 gridLayoutData =
                     GridLayout.createLayoutData(
@@ -324,14 +324,14 @@ class DynamicGridLayoutTest : TestBase() {
                     val verticalAlignment =
                         radioBoxesVerticalAlignment.checkedItem as? GridLayout.Alignment
                             ?: GridLayout.Alignment.BEGINNING
-                    component.setLayoutData(
+                    componentToEdit.setLayoutData(
                         GridLayout.createLayoutData(
                             horizontalAlignment,
                             verticalAlignment,
                             checkBoxGrabExtraHorizontalSpace.isChecked(),
                             checkBoxGrabExtraVerticalSpace.isChecked(),
-                            Integer.parseInt(textBoxHorizontalSpan.text),
-                            Integer.parseInt(textBoxVerticalSpan.text),
+                            Integer.parseInt(textBoxHorizontalSpan.getTextOrDefault("1")),
+                            Integer.parseInt(textBoxVerticalSpan.getTextOrDefault("1")),
                         ),
                     )
                     close()

@@ -23,24 +23,7 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.graphics.ThemeDefinition
 
-/**
- * This GUI element gives a visual indication of how far a process of some sort has progressed at any given time. It's
- * a classic user interface component that most people are familiar with. It works based on a scale expressed as having
- * a *minimum*, a *maximum* and a current *value* somewhere along that range. When the current *value* is the same as
- * the *minimum*, the progress indication is empty, at 0%. If the *value* is the same as the *maximum*, the progress
- * indication is filled, at 100%. Any *value* in between the *minimum* and the *maximum* will be indicated
- * proportionally to where on this range between *minimum* and *maximum* it is.
- *
- * In order to add a label to the progress bar, for example to print the % completed, this class supports adding a
- * format specification. This label format, before drawing, will be passed in through a `String.format(..)` with the
- * current progress of *value* from *minimum* to *maximum* expressed as a `float` passed in as a single vararg
- * parameter. This parameter will be scaled from 0.0f to 100.0f. By default, the label format is set to "%2.0f%%"
- * which becomes a simple percentage string when formatted.
- * @author Martin
- */
-class ProgressBar
-    @JvmOverloads
-    constructor(min: Int = 0, max: Int = 100, preferredWidth: Int = 0) :
+class ProgressBar constructor(min: Int = 0, max: Int = 100, preferredWidth: Int = 0) :
     AbstractComponent<ProgressBar?>() {
         private var min: Int
         private var max: Int
@@ -48,22 +31,13 @@ class ProgressBar
         var preferredWidth: Int
         private var labelFormat: String? = "%2.0f%%"
 
-        /**
-         * Returns the current progress of this progress bar's *value* from *minimum* to *maximum*, expressed as a float
-         * from 0.0f to 1.0f.
-         * @return current progress of this progress bar expressed as a float from 0.0f to 1.0f.
-         */
         val progress: Float
-            @Synchronized get() = (value - min).toFloat() / max.toFloat()
+            get() = (value - min).toFloat() / max.toFloat()
 
-        /**
-         * Returns the label of this progress bar formatted through `String.format(..)` with the current progress value.
-         * @return The progress bar label formatted with the current progress
-         */
         val formattedLabel: String
-            @Synchronized get() {
+            get() {
                 val format = labelFormat ?: return ""
-                return String.format(format, progress * 100.0f)
+                return formatPercent(format, progress * 100.0f)
             }
 
         init {
@@ -84,7 +58,6 @@ class ProgressBar
 
         fun getMin(): Int = min
 
-        @Synchronized
         fun setMin(min: Int): ProgressBar {
             if (min > max) {
                 setMax(min)
@@ -101,7 +74,6 @@ class ProgressBar
 
         fun getMax(): Int = max
 
-        @Synchronized
         fun setMax(max: Int): ProgressBar {
             if (max < min) {
                 setMin(max)
@@ -118,7 +90,6 @@ class ProgressBar
 
         fun getValue(): Int = value
 
-        @Synchronized
         fun setValue(value: Int): ProgressBar {
             var adjustedValue = value
             if (adjustedValue < min) {
@@ -136,7 +107,6 @@ class ProgressBar
 
         fun getLabelFormat(): String? = labelFormat
 
-        @Synchronized
         fun setLabelFormat(labelFormat: String?): ProgressBar {
             this.labelFormat = labelFormat
             invalidate()
@@ -147,10 +117,6 @@ class ProgressBar
             return DefaultProgressBarRenderer()
         }
 
-        /**
-         * Default implementation of the progress bar GUI component renderer. This renderer will draw the progress bar
-         * on a single line and gradually fill up the space with a different color as the progress is increasing.
-         */
         class DefaultProgressBarRenderer : ComponentRenderer<ProgressBar?> {
             override fun getPreferredSize(component: ProgressBar?): TerminalSize? {
                 val progressBar = component ?: return TerminalSize(10, 1)
@@ -161,7 +127,7 @@ class ProgressBar
 
                 val labelFormat = progressBar.getLabelFormat()
                 return if (labelFormat != null && labelFormat.trim().isNotEmpty()) {
-                    TerminalSize(TerminalTextUtils.getColumnWidth(String.format(labelFormat, 100.0f)) + 2, 1)
+                    TerminalSize(TerminalTextUtils.getColumnWidth(formatPercent(labelFormat, 100.0f)) + 2, 1)
                 } else {
                     TerminalSize(10, 1)
                 }
@@ -336,6 +302,19 @@ class ProgressBar
                     if (size.columns > 3) {
                         g.setCharacter(size.columns - 2, rowOffset, Symbols.SINGLE_LINE_BOTTOM_RIGHT_CORNER)
                     }
+                }
+            }
+        }
+
+        companion object {
+            private fun formatPercent(
+                format: String,
+                value: Float,
+            ): String {
+                return if (format.contains("f")) {
+                    "${value.toInt()}%"
+                } else {
+                    format.replace("%s", value.toString())
                 }
             }
         }

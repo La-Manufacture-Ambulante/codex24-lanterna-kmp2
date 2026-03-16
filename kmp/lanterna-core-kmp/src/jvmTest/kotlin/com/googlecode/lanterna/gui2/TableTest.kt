@@ -27,10 +27,10 @@ import com.googlecode.lanterna.gui2.table.DefaultTableCellRenderer
 import com.googlecode.lanterna.gui2.table.DefaultTableRenderer
 import com.googlecode.lanterna.gui2.table.Table
 import com.googlecode.lanterna.gui2.table.TableCellBorderStyle
+import com.googlecode.lanterna.internal.compat.Pattern
 import java.io.IOException
 import java.util.ArrayList
 import java.util.Collections
-import java.util.regex.Pattern
 
 /**
  * Test for the Table component
@@ -38,6 +38,7 @@ import java.util.regex.Pattern
 class TableTest : TestBase() {
     private var columnCounter = 4
 
+    @Override
     fun init(textGUI: WindowBasedTextGUI) {
         val window = BasicWindow("Table container test")
         window.setHints(Collections.singletonList(Window.Hint.FIT_TERMINAL_WINDOW))
@@ -127,7 +128,7 @@ class TableTest : TestBase() {
                     .showDialog(textGUI)
             }),
         )
-        buttonPanel.addComponent(Button("Close", Runnable { window.close() }))
+        buttonPanel.addComponent(Button("Close", Runnable({ window.close() })))
 
         table.withBorder(Borders.singleLineBevel("Table"))
         window.component = Panels.vertical(table, buttonPanel)

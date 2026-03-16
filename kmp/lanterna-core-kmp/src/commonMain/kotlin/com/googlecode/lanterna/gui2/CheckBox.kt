@@ -23,13 +23,10 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TerminalTextUtils
 import com.googlecode.lanterna.graphics.ThemeDefinition
 import com.googlecode.lanterna.input.KeyStroke
-import java.util.concurrent.CopyOnWriteArrayList
+import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
 
 /**
- * The checkbox component looks like a regular checkbox that you can find in modern graphics user interfaces, a label
- * and a space that the user can toggle on and off by using enter or space keys.
- *
- * @author Martin
+ * Checkbox component.
  */
 class CheckBox(label: String) : AbstractInteractableComponent<CheckBox?>() {
     interface Listener {
@@ -50,7 +47,6 @@ class CheckBox(label: String) : AbstractInteractableComponent<CheckBox?>() {
         this.checked = false
     }
 
-    @Synchronized
     fun setChecked(checked: Boolean): CheckBox {
         this.checked = checked
         runOnGUIThreadIfExistsOtherwiseRunDirect(
@@ -73,14 +69,13 @@ class CheckBox(label: String) : AbstractInteractableComponent<CheckBox?>() {
             setChecked(!isChecked())
             return Interactable.Result.HANDLED
         } else if (isMouseActivationStroke(keyStroke)) {
-            basePane!!.focusedInteractable = this
+            basePane?.focusedInteractable = this
             setChecked(!isChecked())
             return Interactable.Result.HANDLED
         }
         return super.handleKeyStroke(keyStroke)
     }
 
-    @Synchronized
     fun setLabel(label: String?): CheckBox {
         if (label == null) {
             throw IllegalArgumentException("Cannot set CheckBox label to null")

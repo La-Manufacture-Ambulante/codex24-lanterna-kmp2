@@ -17,10 +17,10 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
-
 import java.io.IOException
 
 class PanelTest : TestBase() {
+    @Override
     fun init(textGUI: WindowBasedTextGUI) {
         val window = BasicWindow("Grid layout test")
 
@@ -64,8 +64,9 @@ class PanelTest : TestBase() {
         window.component =
             Panels.vertical(
                 mainPanel.withBorder(Borders.singleLine("Main")),
-                Button("OK", Runnable { window.close() }),
+                Button("OK", Runnable({ window.close() })),
             )
+
         textGUI.addWindow(window)
     }
 

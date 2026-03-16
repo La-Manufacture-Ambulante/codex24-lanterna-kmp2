@@ -31,7 +31,6 @@ import com.googlecode.lanterna.screen.TabBehaviour
  * TextGUI system to draw components. They are all very similar and has a lot of graphics functionality in
  * AbstractTextGraphics.
  *
- *
  * The basic concept behind a TextGraphics implementation is that it keeps a state on four things:
  *
  *  * Foreground color
@@ -42,9 +41,9 @@ import com.googlecode.lanterna.screen.TabBehaviour
  * These call all be altered through ordinary set* methods, but some will be altered as the result of performing one of
  * the 'drawing' operations. See the documentation to each method for further information (for example, putString).
  *
- *
  * Don't hold on to your TextGraphics objects for too long; ideally create them and let them be GC:ed when you are done
  * with them. The reason is that not all implementations will handle the underlying terminal changing size.
+ *
  * @author Martin
  */
 interface TextGraphics : StyleSet<TextGraphics?>, ScreenTranslator {

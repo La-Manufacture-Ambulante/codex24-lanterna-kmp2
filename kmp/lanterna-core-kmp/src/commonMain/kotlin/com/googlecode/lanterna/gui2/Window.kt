@@ -115,37 +115,26 @@ interface Window : BasePane {
         }
 
         companion object {
-            @JvmField
             val NO_DECORATIONS = Hint("NoDeco")
 
-            @JvmField
             val NO_POST_RENDERING = Hint("NoPostRend")
 
-            @JvmField
             val NO_FOCUS = Hint("NoFocus")
 
-            @JvmField
             val CENTERED = Hint("Centered")
 
-            @JvmField
             val FIXED_POSITION = Hint("FixedPos")
 
-            @JvmField
             val MENU_POPUP = Hint("MenuPopup")
 
-            @JvmField
             val FIXED_SIZE = Hint("FixedSize")
 
-            @JvmField
             val FIT_TERMINAL_WINDOW = Hint("FitTermWin")
 
-            @JvmField
             val MODAL = Hint("Modal")
 
-            @JvmField
             val FULL_SCREEN = Hint("FullScreen")
 
-            @JvmField
             val EXPANDED = Hint("Expanded")
         }
     }

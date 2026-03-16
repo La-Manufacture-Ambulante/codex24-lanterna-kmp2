@@ -18,13 +18,13 @@
  */
 package com.googlecode.lanterna.bundle
 
-import java.util.Locale
+import com.googlecode.lanterna.internal.compat.Locale
 
 /**
  * This class permits to get easily localized strings about the UI.
  * @author silveryocha
  */
-class LocalizedUIBundle private constructor(bundleName: String?) : BundleLocator(bundleName) {
+class LocalizedUIBundle private constructor(bundleName: String) : BundleLocator(bundleName) {
     companion object {
         private val MY_BUNDLE = LocalizedUIBundle("multilang.lanterna-ui")
 

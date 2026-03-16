@@ -20,14 +20,13 @@ package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.TerminalSize
 
-@Suppress("WeakerAccess")
 class SimpleTerminalResizeListener(initialSize: TerminalSize?) : TerminalResizeListener {
     internal var wasResized = false
     var lastKnownSize: TerminalSize? = initialSize
         internal set
 
     val isTerminalResized: Boolean
-        @Synchronized get() {
+        get() {
             if (wasResized) {
                 wasResized = false
                 return true
@@ -35,7 +34,6 @@ class SimpleTerminalResizeListener(initialSize: TerminalSize?) : TerminalResizeL
             return false
         }
 
-    @Synchronized
     override fun onResized(
         terminal: Terminal?,
         newSize: TerminalSize?,

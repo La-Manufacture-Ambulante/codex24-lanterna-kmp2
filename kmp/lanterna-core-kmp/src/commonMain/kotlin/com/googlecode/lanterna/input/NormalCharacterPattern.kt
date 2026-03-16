@@ -18,6 +18,8 @@
  */
 package com.googlecode.lanterna.input
 
+import com.googlecode.lanterna.internal.compat.Character
+
 /**
  * Character pattern that matches one character as one KeyStroke with the character that was read
  *
@@ -29,15 +31,14 @@ class NormalCharacterPattern : CharacterPattern {
             return null // nope
         }
         val ch = seq[0]
-        if (isPrintableChar(ch)) {
-            val ks = KeyStroke(ch, false, false)
-            return CharacterPattern.Matching(ks)
+        return if (isPrintableChar(ch)) {
+            CharacterPattern.Matching(KeyStroke(ch, false, false))
         } else {
-            return null // nope
+            null // nope
         }
     }
 
-/**
+    /**
      * From http://stackoverflow.com/questions/220547/printable-char-in-java
      * @param c character to test
      * @return True if this is a 'normal', printable character, false otherwise

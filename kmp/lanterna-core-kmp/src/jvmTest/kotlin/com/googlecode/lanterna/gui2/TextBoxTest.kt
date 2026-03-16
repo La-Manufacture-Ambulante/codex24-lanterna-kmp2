@@ -17,11 +17,11 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
-
 import com.googlecode.lanterna.TerminalSize
 import java.io.IOException
 
 class TextBoxTest : TestBase() {
+    @Override
     fun init(textGUI: WindowBasedTextGUI) {
         val window = BasicWindow("TextBoxTest")
         val mainPanel = Panel()
@@ -62,8 +62,9 @@ class TextBoxTest : TestBase() {
         window.component =
             Panels.vertical(
                 mainPanel.withBorder(Borders.singleLine("Main")),
-                Button("OK", Runnable { window.close() }),
+                Button("OK", Runnable({ window.close() })),
             )
+
         textGUI.addWindow(window)
     }
 

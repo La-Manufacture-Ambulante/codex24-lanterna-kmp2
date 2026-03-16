@@ -2,4 +2,6 @@ root = true
 
 [*.{kt,kts}]
 
+[**/src/commonMain/**/*.kt]
+
 [**/src/jvmTest/**/*.kt]

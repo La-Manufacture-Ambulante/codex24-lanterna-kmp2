@@ -35,6 +35,7 @@ import com.googlecode.lanterna.gui2.TextBox
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.IOException
 import java.util.ArrayList
+import kotlin.reflect.KClass
 
 object Issue409 {
     fun main(args: Array<String?>?) {
@@ -52,7 +53,7 @@ object Issue409 {
             val cyclingThemesTextBox = CyclingThemesTextBox()
             panel.addComponent(cyclingThemesTextBox)
             panel.addComponent(EmptySpace())
-            panel.addComponent(Button("Close", Runnable { window.close() }))
+            panel.addComponent(Button("Close") { window.close() })
 
             window.component = panel
             val gui = MultiWindowTextGUI(screen)
@@ -61,7 +62,7 @@ object Issue409 {
                 var counter = 0
                 while (cyclingThemesTextBox.textGUI != null) {
                     if (++counter % 200 == 0) {
-                        gui.guiThread!!.invokeLater(Runnable { cyclingThemesTextBox.nextTheme() })
+                        gui.guiThread?.invokeLater { cyclingThemesTextBox.nextTheme() }
                     } else {
                         try {
                             Thread.sleep(10)
@@ -83,7 +84,7 @@ object Issue409 {
         init {
             setTheme(
                 object : DelegatingTheme(theme ?: LanternaThemes.defaultTheme!!) {
-                    public override fun getDefinition(clazz: Class<*>?): ThemeDefinition {
+                    public override fun getDefinition(clazz: KClass<*>?): ThemeDefinition {
                         val themeDefinition = super.getDefinition(clazz)
                         return FixedBackgroundTextBoxThemeStyle(themeDefinition!!, color)
                     }

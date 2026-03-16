@@ -23,9 +23,9 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.graphics.AbstractTextGraphics
 import com.googlecode.lanterna.graphics.TextGraphics
-import java.io.IOException
-import java.util.HashMap
-import java.util.concurrent.atomic.AtomicInteger
+import com.googlecode.lanterna.internal.compat.AtomicInteger
+import com.googlecode.lanterna.internal.io.IOException
+import kotlin.collections.HashMap
 
 internal class TerminalTextGraphics
     @Throws(IOException::class)
@@ -47,7 +47,6 @@ internal class TerminalTextGraphics
             return setCharacter(TerminalPosition(columnIndex, rowIndex), textCharacter)
         }
 
-        @Synchronized
         override fun setCharacter(
             position: TerminalPosition?,
             textCharacter: TextCharacter?,
@@ -86,7 +85,6 @@ internal class TerminalTextGraphics
             return getCharacter(TerminalPosition(column, row))
         }
 
-        @Synchronized
         override fun getCharacter(position: TerminalPosition?): TextCharacter? {
             return if (position == null) null else writeHistory[position]
         }
@@ -101,7 +99,6 @@ internal class TerminalTextGraphics
             }
         }
 
-        @Synchronized
         override fun drawLine(
             fromPoint: TerminalPosition?,
             toPoint: TerminalPosition?,
@@ -116,7 +113,6 @@ internal class TerminalTextGraphics
             }
         }
 
-        @Synchronized
         override fun drawTriangle(
             p1: TerminalPosition?,
             p2: TerminalPosition?,
@@ -132,7 +128,6 @@ internal class TerminalTextGraphics
             }
         }
 
-        @Synchronized
         override fun fillTriangle(
             p1: TerminalPosition?,
             p2: TerminalPosition?,
@@ -148,7 +143,6 @@ internal class TerminalTextGraphics
             }
         }
 
-        @Synchronized
         override fun fillRectangle(
             topLeft: TerminalPosition?,
             size: TerminalSize?,
@@ -163,7 +157,6 @@ internal class TerminalTextGraphics
             }
         }
 
-        @Synchronized
         override fun drawRectangle(
             topLeft: TerminalPosition?,
             size: TerminalSize?,
@@ -178,7 +171,6 @@ internal class TerminalTextGraphics
             }
         }
 
-        @Synchronized
         override fun putString(
             column: Int,
             row: Int,

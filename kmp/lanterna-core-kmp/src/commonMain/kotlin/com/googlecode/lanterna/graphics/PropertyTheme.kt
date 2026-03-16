@@ -20,12 +20,11 @@ package com.googlecode.lanterna.graphics
 
 import com.googlecode.lanterna.gui2.WindowDecorationRenderer
 import com.googlecode.lanterna.gui2.WindowPostRenderer
-import java.util.Properties
+import com.googlecode.lanterna.internal.compat.Properties
 
 /**
  * [Theme] implementation that stores the theme definition in a regular java Properties object. The format is:
- * <pre>
- * foreground = black
+ * <pre>foreground = black
  * background = white
  * sgr =
  * com.mypackage.mycomponent.MyClass.foreground = yellow
@@ -34,49 +33,46 @@ import java.util.Properties
  * com.mypackage.mycomponent.MyClass.foreground[ACTIVE] = red
  * com.mypackage.mycomponent.MyClass.background[ACTIVE] = black
  * com.mypackage.mycomponent.MyClass.sgr[ACTIVE] = bold
- * ...
- * </pre>
+ * ...</pre>
  *
  * See the documentation on [Theme] for further information about different style categories that can be assigned.
  * The foreground, background and sgr entries without a class specifier will be tied to the global fallback and is used
  * if the libraries tries to apply a theme style that isn't specified in the Properties object and there is no other
  * superclass specified either.
  */
-open class PropertyTheme : AbstractTheme {
-    /**
-     * Creates a new `PropertyTheme` that is initialized by the properties value and optionally prevents it from
-     * throwing an exception if there are invalid definitions in the properties object.
-     * @param properties Properties to initialize this theme with
-     * @param ignoreUnknownClasses If `true`, will not throw an exception if there is an invalid entry in the
-     * properties object
-     */
-    @JvmOverloads
-    constructor(properties: Properties, ignoreUnknownClasses: Boolean = false) :
-        super(
-            instanceByClassName(properties.getProperty("postrenderer", "")) as WindowPostRenderer?,
-            instanceByClassName(properties.getProperty("windowdecoration", "")) as WindowDecorationRenderer?,
-        ) {
+open class PropertyTheme(
+    properties: Properties,
+    ignoreUnknownClasses: Boolean = false,
+) : AbstractTheme(
+        instanceByClassName(properties.getProperty("postrenderer", "")) as? WindowPostRenderer,
+        instanceByClassName(properties.getProperty("windowdecoration", "")) as? WindowDecorationRenderer,
+    ) {
+    init {
         for (key in properties.stringPropertyNames()) {
-            val definition = getDefinition(key)
-            if (!addStyle(definition, getStyle(key), properties.getProperty(key)) && !ignoreUnknownClasses) {
-                throw IllegalArgumentException(
-                    "Unknown class encountered when parsing theme: '" + definition + "'",
-                )
+            val definition = getDefinition(key!!)
+            if (!addStyle(definition, getStyle(key!!), properties.getProperty(key))) {
+                if (!ignoreUnknownClasses) {
+                    throw IllegalArgumentException("Unknown class encountered when parsing theme: '$definition'")
+                }
             }
         }
     }
 
+    constructor(properties: Properties) : this(properties, false)
+
     private fun getDefinition(propertyName: String): String {
-        if (!propertyName.contains(".")) {
-            return ""
+        return if (!propertyName.contains(".")) {
+            ""
+        } else {
+            propertyName.substring(0, propertyName.lastIndexOf("."))
         }
-        return propertyName.substring(0, propertyName.lastIndexOf("."))
     }
 
     private fun getStyle(propertyName: String): String {
-        if (!propertyName.contains(".")) {
-            return propertyName
+        return if (!propertyName.contains(".")) {
+            propertyName
+        } else {
+            propertyName.substring(propertyName.lastIndexOf(".") + 1)
         }
-        return propertyName.substring(propertyName.lastIndexOf(".") + 1)
     }
 }

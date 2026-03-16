@@ -20,7 +20,7 @@ package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.graphics.TextGraphics
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 
 abstract class AbstractTerminal protected constructor() : Terminal {
     private val resizeListeners: MutableList<TerminalResizeListener> = ArrayList()
@@ -38,7 +38,6 @@ abstract class AbstractTerminal protected constructor() : Terminal {
         }
     }
 
-    @Synchronized
     protected fun onResized(
         columns: Int,
         rows: Int,
@@ -46,7 +45,6 @@ abstract class AbstractTerminal protected constructor() : Terminal {
         onResized(TerminalSize(columns, rows))
     }
 
-    @Synchronized
     protected fun onResized(newSize: TerminalSize?) {
         if (lastKnownSize == null || lastKnownSize != newSize) {
             lastKnownSize = newSize

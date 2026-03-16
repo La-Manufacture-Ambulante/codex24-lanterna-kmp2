@@ -23,9 +23,7 @@ import com.googlecode.lanterna.gui2.Window.Hint
 import com.googlecode.lanterna.gui2.menu.MenuItem
 
 /**
- * This class is a [Window] implementation that automatically sets some common settings that you'd want on
- * specifically popup windows with menu items. It ensures that the window is modal and has a fixed position (rather than
- * letting the window manager choose).
+ * Popup window wrapper for menu items.
  */
 class MenuPopupWindow(parent: Component?) : AbstractWindow() {
     private val menuItemPanel: Panel = Panel(LinearLayout(Direction.VERTICAL))
@@ -34,13 +32,14 @@ class MenuPopupWindow(parent: Component?) : AbstractWindow() {
         setHints(listOf(Hint.MODAL, Hint.MENU_POPUP, Hint.FIXED_POSITION))
         if (parent != null) {
             val menuPositionGlobal = parent.toGlobal(TerminalPosition.TOP_LEFT_CORNER)
-            position = menuPositionGlobal!!.withRelative(0, 1)
+            position = menuPositionGlobal?.withRelative(0, 1)
         }
         component = menuItemPanel
     }
 
     fun addMenuItem(menuItem: MenuItem?) {
-        menuItemPanel.addComponent(menuItem!!)
+        requireNotNull(menuItem) { "menuItem cannot be null" }
+        menuItemPanel.addComponent(menuItem)
         menuItem.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.FILL))
         if (menuItemPanel.childCount == 1) {
             focusedInteractable = menuItem

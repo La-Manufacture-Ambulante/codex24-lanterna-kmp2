@@ -10,8 +10,8 @@ import com.googlecode.lanterna.graphics.StyleSet
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.graphics.TextImage
 import com.googlecode.lanterna.graphics.ThemeStyle
+import com.googlecode.lanterna.internal.compat.EnumSet
 import com.googlecode.lanterna.screen.TabBehaviour
-import java.util.EnumSet
 
 /**
  * Created by Martin on 2017-08-11.

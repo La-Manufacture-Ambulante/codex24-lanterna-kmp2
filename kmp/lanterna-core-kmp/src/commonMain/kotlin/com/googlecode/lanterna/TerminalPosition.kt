@@ -18,11 +18,19 @@
  */
 package com.googlecode.lanterna
 
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+
 /**
  * A 2-d position in 'terminal space'. Please note that the coordinates are 0-indexed, meaning 0x0 is the top left
  * corner of the terminal. This object is immutable so you cannot change it after it has been created. Instead, you
  * can easily create modified 'clones' by using the 'with' methods.
  *
+ * Creates a new terminal position object that represents a location on the screen.
+ *
+ * @param column Column of the location, or the `x` coordinate, zero indexed
+ * @param row Row of the location, or the `y` coordinate, zero indexed
  * @author Martin
  */
 class TerminalPosition(
@@ -32,7 +40,7 @@ class TerminalPosition(
      */
     val column: Int,
     /**
-     * Returns the index of the row this position is representing, zero indexed (the first row has index 0).
+     * Returns the index of the row this position is representing, zero indexed (the first row has index 0)
      * @return Index of the row this position has
      */
     val row: Int,
@@ -43,7 +51,7 @@ class TerminalPosition(
      * @param row Index of the row for the new position
      * @return A TerminalPosition object with the same column as this but with a specified row index
      */
-    fun withRow(row: Int): TerminalPosition {
+    fun withRow(row: Int): TerminalPosition? {
         if (row == 0 && this.column == 0) {
             return TOP_LEFT_CORNER
         }
@@ -56,7 +64,7 @@ class TerminalPosition(
      * @param column Index of the column for the new position
      * @return A TerminalPosition object with the same row as this but with a specified column index
      */
-    fun withColumn(column: Int): TerminalPosition {
+    fun withColumn(column: Int): TerminalPosition? {
         if (column == 0 && this.row == 0) {
             return TOP_LEFT_CORNER
         }
@@ -70,7 +78,7 @@ class TerminalPosition(
      * @param delta Column offset
      * @return New terminal position based off this one but with an applied offset
      */
-    fun withRelativeColumn(delta: Int): TerminalPosition {
+    fun withRelativeColumn(delta: Int): TerminalPosition? {
         if (delta == 0) {
             return this
         }
@@ -84,7 +92,7 @@ class TerminalPosition(
      * @param delta Row offset
      * @return New terminal position based off this one but with an applied offset
      */
-    fun withRelativeRow(delta: Int): TerminalPosition {
+    fun withRelativeRow(delta: Int): TerminalPosition? {
         if (delta == 0) {
             return this
         }
@@ -94,18 +102,18 @@ class TerminalPosition(
     /**
      * Creates a new TerminalPosition object that is 'translated' by an amount of rows and columns specified by another
      * TerminalPosition. Same as calling
-     * `withRelativeRow(translate.row).withRelativeColumn(translate.column)`.
+     * `withRelativeRow(translate.getRow()).withRelativeColumn(translate.getColumn())`
      * @param translate How many columns and rows to translate
      * @return New TerminalPosition that is the result of the original with added translation
      */
-    fun withRelative(translate: TerminalPosition): TerminalPosition {
+    fun withRelative(translate: TerminalPosition): TerminalPosition? {
         return withRelative(translate.column, translate.row)
     }
 
     /**
      * Creates a new TerminalPosition object that is 'translated' by an amount of rows and columns specified by the two
      * parameters. Same as calling
-     * `withRelativeRow(deltaRow).withRelativeColumn(deltaColumn)`.
+     * `withRelativeRow(deltaRow).withRelativeColumn(deltaColumn)`
      * @param deltaColumn How many columns to move from the current position in the new TerminalPosition
      * @param deltaRow How many rows to move from the current position in the new TerminalPosition
      * @return New TerminalPosition that is the result of the original position with added translation
@@ -113,8 +121,8 @@ class TerminalPosition(
     fun withRelative(
         deltaColumn: Int,
         deltaRow: Int,
-    ): TerminalPosition {
-        return withRelativeRow(deltaRow).withRelativeColumn(deltaColumn)
+    ): TerminalPosition? {
+        return withRelativeRow(deltaRow)!!.withRelativeColumn(deltaColumn)
     }
 
     /**
@@ -132,10 +140,10 @@ class TerminalPosition(
     }
 
     fun plus(position: TerminalPosition?): TerminalPosition? {
-        return withRelative(requireNotNull(position) { "position" })
+        return withRelative(position!!)
     }
 
-    fun minus(position: TerminalPosition): TerminalPosition {
+    fun minus(position: TerminalPosition): TerminalPosition? {
         return withRelative(-position.column, -position.row)
     }
 
@@ -148,30 +156,30 @@ class TerminalPosition(
     }
 
     fun abs(): TerminalPosition {
-        val x = kotlin.math.abs(column)
-        val y = kotlin.math.abs(row)
+        val x = abs(column)
+        val y = abs(row)
         return TerminalPosition(x, y)
     }
 
     fun min(position: TerminalPosition): TerminalPosition {
-        val x = kotlin.math.min(column, position.column)
-        val y = kotlin.math.min(row, position.row)
+        val x = min(column, position.column)
+        val y = min(row, position.row)
         return TerminalPosition(x, y)
     }
 
     fun max(position: TerminalPosition): TerminalPosition {
-        val x = kotlin.math.max(column, position.column)
-        val y = kotlin.math.max(row, position.row)
+        val x = max(column, position.column)
+        val y = max(row, position.row)
         return TerminalPosition(x, y)
     }
 
-    override fun compareTo(other: TerminalPosition): Int {
-        if (row < other.row) {
+    override operator fun compareTo(o: TerminalPosition): Int {
+        if (row < o.row) {
             return -1
-        } else if (row == other.row) {
-            if (column < other.column) {
+        } else if (row == o.row) {
+            if (column < o.column) {
                 return -1
-            } else if (column == other.column) {
+            } else if (column == o.column) {
                 return 0
             }
         }
@@ -179,13 +187,13 @@ class TerminalPosition(
     }
 
     override fun toString(): String {
-        return "[$column:$row]"
+        return "[" + column + ":" + row + "]"
     }
 
     override fun hashCode(): Int {
         var hash = 3
-        hash = 23 * hash + row
-        hash = 23 * hash + column
+        hash = 23 * hash + this.row
+        hash = 23 * hash + this.column
         return hash
     }
 
@@ -193,7 +201,7 @@ class TerminalPosition(
         columnIndex: Int,
         rowIndex: Int,
     ): Boolean {
-        return column == columnIndex && row == rowIndex
+        return (this.column == columnIndex && this.row == rowIndex)
     }
 
     override fun equals(obj: Any?): Boolean {
@@ -204,17 +212,17 @@ class TerminalPosition(
             return false
         }
         val other = obj as TerminalPosition
-        return row == other.row && column == other.column
+        return this.row == other.row && this.column == other.column
     }
 
     companion object {
         /**
-         * Constant for the top-left corner (0x0).
+         * Constant for the top-left corner (0x0)
          */
         val TOP_LEFT_CORNER = TerminalPosition(0, 0)
 
         /**
-         * Constant for the 1x1 position (one offset in both directions from top-left).
+         * Constant for the 1x1 position (one offset in both directions from top-left)
          */
         val OFFSET_1x1 = TerminalPosition(1, 1)
     }

@@ -1,9 +1,9 @@
 package com.googlecode.lanterna.bundle
 
 import com.googlecode.lanterna.graphics.PropertyTheme
-import java.io.IOException
-import java.io.StringReader
-import java.util.Properties
+import com.googlecode.lanterna.internal.compat.Properties
+import com.googlecode.lanterna.internal.compat.StringReader
+import com.googlecode.lanterna.internal.io.IOException
 
 internal class DefaultTheme : PropertyTheme(definitionAsProperty(), false) {
     companion object {

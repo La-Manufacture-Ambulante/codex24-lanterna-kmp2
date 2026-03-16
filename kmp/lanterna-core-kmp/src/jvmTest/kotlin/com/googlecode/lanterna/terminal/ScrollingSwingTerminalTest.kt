@@ -37,7 +37,6 @@ import javax.swing.UnsupportedLookAndFeelException
 /**
  * Interactive manual test for [ScrollingSwingTerminal].
  */
-@Suppress("FieldCanBeLocal")
 class ScrollingSwingTerminalTest : JFrame() {
     private val scrollingSwingTerminal: ScrollingSwingTerminal
 
@@ -126,6 +125,7 @@ class ScrollingSwingTerminalTest : JFrame() {
     companion object {
         private const val serialVersionUID = 1L
 
+        @JvmStatic
         fun main(args: Array<String?>?) {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())

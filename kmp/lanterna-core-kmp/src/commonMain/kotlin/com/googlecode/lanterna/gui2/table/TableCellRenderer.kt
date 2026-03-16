@@ -24,7 +24,7 @@ import com.googlecode.lanterna.gui2.TextGUIGraphics
 /**
  * The main interface to implement when you need to customize the way table cells are drawn
  *
- * @param <V> Type of data in the table cells
+ * @param V Type of data in the table cells
  * @author Martin
  */
 interface TableCellRenderer<V> {

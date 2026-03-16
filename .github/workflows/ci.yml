@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   java-library:
@@ -64,47 +65,26 @@ jobs:
           name: jvm-render-${{ matrix.os }}
           path: kmp/lanterna-demo-kmp/build/reports/demos/jvm/**
 
-  kmp-native-linux:
-    name: KMP Native Demo (linuxX64)
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Set up Gradle 8.7
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.7"
-
-      - name: Build linuxX64 native demo executable
-        run: gradle -p kmp :lanterna-demo-kmp:linkDebugExecutableLinuxX64 --no-daemon
-
-      - name: Run linuxX64 native demo snapshot
-        shell: bash
-        run: |
-          set -euo pipefail
-          exe="$(find kmp/lanterna-demo-kmp/build/bin/linuxX64/debugExecutable -maxdepth 1 -type f | head -n 1)"
-          out_dir="kmp/lanterna-demo-kmp/build/reports/demos/linuxX64"
-          mkdir -p "$out_dir"
-          DEMO_OUTPUT_DIR="$out_dir" DEMO_TARGET="linuxX64" "$exe"
-
-      - name: Upload linuxX64 render artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: native-render-linuxX64
-          path: kmp/lanterna-demo-kmp/build/reports/demos/linuxX64/**
-
-  kmp-native-macos:
-    name: KMP Native Demo (macOS)
-    runs-on: macos-latest
+  kmp-native-parity:
+    name: KMP Native Parity (${{ matrix.target }})
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linuxX64
+            runner: ubuntu-latest
+            test_task: :lanterna-core-kmp:linuxX64Test
+            link_task: :lanterna-demo-kmp:linkDebugExecutableLinuxX64
+          - target: macosX64
+            runner: macos-latest
+            test_task: :lanterna-core-kmp:macosX64Test
+            link_task: :lanterna-demo-kmp:linkDebugExecutableMacosX64
+          - target: macosArm64
+            runner: macos-14
+            test_task: :lanterna-core-kmp:macosArm64Test
+            link_task: :lanterna-demo-kmp:linkDebugExecutableMacosArm64
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -120,33 +100,144 @@ jobs:
         with:
           gradle-version: "8.7"
 
-      - name: Build macOS native demo executables
-        run: gradle -p kmp :lanterna-demo-kmp:linkDebugExecutableMacosArm64 :lanterna-demo-kmp:linkDebugExecutableMacosX64 --no-daemon
+      - name: Run ${{ matrix.target }} native tests
+        run: gradle -p kmp ${{ matrix.test_task }} --no-daemon
 
-      - name: Run macOS native demo snapshot(s)
+      - name: Build ${{ matrix.target }} native demo executable
+        run: gradle -p kmp ${{ matrix.link_task }} --no-daemon
+
+      - name: Run ${{ matrix.target }} native demo smoke snapshot
         shell: bash
         run: |
           set -euo pipefail
-          ran=0
-          for dir in kmp/lanterna-demo-kmp/build/bin/macos*/debugExecutable; do
-            [ -d "$dir" ] || continue
-            exe="$(find "$dir" -maxdepth 1 -type f | head -n 1)"
-            [ -n "$exe" ] || continue
-            target="$(echo "$dir" | sed -E 's#.*build/bin/([^/]+)/debugExecutable#\1#')"
-            out_dir="kmp/lanterna-demo-kmp/build/reports/demos/${target}"
-            mkdir -p "$out_dir"
-            DEMO_OUTPUT_DIR="$out_dir" DEMO_TARGET="$target" "$exe"
-            ran=$((ran + 1))
-          done
-          if [ "$ran" -eq 0 ]; then
-            echo "No macOS native executable was produced."
+          exe_dir="kmp/lanterna-demo-kmp/build/bin/${{ matrix.target }}/debugExecutable"
+          exe="$(find "$exe_dir" -maxdepth 1 -type f | head -n 1)"
+          if [ -z "$exe" ]; then
+            echo "No executable found in $exe_dir"
             exit 1
           fi
+          out_dir="kmp/lanterna-demo-kmp/build/reports/demos/${{ matrix.target }}"
+          mkdir -p "$out_dir"
+          LANTERNA_RESOURCE_DIR="src/main/resources" DEMO_OUTPUT_DIR="$out_dir" DEMO_TARGET="${{ matrix.target }}" DEMO_LANTERNA_SMOKE=1 "$exe"
 
-      - name: Upload macOS render artifacts
+      - name: Summarize ${{ matrix.target }} snapshot artifacts
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          out_dir="kmp/lanterna-demo-kmp/build/reports/demos/${{ matrix.target }}"
+          file_count=0
+          if [ -d "$out_dir" ]; then
+            file_count=$(find "$out_dir" -type f | wc -l | tr -d ' ')
+          fi
+          {
+            echo "## Native parity target: ${{ matrix.target }}"
+            echo "- runner: ${{ matrix.runner }}"
+            echo "- artifact files: $file_count"
+            echo "- artifact: native-render-${{ matrix.target }}"
+            echo "- run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload ${{ matrix.target }} render artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: native-render-macos
-          path: |
-            kmp/lanterna-demo-kmp/build/reports/demos/macosX64/**
-            kmp/lanterna-demo-kmp/build/reports/demos/macosArm64/**
+          name: native-render-${{ matrix.target }}
+          path: kmp/lanterna-demo-kmp/build/reports/demos/${{ matrix.target }}/**
+
+  native-parity-report:
+    name: Native Parity Report
+    runs-on: ubuntu-latest
+    needs: [kmp-native-parity]
+    if: always()
+    timeout-minutes: 10
+    steps:
+      - name: Download native parity artifacts
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          pattern: native-render-*
+          path: native-parity-artifacts
+
+      - name: Build native parity summary
+        id: native-parity-summary
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="native-parity-artifacts"
+          linux_files=0
+          macos_x64_files=0
+          macos_arm64_files=0
+
+          if [ -d "$root/native-render-linuxX64" ]; then
+            linux_files=$(find "$root/native-render-linuxX64" -type f | wc -l | tr -d ' ')
+          fi
+          if [ -d "$root/native-render-macosX64" ]; then
+            macos_x64_files=$(find "$root/native-render-macosX64" -type f | wc -l | tr -d ' ')
+          fi
+          if [ -d "$root/native-render-macosArm64" ]; then
+            macos_arm64_files=$(find "$root/native-render-macosArm64" -type f | wc -l | tr -d ' ')
+          fi
+
+          echo "linux_files=$linux_files" >> "$GITHUB_OUTPUT"
+          echo "macos_x64_files=$macos_x64_files" >> "$GITHUB_OUTPUT"
+          echo "macos_arm64_files=$macos_arm64_files" >> "$GITHUB_OUTPUT"
+          echo "matrix_result=${{ needs.kmp-native-parity.result }}" >> "$GITHUB_OUTPUT"
+          echo "run_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Native Parity Matrix Summary"
+            echo "- matrix result: ${{ needs.kmp-native-parity.result }}"
+            echo "- linuxX64 artifact files: $linux_files"
+            echo "- macosX64 artifact files: $macos_x64_files"
+            echo "- macosArm64 artifact files: $macos_arm64_files"
+            echo "- artifacts: native-render-linuxX64, native-render-macosX64, native-render-macosArm64"
+            echo "- run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment native parity summary on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          MATRIX_RESULT: ${{ steps.native-parity-summary.outputs.matrix_result }}
+          LINUX_FILES: ${{ steps.native-parity-summary.outputs.linux_files }}
+          MACOS_X64_FILES: ${{ steps.native-parity-summary.outputs.macos_x64_files }}
+          MACOS_ARM64_FILES: ${{ steps.native-parity-summary.outputs.macos_arm64_files }}
+          RUN_URL: ${{ steps.native-parity-summary.outputs.run_url }}
+        with:
+          script: |
+            const marker = '<!-- pr4-native-parity-summary -->';
+            const body = `${marker}
+            ### Native Parity Matrix Summary
+            - matrix result: ${process.env.MATRIX_RESULT}
+            - linuxX64 artifact files: ${process.env.LINUX_FILES}
+            - macosX64 artifact files: ${process.env.MACOS_X64_FILES}
+            - macosArm64 artifact files: ${process.env.MACOS_ARM64_FILES}
+            - artifacts: \`native-render-linuxX64\`, \`native-render-macosX64\`, \`native-render-macosArm64\`
+            - run: ${process.env.RUN_URL}`;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100
+            });
+            const existing = comments.find((c) => c.user?.type === 'Bot' && c.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body
+              });
+            }

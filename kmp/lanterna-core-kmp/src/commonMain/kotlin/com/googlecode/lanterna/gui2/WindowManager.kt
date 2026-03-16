@@ -66,7 +66,6 @@ interface WindowManager {
      * @param window Window that was removed
      * @param allWindows All windows, excluding the removed window, in the GUI
      */
-    @SuppressWarnings("EmptyMethod")
     fun onRemoved(
         textGUI: WindowBasedTextGUI?,
         window: Window?,

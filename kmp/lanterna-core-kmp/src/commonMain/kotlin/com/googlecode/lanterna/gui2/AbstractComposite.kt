@@ -22,12 +22,7 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.gui2.menu.MenuBar
 
 /**
- * This abstract implementation contains common code for the different `Composite` implementations. A
- * `Composite` component is one that encapsulates a single component, like borders. Because of this, a
- * `Composite` can be seen as a special case of a `Container` and indeed this abstract class does in fact
- * implement the `Container` interface as well, to make the composites easier to work with internally.
- * @author martin
- * @param T Should always be itself, see `AbstractComponent`
+ * Abstract implementation with common code for [Composite]s.
  */
 abstract class AbstractComposite<T : Container?> : AbstractComponent<T>(), Composite, Container {
     private var childComponent: Component? = null

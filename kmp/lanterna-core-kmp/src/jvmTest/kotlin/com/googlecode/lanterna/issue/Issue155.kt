@@ -17,7 +17,6 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.issue
-
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.Button
@@ -65,7 +64,7 @@ object Issue155 {
         return Panels.vertical(
             Button("Open Dialog (and crush stuff)", openDialog(gui, window, nextCounter)),
             checkBoxList,
-            Button("Quit", Runnable { window.close() }),
+            Button("Quit", com.googlecode.lanterna.Runnable({ window.close() })),
         )
     }
 
@@ -73,11 +72,15 @@ object Issue155 {
         gui: WindowBasedTextGUI,
         window: BasicWindow,
         counter: Int,
-    ): Runnable {
-        return Runnable {
-            ActionListDialogBuilder().setCanCancel(
-                true,
-            ).addAction("Reinstall UI (this crashes everything)", setupUI(gui, window, counter)).build().showDialog(gui)
+    ): com.googlecode.lanterna.Runnable {
+        return com.googlecode.lanterna.Runnable {
+            ActionListDialogBuilder()
+                .setCanCancel(true)
+                .addAction(
+                    "Reinstall UI (this crashes everything)",
+                    setupUI(gui, window, counter),
+                ).build()
+                .showDialog(gui)
         }
     }
 
@@ -85,7 +88,7 @@ object Issue155 {
         gui: WindowBasedTextGUI,
         window: BasicWindow,
         counter: Int,
-    ): Runnable {
-        return Runnable { window.component = createUi(gui, window, counter) }
+    ): com.googlecode.lanterna.Runnable {
+        return com.googlecode.lanterna.Runnable { window.component = createUi(gui, window, counter) }
     }
 }

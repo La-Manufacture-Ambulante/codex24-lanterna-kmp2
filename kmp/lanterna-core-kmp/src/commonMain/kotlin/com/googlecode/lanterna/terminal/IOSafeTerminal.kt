@@ -23,7 +23,7 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyStroke
-import java.util.concurrent.TimeUnit
+import com.googlecode.lanterna.internal.compat.TimeUnit
 
 interface IOSafeTerminal : Terminal {
     override var cursorPosition: TerminalPosition?

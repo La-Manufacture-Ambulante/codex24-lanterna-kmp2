@@ -22,11 +22,7 @@ import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 
 /**
- * The default window manager implementation used by Lanterna. New windows will be generally added in a tiled manner,
- * starting in the top-left corner and moving down-right as new windows are added. By using the various window hints
- * that are available you have some control over how the window manager will place and size the windows.
- *
- * @author Martin
+ * Default window manager implementation.
  */
 open class DefaultWindowManager(
     private val windowDecorationRendererOverride: WindowDecorationRenderer?,
@@ -42,7 +38,7 @@ open class DefaultWindowManager(
         get() = false
 
     override fun getWindowDecorationRenderer(window: Window?): WindowDecorationRenderer? {
-        val w = window!!
+        val w = window ?: return DefaultWindowDecorationRenderer()
         return when {
             w.hints?.contains(Window.Hint.NO_DECORATIONS) == true -> EmptyWindowDecorationRenderer()
             windowDecorationRendererOverride != null -> windowDecorationRendererOverride
@@ -56,8 +52,8 @@ open class DefaultWindowManager(
         window: Window?,
         allWindows: List<Window?>?,
     ) {
-        val w = window!!
-        val windows = allWindows!!
+        val w = window ?: return
+        val windows = allWindows ?: emptyList()
         val decorationRenderer = getWindowDecorationRenderer(w) ?: DefaultWindowDecorationRenderer()
         val expectedDecoratedSize = decorationRenderer.getDecoratedSize(w, w.preferredSize) ?: TerminalSize.ZERO
         w.decoratedSize = expectedDecoratedSize
@@ -99,8 +95,8 @@ open class DefaultWindowManager(
         allWindows: List<Window?>?,
         screenSize: TerminalSize?,
     ) {
-        lastKnownScreenSize = screenSize!!
-        for (window in allWindows!!) {
+        lastKnownScreenSize = screenSize ?: lastKnownScreenSize
+        for (window in allWindows.orEmpty()) {
             if (window != null) {
                 prepareWindow(lastKnownScreenSize, window)
             }

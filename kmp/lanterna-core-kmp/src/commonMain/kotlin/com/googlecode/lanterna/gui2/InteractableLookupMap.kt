@@ -20,8 +20,7 @@ package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
-import java.util.Arrays
-import java.util.HashSet
+import kotlin.collections.HashSet
 
 /**
  * This class is used to keep a 'map' of the usable area and note where all the interact:ables are. It can then be used
@@ -42,22 +41,17 @@ class InteractableLookupMap internal constructor(size: TerminalSize) {
 
     init {
         for (row in lookupMap) {
-            Arrays.fill(row, -1)
+            row.fill(-1)
         }
     }
 
     internal fun reset() {
         interactables.clear()
         for (row in lookupMap) {
-            Arrays.fill(row, -1)
+            row.fill(-1)
         }
     }
 
-    /**
-     * Adds an interactable component to the lookup map.
-     * @param interactable Interactable to add to the lookup map
-     */
-    @Synchronized
     fun add(interactable: Interactable) {
         val topLeft = interactable.toBasePane(TerminalPosition.TOP_LEFT_CORNER)!!
         val componentSize = interactable.size!!
@@ -72,12 +66,6 @@ class InteractableLookupMap internal constructor(size: TerminalSize) {
         }
     }
 
-    /**
-     * Looks up what interactable component is at a particular location in the map.
-     * @param position Position to look up
-     * @return The `Interactable` component at the specified location or `null` if there's nothing there
-     */
-    @Synchronized
     fun getInteractableAt(position: TerminalPosition): Interactable? {
         if (position.row < 0 || position.column < 0) {
             return null
@@ -94,24 +82,10 @@ class InteractableLookupMap internal constructor(size: TerminalSize) {
         return interactables[lookupMap[position.row][position.column]]
     }
 
-    /**
-     * Starting from a particular `Interactable` and going up, which is the next interactable?
-     * @param interactable What `Interactable` to start searching from
-     * @return The next `Interactable` above the one specified or `null` if there are no more
-     * `Interactable`s above it
-     */
-    @Synchronized
     fun findNextUp(interactable: Interactable?): Interactable? {
         return findNextUpOrDown(interactable!!, false)
     }
 
-    /**
-     * Starting from a particular `Interactable` and going down, which is the next interactable?
-     * @param interactable What `Interactable` to start searching from
-     * @return The next `Interactable` below the one specified or `null` if there are no more
-     * `Interactable`s below it
-     */
-    @Synchronized
     fun findNextDown(interactable: Interactable?): Interactable? {
         return findNextUpOrDown(interactable!!, true)
     }
@@ -172,24 +146,10 @@ class InteractableLookupMap internal constructor(size: TerminalSize) {
         return null
     }
 
-    /**
-     * Starting from a particular `Interactable` and going left, which is the next interactable?
-     * @param interactable What `Interactable` to start searching from
-     * @return The next `Interactable` left of the one specified or `null` if there are no more
-     * `Interactable`s left of it
-     */
-    @Synchronized
     fun findNextLeft(interactable: Interactable?): Interactable? {
         return findNextLeftOrRight(interactable!!, false)
     }
 
-    /**
-     * Starting from a particular `Interactable` and going right, which is the next interactable?
-     * @param interactable What `Interactable` to start searching from
-     * @return The next `Interactable` right of the one specified or `null` if there are no more
-     * `Interactable`s right of it
-     */
-    @Synchronized
     fun findNextRight(interactable: Interactable?): Interactable? {
         return findNextLeftOrRight(interactable!!, true)
     }

@@ -17,7 +17,6 @@
  * Copyright (C) 2010-2024 Martin Berglund
  */
 package com.googlecode.lanterna.gui2
-
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TestTerminalFactory
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder
@@ -26,8 +25,8 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialog
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialog
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder
+import com.googlecode.lanterna.internal.compat.Pattern
 import java.io.IOException
-import java.util.regex.Pattern
 
 /**
  *
@@ -97,14 +96,28 @@ object DialogsTextGUIBasicTest {
                     .setDescription("Choose an item")
                     .addAction(
                         "First Item",
-                        { MessageDialog.showMessageDialog(textGUI, "Action List Dialog", "You chose First Item", MessageDialogButton.OK) },
+                        {
+                            MessageDialog.showMessageDialog(
+                                textGUI,
+                                "Action List Dialog",
+                                "You chose First Item",
+                                MessageDialogButton.OK,
+                            )
+                        },
                     )
                     .addAction("Second Item", {
                         MessageDialog.showMessageDialog(textGUI, "Action List Dialog", "You chose Second Item", MessageDialogButton.OK)
                     })
                     .addAction(
                         "Third Item",
-                        { MessageDialog.showMessageDialog(textGUI, "Action List Dialog", "You chose Third Item", MessageDialogButton.OK) },
+                        {
+                            MessageDialog.showMessageDialog(
+                                textGUI,
+                                "Action List Dialog",
+                                "You chose Third Item",
+                                MessageDialogButton.OK,
+                            )
+                        },
                     )
                     .build()
                     .showDialog(textGUI)
@@ -112,7 +125,7 @@ object DialogsTextGUIBasicTest {
 
             mainPanel.addComponent(dialogsListBox)
             mainPanel.addComponent(EmptySpace(TerminalSize.ONE))
-            mainPanel.addComponent(Button("Exit", Runnable { window.close() }))
+            mainPanel.addComponent(Button("Exit", Runnable({ window.close() })))
             window.component = mainPanel
 
             textGUI.addWindowAndWait(window)

@@ -18,8 +18,7 @@
  */
 package com.googlecode.lanterna.gui2.table
 
-import java.util.ArrayList
-import java.util.Arrays
+import kotlin.collections.ArrayList
 
 /**
  * A [TableModel] contains the data model behind a table.
@@ -62,20 +61,17 @@ open class TableModel<V>(columnLabels: List<String?>) {
     private val rows: MutableList<MutableList<V>> = ArrayList()
     private val listeners: MutableList<Listener<V>> = ArrayList()
 
-    constructor(vararg columnLabels: String?) : this(Arrays.asList(*columnLabels))
+    constructor(vararg columnLabels: String?) : this(listOf(*columnLabels))
 
     init {
         require(columnLabels.isNotEmpty()) { "Table model needs at least one column" }
         columns.addAll(columnLabels)
     }
 
-    @Synchronized
     fun getColumnCount(): Int = columns.size
 
-    @Synchronized
     fun getRowCount(): Int = rows.size
 
-    @Synchronized
     fun getRows(): List<List<V>> {
         val copy = ArrayList<List<V>>()
         for (row in rows) {
@@ -84,17 +80,14 @@ open class TableModel<V>(columnLabels: List<String?>) {
         return copy
     }
 
-    @Synchronized
     fun getColumnLabels(): List<String?> {
         return ArrayList(columns)
     }
 
-    @Synchronized
     fun getRow(index: Int): List<V> {
         return ArrayList(rows[index])
     }
 
-    @Synchronized
     fun getColumn(index: Int): List<V> {
         val columnData = ArrayList<V>()
         for (row in 0 until getRowCount()) {
@@ -103,20 +96,16 @@ open class TableModel<V>(columnLabels: List<String?>) {
         return columnData
     }
 
-    @SafeVarargs
-    @Synchronized
     final fun addRow(vararg values: V): TableModel<V> {
-        addRow(Arrays.asList(*values))
+        addRow(listOf(*values))
         return this
     }
 
-    @Synchronized
     fun addRow(values: Collection<V>): TableModel<V> {
         insertRow(getRowCount(), values)
         return this
     }
 
-    @Synchronized
     fun insertRow(
         index: Int,
         values: Collection<V>,
@@ -129,7 +118,6 @@ open class TableModel<V>(columnLabels: List<String?>) {
         return this
     }
 
-    @Synchronized
     fun removeRow(index: Int): TableModel<V> {
         val removedRow = rows.removeAt(index)
         for (listener in listeners) {
@@ -138,7 +126,6 @@ open class TableModel<V>(columnLabels: List<String?>) {
         return this
     }
 
-    @Synchronized
     fun clear(): TableModel<V> {
         while (rows.isNotEmpty()) {
             removeRow(0)
@@ -146,10 +133,8 @@ open class TableModel<V>(columnLabels: List<String?>) {
         return this
     }
 
-    @Synchronized
     fun getColumnLabel(index: Int): String? = columns[index]
 
-    @Synchronized
     fun setColumnLabel(
         index: Int,
         newLabel: String?,
@@ -158,7 +143,6 @@ open class TableModel<V>(columnLabels: List<String?>) {
         return this
     }
 
-    @Synchronized
     fun addColumn(
         label: String?,
         newColumnValues: Array<V>?,
@@ -166,7 +150,6 @@ open class TableModel<V>(columnLabels: List<String?>) {
         return insertColumn(getColumnCount(), label, newColumnValues)
     }
 
-    @Synchronized
     fun insertColumn(
         index: Int,
         label: String?,
@@ -190,7 +173,6 @@ open class TableModel<V>(columnLabels: List<String?>) {
         return this
     }
 
-    @Synchronized
     fun removeColumn(index: Int): TableModel<V> {
         val removedColumnHeader = columns.removeAt(index)
         val removedColumn = ArrayList<V>()
@@ -203,7 +185,6 @@ open class TableModel<V>(columnLabels: List<String?>) {
         return this
     }
 
-    @Synchronized
     fun getCell(
         columnIndex: Int,
         rowIndex: Int,
@@ -219,7 +200,6 @@ open class TableModel<V>(columnLabels: List<String?>) {
         return rows[rowIndex][columnIndex]
     }
 
-    @Synchronized
     fun setCell(
         columnIndex: Int,
         rowIndex: Int,

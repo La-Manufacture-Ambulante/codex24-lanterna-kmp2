@@ -26,14 +26,12 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 
 /**
  * Base class for several list box implementations.
  */
-abstract class AbstractListBox<V, T : AbstractListBox<V, T>?>
-    @JvmOverloads
-    protected constructor(size: TerminalSize? = null) :
+abstract class AbstractListBox<V, T : AbstractListBox<V, T>?> protected constructor(size: TerminalSize? = null) :
     AbstractInteractableComponent<T>() {
         private val items: MutableList<V> = ArrayList()
         private var selectedIndex: Int = -1
@@ -57,7 +55,6 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?>
             return listItemRenderer
         }
 
-        @Synchronized
         fun setListItemRenderer(listItemRenderer: ListItemRenderer<V, T>?): T? {
             var renderer = listItemRenderer
             if (renderer == null) {
@@ -70,7 +67,6 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?>
             return self()
         }
 
-        @Synchronized
         override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
             try {
                 when (keyStroke.keyType) {
@@ -119,7 +115,7 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?>
                     }
 
                     KeyType.CHARACTER -> {
-                        if (selectByCharacter(keyStroke.character)) {
+                        if (!keyStroke.isAltDown && !keyStroke.isCtrlDown && selectByCharacter(keyStroke.character)) {
                             return Interactable.Result.HANDLED
                         }
                         return Interactable.Result.UNHANDLED
@@ -183,7 +179,6 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?>
             return false
         }
 
-        @Synchronized
         override fun afterEnterFocus(
             direction: Interactable.FocusChangeDirection?,
             previouslyInFocus: Interactable?,
@@ -199,7 +194,6 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?>
             }
         }
 
-        @Synchronized
         open fun addItem(item: V?): T? {
             if (item == null) {
                 return self()
@@ -213,7 +207,6 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?>
             return self()
         }
 
-        @Synchronized
         open fun removeItem(index: Int): V {
             val existing = items.removeAt(index)
             if (index < selectedIndex) {
@@ -226,7 +219,6 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?>
             return existing
         }
 
-        @Synchronized
         open fun clearItems(): T? {
             items.clear()
             selectedIndex = -1
@@ -242,12 +234,10 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?>
                 return super.isFocusable
             }
 
-        @Synchronized
         fun indexOf(item: V?): Int {
             return items.indexOf(item)
         }
 
-        @Synchronized
         fun getItemAt(index: Int): V {
             return items[index]
         }
@@ -258,12 +248,10 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?>
         val itemCount: Int
             get() = items.size
 
-        @Synchronized
         fun getItems(): List<V> {
             return ArrayList(items)
         }
 
-        @Synchronized
         fun setSelectedIndex(index: Int): T? {
             selectedIndex = kotlin.math.max(0, kotlin.math.min(index, items.size - 1))
             invalidate()
@@ -322,7 +310,7 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?>
                 val activeListBox = listBox ?: return
 
                 val themeDefinition: ThemeDefinition =
-                    activeListBox.theme?.getDefinition(AbstractListBox::class.java) ?: return
+                    activeListBox.theme?.getDefinition(AbstractListBox::class) ?: return
                 val componentHeight = activeGraphics.size?.rows ?: 0
                 val selectedIndex = activeListBox.getSelectedIndex()
                 val items = activeListBox.getItems()
@@ -399,7 +387,7 @@ abstract class AbstractListBox<V, T : AbstractListBox<V, T>?>
             ) {
                 val activeGraphics = graphics ?: return
                 val activeListBox = listBox ?: return
-                val themeDefinition = activeListBox.theme?.getDefinition(AbstractListBox::class.java) ?: return
+                val themeDefinition = activeListBox.theme?.getDefinition(AbstractListBox::class) ?: return
                 if (selected && focused) {
                     activeGraphics.applyThemeStyle(themeDefinition.selected)
                 } else {

@@ -18,7 +18,6 @@
  */
 
 package com.googlecode.lanterna
-
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import com.googlecode.lanterna.terminal.MouseCaptureMode

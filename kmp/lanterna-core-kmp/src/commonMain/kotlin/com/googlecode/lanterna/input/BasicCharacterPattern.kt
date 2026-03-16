@@ -18,27 +18,14 @@
  */
 package com.googlecode.lanterna.input
 
-import java.util.Arrays
-
 /**
- * Very simple pattern that matches the input stream against a pre-defined list of characters. For the pattern to
- * match, the list of characters must match exactly what's coming in on the input stream.
- *
- * @author Martin, Andreas
+ * Simple pattern that matches the input stream against a predefined character sequence.
  */
-class BasicCharacterPattern(result: KeyStroke?, vararg pattern: Char) : CharacterPattern {
-    private val resultKeyStroke: KeyStroke? = result
+class BasicCharacterPattern(val result: KeyStroke?, vararg pattern: Char) : CharacterPattern {
     private val pattern: CharArray = pattern
 
     fun getPattern(): CharArray {
-        return Arrays.copyOf(pattern, pattern.size)
-    }
-
-    /**
-     * Returns the keystroke that this pattern results in.
-     */
-    fun getResult(): KeyStroke? {
-        return resultKeyStroke
+        return pattern.copyOf(pattern.size)
     }
 
     override fun match(seq: List<Char>?): CharacterPattern.Matching? {
@@ -53,19 +40,19 @@ class BasicCharacterPattern(result: KeyStroke?, vararg pattern: Char) : Characte
             }
         }
         return if (size == pattern.size) {
-            CharacterPattern.Matching(getResult())
+            CharacterPattern.Matching(result)
         } else {
             CharacterPattern.Matching.NOT_YET
         }
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is BasicCharacterPattern && Arrays.equals(pattern, other.pattern)
+        return other is BasicCharacterPattern && pattern.contentEquals(other.pattern)
     }
 
     override fun hashCode(): Int {
         var hash = 3
-        hash = 53 * hash + Arrays.hashCode(pattern)
+        hash = 53 * hash + pattern.contentHashCode()
         return hash
     }
 }

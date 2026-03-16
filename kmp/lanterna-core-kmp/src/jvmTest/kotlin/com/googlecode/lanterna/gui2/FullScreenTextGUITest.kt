@@ -26,8 +26,8 @@ import com.googlecode.lanterna.graphics.BasicTextImage
 import com.googlecode.lanterna.graphics.TextImage
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.internal.io.EOFException
 import com.googlecode.lanterna.screen.Screen
-import java.io.EOFException
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 

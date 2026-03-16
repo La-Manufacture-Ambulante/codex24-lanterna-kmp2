@@ -26,17 +26,16 @@ import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.graphics.TextGraphics
 import com.googlecode.lanterna.input.KeyStroke
+import com.googlecode.lanterna.internal.compat.BlockingQueue
+import com.googlecode.lanterna.internal.compat.EnumSet
+import com.googlecode.lanterna.internal.compat.LinkedBlockingQueue
+import com.googlecode.lanterna.internal.compat.TimeUnit
+import com.googlecode.lanterna.internal.compat.TreeSet
 import com.googlecode.lanterna.screen.TabBehaviour
 import com.googlecode.lanterna.terminal.AbstractTerminal
-import java.util.ArrayList
-import java.util.EnumSet
-import java.util.TreeSet
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
 
 class DefaultVirtualTerminal
-    @JvmOverloads
     constructor(private var internalTerminalSize: TerminalSize? = TerminalSize(80, 24)) : AbstractTerminal(), VirtualTerminal {
         private val regularTextBuffer = TextBuffer()
         private val privateModeTextBuffer = TextBuffer()
@@ -48,23 +47,22 @@ class DefaultVirtualTerminal
         private var backlogSize: Int = 1000
 
         private val inputQueue: BlockingQueue<KeyStroke> = LinkedBlockingQueue()
-        private val activeModifiers: EnumSet<SGR> = EnumSet.noneOf(SGR::class.java)
+        private val activeModifiers: EnumSet<SGR> = EnumSet.noneOf(SGR::class)
         private var activeForegroundColor: TextColor = TextColor.ANSI.DEFAULT
         private var activeBackgroundColor: TextColor = TextColor.ANSI.DEFAULT
 
         override var isCursorVisible: Boolean = true
-            @Synchronized get
-
-            @Synchronized private set
+            get
+            private set
 
         override var cursorBufferPosition: TerminalPosition? = TerminalPosition.TOP_LEFT_CORNER
-            @Synchronized get
+            get
             private set
 
         private var savedCursorPosition: TerminalPosition = TerminalPosition.TOP_LEFT_CORNER
 
         override var cursorPosition: TerminalPosition?
-            @Synchronized get() {
+            get() {
                 val terminalSize = requireNotNull(internalTerminalSize)
                 return if (bufferLineCount <= terminalSize.rows) {
                     cursorBufferPosition
@@ -72,8 +70,7 @@ class DefaultVirtualTerminal
                     requireNotNull(cursorBufferPosition).withRelativeRow(-(bufferLineCount - terminalSize.rows))
                 }
             }
-
-            @Synchronized set(cursorPosition) {
+            set(cursorPosition) {
                 var adjustedPosition = requireNotNull(cursorPosition)
                 val terminalSize = requireNotNull(internalTerminalSize)
                 if (terminalSize.rows < bufferLineCount) {
@@ -84,29 +81,28 @@ class DefaultVirtualTerminal
             }
 
         val dirtyCells: TreeSet<TerminalPosition>
-            @Synchronized get() = TreeSet(dirtyTerminalCells)
+            get() = TreeSet(dirtyTerminalCells)
 
         val andResetDirtyCells: TreeSet<TerminalPosition>
-            @Synchronized get() {
+            get() {
                 val copy = TreeSet(dirtyTerminalCells)
                 dirtyTerminalCells.clear()
                 return copy
             }
 
         val isWholeBufferDirtyThenReset: Boolean
-            @Synchronized get() {
+            get() {
                 val copy = wholeBufferDirty
                 wholeBufferDirty = false
                 return copy
             }
 
         override val bufferLineCount: Int
-            @Synchronized get() = currentTextBuffer.lineCount
+            get() = currentTextBuffer.lineCount
 
         override val terminalSize: TerminalSize?
-            @Synchronized get() = internalTerminalSize
+            get() = internalTerminalSize
 
-        @Synchronized
         override fun setTerminalSize(newSize: TerminalSize?) {
             internalTerminalSize = newSize
             trimBufferBacklog()
@@ -118,7 +114,6 @@ class DefaultVirtualTerminal
             onResized(size.columns, size.rows)
         }
 
-        @Synchronized
         override fun enterPrivateMode() {
             currentTextBuffer = privateModeTextBuffer
             savedCursorPosition = requireNotNull(cursorBufferPosition)
@@ -126,21 +121,18 @@ class DefaultVirtualTerminal
             setWholeBufferDirty()
         }
 
-        @Synchronized
         override fun exitPrivateMode() {
             currentTextBuffer = regularTextBuffer
             cursorBufferPosition = savedCursorPosition
             setWholeBufferDirty()
         }
 
-        @Synchronized
         override fun clearScreen() {
             currentTextBuffer.clear()
             setWholeBufferDirty()
             cursorPosition = TerminalPosition.TOP_LEFT_CORNER
         }
 
-        @Synchronized
         override fun setCursorPosition(
             x: Int,
             y: Int,
@@ -148,12 +140,10 @@ class DefaultVirtualTerminal
             cursorPosition = requireNotNull(requireNotNull(requireNotNull(cursorBufferPosition).withColumn(x)).withRow(y))
         }
 
-        @Synchronized
         override fun setCursorVisible(visible: Boolean) {
             isCursorVisible = visible
         }
 
-        @Synchronized
         override fun putCharacter(c: Char) {
             if (c == '\n') {
                 moveCursorToNextLine()
@@ -162,7 +152,6 @@ class DefaultVirtualTerminal
             }
         }
 
-        @Synchronized
         override fun putString(string: String?) {
             val textCharacters =
                 TextCharacter.fromString(
@@ -180,51 +169,46 @@ class DefaultVirtualTerminal
             }
         }
 
-        @Synchronized
         override fun enableSGR(sgr: SGR?) {
             if (sgr != null) {
                 activeModifiers.add(sgr)
             }
         }
 
-        @Synchronized
         override fun disableSGR(sgr: SGR?) {
             if (sgr != null) {
                 activeModifiers.remove(sgr)
             }
         }
 
-        @Synchronized
         override fun resetColorAndSGR() {
             activeModifiers.clear()
             activeForegroundColor = TextColor.ANSI.DEFAULT
             activeBackgroundColor = TextColor.ANSI.DEFAULT
         }
 
-        @Synchronized
         override fun setForegroundColor(color: TextColor?) {
             activeForegroundColor = color ?: TextColor.ANSI.DEFAULT
         }
 
-        @Synchronized
         override fun setBackgroundColor(color: TextColor?) {
             activeBackgroundColor = color ?: TextColor.ANSI.DEFAULT
         }
 
-        @Synchronized
         override fun enquireTerminal(
             timeout: Int,
             timeoutUnit: TimeUnit?,
-        ): ByteArray = javaClass.name.toByteArray()
+        ): ByteArray {
+            val name = this::class.qualifiedName ?: this::class.simpleName ?: "DefaultVirtualTerminal"
+            return name.encodeToByteArray()
+        }
 
-        @Synchronized
         override fun bell() {
             for (listener in listeners) {
                 listener.onBell()
             }
         }
 
-        @Synchronized
         override fun flush() {
             for (listener in listeners) {
                 listener.onFlush()
@@ -237,35 +221,30 @@ class DefaultVirtualTerminal
             }
         }
 
-        @Synchronized
         override fun pollInput(): KeyStroke? = inputQueue.poll()
 
-        @Synchronized
         override fun readInput(): KeyStroke {
             try {
                 return inputQueue.take()
-            } catch (e: InterruptedException) {
+            } catch (e: Throwable) {
                 throw RuntimeException("Unexpected interrupt", e)
             }
         }
 
         override fun newTextGraphics(): TextGraphics = VirtualTerminalTextGraphics(this)
 
-        @Synchronized
         override fun addVirtualTerminalListener(listener: VirtualTerminalListener?) {
             if (listener != null) {
                 listeners.add(listener)
             }
         }
 
-        @Synchronized
         override fun removeVirtualTerminalListener(listener: VirtualTerminalListener?) {
             if (listener != null) {
                 listeners.remove(listener)
             }
         }
 
-        @Synchronized
         override fun setBacklogSize(backlogSize: Int) {
             this.backlogSize = backlogSize
         }
@@ -276,12 +255,10 @@ class DefaultVirtualTerminal
             }
         }
 
-        @Synchronized
         override fun getCharacter(position: TerminalPosition?): TextCharacter? {
             return getCharacter(requireNotNull(position).column, position.row)
         }
 
-        @Synchronized
         override fun getCharacter(
             column: Int,
             row: Int,
@@ -305,7 +282,6 @@ class DefaultVirtualTerminal
             return getBufferCharacter(requireNotNull(position).column, position.row)
         }
 
-        @Synchronized
         override fun forEachLine(
             startRow: Int,
             endRow: Int,
@@ -334,10 +310,9 @@ class DefaultVirtualTerminal
             }
         }
 
-        @Synchronized
         internal fun putCharacter(terminalCharacter: TextCharacter) {
             val terminalSize = requireNotNull(internalTerminalSize)
-            if (terminalCharacter.`is`('\t')) {
+            if (terminalCharacter.isCharacter('\t')) {
                 val nrOfSpaces = TabBehaviour.ALIGN_TO_COLUMN_4.getTabReplacement(requireNotNull(cursorBufferPosition).column).length
                 var i = 0
                 while (i < nrOfSpaces && requireNotNull(cursorBufferPosition).column < terminalSize.columns - 1) {

@@ -20,7 +20,7 @@ package com.googlecode.lanterna.graphics
 
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TextColor
-import java.util.EnumSet
+import com.googlecode.lanterna.internal.compat.EnumSet
 
 /**
  * ThemeStyle is the lowest entry in the theme hierarchy, containing the actual colors and SGRs to use. When drawing a

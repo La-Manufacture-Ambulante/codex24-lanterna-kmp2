@@ -37,7 +37,6 @@ import javax.swing.UnsupportedLookAndFeelException
 /**
  * Interactive manual test for [ScrollingAWTTerminal].
  */
-@Suppress("FieldCanBeLocal")
 class ScrollingAWTTerminalTest : JFrame() {
     private val scrollingAwtTerminal: ScrollingAWTTerminal
 
@@ -121,6 +120,7 @@ class ScrollingAWTTerminalTest : JFrame() {
     companion object {
         private const val serialVersionUID = 1L
 
+        @JvmStatic
         fun main(args: Array<String?>?) {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())

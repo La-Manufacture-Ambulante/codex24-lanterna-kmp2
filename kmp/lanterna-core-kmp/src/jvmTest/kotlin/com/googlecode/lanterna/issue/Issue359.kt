@@ -2,7 +2,6 @@
  * Author Valentin(linouxis9), modified by Andreas(avl42)
  */
 package com.googlecode.lanterna.issue
-
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.Borders
 import com.googlecode.lanterna.gui2.Button

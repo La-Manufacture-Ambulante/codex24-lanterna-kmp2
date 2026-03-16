@@ -20,11 +20,11 @@ package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
-import java.util.ArrayList
-import java.util.IdentityHashMap
-import java.util.LinkedList
-import java.util.Queue
-import java.util.TreeSet
+import com.googlecode.lanterna.internal.compat.IdentityHashMap
+import com.googlecode.lanterna.internal.compat.LinkedList
+import com.googlecode.lanterna.internal.compat.Queue
+import com.googlecode.lanterna.internal.compat.TreeSet
+import kotlin.collections.ArrayList
 
 /**
  * This emulates the behaviour of the GridLayout in SWT (as opposed to the one in AWT/Swing). I originally ported the
@@ -583,8 +583,7 @@ class GridLayout(private val numberOfColumns: Int) : LayoutManager {
             }
             newTable[insertedRowCounter++] = newColumn
         }
-        @Suppress("UNCHECKED_CAST")
-        return newTable as Array<Array<Component?>>
+        return newTable.filterNotNull().map { it.copyOf() }.toTypedArray()
     }
 
     private fun getLayoutData(component: Component?): GridLayoutData {
@@ -607,7 +606,6 @@ class GridLayout(private val numberOfColumns: Int) : LayoutManager {
                 1,
             )
 
-        @JvmOverloads
         fun createLayoutData(
             horizontalAlignment: Alignment,
             verticalAlignment: Alignment,

@@ -23,11 +23,7 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.graphics.ThemeDefinition
 
 /**
- * Static non-interactive component that is typically rendered as a single line. Normally this component is used to
- * separate component from each other in situations where a bordered panel isn't ideal. By default the separator will
- * ask for a size of 1x1 so you'll need to make it bigger, either through the layout manager or by overriding the
- * preferred size.
- * @author Martin
+ * Static non-interactive component that is typically rendered as a single line.
  */
 class Separator(val direction: Direction?) : AbstractComponent<Separator>() {
     init {
@@ -38,16 +34,8 @@ class Separator(val direction: Direction?) : AbstractComponent<Separator>() {
         return DefaultSeparatorRenderer()
     }
 
-    /**
-     * Helper interface that doesn't add any new methods but makes coding new button renderers a little bit more clear
-     */
     abstract class SeparatorRenderer : ComponentRenderer<Separator?>
 
-    /**
-     * This is the default separator renderer that is used if you don't override anything. With this renderer, the
-     * separator has a preferred size of one but will take up the whole area it is given and fill that space with either
-     * horizontal or vertical lines, depending on the direction of the `Separator`
-     */
     class DefaultSeparatorRenderer : SeparatorRenderer() {
         override fun getPreferredSize(component: Separator?): TerminalSize {
             return TerminalSize.ONE

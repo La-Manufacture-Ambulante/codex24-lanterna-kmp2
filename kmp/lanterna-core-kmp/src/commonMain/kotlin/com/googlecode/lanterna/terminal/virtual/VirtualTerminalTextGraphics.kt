@@ -23,6 +23,7 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextCharacter
 import com.googlecode.lanterna.graphics.AbstractTextGraphics
 import com.googlecode.lanterna.graphics.TextGraphics
+import com.googlecode.lanterna.internal.compat.synchronizedCompat
 
 /**
  * Implementation of [TextGraphics] for [VirtualTerminal]
@@ -42,7 +43,7 @@ internal class VirtualTerminalTextGraphics(
         if (columnIndex < 0 || columnIndex >= size.columns || rowIndex < 0 || rowIndex >= size.rows) {
             return this
         }
-        synchronized(virtualTerminal) {
+        synchronizedCompat(virtualTerminal) {
             virtualTerminal.cursorPosition = TerminalPosition(columnIndex, rowIndex)
             virtualTerminal.putCharacter(textCharacter ?: TextCharacter.DEFAULT_CHARACTER)
         }

@@ -1,5 +1,4 @@
 package com.googlecode.lanterna.issue
-
 import com.googlecode.lanterna.gui2.AbstractWindow
 import com.googlecode.lanterna.gui2.Label
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI

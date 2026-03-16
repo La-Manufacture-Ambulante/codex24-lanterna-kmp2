@@ -2,8 +2,7 @@ package com.googlecode.lanterna.graphics
 
 import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TextColor
-import java.util.Arrays
-import java.util.EnumSet
+import com.googlecode.lanterna.internal.compat.EnumSet
 
 interface StyleSet<T : StyleSet<T?>?> {
     /**
@@ -74,16 +73,12 @@ interface StyleSet<T : StyleSet<T?>?> {
     fun setStyleFrom(source: StyleSet<*>?): T?
 
     class Set : StyleSet<Set?> {
-        @get:Override
         public override var foregroundColor: TextColor? = null
             private set
-
-        @get:Override
         public override var backgroundColor: TextColor? = null
             private set
-        private val style = EnumSet.noneOf(SGR::class.java)
+        private val style = EnumSet.noneOf(SGR::class)
         public override val activeModifiers: EnumSet<SGR>?
-            @Override
             get() {
                 return EnumSet.copyOf(style)
             }
@@ -93,31 +88,26 @@ interface StyleSet<T : StyleSet<T?>?> {
             setStyleFrom(source!!)
         }
 
-        @Override
         public override fun setBackgroundColor(backgroundColor: TextColor?): Set {
             this.backgroundColor = backgroundColor
             return this
         }
 
-        @Override
         public override fun setForegroundColor(foregroundColor: TextColor?): Set {
             this.foregroundColor = foregroundColor
             return this
         }
 
-        @Override
         public override fun enableModifiers(vararg modifiers: SGR?): Set {
-            style.addAll(Arrays.asList(*modifiers).filterNotNull())
+            style.addAll(listOf(*modifiers).filterNotNull())
             return this
         }
 
-        @Override
         public override fun disableModifiers(vararg modifiers: SGR?): Set {
-            style.removeAll(Arrays.asList(*modifiers).filterNotNull().toSet())
+            style.removeAll(listOf(*modifiers).filterNotNull().toSet())
             return this
         }
 
-        @Override
         public override fun setModifiers(modifiers: EnumSet<SGR>?): Set {
             style.clear()
             if (modifiers != null) {
@@ -126,13 +116,11 @@ interface StyleSet<T : StyleSet<T?>?> {
             return this
         }
 
-        @Override
         public override fun clearModifiers(): Set {
             style.clear()
             return this
         }
 
-        @Override
         public override fun setStyleFrom(source: StyleSet<*>?): Set {
             if (source != null) {
                 setBackgroundColor(source.backgroundColor)

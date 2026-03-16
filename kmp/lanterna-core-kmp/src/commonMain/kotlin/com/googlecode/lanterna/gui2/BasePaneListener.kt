@@ -19,7 +19,7 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.input.KeyStroke
-import java.util.concurrent.atomic.AtomicBoolean
+import com.googlecode.lanterna.internal.compat.AtomicBoolean
 
 /**
  * Base listener interface having callback methods for events relating to [BasePane] (and [Window], which

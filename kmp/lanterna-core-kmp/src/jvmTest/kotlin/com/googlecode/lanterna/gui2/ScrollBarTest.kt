@@ -19,10 +19,11 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.internal.compat.Pattern
 import java.io.IOException
-import java.util.regex.Pattern
 
 class ScrollBarTest : TestBase() {
+    @Override
     fun init(textGUI: WindowBasedTextGUI) {
         val basicWindow = BasicWindow("ScrollBar test")
         val contentPanel = Panel()
@@ -41,7 +42,9 @@ class ScrollBarTest : TestBase() {
         val horizontalScroll = ScrollBar(Direction.HORIZONTAL)
         val buttonRefresh =
             Button("Refresh", {
-                (verticalScroll.renderer as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(checkVerticalTrackerGrow!!.isChecked())
+                (verticalScroll.renderer as ScrollBar.DefaultScrollBarRenderer).setGrowScrollTracker(
+                    checkVerticalTrackerGrow!!.isChecked(),
+                )
                 verticalScroll.setScrollMaximum(getInteger(textBoxVerticalMax!!.text, 100))
                 verticalScroll.setScrollPosition(getInteger(textBoxVerticalPosition!!.text, 100))
                 verticalScroll.setViewSize(getInteger(textBoxVerticalSize!!.text, 1))
@@ -52,12 +55,19 @@ class ScrollBarTest : TestBase() {
                 horizontalScroll.setScrollPosition(getInteger(textBoxHorizontalPosition!!.text, 0))
                 horizontalScroll.setViewSize(getInteger(textBoxHorizontalSize!!.text, 1))
             })
-        val closeButton = Button("Close", Runnable { basicWindow.close() })
+        val closeButton = Button("Close", Runnable({ basicWindow.close() }))
 
         verticalScroll.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.FILL, false, true))
         horizontalScroll.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))
         buttonRefresh.setLayoutData(
-            GridLayout.createLayoutData(GridLayout.Alignment.CENTER, GridLayout.Alignment.BEGINNING, true, true, 2, 1),
+            GridLayout.createLayoutData(
+                GridLayout.Alignment.CENTER,
+                GridLayout.Alignment.BEGINNING,
+                true,
+                true,
+                2,
+                1,
+            ),
         )
 
         contentPanel.addComponent(controlPanel.withBorder(Borders.singleLine("Control")))

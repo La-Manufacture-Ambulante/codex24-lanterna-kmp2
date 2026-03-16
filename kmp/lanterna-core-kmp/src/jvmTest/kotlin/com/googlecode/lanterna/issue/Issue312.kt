@@ -1,5 +1,4 @@
 package com.googlecode.lanterna.issue
-
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.IOException

@@ -23,7 +23,8 @@ import com.googlecode.lanterna.gui2.TextGUIGraphics
 
 /**
  * This interface can be implemented if you want to customize how table headers are drawn.
- * @param <V> Type of data stored in each table cell
+ *
+ * @param V Type of data stored in each table cell
  * @author Martin
  */
 interface TableHeaderRenderer<V> {

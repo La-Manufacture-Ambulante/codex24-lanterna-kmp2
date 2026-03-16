@@ -19,26 +19,13 @@
 package com.googlecode.lanterna.input
 
 /**
- * Used to compare a list of characters if they match a particular pattern, and in that case, return the kind of
- * keystroke this pattern represents.
- *
- * @author Martin, Andreas
+ * Used to compare a list of characters against a particular pattern and, on a full match, return the represented
+ * [KeyStroke].
  */
-@Suppress("WeakerAccess")
 interface CharacterPattern {
-    /**
-     * Given a list of characters, determines whether it exactly matches any known [KeyStroke], and whether a longer
-     * sequence can possibly match.
-     */
     fun match(seq: List<Char>?): Matching?
 
-    /**
-     * Immutable matching result wrapping [partialMatch] and [fullMatch].
-     */
     class Matching(val partialMatch: Boolean, val fullMatch: KeyStroke?) {
-        /**
-         * Convenience constructor for exact matches.
-         */
         constructor(fullMatch: KeyStroke?) : this(false, fullMatch)
 
         override fun toString(): String {
@@ -46,9 +33,6 @@ interface CharacterPattern {
         }
 
         companion object {
-            /**
-             * Re-usable result for \"not yet\" half-matches.
-             */
             val NOT_YET = Matching(true, null)
         }
     }

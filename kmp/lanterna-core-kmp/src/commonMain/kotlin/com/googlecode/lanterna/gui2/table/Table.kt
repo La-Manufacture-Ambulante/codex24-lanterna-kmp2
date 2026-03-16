@@ -103,7 +103,6 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
 
     fun getTableModel(): TableModel<V?> = tableModel
 
-    @Synchronized
     fun setTableModel(tableModel: TableModel<V?>?): Table<V?> {
         requireNotNull(tableModel) { "Cannot assign a null TableModel" }
         this.tableModel.removeListener(tableModelListener)
@@ -115,25 +114,24 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
 
     fun getTableCellRenderer(): TableCellRenderer<V?> = tableCellRenderer
 
-    @Synchronized
     fun setTableCellRenderer(tableCellRenderer: TableCellRenderer<V?>?): Table<V?> {
-        requireNotNull(tableCellRenderer) { "Cannot assign a null TableCellRenderer" }
-        this.tableCellRenderer = tableCellRenderer
-        invalidate()
+        if (tableCellRenderer != null) {
+            this.tableCellRenderer = tableCellRenderer
+            invalidate()
+        }
         return self()
     }
 
     fun getTableHeaderRenderer(): TableHeaderRenderer<V?> = tableHeaderRenderer
 
-    @Synchronized
     fun setTableHeaderRenderer(tableHeaderRenderer: TableHeaderRenderer<V?>?): Table<V?> {
-        requireNotNull(tableHeaderRenderer) { "Cannot assign a null TableHeaderRenderer" }
-        this.tableHeaderRenderer = tableHeaderRenderer
-        invalidate()
+        if (tableHeaderRenderer != null) {
+            this.tableHeaderRenderer = tableHeaderRenderer
+            invalidate()
+        }
         return self()
     }
 
-    @Synchronized
     fun setVisibleColumns(visibleColumns: Int) {
         this.visibleColumns = visibleColumns
         invalidate()
@@ -141,7 +139,6 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
 
     fun getVisibleColumns(): Int = visibleColumns
 
-    @Synchronized
     fun setVisibleRows(visibleRows: Int) {
         this.visibleRows = visibleRows
         invalidate()
@@ -161,7 +158,6 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
     }
 
     @Deprecated("Use the table renderers method instead")
-    @Synchronized
     fun setViewTopRow(viewTopRow: Int): Table<V?> {
         renderer?.viewTopRow = viewTopRow
         return self()
@@ -171,7 +167,6 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
     fun getViewLeftColumn(): Int = renderer?.viewLeftColumn ?: 0
 
     @Deprecated("Use the table renderers method instead")
-    @Synchronized
     fun setViewLeftColumn(viewLeftColumn: Int): Table<V?> {
         renderer?.viewLeftColumn = viewLeftColumn
         return self()
@@ -179,7 +174,6 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
 
     fun getSelectedColumn(): Int = selectedColumn
 
-    @Synchronized
     fun setSelectedColumn(selectedColumn: Int): Table<V?> {
         if (cellSelection) {
             this.selectedColumn = selectedColumn
@@ -189,7 +183,6 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
 
     fun getSelectedRow(): Int = selectedRow
 
-    @Synchronized
     fun setSelectedRow(selectedRow: Int): Table<V?> {
         require(selectedRow >= 0) { "selectedRow must be >= 0 but was $selectedRow" }
         var nextSelectedRow = selectedRow
@@ -206,7 +199,6 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
         return self()
     }
 
-    @Synchronized
     fun setCellSelection(cellSelection: Boolean): Table<V?> {
         this.cellSelection = cellSelection
         selectedColumn =
@@ -222,7 +214,6 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
 
     fun isCellSelection(): Boolean = cellSelection
 
-    @Synchronized
     fun setSelectAction(selectAction: Runnable?): Table<V?> {
         this.selectAction = selectAction
         return self()
@@ -230,7 +221,6 @@ open class Table<V>(tableModel: TableModel<V?>) : AbstractInteractableComponent<
 
     fun isEscapeByArrowKey(): Boolean = escapeByArrowKey
 
-    @Synchronized
     fun setEscapeByArrowKey(escapeByArrowKey: Boolean): Table<V?> {
         this.escapeByArrowKey = escapeByArrowKey
         return self()

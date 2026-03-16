@@ -34,7 +34,7 @@ class WindowShadowRenderer : WindowPostRenderer {
         val activeWindow = window ?: return
         val windowPosition = activeWindow.position ?: return
         val decoratedWindowSize = activeWindow.decoratedSize ?: return
-        val themeDefinition = activeWindow.theme?.getDefinition(WindowShadowRenderer::class.java) ?: return
+        val themeDefinition = activeWindow.theme?.getDefinition(WindowShadowRenderer::class) ?: return
 
         graphics.applyThemeStyle(themeDefinition.normal)
         val filler = themeDefinition.getCharacter("FILLER", ' ')

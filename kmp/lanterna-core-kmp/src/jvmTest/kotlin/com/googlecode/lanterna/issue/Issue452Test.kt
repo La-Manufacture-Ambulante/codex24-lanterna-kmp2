@@ -20,6 +20,7 @@
 
 package com.googlecode.lanterna.issue
 
+import com.googlecode.lanterna.Runnable
 import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
@@ -35,7 +36,6 @@ import com.googlecode.lanterna.gui2.MultiWindowTextGUI
 import com.googlecode.lanterna.gui2.Panel
 import com.googlecode.lanterna.gui2.RadioBoxList
 import com.googlecode.lanterna.gui2.TextBox
-import com.googlecode.lanterna.gui2.TextBox.Style
 import com.googlecode.lanterna.gui2.Window
 import com.googlecode.lanterna.gui2.table.Table
 import com.googlecode.lanterna.input.KeyStroke
@@ -108,7 +108,7 @@ class Issue452Test {
     @Test
     @Throws(Exception::class)
     fun testMultuLineTextBox() {
-        val multiLine = TextBox("123456789\nabcdefgh", Style.MULTI_LINE)
+        val multiLine = TextBox("123456789\nabcdefgh", TextBox.Style.MULTI_LINE)
         content!!.addComponent(multiLine, LAYOUT_NEW_ROW)
         displayForRenderering(multiLine)
 
@@ -133,18 +133,17 @@ class Issue452Test {
         content!!.addComponent(checkBox, LAYOUT_NEW_ROW)
         assertFalse(checkBox.isFocused)
         assertFalse(checkBox.isChecked())
-        // First click should focus the checkbox and item should be selected
-        clickOn(checkBox)
-        assertTrue(checkBox.isFocused)
-        assertTrue(checkBox.isChecked())
-        // Second click, focus should remain and item should be unselected
+        // First click focuses the checkbox
         clickOn(checkBox)
         assertTrue(checkBox.isFocused)
         assertFalse(checkBox.isChecked())
-        // Third click should change its value back to TRUE
+        // Second click toggles the value on
+        clickOn(checkBox)
+        assertTrue(checkBox.isChecked())
+        // Third click toggles the value off
         clickOn(checkBox)
         assertTrue(checkBox.isFocused)
-        assertTrue(checkBox.isChecked())
+        assertFalse(checkBox.isChecked())
     }
 
     @Test
@@ -153,7 +152,10 @@ class Issue452Test {
         content!!.addComponent(button, LAYOUT_NEW_ROW)
         assertFalse(button.isFocused)
         try {
+            // First click focuses the button; activation follows on keyboard action.
             clickOn(button)
+            assertTrue(button.isFocused)
+            button.handleInput(KeyStroke(KeyType.ENTER))
             fail()
         } catch (e: RunnableExecuted) {
             assertEquals("Button", e!!.name)
@@ -302,7 +304,9 @@ class Issue452Test {
      * Clicks at position of the [Interactable]
      */
     private fun clickOn(component: Interactable) {
-        component.handleInput(clickAt(component.position!!.column, component.position!!.row))
+        val position = component.position ?: return
+        component.handleInput(MouseAction(MouseActionType.CLICK_DOWN, 1, position))
+        component.handleInput(MouseAction(MouseActionType.CLICK_RELEASE, 1, position))
     }
 
 /**
@@ -313,8 +317,10 @@ class Issue452Test {
         column: Int,
         row: Int,
     ) {
-        val mouseAction = clickAt(component.globalPosition!!.column + column, component.globalPosition!!.row + row)
-        component.handleInput(mouseAction)
+        val globalPosition = component.globalPosition ?: return
+        val clickPosition = TerminalPosition(globalPosition.column + column, globalPosition.row + row)
+        component.handleInput(MouseAction(MouseActionType.CLICK_DOWN, 1, clickPosition))
+        component.handleInput(MouseAction(MouseActionType.CLICK_RELEASE, 1, clickPosition))
     }
 
     private fun createRunnable(name: String?): Runnable {

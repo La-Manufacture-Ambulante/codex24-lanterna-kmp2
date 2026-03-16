@@ -23,9 +23,9 @@ import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.bundle.LanternaThemes
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
+import com.googlecode.lanterna.internal.compat.AtomicBoolean
 import java.io.IOException
 import java.util.Collections
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 class MultiWindowManagerTest : TestBase() {
@@ -33,7 +33,7 @@ class MultiWindowManagerTest : TestBase() {
     private var buttonToggleVirtualScreen: Button? = null
 
     fun init(textGUI: WindowBasedTextGUI) {
-        textGUI.backgroundPane.component = BackgroundComponent()
+        textGUI.backgroundPane?.component = BackgroundComponent()
 
         val mainWindow = BasicWindow("Multi Window Test")
         val contentArea = Panel().setLayoutManager(LinearLayout(Direction.VERTICAL))
@@ -231,7 +231,7 @@ class MultiWindowManagerTest : TestBase() {
                 ) {
                     val g = graphics ?: return
                     val c = component ?: return
-                    val definition = c.theme?.getDefinition(GUIBackdrop::class.java) ?: return
+                    val definition = c.theme?.getDefinition(GUIBackdrop::class) ?: return
                     g.applyThemeStyle(definition.normal)
                     g.fill('・')
                     val text = "Press <CTRL+Tab>/F6 and <CTRL+Shift+Tab>/F7 to cycle active window"

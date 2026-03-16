@@ -25,30 +25,14 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.input.MouseActionType
-import java.util.concurrent.CopyOnWriteArrayList
+import com.googlecode.lanterna.internal.compat.CopyOnWriteArrayList
 
 /**
  * The list box will display a number of items, of which one and only one can be marked as selected.
- * The user can select an item in the list box by pressing the return key or space bar key. If you
- * select one item when another item is already selected, the previously selected item will be
- * deselected and the highlighted item will be the selected one instead.
- * @author Martin
  */
-class RadioBoxList<V>
-    @JvmOverloads
-    constructor(preferredSize: TerminalSize? = null) :
+class RadioBoxList<V> constructor(preferredSize: TerminalSize? = null) :
     AbstractListBox<V, RadioBoxList<V>>(preferredSize) {
-        /**
-         * Listener interface that can be attached to the `RadioBoxList` in order to be notified on user actions.
-         */
         interface Listener {
-            /**
-             * Called by the `RadioBoxList` when the user changes which item is selected.
-             * @param selectedIndex Index of the newly selected item, or -1 if the selection has been cleared (can only be
-             * done programmatically)
-             * @param previousSelection The index of the previously selected item which is now no longer selected, or -1 if
-             * nothing was previously selected
-             */
             fun onSelectionChanged(
                 selectedIndex: Int,
                 previousSelection: Int,
@@ -60,8 +44,7 @@ class RadioBoxList<V>
 
         var checkedItemIndex: Int
             get() = checkedIndex
-
-            @Synchronized set(index) {
+            set(index) {
                 if (index < -1 || index >= itemCount) {
                     return
                 }
@@ -69,14 +52,13 @@ class RadioBoxList<V>
             }
 
         var checkedItem: V?
-            @Synchronized get() {
+            get() {
                 if (checkedIndex == -1 || checkedIndex >= itemCount) {
                     return null
                 }
                 return getItemAt(checkedIndex)
             }
-
-            @Synchronized set(item) {
+            set(item) {
                 if (item == null) {
                     setCheckedIndex(-1)
                 } else {
@@ -88,7 +70,6 @@ class RadioBoxList<V>
             return RadioBoxListItemRenderer()
         }
 
-        @Synchronized
         override fun handleKeyStroke(keyStroke: KeyStroke): Interactable.Result? {
             if (isKeyboardActivationStroke(keyStroke)) {
                 setCheckedIndex(getSelectedIndex())
@@ -120,7 +101,6 @@ class RadioBoxList<V>
             return super.handleKeyStroke(keyStroke)
         }
 
-        @Synchronized
         override fun removeItem(index: Int): V {
             val item = super.removeItem(index)
             if (index < checkedIndex) {
@@ -132,13 +112,11 @@ class RadioBoxList<V>
             return item
         }
 
-        @Synchronized
         override fun clearItems(): RadioBoxList<V>? {
             setCheckedIndex(-1)
             return super.clearItems()
         }
 
-        @Synchronized
         fun isChecked(item: V?): Boolean? {
             if (item == null) {
                 return null
@@ -149,7 +127,6 @@ class RadioBoxList<V>
             return checkedIndex == indexOf(item)
         }
 
-        @Synchronized
         fun isChecked(index: Int): Boolean {
             if (index < 0 || index >= itemCount) {
                 return false
@@ -157,16 +134,10 @@ class RadioBoxList<V>
             return checkedIndex == index
         }
 
-        @Synchronized
         fun clearSelection() {
             setCheckedIndex(-1)
         }
 
-        /**
-         * Adds a new listener to the `RadioBoxList` that will be called on certain user actions.
-         * @param listener Listener to attach to this `RadioBoxList`
-         * @return Itself
-         */
         fun addListener(listener: Listener?): RadioBoxList<V> {
             if (listener != null && !listeners.contains(listener)) {
                 listeners.add(listener)
@@ -174,12 +145,6 @@ class RadioBoxList<V>
             return this
         }
 
-        /**
-         * Removes a listener from this `RadioBoxList` so that if it had been added earlier, it will no longer be called
-         * on user actions.
-         * @param listener Listener to remove from this `RadioBoxList`
-         * @return Itself
-         */
         fun removeListener(listener: Listener?): RadioBoxList<V> {
             if (listener != null) {
                 listeners.remove(listener)
@@ -200,11 +165,6 @@ class RadioBoxList<V>
             )
         }
 
-        /**
-         * Default renderer for this component which is used unless overridden. The selected state is drawn on the left side
-         * of the item label using a "< >" block filled with an "o" if the item is the selected one.
-         * @param <V> Type of items in the [RadioBoxList]
-         */
         class RadioBoxListItemRenderer<V> : ListItemRenderer<V, RadioBoxList<V>>() {
             override fun getHotSpotPositionOnLine(selectedIndex: Int): Int {
                 return 1
@@ -239,7 +199,7 @@ class RadioBoxList<V>
                 val activeGraphics = graphics ?: return
                 val activeListBox = listBox ?: return
                 val themeDefinition: ThemeDefinition =
-                    activeListBox.theme?.getDefinition(RadioBoxList::class.java) ?: return
+                    activeListBox.theme?.getDefinition(RadioBoxList::class) ?: return
                 val itemStyle: ThemeStyle =
                     when {
                         selected && !focused -> themeDefinition.selected

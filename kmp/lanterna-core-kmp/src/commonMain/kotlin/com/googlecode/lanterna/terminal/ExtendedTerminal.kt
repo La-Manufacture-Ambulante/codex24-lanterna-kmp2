@@ -19,7 +19,7 @@
 package com.googlecode.lanterna.terminal
 
 import com.googlecode.lanterna.graphics.Scrollable
-import java.io.IOException
+import com.googlecode.lanterna.internal.io.IOException
 
 interface ExtendedTerminal : Terminal, Scrollable {
     @Throws(IOException::class)
