@@ -23,7 +23,6 @@ import com.googlecode.lanterna.internal.concurrency.PlatformTaskHandle
 import com.googlecode.lanterna.internal.concurrency.PlatformTaskRuntime
 import com.googlecode.lanterna.internal.concurrency.PlatformThreadToken
 import com.googlecode.lanterna.internal.concurrency.currentThreadToken
-import com.googlecode.lanterna.internal.concurrency.sleepCurrentThread
 
 /**
  * Default implementation of [TextGUIThread] that runs the GUI loop on a dedicated thread.
@@ -94,7 +93,7 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
                 while (_state == AsynchronousTextGUIThread.State.STARTED) {
                     val didWork = processEventsAndUpdate()
                     if (!didWork) {
-                        sleepCurrentThread(1)
+                        PlatformTaskRuntime.backoffWait(1)
                     }
                 }
             } catch (t: Throwable) {

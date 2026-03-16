@@ -36,8 +36,10 @@ Branch: `codex/pr6-coroutines-impl`
 - [x] Slice E (part 4) completed: migrated non-GUI backoff in `InputDecoder` from direct `sleepCurrentThread(...)` to
   runtime-managed `PlatformTaskRuntime.backoffWait(...)`, with deterministic thread-vs-coroutine dispatch tests in
   `PlatformTaskRuntimeTest`.
-- [ ] Slice E (part 5) next: evaluate optional coroutine-aware delay integration for additional polling loops while
-  preserving default thread semantics and timeout behavior.
+- [x] Slice E (part 5) completed: migrated additional GUI polling/backoff loops to runtime-managed waits in
+  `SeparateTextGUIThread` and `MultiWindowTextGUI` (replacing direct `sleepCurrentThread(...)` calls).
+- [ ] Slice E (part 6) next: assess cancellation/cooperative shutdown behavior under coroutine mode and add focused
+  regression checks around `PlatformTaskHandle.cancel()` + wait semantics.
 
 ## Guardrails
 - Default behavior remains thread-based.
