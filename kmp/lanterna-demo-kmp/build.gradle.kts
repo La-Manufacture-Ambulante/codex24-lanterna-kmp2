@@ -14,12 +14,15 @@ kotlin {
     targets.withType<KotlinNativeTarget>().configureEach {
         binaries {
             executable {
-                entryPoint = "com.googlecode.lanterna.examples.nativeSnapshotMain"
+                entryPoint = "com.alaeri.snapshots.nativeSnapshotMain"
                 baseName = "lanterna-snapshot-demo"
             }
             executable("interactiveWidgetDemo") {
                 entryPoint = "com.googlecode.lanterna.examples.interactiveWidgetDemoMain"
                 baseName = "lanterna-interactive-widget-demo"
+            }
+            executable("keyInputRepro") {
+                entryPoint = "com.alaeri.keyInputReproMain"
             }
         }
     }
@@ -95,4 +98,17 @@ tasks.register<JavaExec>("jvmInteractiveWidgetDemo") {
         jvmMainCompilation.runtimeDependencyFiles,
     )
     mainClass.set("com.googlecode.lanterna.examples.InteractiveWidgetDemoJvmKt")
+}
+
+tasks.register<JavaExec>("runKeyInputReproJvm") {
+    group = "application"
+    description = "Runs the key-input repro app on JVM."
+    dependsOn(tasks.named("jvmMainClasses"))
+
+    classpath(
+        jvmMainCompilation.output.allOutputs,
+        jvmMainCompilation.runtimeDependencyFiles,
+    )
+    mainClass.set("com.alaeri.KeyInputReproJvmMainKt")
+    standardInput = System.`in`
 }

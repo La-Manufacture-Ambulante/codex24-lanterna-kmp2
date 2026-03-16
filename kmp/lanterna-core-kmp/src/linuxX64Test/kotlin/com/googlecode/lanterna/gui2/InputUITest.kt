@@ -8,9 +8,8 @@ import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.virtual.DefaultVirtualTerminal
-import org.junit.Assert.assertTrue
-import org.junit.Test
-import java.util.Arrays
+import kotlin.test.Test
+import kotlin.test.assertTrue
 
 class InputUITest {
     @Test
@@ -24,7 +23,7 @@ class InputUITest {
             val textGUI = MultiWindowTextGUI(SameTextGUIThread.Factory(), screen, windowManager, null, EmptySpace())
             val window = BasicWindow("Input test")
             window.setHints(
-                Arrays.asList(
+                listOf(
                     Window.Hint.NO_DECORATIONS,
                     Window.Hint.FIT_TERMINAL_WINDOW,
                     Window.Hint.FULL_SCREEN,
@@ -47,11 +46,11 @@ class InputUITest {
             terminal.addInput(KeyStroke('x', false, false))
             pump(textGUI, 20)
             val renderedAfterX = dumpScreen(screen)
-            assertTrue("expected captured character in rendered screen", renderedAfterX.contains("x"))
+            assertTrue(renderedAfterX.contains("x"), "expected captured character in rendered screen")
 
             terminal.addInput(KeyStroke(KeyType.ESCAPE))
             pump(textGUI, 20)
-            assertTrue("window should close on escape", textGUI.windows.isEmpty())
+            assertTrue(textGUI.windows.isEmpty(), "window should close on escape")
         } finally {
             screen.stopScreen()
         }
@@ -72,7 +71,7 @@ class InputUITest {
         val out = StringBuilder(size.rows * (size.columns + 1))
         for (row in 0 until size.rows) {
             for (col in 0 until size.columns) {
-                out.append(screen.getBackCharacter(col, row)?.character ?: ' ')
+                out.append(screen.getBackCharacter(col, row)?.characterString ?: " ")
             }
             out.append('\n')
         }
