@@ -2,9 +2,13 @@ import org.gradle.testing.jacoco.tasks.JacocoReport
 
 plugins {
     kotlin("multiplatform") version "2.1.21"
+    `maven-publish`
     jacoco
     id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
 }
+
+group = "com.github.La-Manufacture-Ambulante.codex24-lanterna-kmp2"
+version = System.getenv("JITPACK_VERSION") ?: "dev-SNAPSHOT"
 
 kotlin {
     jvm()
@@ -23,17 +27,17 @@ kotlin {
         val nativeMain by creating {
             dependsOn(commonMain)
         }
-        val nativeUnixMain by creating {
+        val macosMain by creating {
             dependsOn(nativeMain)
         }
         val linuxX64Main by getting {
-            dependsOn(nativeUnixMain)
+            dependsOn(nativeMain)
         }
         val macosX64Main by getting {
-            dependsOn(nativeUnixMain)
+            dependsOn(macosMain)
         }
         val macosArm64Main by getting {
-            dependsOn(nativeUnixMain)
+            dependsOn(macosMain)
         }
         val mingwX64Main by getting {
             dependsOn(nativeMain)

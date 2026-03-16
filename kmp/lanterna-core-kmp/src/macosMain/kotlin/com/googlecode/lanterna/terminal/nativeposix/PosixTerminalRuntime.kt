@@ -4,16 +4,32 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
+import platform.posix.O_RDONLY
 import platform.posix.STDIN_FILENO
 import platform.posix.STDOUT_FILENO
 import platform.posix.TIOCGWINSZ
 import platform.posix.ioctl
 import platform.posix.isatty
+import platform.posix.open
 import platform.posix.system
 import platform.posix.winsize
 
 @OptIn(ExperimentalForeignApi::class)
 actual object PosixTerminalRuntime {
+    private val ttyFd: Int by lazy {
+        open("/dev/tty", O_RDONLY)
+    }
+
+    private fun activeTerminalFd(): Int {
+        if (isatty(STDIN_FILENO) == 1) {
+            return STDIN_FILENO
+        }
+        if (isatty(STDOUT_FILENO) == 1) {
+            return STDOUT_FILENO
+        }
+        return ttyFd
+    }
+
     actual fun queryTerminalSize(
         fallbackColumns: Int,
         fallbackRows: Int,
@@ -27,23 +43,34 @@ actual object PosixTerminalRuntime {
     }
 
     actual fun configureRawModeNoEcho(): Boolean {
-        if (isatty(STDIN_FILENO) != 1) {
+        if (activeTerminalFd() < 0) {
             return false
         }
-        return system("stty raw -echo >/dev/null 2>&1") == 0
+        val command = "stty raw -echo >/dev/null 2>&1"
+        return system(command) == 0
     }
 
     actual fun restoreCookedMode(): Boolean {
-        if (isatty(STDIN_FILENO) != 1) {
+        if (activeTerminalFd() < 0) {
             return false
         }
-        return system("stty sane >/dev/null 2>&1") == 0
+        val command = "stty sane >/dev/null 2>&1"
+        return system(command) == 0
     }
 
     private fun readWinsize(): Pair<Int, Int>? =
         memScoped {
             val ws = alloc<winsize>()
-            val result = ioctl(STDOUT_FILENO, TIOCGWINSZ.toULong(), ws.ptr)
+            val fd =
+                if (isatty(STDOUT_FILENO) == 1) {
+                    STDOUT_FILENO
+                } else {
+                    activeTerminalFd()
+                }
+            if (fd < 0) {
+                return@memScoped null
+            }
+            val result = ioctl(fd, TIOCGWINSZ.toULong(), ws.ptr)
             if (result == 0) {
                 Pair(ws.ws_col.toInt(), ws.ws_row.toInt())
             } else {

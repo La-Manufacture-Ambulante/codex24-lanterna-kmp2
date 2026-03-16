@@ -43,6 +43,7 @@ object Character {
     ): Int = value.digitToIntOrNull(radix) ?: -1
 
     enum class UnicodeBlock {
+        BASIC_LATIN,
         HIRAGANA,
         KATAKANA,
         KATAKANA_PHONETIC_EXTENSIONS,
@@ -66,6 +67,7 @@ object Character {
             fun of(value: Char): UnicodeBlock? {
                 val code = value.code
                 return when {
+                    code in 0x0000..0x007F -> BASIC_LATIN
                     code in 0x0E00..0x0E7F -> THAI
                     code in 0x3040..0x309F -> HIRAGANA
                     code in 0x30A0..0x30FF -> KATAKANA
@@ -82,7 +84,8 @@ object Character {
                     code in 0x3000..0x303F -> CJK_SYMBOLS_AND_PUNCTUATION
                     code in 0x3200..0x32FF -> ENCLOSED_CJK_LETTERS_AND_MONTHS
                     code in 0xFF00..0xFFEF -> HALFWIDTH_AND_FULLWIDTH_FORMS
-                    else -> SPECIALS
+                    code in 0xFFF0..0xFFFF -> SPECIALS
+                    else -> BASIC_LATIN
                 }
             }
         }

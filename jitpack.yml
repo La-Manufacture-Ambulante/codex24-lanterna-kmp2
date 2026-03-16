@@ -1,2 +1,6 @@
 jdk:
-  - openjdk9
+  - openjdk17
+install:
+  - chmod +x ./kmp/gradlew
+  - cd kmp
+  - ./gradlew --no-daemon :lanterna-core-kmp:publishToMavenLocal
