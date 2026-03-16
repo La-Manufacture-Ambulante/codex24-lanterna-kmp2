@@ -11,11 +11,21 @@ fi
 
 DRY_RUN="${1:-}"
 RUNNER=("$GRADLEW" -p "$ROOT_DIR" --no-daemon)
-TASKS=(
+TASKS_JVM_BASELINE=(
+  ":lanterna-core-kmp:check"
+  ":lanterna-core-kmp:dokkaHtml"
+  ":lanterna-core-kmp:publishJvmPublicationToMavenLocal"
+)
+TASKS_FULL_NATIVE=(
   ":lanterna-core-kmp:check"
   ":lanterna-core-kmp:dokkaHtml"
   ":lanterna-core-kmp:publishToMavenLocal"
 )
+
+TASKS=("${TASKS_JVM_BASELINE[@]}")
+if [[ "$DRY_RUN" == "--full-native" ]]; then
+  TASKS=("${TASKS_FULL_NATIVE[@]}")
+fi
 
 echo "Prepublication smoke checks:"
 for task in "${TASKS[@]}"; do

@@ -29,6 +29,11 @@ Prepublication smoke script:
 ./kmp/scripts/prepublish_smoke.sh
 ```
 
+Optional full native publication attempt:
+```bash
+./kmp/scripts/prepublish_smoke.sh --full-native
+```
+
 ## Documentation (Dokka)
 Generate API docs locally:
 ```bash

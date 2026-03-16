@@ -18,6 +18,11 @@
 ```bash
 ./kmp/gradlew -p kmp :lanterna-core-kmp:check --no-daemon
 ./kmp/gradlew -p kmp :lanterna-core-kmp:dokkaHtml --no-daemon
+./kmp/gradlew -p kmp :lanterna-core-kmp:publishJvmPublicationToMavenLocal --no-daemon
+```
+
+Optional full native publication validation:
+```bash
 ./kmp/gradlew -p kmp :lanterna-core-kmp:publishToMavenLocal --no-daemon
 ```
 

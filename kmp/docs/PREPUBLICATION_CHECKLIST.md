@@ -8,7 +8,8 @@ Use this checklist before cutting a release or declaring publication-ready state
 - [ ] No duplicated/obsolete workflow triggers creating redundant runs.
 
 ## 2. Artifact integrity
-- [ ] `:lanterna-core-kmp:publishToMavenLocal` succeeds.
+- [ ] JVM publication baseline succeeds (`:publishJvmPublicationToMavenLocal`).
+- [ ] Full native publication path (`:publishToMavenLocal`) is validated when native metadata blockers are resolved.
 - [ ] Published modules include expected targets for this branch.
 - [ ] JitPack (if used for branch validation) reports `status: ok` for head version.
 
