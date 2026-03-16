@@ -24,6 +24,11 @@ Kotlin Multiplatform migration workspace for Lanterna in the codex24 fork.
 ./gradlew -p kmp :lanterna-core-kmp:publishToMavenLocal --no-daemon
 ```
 
+Prepublication smoke script:
+```bash
+./kmp/scripts/prepublish_smoke.sh
+```
+
 ## Documentation (Dokka)
 Generate API docs locally:
 ```bash
