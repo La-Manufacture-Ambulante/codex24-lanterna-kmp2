@@ -25,6 +25,7 @@
 Use GitHub Actions workflow `Publish KMP Artifacts` and set:
 - `release_version` input (optional)
 - repository secrets (`OSSRH_*`, `SIGNING_*`)
+- repository setup per `kmp/docs/CI_SECRETS_AND_SETTINGS.md`
 
 ## Post-Publish Verification
 - Confirm published coordinates in target repository.

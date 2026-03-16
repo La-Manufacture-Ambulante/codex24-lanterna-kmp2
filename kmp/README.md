@@ -68,3 +68,4 @@ Command:
 - Runbook: `kmp/docs/RELEASING.md`
 - API policy: `kmp/docs/API_COMPATIBILITY.md`
 - Operational checklist: `kmp/docs/PREPUBLICATION_CHECKLIST.md`
+- CI settings and secrets: `kmp/docs/CI_SECRETS_AND_SETTINGS.md`
