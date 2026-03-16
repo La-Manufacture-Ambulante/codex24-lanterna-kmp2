@@ -14,7 +14,7 @@ kotlin {
     targets.withType<KotlinNativeTarget>().configureEach {
         binaries {
             executable {
-                entryPoint = "com.googlecode.lanterna.examples.nativeSnapshotMain"
+                entryPoint = "com.alaeri.snapshots.nativeSnapshotMain"
             }
             executable("keyInputRepro") {
                 entryPoint = "com.alaeri.keyInputReproMain"

@@ -13,11 +13,12 @@ class KeyInputReproApp(private val screen: Screen) {
             while (running) {
                 val key = screen.readInput()
                 val keyTypeName = key?.keyType?.toString() ?: "null"
-                val line = if (key == null) {
-                    "null key"
-                } else {
-                    "keyType=$keyTypeName char=${key.character ?: '-'} raw=$key"
-                }
+                val line =
+                    if (key == null) {
+                        "null key"
+                    } else {
+                        "keyType=$keyTypeName char=${key.character ?: '-'} raw=$key"
+                    }
                 history.addLast(line)
                 if (history.size == 1 && keyTypeName.uppercase() == "EOF") {
                     history.addLast("hint: immediate EOF usually means stdin is not tty-backed.")
