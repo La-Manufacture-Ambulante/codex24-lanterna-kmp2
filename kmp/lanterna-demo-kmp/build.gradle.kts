@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
-    kotlin("multiplatform") version "2.1.21"
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
+    kotlin("multiplatform")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 kotlin {
@@ -10,6 +10,7 @@ kotlin {
     linuxX64()
     macosX64()
     macosArm64()
+    mingwX64()
 
     targets.withType<KotlinNativeTarget>().configureEach {
         binaries {
@@ -27,6 +28,21 @@ kotlin {
             dependencies {
                 implementation(project(":lanterna-core-kmp"))
             }
+        }
+        val nativeMain by creating {
+            dependsOn(commonMain)
+        }
+        val linuxX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val macosX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val macosArm64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val mingwX64Main by getting {
+            dependsOn(nativeMain)
         }
         val commonTest by getting
         val jvmMain by getting
