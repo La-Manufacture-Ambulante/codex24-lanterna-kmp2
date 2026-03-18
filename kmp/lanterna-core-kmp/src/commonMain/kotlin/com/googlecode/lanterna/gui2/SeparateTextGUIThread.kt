@@ -19,10 +19,10 @@
 package com.googlecode.lanterna.gui2
 
 import com.googlecode.lanterna.internal.concurrency.PlatformCountdownLatch
-import com.googlecode.lanterna.internal.concurrency.PlatformThread
+import com.googlecode.lanterna.internal.concurrency.PlatformTaskHandle
+import com.googlecode.lanterna.internal.concurrency.PlatformTaskRuntime
 import com.googlecode.lanterna.internal.concurrency.PlatformThreadToken
 import com.googlecode.lanterna.internal.concurrency.currentThreadToken
-import com.googlecode.lanterna.internal.concurrency.sleepCurrentThread
 
 /**
  * Default implementation of [TextGUIThread] that runs the GUI loop on a dedicated thread.
@@ -36,11 +36,7 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
             private set
 
         private val waitLatch = PlatformCountdownLatch(1)
-
-        private val thread =
-            PlatformThread("LanternaGUI") {
-                mainGUILoop()
-            }
+        private var runtimeTaskHandle: PlatformTaskHandle? = null
 
         override val state: AsynchronousTextGUIThread.State
             get() = _state
@@ -49,8 +45,9 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
             if (_state != AsynchronousTextGUIThread.State.CREATED) {
                 return
             }
+            PlatformTaskRuntime.configureExecutionModeFromEnvironment()
             _state = AsynchronousTextGUIThread.State.STARTED
-            thread.start()
+            runtimeTaskHandle = PlatformTaskRuntime.launch("LanternaGUI") { mainGUILoop() }
         }
 
         override fun stop() {
@@ -65,7 +62,12 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
         }
 
         override fun waitForStop(timeoutMillis: Long): Boolean {
-            return waitLatch.await(timeoutMillis)
+            val localHandle = runtimeTaskHandle
+            return if (localHandle == null) {
+                waitLatch.await(timeoutMillis)
+            } else {
+                localHandle.awaitCompletion(timeoutMillis)
+            }
         }
 
         override fun invokeLater(task: GuiTask?) {
@@ -89,9 +91,13 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
                 }
 
                 while (_state == AsynchronousTextGUIThread.State.STARTED) {
+                    if (!PlatformTaskRuntime.cooperativeCancelCheckpoint()) {
+                        stop()
+                        break
+                    }
                     val didWork = processEventsAndUpdate()
                     if (!didWork) {
-                        sleepCurrentThread(1)
+                        PlatformTaskRuntime.backoffWait(1)
                     }
                 }
             } catch (t: Throwable) {
@@ -100,6 +106,7 @@ class SeparateTextGUIThread private constructor(textGUI: TextGUI) :
                 }
             } finally {
                 _state = AsynchronousTextGUIThread.State.STOPPED
+                runtimeTaskHandle = null
                 waitLatch.countDown()
             }
         }

@@ -29,7 +29,7 @@ import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.input.MouseAction
 import com.googlecode.lanterna.internal.compat.AtomicBoolean
 import com.googlecode.lanterna.internal.compat.IdentityHashMap
-import com.googlecode.lanterna.internal.concurrency.sleepCurrentThread
+import com.googlecode.lanterna.internal.concurrency.PlatformTaskRuntime
 import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.VirtualScreen
 import kotlin.collections.ArrayList
@@ -376,6 +376,9 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
     override fun waitForWindowToClose(abstractWindow: Window?) {
         val window = abstractWindow ?: return
         while (window.textGUI != null) {
+            if (!PlatformTaskRuntime.cooperativeCancelCheckpoint()) {
+                break
+            }
             var sleep = true
             val guiThread = guiThread
             if (guiThread?.isCallingThread() == true) {
@@ -386,7 +389,7 @@ class MultiWindowTextGUI : AbstractTextGUI, WindowBasedTextGUI {
                 }
             }
             if (sleep) {
-                sleepCurrentThread(1)
+                PlatformTaskRuntime.backoffWait(1)
             }
         }
     }

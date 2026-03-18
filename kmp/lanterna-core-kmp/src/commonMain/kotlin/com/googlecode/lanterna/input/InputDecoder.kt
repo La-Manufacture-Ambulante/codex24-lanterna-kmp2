@@ -22,7 +22,7 @@ import com.googlecode.lanterna.input.CharacterPattern.Matching
 import com.googlecode.lanterna.internal.compat.BufferedReader
 import com.googlecode.lanterna.internal.compat.Reader
 import com.googlecode.lanterna.internal.compat.synchronizedCompat
-import com.googlecode.lanterna.internal.concurrency.sleepCurrentThread
+import com.googlecode.lanterna.internal.concurrency.PlatformTaskRuntime
 import com.googlecode.lanterna.internal.io.IOException
 
 /**
@@ -138,7 +138,7 @@ class InputDecoder(source: Reader?) {
                     while (timeout > 0 && !source!!.ready()) {
                         try {
                             timeout--
-                            sleepCurrentThread(250)
+                            PlatformTaskRuntime.backoffWait(250)
                         } catch (e: Throwable) {
                             timeout = 0
                         }
