@@ -82,8 +82,9 @@ abstract class AbstractTextGUI protected constructor(textGUIThreadFactory: TextG
     override var theme: Theme?
         get() = guiTheme
         set(value) {
-            if (value != null) {
+            if (value != null && value !== guiTheme) {
                 guiTheme = value
+                invalidate()
             }
         }
 
