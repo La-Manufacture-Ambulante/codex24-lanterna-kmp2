@@ -56,6 +56,21 @@ jobs:
       - name: KMP JVM checks
         run: ./kmp/gradlew -p kmp :lanterna-core-kmp:check :lanterna-demo-kmp:check --no-daemon
 
+      - name: Preserve KMP JVM check reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kmp-check-reports-${{ matrix.os }}
+          path: |
+            kmp/lanterna-core-kmp/build/reports/tests/**
+            kmp/lanterna-core-kmp/build/test-results/**
+            kmp/lanterna-core-kmp/build/reports/ktlint/**
+            kmp/lanterna-demo-kmp/build/reports/tests/**
+            kmp/lanterna-demo-kmp/build/test-results/**
+            kmp/lanterna-demo-kmp/build/reports/ktlint/**
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Render JVM demo snapshot
         run: ./kmp/gradlew -p kmp :lanterna-demo-kmp:jvmRenderSnapshot --no-daemon
 
