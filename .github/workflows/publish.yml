@@ -1,0 +1,65 @@
+name: Publish KMP Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Optional release version (defaults to VERSION_NAME/JITPACK_VERSION)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish-kmp:
+    name: Publish lanterna-core-kmp
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Verify credentials are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=0
+          for k in OSSRH_URL OSSRH_USERNAME OSSRH_PASSWORD; do
+            if [ -z "${!k:-}" ]; then
+              echo "Missing required secret/env: $k"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "Publication secrets are not fully configured."
+            exit 1
+          fi
+        env:
+          OSSRH_URL: ${{ secrets.OSSRH_URL }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+
+      - name: Publish to Maven Local (preflight)
+        run: ./kmp/gradlew -p kmp :lanterna-core-kmp:publishToMavenLocal --no-daemon --stacktrace
+
+      - name: Publish to configured OSSRH repository
+        run: ./kmp/gradlew -p kmp :lanterna-core-kmp:publish --no-daemon --stacktrace
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+          OSSRH_URL: ${{ secrets.OSSRH_URL }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}

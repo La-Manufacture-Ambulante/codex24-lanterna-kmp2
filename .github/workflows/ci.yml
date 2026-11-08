@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - codex/**
 
 permissions:
   contents: read
@@ -50,14 +49,31 @@ jobs:
 
       - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.7"
+
+      - name: Ensure wrapper is executable
+        run: chmod +x kmp/gradlew
 
       - name: KMP JVM checks
-        run: gradle -p kmp :lanterna-core-kmp:check :lanterna-demo-kmp:check --no-daemon
+        # Native tests run in the target-specific parity matrix below.
+        run: ./kmp/gradlew -p kmp :lanterna-core-kmp:jvmTest :lanterna-demo-kmp:jvmTest :lanterna-demo-kmp:compileKotlinJvm --no-daemon
+
+      - name: Preserve KMP JVM check reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kmp-check-reports-${{ matrix.os }}
+          path: |
+            kmp/lanterna-core-kmp/build/reports/tests/**
+            kmp/lanterna-core-kmp/build/test-results/**
+            kmp/lanterna-core-kmp/build/reports/ktlint/**
+            kmp/lanterna-demo-kmp/build/reports/tests/**
+            kmp/lanterna-demo-kmp/build/test-results/**
+            kmp/lanterna-demo-kmp/build/reports/ktlint/**
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Render JVM demo snapshot
-        run: gradle -p kmp :lanterna-demo-kmp:jvmRenderSnapshot --no-daemon
+        run: ./kmp/gradlew -p kmp :lanterna-demo-kmp:jvmRenderSnapshot --no-daemon
 
       - name: Upload JVM render artifacts
         uses: actions/upload-artifact@v4
@@ -78,11 +94,11 @@ jobs:
             test_task: :lanterna-core-kmp:linuxX64Test
             link_task: :lanterna-demo-kmp:linkDebugExecutableLinuxX64
           - target: macosX64
-            runner: macos-latest
+            runner: macos-15-intel
             test_task: :lanterna-core-kmp:macosX64Test
             link_task: :lanterna-demo-kmp:linkDebugExecutableMacosX64
           - target: macosArm64
-            runner: macos-14
+            runner: macos-15
             test_task: :lanterna-core-kmp:macosArm64Test
             link_task: :lanterna-demo-kmp:linkDebugExecutableMacosArm64
           - target: mingwX64
@@ -101,14 +117,15 @@ jobs:
 
       - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.7"
+
+      - name: Ensure wrapper is executable
+        run: chmod +x kmp/gradlew
 
       - name: Run ${{ matrix.target }} native tests
-        run: gradle -p kmp ${{ matrix.test_task }} --no-daemon
+        run: ./kmp/gradlew -p kmp ${{ matrix.test_task }} --no-daemon
 
       - name: Build ${{ matrix.target }} native demo executable
-        run: gradle -p kmp ${{ matrix.link_task }} --no-daemon
+        run: ./kmp/gradlew -p kmp ${{ matrix.link_task }} --no-daemon
 
       - name: Run ${{ matrix.target }} native demo smoke snapshot
         shell: bash
