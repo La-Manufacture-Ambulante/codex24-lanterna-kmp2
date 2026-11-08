@@ -54,7 +54,8 @@ jobs:
         run: chmod +x kmp/gradlew
 
       - name: KMP JVM checks
-        run: ./kmp/gradlew -p kmp :lanterna-core-kmp:check :lanterna-demo-kmp:check --no-daemon
+        # Native tests run in the target-specific parity matrix below.
+        run: ./kmp/gradlew -p kmp :lanterna-core-kmp:jvmTest :lanterna-demo-kmp:jvmTest :lanterna-demo-kmp:compileKotlinJvm --no-daemon
 
       - name: Preserve KMP JVM check reports
         if: always()
