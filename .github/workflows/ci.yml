@@ -93,11 +93,11 @@ jobs:
             test_task: :lanterna-core-kmp:linuxX64Test
             link_task: :lanterna-demo-kmp:linkDebugExecutableLinuxX64
           - target: macosX64
-            runner: macos-latest
+            runner: macos-15-intel
             test_task: :lanterna-core-kmp:macosX64Test
             link_task: :lanterna-demo-kmp:linkDebugExecutableMacosX64
           - target: macosArm64
-            runner: macos-14
+            runner: macos-15
             test_task: :lanterna-core-kmp:macosArm64Test
             link_task: :lanterna-demo-kmp:linkDebugExecutableMacosArm64
           - target: mingwX64
